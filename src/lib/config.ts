@@ -7,7 +7,10 @@ export const config = {
 export const routes = {
   signIn: "/sign-in",
   signUp: "/sign-up",
-  dashboard: "/dashboard",
+  dashboard: "/analyzer",
   authCallback: "/auth/callback",
   onboardingCompanyInfo: "/onboarding/company-info",
+  analyzer: "/analyzer",
+  analyzerResults: (runId: string | number) => `/analyzer/${runId}`,
+  analyzerReport: (runId: string | number) => `/analyzer/${runId}/report`,
 } as const;

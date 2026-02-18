@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/onboarding"];
+const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/analyzer"];
 const SESSION_COOKIE = "better-auth.session_token";
 
 export function middleware(request: NextRequest) {
@@ -19,5 +19,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/onboarding/:path*"],
+  matcher: ["/dashboard/:path*", "/onboarding/:path*", "/analyzer/:path*"],
 };
