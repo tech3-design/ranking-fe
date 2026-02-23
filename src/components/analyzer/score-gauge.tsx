@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { motion, useSpring, useTransform } from "framer-motion";
+
 function getScoreColor(score: number): string {
   if (score >= 80) return "#00b894";
   if (score >= 60) return "#fdcb6e";
@@ -14,6 +17,20 @@ function getScoreLabel(score: number): string {
   return "Poor";
 }
 
+function AnimatedNumber({ value }: { value: number }) {
+  const spring = useSpring(0, { stiffness: 50, damping: 20 });
+  const display = useTransform(spring, (v) => Math.round(v));
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    spring.set(value);
+    const unsubscribe = display.on("change", (v) => setCurrent(v));
+    return unsubscribe;
+  }, [value, spring, display]);
+
+  return <>{current}</>;
+}
+
 interface ScoreGaugeProps {
   score: number;
   size?: number;
@@ -26,7 +43,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
   const radius = (size - 20) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (score / 100) * circumference * 0.75;
+  const targetOffset = circumference - (score / 100) * circumference * 0.75;
   const center = size / 2;
 
   return (
@@ -46,7 +63,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
           transform={`rotate(135 ${center} ${center})`}
         />
         {/* Score arc */}
-        <circle
+        <motion.circle
           cx={center}
           cy={center}
           r={radius}
@@ -55,9 +72,10 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
           strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: targetOffset }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
           transform={`rotate(135 ${center} ${center})`}
-          className="transition-all duration-1000 ease-out"
         />
         {/* Score text */}
         <text
@@ -69,7 +87,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
           fontSize="36"
           fontWeight="bold"
         >
-          {Math.round(score)}
+          <AnimatedNumber value={Math.round(score)} />
         </text>
         <text
           x={center}

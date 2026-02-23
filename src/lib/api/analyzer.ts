@@ -4,6 +4,7 @@ export interface StartAnalysisPayload {
   url: string;
   run_type: "single_page" | "full_site";
   email?: string;
+  brand_name?: string;
 }
 
 export interface StartAnalysisResponse {
@@ -77,9 +78,32 @@ export interface AnalysisRunList {
   created_at: string;
 }
 
+export interface LLMLog {
+  model: string;
+  model_id: string;
+  purpose: string;
+  prompt: string;
+  response: string;
+  status: "success" | "error";
+  duration_ms: number;
+}
+
+export interface BrandVisibility {
+  google_score: number;
+  google_details: Record<string, unknown>;
+  reddit_score: number;
+  reddit_details: Record<string, unknown>;
+  medium_score: number;
+  medium_details: Record<string, unknown>;
+  web_mentions_score: number;
+  web_mentions_details: Record<string, unknown>;
+  overall_score: number;
+}
+
 export interface AnalysisRunDetail {
   id: number;
   url: string;
+  brand_name: string;
   email: string;
   run_type: string;
   status: string;
@@ -92,6 +116,8 @@ export interface AnalysisRunDetail {
   competitors: Competitor[];
   recommendations: Recommendation[];
   ai_probes: AIProbe[];
+  brand_visibility: BrandVisibility | null;
+  llm_logs: LLMLog[];
 }
 
 export async function startAnalysis(

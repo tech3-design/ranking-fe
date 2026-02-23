@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MovingBorder } from "@/components/ui/moving-border";
 import { startAnalysis } from "@/lib/api/analyzer";
 import { useAnalyzerStore } from "@/lib/stores/analyzer-store";
 import { routes } from "@/lib/config";
 
 export function UrlInputForm({ email }: { email?: string }) {
   const [url, setUrl] = useState("");
-  const [runType, setRunType] = useState<"single_page" | "full_site">(
-    "single_page",
-  );
+  const [brandName, setBrandName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -36,8 +36,9 @@ export function UrlInputForm({ email }: { email?: string }) {
 
       const result = await startAnalysis({
         url: normalizedUrl,
-        run_type: runType,
+        run_type: "single_page",
         email,
+        brand_name: brandName.trim() || undefined,
       });
 
       reset();
@@ -52,58 +53,55 @@ export function UrlInputForm({ email }: { email?: string }) {
   }
 
   return (
-    <Card className="w-full max-w-xl">
-      <CardHeader>
-        <CardTitle className="text-2xl">GEO Analyzer</CardTitle>
-        <p className="text-muted-foreground text-sm">
-          Analyze how well your website is optimized for AI search engines
-        </p>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="url">Website URL</Label>
-            <Input
-              id="url"
-              type="text"
-              placeholder="https://example.com"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Analysis Type</Label>
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant={runType === "single_page" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setRunType("single_page")}
-              >
-                Single Page
-              </Button>
-              <Button
-                type="button"
-                variant={runType === "full_site" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setRunType("full_site")}
-              >
-                Full Site (up to 20 pages)
-              </Button>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
+      <Card className="w-full max-w-xl backdrop-blur-xl bg-card/50 border-border/50 shadow-2xl">
+        <CardHeader>
+          <CardTitle className="text-2xl gradient-text">GEO Analyzer</CardTitle>
+          <p className="text-muted-foreground text-sm">
+            Analyze how well your website is optimized for AI search engines
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="url">Website URL</Label>
+              <Input
+                id="url"
+                type="text"
+                placeholder="https://example.com"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                required
+              />
             </div>
-          </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="brand-name">Brand Name (optional)</Label>
+              <Input
+                id="brand-name"
+                type="text"
+                placeholder="Auto-detected from URL if empty"
+                value={brandName}
+                onChange={(e) => setBrandName(e.target.value)}
+              />
+            </div>
 
-          <Button type="submit" className="w-full" disabled={loading || !url.trim()}>
-            {loading ? "Starting Analysis..." : "Analyze Now"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+
+            <MovingBorder>
+              <Button type="submit" className="w-full relative" disabled={loading || !url.trim()}>
+                {loading ? "Starting Analysis..." : "Analyze Now"}
+              </Button>
+            </MovingBorder>
+          </form>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

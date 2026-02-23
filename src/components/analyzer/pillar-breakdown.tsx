@@ -7,12 +7,12 @@ interface PillarBreakdownProps {
 }
 
 const PILLARS = [
-  { key: "content_score", label: "Content", color: "#6c5ce7" },
-  { key: "schema_score", label: "Schema", color: "#00b894" },
-  { key: "eeat_score", label: "E-E-A-T", color: "#fdcb6e" },
-  { key: "technical_score", label: "Technical", color: "#0984e3" },
-  { key: "entity_score", label: "Entity", color: "#e17055" },
-  { key: "ai_visibility_score", label: "AI Visibility", color: "#a29bfe" },
+  { key: "content_score", label: "Content", color: "#6c5ce7", weight: "10%" },
+  { key: "schema_score", label: "Schema", color: "#00b894", weight: "10%" },
+  { key: "eeat_score", label: "E-E-A-T", color: "#fdcb6e", weight: "22%" },
+  { key: "technical_score", label: "Technical", color: "#0984e3", weight: "20%" },
+  { key: "entity_score", label: "Entity", color: "#e17055", weight: "20%" },
+  { key: "ai_visibility_score", label: "AI Visibility", color: "#a29bfe", weight: "18%" },
 ] as const;
 
 export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
@@ -111,15 +111,16 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
         })}
       </svg>
 
-      {/* Score list */}
+      {/* Score list with weights */}
       <div className="grid grid-cols-2 gap-2 w-full max-w-xs">
         {PILLARS.map((pillar) => (
           <div key={pillar.key} className="flex items-center gap-2">
             <div
-              className="h-3 w-3 rounded-full"
+              className="h-3 w-3 rounded-full shrink-0"
               style={{ backgroundColor: pillar.color }}
             />
             <span className="text-xs text-muted-foreground">{pillar.label}</span>
+            <span className="text-[10px] text-muted-foreground/60">{pillar.weight}</span>
             <span className="text-xs font-mono ml-auto">
               {Math.round(pageScore[pillar.key] as number)}
             </span>
