@@ -54,14 +54,14 @@ export function RunHistoryList({ email }: RunHistoryListProps) {
 
   if (!runs.length) return null;
 
-  // Show last 8 analyses
-  const recent = runs.slice(0, 8);
+  // Show all analyses
+  const recent = runs;
 
   return (
     <div className="w-full max-w-xl">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-muted-foreground">Recent Analyses</h3>
-        <span className="text-xs text-muted-foreground">{runs.length} total</span>
+        <span className="text-xs text-muted-foreground">•</span>
       </div>
       <div className="rounded-lg border bg-card overflow-hidden divide-y divide-border">
         {recent.map((run) => {

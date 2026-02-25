@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 
 function getScoreColor(score: number): string {
-  if (score >= 80) return "#00b894";
-  if (score >= 60) return "#fdcb6e";
-  if (score >= 40) return "#e17055";
-  return "#d63031";
+  if (score >= 80) return "var(--brand-success)";
+  if (score >= 60) return "var(--brand-warning)";
+  if (score >= 40) return "var(--brand-danger)";
+  return "var(--brand-danger)";
 }
 
 function getScoreLabel(score: number): string {
@@ -47,7 +47,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
   const center = size / 2;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="score-gauge">
       <svg width={size} height={size * 0.65} viewBox={`0 0 ${size} ${size * 0.75}`}>
         {/* Background arc */}
         <circle
@@ -55,7 +55,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
           cy={center}
           r={radius}
           fill="none"
-          stroke="hsl(var(--muted))"
+          stroke="var(--neutral-200)"
           strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={strokeDasharray}
@@ -83,7 +83,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
           y={center - 5}
           textAnchor="middle"
           fill="currentColor"
-          className="text-3xl font-bold"
+          className="score-gauge__score"
           fontSize="36"
           fontWeight="bold"
         >
@@ -101,7 +101,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
         </text>
       </svg>
       {label && (
-        <p className="text-sm text-muted-foreground mt-1">{label}</p>
+        <p className="score-gauge__label">{label}</p>
       )}
     </div>
   );

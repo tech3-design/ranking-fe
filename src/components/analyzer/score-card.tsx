@@ -30,7 +30,7 @@ export function ScoreCard({ title, score, details }: ScoreCardProps) {
             <span
               className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${getScoreBg(score)}`}
             >
-              {Math.round(score)}
+              •
             </span>
           </div>
         </CardHeader>
@@ -38,35 +38,29 @@ export function ScoreCard({ title, score, details }: ScoreCardProps) {
           <div className="space-y-1.5">
             {Object.entries(checks)
               .filter(([, value]) => typeof value !== "object" || value === null)
-              .slice(0, 6)
               .map(([key, value]) => (
-              <div key={key} className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">
-                  {key.replace(/_/g, " ")}
-                </span>
-                <span className="font-mono">
-                  {typeof value === "boolean"
-                    ? value
-                      ? "Pass"
-                      : "Fail"
-                    : String(value ?? "\u2014")}
-                </span>
-              </div>
-            ))}
+                <div key={key} className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">
+                    {key.replace(/_/g, " ")}
+                  </span>
+                  <span className="font-mono">
+                    {typeof value === "boolean"
+                      ? value
+                        ? "Pass"
+                        : "Fail"
+                      : String(value ?? "\u2014")}
+                  </span>
+                </div>
+              ))}
           </div>
           {findings.length > 0 && (
             <div className="mt-3 pt-2 border-t">
               <p className="text-xs text-muted-foreground mb-1">Issues found:</p>
-              {findings.slice(0, 3).map((f) => (
+              {findings.map((f) => (
                 <p key={f} className="text-xs text-destructive">
                   {f.replace(/_/g, " ")}
                 </p>
               ))}
-              {findings.length > 3 && (
-                <p className="text-xs text-muted-foreground">
-                  +{findings.length - 3} more
-                </p>
-              )}
             </div>
           )}
         </CardContent>

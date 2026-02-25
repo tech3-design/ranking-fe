@@ -7,12 +7,12 @@ interface PillarBreakdownProps {
 }
 
 const PILLARS = [
-  { key: "content_score", label: "Content", color: "#6c5ce7", weight: "10%" },
-  { key: "schema_score", label: "Schema", color: "#00b894", weight: "10%" },
-  { key: "eeat_score", label: "E-E-A-T", color: "#fdcb6e", weight: "22%" },
-  { key: "technical_score", label: "Technical", color: "#0984e3", weight: "20%" },
-  { key: "entity_score", label: "Entity", color: "#e17055", weight: "20%" },
-  { key: "ai_visibility_score", label: "AI Visibility", color: "#a29bfe", weight: "18%" },
+  { key: "content_score", label: "Content", color: "var(--brand-primary)" },
+  { key: "schema_score", label: "Schema", color: "var(--brand-success)" },
+  { key: "eeat_score", label: "E-E-A-T", color: "var(--brand-warning)" },
+  { key: "technical_score", label: "Technical", color: "var(--brand-secondary)" },
+  { key: "entity_score", label: "Entity", color: "var(--brand-danger)" },
+  { key: "ai_visibility_score", label: "AI Visibility", color: "var(--brand-primary-light)" },
 ] as const;
 
 export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
@@ -36,7 +36,7 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
   const gridLevels = [0.25, 0.5, 0.75, 1.0];
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="pillar-breakdown">
       <svg width={300} height={300} viewBox="0 0 300 300">
         {/* Grid */}
         {gridLevels.map((level) => {
@@ -51,7 +51,7 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
               key={level}
               points={gridPoints}
               fill="none"
-              stroke="hsl(var(--muted))"
+              stroke="var(--neutral-200)"
               strokeWidth="0.5"
             />
           );
@@ -69,7 +69,7 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
               y1={center}
               x2={x}
               y2={y}
-              stroke="hsl(var(--muted))"
+              stroke="var(--neutral-200)"
               strokeWidth="0.5"
             />
           );
@@ -78,14 +78,22 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
         {/* Score polygon */}
         <polygon
           points={polygonPoints}
-          fill="hsl(var(--primary) / 0.2)"
-          stroke="hsl(var(--primary))"
+          fill="var(--brand-primary)"
+          fillOpacity="0.1"
+          stroke="var(--brand-primary)"
           strokeWidth="2"
+          className="pillar-breakdown__polygon"
         />
 
         {/* Score dots */}
         {points.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r="4" fill={PILLARS[i].color} />
+          <circle
+            key={i}
+            cx={p.x}
+            cy={p.y}
+            r="4"
+            fill={PILLARS[i].color}
+          />
         ))}
 
         {/* Labels */}
@@ -114,13 +122,17 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
       {/* Score list with weights */}
       <div className="grid grid-cols-2 gap-2 w-full max-w-xs">
         {PILLARS.map((pillar) => (
-          <div key={pillar.key} className="flex items-center gap-2">
+          <div
+            key={pillar.key}
+            className="flex items-center gap-2"
+            title={`${pillar.label}: ${Math.round(pageScore[pillar.key] as number)}%`}
+          >
             <div
               className="h-3 w-3 rounded-full shrink-0"
               style={{ backgroundColor: pillar.color }}
             />
             <span className="text-xs text-muted-foreground">{pillar.label}</span>
-            <span className="text-[10px] text-muted-foreground/60">{pillar.weight}</span>
+            <span className="text-[10px] text-muted-foreground/60">{Math.round((pageScore[pillar.key] as number) / 10) * 10}%</span>
             <span className="text-xs font-mono ml-auto">
               {Math.round(pageScore[pillar.key] as number)}
             </span>

@@ -4,7 +4,7 @@ import { apiClient } from "./client";
 
 export interface IntegrationInfo {
   id: number;
-  provider: "google_analytics" | "shopify";
+  provider: "google_analytics" | "shopify" | "wordpress";
   provider_display: string;
   is_active: boolean;
   metadata: Record<string, unknown>;
@@ -157,6 +157,31 @@ export interface ShopifyDataSnapshot {
   created_at: string;
 }
 
+export interface WordPressDataSnapshot {
+  id: number;
+  date_start: string;
+  date_end: string;
+  total_posts: number;
+  total_pages: number;
+  published_posts_30d: number;
+  updated_posts_30d: number;
+  top_posts: Array<{
+    id: number;
+    title: string;
+    slug: string;
+    url: string;
+    published_at: string;
+    modified_at: string;
+  }>;
+  daily_publishing: Array<{
+    date: string;
+    published_posts: number;
+  }>;
+  sync_status: "pending" | "syncing" | "complete" | "failed";
+  error_message: string;
+  created_at: string;
+}
+
 // ---------- Shopify API ----------
 
 export async function connectShopify(
@@ -197,6 +222,57 @@ export async function getShopifyData(
 ): Promise<ShopifyDataSnapshot> {
   const { data } = await apiClient.get<ShopifyDataSnapshot>(
     "/api/integrations/shopify/data/",
+    { params: { email } },
+  );
+  return data;
+}
+
+// ---------- WordPress API ----------
+
+export async function connectWordPress(
+  email: string,
+  siteUrl: string,
+  username: string,
+  appPassword: string,
+): Promise<{ message: string; integration: IntegrationInfo }> {
+  const { data } = await apiClient.post(
+    "/api/integrations/wordpress/connect/",
+    {
+      email,
+      site_url: siteUrl,
+      username,
+      app_password: appPassword,
+    },
+  );
+  return data;
+}
+
+export async function disconnectWordPress(
+  email: string,
+): Promise<{ message: string }> {
+  const { data } = await apiClient.delete(
+    "/api/integrations/wordpress/disconnect/",
+    { params: { email } },
+  );
+  return data;
+}
+
+export async function syncWordPressData(
+  email: string,
+): Promise<{ message: string }> {
+  const { data } = await apiClient.post(
+    "/api/integrations/wordpress/sync/",
+    null,
+    { params: { email } },
+  );
+  return data;
+}
+
+export async function getWordPressData(
+  email: string,
+): Promise<WordPressDataSnapshot> {
+  const { data } = await apiClient.get<WordPressDataSnapshot>(
+    "/api/integrations/wordpress/data/",
     { params: { email } },
   );
   return data;

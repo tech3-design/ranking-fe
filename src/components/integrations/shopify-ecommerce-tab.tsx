@@ -41,6 +41,7 @@ export function ShopifyEcommerceTab({ email }: ShopifyEcommerceTabProps) {
   async function handleSync() {
     setSyncing(true);
     setError(null);
+    let finished = false;
     try {
       await syncShopifyData(email);
       // Poll for completion
@@ -48,10 +49,12 @@ export function ShopifyEcommerceTab({ email }: ShopifyEcommerceTabProps) {
         try {
           const snapshot = await getShopifyData(email);
           if (snapshot.sync_status === "complete") {
+            finished = true;
             setData(snapshot);
             setSyncing(false);
             clearInterval(poll);
           } else if (snapshot.sync_status === "failed") {
+            finished = true;
             setError(snapshot.error_message || "Sync failed.");
             setSyncing(false);
             clearInterval(poll);
@@ -63,7 +66,7 @@ export function ShopifyEcommerceTab({ email }: ShopifyEcommerceTabProps) {
 
       setTimeout(() => {
         clearInterval(poll);
-        if (syncing) {
+        if (!finished) {
           setSyncing(false);
           setError("Sync timed out. Try again later.");
         }

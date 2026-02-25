@@ -42,16 +42,16 @@ export default function SignInPage() {
   const StepComponent = STEP_COMPONENTS[step];
 
   return (
-    <Card>
+    <Card className="glass-card border-border/70 shadow-xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardTitle className="text-2xl md:text-3xl">{title}</CardTitle>
+        <CardDescription className="text-sm">{description}</CardDescription>
       </CardHeader>
       <CardContent>{StepComponent && <StepComponent />}</CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/sign-up" className="text-primary underline">
+          <Link href="/sign-up" className="text-primary font-medium hover:underline">
             Sign up
           </Link>
         </p>

@@ -18,11 +18,14 @@ import {
   getGAAuthUrl,
   disconnectGA,
   disconnectShopify,
+  disconnectWordPress,
   type IntegrationInfo,
 } from "@/lib/api/integrations";
 import { GAPropertySelector } from "@/components/integrations/ga-property-selector";
 import { ShopifyConnectForm } from "@/components/integrations/shopify-connect-form";
 import { ShopifyEcommerceTab } from "@/components/integrations/shopify-ecommerce-tab";
+import { WordPressConnectForm } from "@/components/integrations/wordpress-connect-form";
+import { WordPressContentTab } from "@/components/integrations/wordpress-content-tab";
 
 export default function IntegrationsSettingsPage() {
   const { data: session } = useSession();
@@ -35,6 +38,7 @@ export default function IntegrationsSettingsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [disconnectingShopify, setDisconnectingShopify] = useState(false);
+  const [disconnectingWordPress, setDisconnectingWordPress] = useState(false);
 
   const gaIntegration = integrations.find(
     (i) => i.provider === "google_analytics" && i.is_active,
@@ -44,6 +48,11 @@ export default function IntegrationsSettingsPage() {
   const shopifyIntegration = integrations.find(
     (i) => i.provider === "shopify" && i.is_active,
   );
+
+  const wordpressIntegration = integrations.find(
+    (i) => i.provider === "wordpress" && i.is_active,
+  );
+  const connectedCount = [gaIntegration, shopifyIntegration, wordpressIntegration].filter(Boolean).length;
 
   const loadIntegrations = useCallback(async () => {
     if (!email) return;
@@ -106,6 +115,20 @@ export default function IntegrationsSettingsPage() {
     }
   }
 
+  async function handleDisconnectWordPress() {
+    if (!email) return;
+    setDisconnectingWordPress(true);
+    setError(null);
+    try {
+      await disconnectWordPress(email);
+      setIntegrations((prev) => prev.filter((i) => i.provider !== "wordpress"));
+    } catch {
+      setError("Failed to disconnect WordPress.");
+    } finally {
+      setDisconnectingWordPress(false);
+    }
+  }
+
   if (!session) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -116,23 +139,26 @@ export default function IntegrationsSettingsPage() {
 
   return (
     <div className="min-h-screen p-4 md:p-8">
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-        <Link
-          href={routes.analyzer}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md border border-border hover:bg-accent"
-        >
-          Analyzer
-        </Link>
-        <ThemeToggle />
-      </div>
-
-      <div className="mx-auto max-w-2xl space-y-6 pt-12">
-        <div>
-          <h1 className="text-2xl font-bold">Integrations</h1>
-          <p className="text-muted-foreground mt-1">
-            Connect external services to see real data alongside your GEO
-            scores.
-          </p>
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold">Integrations</h1>
+            <p className="mt-1 text-muted-foreground">
+              Connect services to enrich your GEO analysis with real business data.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
+              {connectedCount}/3 connected
+            </span>
+            <Link
+              href={routes.analyzer}
+              className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              Analyzer
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
 
         {error && (
@@ -142,7 +168,7 @@ export default function IntegrationsSettingsPage() {
         )}
 
         {/* Google Analytics Card */}
-        <Card>
+        <Card className="glass-card border-border/70">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <svg
@@ -175,37 +201,43 @@ export default function IntegrationsSettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? (
-              <p className="text-sm text-muted-foreground">
-                Checking connection status...
-              </p>
+              <p className="text-sm text-muted-foreground">Checking connection status...</p>
             ) : gaIntegration ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-green-500" />
-                    <span className="text-sm font-medium">Connected</span>
-                    {typeof gaIntegration.metadata?.property_name === "string" &&
-                      gaIntegration.metadata.property_name && (
-                        <span className="text-sm text-muted-foreground">
-                          &mdash; {gaIntegration.metadata.property_name}
-                        </span>
-                      )}
+                <div className="rounded-md border border-border/70 bg-background/70 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-green-500" />
+                      <span className="text-sm font-medium">Connected</span>
+                      {typeof gaIntegration.metadata?.property_name === "string" &&
+                        gaIntegration.metadata.property_name && (
+                          <span className="text-sm text-muted-foreground">
+                            &mdash; {gaIntegration.metadata.property_name}
+                          </span>
+                        )}
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDisconnect}
+                      disabled={disconnecting}
+                    >
+                      {disconnecting ? "Disconnecting..." : "Disconnect"}
+                    </Button>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleDisconnect}
-                    disabled={disconnecting}
-                  >
-                    {disconnecting ? "Disconnecting..." : "Disconnect"}
-                  </Button>
                 </div>
 
-                {!hasProperty && (
+                {!hasProperty ? (
                   <GAPropertySelector
                     email={email}
                     onPropertySelected={loadIntegrations}
                   />
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs text-green-600">
+                      Property selected
+                    </span>
+                  </div>
                 )}
               </div>
             ) : (
@@ -221,7 +253,7 @@ export default function IntegrationsSettingsPage() {
         </Card>
 
         {/* Shopify Card */}
-        <Card>
+        <Card className="glass-card border-border/70">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <svg
@@ -246,30 +278,30 @@ export default function IntegrationsSettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? (
-              <p className="text-sm text-muted-foreground">
-                Checking connection status...
-              </p>
+              <p className="text-sm text-muted-foreground">Checking connection status...</p>
             ) : shopifyIntegration ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-green-500" />
-                    <span className="text-sm font-medium">Connected</span>
-                    {typeof shopifyIntegration.metadata?.shop_name === "string" &&
-                      shopifyIntegration.metadata.shop_name && (
-                        <span className="text-sm text-muted-foreground">
-                          &mdash; {shopifyIntegration.metadata.shop_name}
-                        </span>
-                      )}
+                <div className="rounded-md border border-border/70 bg-background/70 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-green-500" />
+                      <span className="text-sm font-medium">Connected</span>
+                      {typeof shopifyIntegration.metadata?.shop_name === "string" &&
+                        shopifyIntegration.metadata.shop_name && (
+                          <span className="text-sm text-muted-foreground">
+                            &mdash; {shopifyIntegration.metadata.shop_name}
+                          </span>
+                        )}
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDisconnectShopify}
+                      disabled={disconnectingShopify}
+                    >
+                      {disconnectingShopify ? "Disconnecting..." : "Disconnect"}
+                    </Button>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleDisconnectShopify}
-                    disabled={disconnectingShopify}
-                  >
-                    {disconnectingShopify ? "Disconnecting..." : "Disconnect"}
-                  </Button>
                 </div>
                 <ShopifyEcommerceTab email={email} />
               </div>
@@ -278,6 +310,65 @@ export default function IntegrationsSettingsPage() {
                 email={email}
                 onConnected={loadIntegrations}
               />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* WordPress Card */}
+        <Card className="glass-card border-border/70">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <svg
+                className="size-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+                <path
+                  d="M7.8 9.2h.2c.5 2.1 1.6 4.6 2.8 6.6M12 6.2c-.8 2.6-2 5.2-3.6 7.6M12.5 17.7c1.5-2.5 2.5-5.3 3.1-8.1h.7"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+              WordPress
+            </CardTitle>
+            <CardDescription>
+              Connect your WordPress site to track publishing activity and content output.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Checking connection status...</p>
+            ) : wordpressIntegration ? (
+              <div className="space-y-4">
+                <div className="rounded-md border border-border/70 bg-background/70 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-green-500" />
+                      <span className="text-sm font-medium">Connected</span>
+                      {typeof wordpressIntegration.metadata?.site_name === "string" &&
+                        wordpressIntegration.metadata.site_name && (
+                          <span className="text-sm text-muted-foreground">
+                            &mdash; {wordpressIntegration.metadata.site_name}
+                          </span>
+                        )}
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDisconnectWordPress}
+                      disabled={disconnectingWordPress}
+                    >
+                      {disconnectingWordPress ? "Disconnecting..." : "Disconnect"}
+                    </Button>
+                  </div>
+                </div>
+                <WordPressContentTab email={email} />
+              </div>
+            ) : (
+              <WordPressConnectForm email={email} onConnected={loadIntegrations} />
             )}
           </CardContent>
         </Card>

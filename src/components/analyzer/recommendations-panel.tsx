@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,25 @@ const PILLAR_LABELS: Record<string, string> = {
   ai_visibility: "AI Visibility",
 };
 
+const POINTS_MAP: Record<string, number> = {
+  critical: 50,
+  high: 30,
+  medium: 20,
+  low: 10,
+  schema: 40,
+  technical: 30,
+  eeat: 35,
+  entity: 45,
+  content: 25,
+  ai_visibility: 40,
+};
+
+function getPointsForRecommendation(rec: Recommendation): number {
+  const priorityPoints = POINTS_MAP[rec.priority] || 10;
+  const categoryPoints = POINTS_MAP[rec.category] || 10;
+  return Math.max(priorityPoints, categoryPoints);
+}
+
 const ACTION_ICONS: Record<string, { icon: string; label: string }> = {
   schema: { icon: "{ }", label: "Copy Code" },
   technical: { icon: "\u2699", label: "Copy Config" },
@@ -38,7 +57,6 @@ const ACTION_ICONS: Record<string, { icon: string; label: string }> = {
 };
 
 function extractCodeBlocks(text: string): { parts: Array<{ type: "text" | "code"; content: string }> } {
-  // Detect lines that look like code/config (HTML tags, JSON, robots.txt rules)
   const lines = text.split("\n");
   const parts: Array<{ type: "text" | "code"; content: string }> = [];
   let currentCode: string[] = [];
@@ -77,7 +95,7 @@ function extractCodeBlocks(text: string): { parts: Array<{ type: "text" | "code"
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = useCallback(async (e: React.MouseEvent) => {
+  const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText(text);
@@ -86,31 +104,11 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     } catch {
       // fallback
     }
-  }, [text]);
+  };
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleCopy}
-      className="h-7 text-xs gap-1.5 shrink-0"
-    >
-      {copied ? (
-        <>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          Copied!
-        </>
-      ) : (
-        <>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-          </svg>
-          {label}
-        </>
-      )}
+    <Button variant="outline" size="sm" onClick={handleCopy} className="h-7 text-xs gap-1.5 shrink-0">
+      {copied ? "Copied!" : label}
     </Button>
   );
 }
@@ -120,7 +118,6 @@ function ActionSteps({ action, category }: { action: string; category: string })
   const hasSteps = action.includes("STEP ") || action.includes("Step ");
 
   if (category === "entity" && (action.includes("reddit") || action.includes("Reddit") || action.includes("Medium") || action.includes("medium"))) {
-    // Render community posting guide with step-by-step cards
     return <CommunityGuide action={action} />;
   }
 
@@ -155,7 +152,6 @@ function formatActionText(text: string, hasSteps: boolean) {
     const trimmed = line.trim();
     if (!trimmed) return <br key={i} />;
 
-    // Step headers
     if (/^STEP \d/i.test(trimmed)) {
       return (
         <div key={i} className="flex items-center gap-2 mt-3 mb-1 first:mt-0">
@@ -169,7 +165,6 @@ function formatActionText(text: string, hasSteps: boolean) {
       );
     }
 
-    // Bullet points
     if (trimmed.startsWith("•") || trimmed.startsWith("-")) {
       return (
         <div key={i} className="flex gap-2 ml-7 text-muted-foreground">
@@ -179,7 +174,6 @@ function formatActionText(text: string, hasSteps: boolean) {
       );
     }
 
-    // PRO TIP
     if (trimmed.startsWith("PRO TIP")) {
       return (
         <div key={i} className="mt-3 p-2.5 rounded-md bg-primary/5 border border-primary/10">
@@ -189,7 +183,6 @@ function formatActionText(text: string, hasSteps: boolean) {
       );
     }
 
-    // AVOID/USE comparisons
     if (trimmed.startsWith("AVOID:") || trimmed.startsWith("- AVOID:") || trimmed.startsWith("BAD:") || trimmed.startsWith("- BAD:")) {
       return (
         <div key={i} className="flex gap-2 ml-7">
@@ -213,7 +206,6 @@ function formatActionText(text: string, hasSteps: boolean) {
 
 function CommunityGuide({ action }: { action: string }) {
   const isReddit = action.toLowerCase().includes("reddit");
-  const lines = action.split("\n");
 
   return (
     <div className="space-y-3">
@@ -223,67 +215,9 @@ function CommunityGuide({ action }: { action: string }) {
           {isReddit ? "Reddit Posting Playbook" : "Medium Publishing Playbook"}
         </span>
       </div>
-
       <div className="text-xs whitespace-pre-wrap leading-relaxed">
-        {formatActionText(lines.join("\n"), true)}
+        {formatActionText(action, true)}
       </div>
-
-      {isReddit && (
-        <div className="p-3 rounded-md bg-orange-500/5 border border-orange-500/10">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">
-              Reddit Post Template
-            </span>
-            <CopyButton
-              text={`Title: How we solved [specific problem] — lessons learned\n\nHey r/[subreddit]!\n\nWe recently tackled [problem] and wanted to share what worked (and what didn't).\n\n**The Problem:**\n[Describe the challenge in 2-3 sentences]\n\n**What We Tried:**\n1. [First approach] — didn't work because...\n2. [Second approach] — partially worked but...\n3. [What actually worked] — here's why...\n\n**Results:**\n- [Specific metric] improved by X%\n- [Another metric] went from A to B\n- Timeline: [how long it took]\n\n**Key Takeaways:**\n- [Lesson 1]\n- [Lesson 2]\n- [Lesson 3]\n\nHappy to answer questions about our approach!\n\n---\n*[Your Name] — [Your Role] at [Your Brand]*`}
-              label="Copy Template"
-            />
-          </div>
-          <pre className="text-[11px] text-orange-300/70 leading-relaxed overflow-x-auto">
-{`Title: How we solved [problem] — lessons learned
-
-Hey r/[subreddit]!
-
-We recently tackled [problem]...
-
-**Results:**
-- [Metric] improved by X%
-- Timeline: [duration]
-
-Happy to answer questions!`}
-          </pre>
-        </div>
-      )}
-
-      {!isReddit && (
-        <div className="p-3 rounded-md bg-green-500/5 border border-green-500/10">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-green-400 uppercase tracking-wider">
-              Medium Article Template
-            </span>
-            <CopyButton
-              text={`# [Year] Guide to [Your Topic] — What Actually Works\n\n*By [Your Name], [Your Title] at [Your Brand]*\n\n## The Problem\n[Hook: Start with a relatable problem or surprising statistic]\n\n## What Most People Get Wrong\n[Common misconceptions — this builds trust and authority]\n\n## The Approach That Works\n### Step 1: [First Step]\n[Explain with specific data points and examples]\n\n### Step 2: [Second Step]\n[Include screenshots, code snippets, or charts if applicable]\n\n### Step 3: [Third Step]\n[Show real results with numbers]\n\n## Results\n- **[Metric 1]:** Improved by X%\n- **[Metric 2]:** Reduced from A to B\n- **Timeline:** Achieved in [duration]\n\n## Key Takeaways\n1. [Actionable insight 1]\n2. [Actionable insight 2]\n3. [Actionable insight 3]\n\n---\n\n*[Your Name] is [role] at [Your Brand]. Follow for more insights on [topic].*\n\nTags: #[tag1] #[tag2] #[tag3] #[tag4] #[tag5]`}
-              label="Copy Template"
-            />
-          </div>
-          <pre className="text-[11px] text-green-300/70 leading-relaxed overflow-x-auto">
-{`# [Year] Guide to [Topic] — What Works
-
-By [Name], [Title] at [Brand]
-
-## The Problem
-[Relatable hook + statistics]
-
-## The Approach That Works
-[Step-by-step with data]
-
-## Results
-- [Metric] improved by X%
-
-Tags: #topic1 #topic2 #topic3`}
-          </pre>
-        </div>
-      )}
     </div>
   );
 }
@@ -312,19 +246,14 @@ export function RecommendationsPanel({ recommendations }: RecommendationsPanelPr
     <Card className="backdrop-blur-xl bg-card/50 border-border/50">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Top Improvements</span>
+          <span>What Needs to Be Done</span>
           <span className="text-sm font-normal text-muted-foreground">
-            {recommendations.length} high-impact actions
+            {recommendations.length} tasks
           </span>
         </CardTitle>
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            Ranked by research-proven effectiveness. Fix these first for maximum GEO improvement.
-          </p>
-          {allCodeSnippets && (
-            <CopyButton text={allCodeSnippets} label="Copy All Code Fixes" />
-          )}
-        </div>
+        <p className="text-xs text-muted-foreground">
+          Click each item to see the action steps. Go to Actions tab to track your progress and earn points.
+        </p>
       </CardHeader>
       <CardContent className="space-y-2">
         {recommendations.map((rec, index) => {
@@ -332,6 +261,7 @@ export function RecommendationsPanel({ recommendations }: RecommendationsPanelPr
           const actionInfo = ACTION_ICONS[rec.category] || ACTION_ICONS.content;
           const { parts } = extractCodeBlocks(rec.action);
           const hasCode = parts.some((p) => p.type === "code");
+          const points = getPointsForRecommendation(rec);
 
           return (
             <motion.div
@@ -343,7 +273,6 @@ export function RecommendationsPanel({ recommendations }: RecommendationsPanelPr
               onClick={() => setExpandedId(isExpanded ? null : rec.id)}
             >
               <div className="flex items-start gap-3">
-                {/* Rank number */}
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-foreground/10 flex items-center justify-center text-xs font-bold">
                   {index + 1}
                 </span>
@@ -357,12 +286,7 @@ export function RecommendationsPanel({ recommendations }: RecommendationsPanelPr
                     </span>
                     {hasCode && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
-                        Has Code Fix
-                      </span>
-                    )}
-                    {(rec.category === "entity" && (rec.title.includes("Reddit") || rec.title.includes("Medium"))) && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 text-green-500 font-medium">
-                        Quick Win
+                        Has Code
                       </span>
                     )}
                     <span className="text-sm font-medium truncate">
@@ -397,7 +321,7 @@ export function RecommendationsPanel({ recommendations }: RecommendationsPanelPr
                   >
                     <div className="mt-3 pt-3 border-t border-current/10 ml-9 space-y-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-foreground">How to fix:</span>
+                        <span className="text-xs font-semibold text-foreground">Action Steps:</span>
                         {hasCode && (
                           <CopyButton
                             text={parts.filter((p) => p.type === "code").map((p) => p.content).join("\n")}

@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAnalyzerStore } from "@/lib/stores/analyzer-store";
+import { useGamificationStore } from "@/lib/stores/gamification-store";
 import { getRunDetail, type AnalysisRunDetail } from "@/lib/api/analyzer";
 import { routes } from "@/lib/config";
 
@@ -25,6 +26,7 @@ import { LLMLogsPanel } from "@/components/analyzer/llm-logs-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
 import { GATrafficTab } from "@/components/integrations/ga-traffic-tab";
+import { GamificationPanel } from "@/components/analyzer/gamification-panel";
 import { getIntegrationStatus } from "@/lib/api/integrations";
 import { useSession } from "@/lib/auth-client";
 
@@ -45,9 +47,10 @@ export default function AnalyzerResultsPage() {
   const status = useAnalyzerStore((s) => s.status);
   const results = useAnalyzerStore((s) => s.results);
   const { data: session } = useSession();
+  const gamStore = useGamificationStore();
   const userEmail = session?.user?.email ?? "";
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "details" | "visibility" | "ai-logs" | "traffic">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "details" | "visibility" | "ai-logs" | "traffic" | "actions">("overview");
   const [hasGA, setHasGA] = useState(false);
 
   useEffect(() => {
@@ -78,6 +81,12 @@ export default function AnalyzerResultsPage() {
       .finally(() => setLoading(false));
   }, [runId]);
 
+  useEffect(() => {
+    if (userEmail) {
+      gamStore.fetchActions(userEmail);
+    }
+  }, [userEmail]);
+
   // Check if GA4 is connected
   useEffect(() => {
     if (!userEmail) return;
@@ -90,6 +99,9 @@ export default function AnalyzerResultsPage() {
       })
       .catch(() => {});
   }, [userEmail]);
+
+  // Calculate pending actions count
+  const pendingActionsCount = gamStore.actions.filter(a => a.status === "pending" || a.status === "in_progress").length;
 
   if (loading) {
     return (
@@ -199,6 +211,18 @@ export default function AnalyzerResultsPage() {
               Traffic
             </Button>
           )}
+          <Button
+            variant={activeTab === "actions" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab("actions")}
+            className="relative"
+          >
+            Actions
+            {pendingActionsCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                </span>
+            )}
+          </Button>
         </div>
 
         <AnimatePresence mode="wait">
@@ -253,7 +277,9 @@ export default function AnalyzerResultsPage() {
 
               {/* Recommendations */}
               <motion.div custom={6} variants={staggerItem} initial="hidden" animate="visible">
-                <RecommendationsPanel recommendations={results.recommendations} />
+                <RecommendationsPanel 
+                  recommendations={results.recommendations} 
+                />
               </motion.div>
 
               {/* Competitors */}
@@ -344,6 +370,22 @@ export default function AnalyzerResultsPage() {
               transition={{ duration: 0.2 }}
             >
               <GATrafficTab email={userEmail} />
+            </motion.div>
+          )}
+
+          {activeTab === "actions" && userEmail && (
+            <motion.div
+              key="actions"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <GamificationPanel 
+                email={userEmail} 
+                recommendations={results.recommendations}
+                runId={Number(runId)}
+              />
             </motion.div>
           )}
         </AnimatePresence>
