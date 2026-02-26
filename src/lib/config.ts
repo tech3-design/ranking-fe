@@ -13,7 +13,10 @@ export const routes = {
   analyzer: "/analyzer",
   analyzerHistory: "/analyzer/history",
   analyzerResults: (runId: string | number) => `/analyzer/${runId}`,
+  analyzerRunHistory: (runId: string | number) => `/analyzer/${runId}/history`,
   analyzerReport: (runId: string | number) => `/analyzer/${runId}/report`,
+  analyzerIntegrations: (runId: string | number) => `/analyzer/${runId}/integrations`,
+  analyzerAnalytics: (runId: string | number) => `/analyzer/${runId}/analytics`,
   settingsIntegrations: "/settings/integrations",
   gaCallbackPage: "/settings/integrations/callback/google-analytics",
 } as const;

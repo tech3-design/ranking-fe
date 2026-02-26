@@ -180,7 +180,7 @@ export function getStatusColor(status: string): string {
     case "pending":
       return "bg-gray-500/10 text-gray-500 border-gray-500/20";
     case "in_progress":
-      return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      return "bg-teal-500/10 text-teal-500 border-teal-500/20";
     case "completed":
       return "bg-green-500/10 text-green-500 border-green-500/20";
     case "verified":
@@ -210,7 +210,7 @@ export function getStatusBadgeClass(status: string): string {
     case "pending":
       return "bg-gray-500/20 text-gray-500";
     case "in_progress":
-      return "bg-blue-500/20 text-blue-500";
+      return "bg-teal-500/20 text-teal-500";
     case "completed":
       return "bg-green-500/20 text-green-500";
     case "verified":
@@ -221,9 +221,9 @@ export function getStatusBadgeClass(status: string): string {
 }
 
 export function getLevelBadgeColor(level: number): string {
-  if (level >= 7) return "bg-purple-500 text-white";
+  if (level >= 7) return "bg-cyan-500 text-white";
   if (level >= 5) return "bg-yellow-500 text-black";
   if (level >= 3) return "bg-green-500 text-white";
-  if (level >= 2) return "bg-blue-500 text-white";
+  if (level >= 2) return "bg-teal-500 text-white";
   return "bg-gray-500 text-white";
 }

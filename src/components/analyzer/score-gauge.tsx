@@ -3,11 +3,18 @@
 import { useEffect, useState } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 
-function getScoreColor(score: number): string {
-  if (score >= 80) return "var(--brand-success)";
-  if (score >= 60) return "var(--brand-warning)";
-  if (score >= 40) return "var(--brand-danger)";
-  return "var(--brand-danger)";
+function getScoreStroke(score: number): string {
+  if (score >= 80) return "oklch(0.72 0.16 155)";
+  if (score >= 60) return "oklch(0.78 0.16 95)";
+  if (score >= 40) return "oklch(0.68 0.18 45)";
+  return "oklch(0.64 0.2 28)";
+}
+
+function getScoreTone(score: number): string {
+  if (score >= 80) return "text-emerald-500";
+  if (score >= 60) return "text-yellow-500";
+  if (score >= 40) return "text-orange-500";
+  return "text-red-500";
 }
 
 function getScoreLabel(score: number): string {
@@ -38,25 +45,26 @@ interface ScoreGaugeProps {
 }
 
 export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
-  const color = getScoreColor(score);
+  const color = getScoreStroke(score);
+  const toneClass = getScoreTone(score);
   const scoreLabel = getScoreLabel(score);
-  const radius = (size - 20) / 2;
+  const radius = (size - 24) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDasharray = circumference;
   const targetOffset = circumference - (score / 100) * circumference * 0.75;
   const center = size / 2;
 
   return (
-    <div className="score-gauge">
-      <svg width={size} height={size * 0.65} viewBox={`0 0 ${size} ${size * 0.75}`}>
+    <div className="mx-auto flex w-full max-w-[360px] flex-col items-center rounded-xl border border-border/60 bg-card/60 p-4">
+      <svg width={size} height={size * 0.65} viewBox={`0 0 ${size} ${size * 0.75}`} className="overflow-visible">
         {/* Background arc */}
         <circle
           cx={center}
           cy={center}
           r={radius}
           fill="none"
-          stroke="var(--neutral-200)"
-          strokeWidth="10"
+          stroke="var(--border)"
+          strokeWidth="12"
           strokeLinecap="round"
           strokeDasharray={strokeDasharray}
           strokeDashoffset={circumference * 0.25}
@@ -69,7 +77,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
           r={radius}
           fill="none"
           stroke={color}
-          strokeWidth="10"
+          strokeWidth="12"
           strokeLinecap="round"
           strokeDasharray={strokeDasharray}
           initial={{ strokeDashoffset: circumference }}
@@ -80,10 +88,10 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
         {/* Score text */}
         <text
           x={center}
-          y={center - 5}
+          y={center - 8}
           textAnchor="middle"
           fill="currentColor"
-          className="score-gauge__score"
+          className="text-foreground"
           fontSize="36"
           fontWeight="bold"
         >
@@ -91,17 +99,35 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
         </text>
         <text
           x={center}
-          y={center + 20}
+          y={center + 18}
           textAnchor="middle"
-          fill={color}
+          fill="currentColor"
+          className={toneClass}
           fontSize="14"
-          fontWeight="500"
+          fontWeight="600"
         >
           {scoreLabel}
         </text>
       </svg>
+
+      <div className="mt-1 w-full px-2">
+        <div className="mb-1 flex items-center justify-between text-[11px] text-muted-foreground">
+          <span>0</span>
+          <span>Meter</span>
+          <span>100</span>
+        </div>
+        <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+          <motion.div
+            className={`h-full rounded-full ${toneClass.replace("text-", "bg-")}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.max(0, Math.min(100, score))}%` }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+          />
+        </div>
+      </div>
+
       {label && (
-        <p className="score-gauge__label">{label}</p>
+        <p className="mt-3 text-center text-sm text-muted-foreground">{label}</p>
       )}
     </div>
   );

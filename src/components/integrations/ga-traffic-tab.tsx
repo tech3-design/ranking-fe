@@ -15,9 +15,10 @@ import { ScoreTrafficChart } from "./score-traffic-chart";
 
 interface GATrafficTabProps {
   email: string;
+  analyzedUrl?: string;
 }
 
-export function GATrafficTab({ email }: GATrafficTabProps) {
+export function GATrafficTab({ email, analyzedUrl }: GATrafficTabProps) {
   const [data, setData] = useState<GADataSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -26,11 +27,11 @@ export function GATrafficTab({ email }: GATrafficTabProps) {
   useEffect(() => {
     if (!email) return;
     loadData();
-  }, [email]);
+  }, [email, analyzedUrl]);
 
   async function loadData() {
     try {
-      const snapshot = await getGAData(email);
+      const snapshot = await getGAData(email, analyzedUrl);
       setData(snapshot);
       setError(null);
     } catch {
@@ -49,7 +50,7 @@ export function GATrafficTab({ email }: GATrafficTabProps) {
       // Poll for completion
       const poll = setInterval(async () => {
         try {
-          const snapshot = await getGAData(email);
+          const snapshot = await getGAData(email, analyzedUrl);
           if (snapshot.sync_status === "complete") {
             setData(snapshot);
             setSyncing(false);
@@ -121,6 +122,35 @@ export function GATrafficTab({ email }: GATrafficTabProps) {
       {error && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
+        </div>
+      )}
+
+      {analyzedUrl && data.page_match && (
+        <div
+          className={`rounded-md border p-3 text-sm ${
+            data.page_match.found
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+              : !data.page_match.host_match
+              ? "border-red-500/30 bg-red-500/10 text-red-600"
+              : "border-amber-500/30 bg-amber-500/10 text-amber-600"
+          }`}
+        >
+          {data.page_match.found ? (
+            <>
+              Exact page match confirmed: <span className="font-mono">{data.page_match.page_path}</span>
+              {" "}• Sessions: {data.page_match.sessions}
+            </>
+          ) : !data.page_match.host_match ? (
+            <>
+              GA property hostname mismatch. Analyzed host:{" "}
+              <span className="font-mono">{data.page_match.analyzed_host || "unknown"}</span>.
+              {" "}Select the GA property for this domain.
+            </>
+          ) : (
+            <>
+              Exact analyzed page not found in GA data window for <span className="font-mono">{data.page_match.page_path}</span>.
+            </>
+          )}
         </div>
       )}
 

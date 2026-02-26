@@ -24,7 +24,7 @@ export function EntityDetailsPanel({ details, score }: EntityDetailsPanelProps) 
   const checks = (details?.checks ?? {}) as Record<string, unknown>;
 
   return (
-    <Card>
+    <Card className="border-border/60 bg-card/65 backdrop-blur-xl shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-base">
           <span>Entity Authority</span>

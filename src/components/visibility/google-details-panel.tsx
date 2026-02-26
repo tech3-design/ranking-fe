@@ -11,8 +11,8 @@ interface GoogleDetailsPanelProps {
 const METHOD_LABELS: Record<string, { label: string; color: string }> = {
   google_cse_api: { label: "Google API", color: "text-green-400 bg-green-500/10 border-green-500/20" },
   googlesearch_scraper: { label: "Web Scraper", color: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20" },
-  llm_analysis: { label: "AI Analysis", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
-  llm_estimate: { label: "AI Estimate", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
+  llm_analysis: { label: "AI Analysis", color: "text-teal-400 bg-teal-500/10 border-teal-500/20" },
+  llm_estimate: { label: "AI Estimate", color: "text-teal-400 bg-teal-500/10 border-teal-500/20" },
 };
 
 export function GoogleDetailsPanel({ details, score }: GoogleDetailsPanelProps) {
@@ -84,7 +84,7 @@ export function GoogleDetailsPanel({ details, score }: GoogleDetailsPanelProps) 
               <div
                 className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border ${
                   details.in_ai_overview
-                    ? "text-purple-400 bg-purple-500/10 border-purple-500/20"
+                    ? "text-teal-400 bg-teal-500/10 border-teal-500/20"
                     : "text-muted-foreground bg-muted/30 border-border/50"
                 }`}
               >

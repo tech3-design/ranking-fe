@@ -19,7 +19,7 @@ function getScoreColor(score: number): string {
 function getStatusBadge(status: string) {
   if (status === "complete") return null;
   if (status === "failed") return <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-500">Failed</span>;
-  return <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 animate-pulse">Running</span>;
+  return <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-500 animate-pulse">Running</span>;
 }
 
 function extractDomain(url: string): string {

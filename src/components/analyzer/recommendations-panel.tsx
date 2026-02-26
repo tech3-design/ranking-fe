@@ -4,19 +4,21 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Spotlight } from "@/components/ui/spotlight";
+import { MovingBorder } from "@/components/ui/moving-border";
 import type { Recommendation } from "@/lib/api/analyzer";
 
 const PRIORITY_STYLES: Record<string, string> = {
   critical: "bg-red-500/10 text-red-500 border-red-500/20",
   high: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  medium: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  medium: "bg-teal-500/10 text-teal-500 border-teal-500/20",
   low: "bg-gray-500/10 text-gray-400 border-gray-500/20",
 };
 
 const PRIORITY_BADGE: Record<string, string> = {
   critical: "bg-red-500 text-white",
   high: "bg-yellow-500 text-black",
-  medium: "bg-blue-500 text-white",
+  medium: "bg-teal-500 text-white",
   low: "bg-gray-500 text-white",
 };
 
@@ -243,20 +245,21 @@ export function RecommendationsPanel({ recommendations }: RecommendationsPanelPr
     .join("\n\n");
 
   return (
-    <Card className="backdrop-blur-xl bg-card/50 border-border/50">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>What Needs to Be Done</span>
-          <span className="text-sm font-normal text-muted-foreground">
-            {recommendations.length} tasks
-          </span>
-        </CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Click each item to see the action steps. Go to Actions tab to track your progress and earn points.
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {recommendations.map((rec, index) => {
+    <Spotlight className="rounded-xl">
+      <Card className="border-border/60 bg-card/65 backdrop-blur-xl shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>What Needs to Be Done</span>
+            <span className="text-sm font-normal text-muted-foreground">
+              {recommendations.length} tasks
+            </span>
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Click each item to see action steps, then track completion in Actions.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {recommendations.map((rec, index) => {
           const isExpanded = expandedId === rec.id;
           const actionInfo = ACTION_ICONS[rec.category] || ACTION_ICONS.content;
           const { parts } = extractCodeBlocks(rec.action);
@@ -264,12 +267,13 @@ export function RecommendationsPanel({ recommendations }: RecommendationsPanelPr
           const points = getPointsForRecommendation(rec);
 
           return (
+            <MovingBorder key={rec.id} className="rounded-lg">
             <motion.div
               key={rec.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.04, duration: 0.3 }}
-              className={`rounded-lg border p-3 cursor-pointer transition-all hover:shadow-md ${PRIORITY_STYLES[rec.priority]}`}
+              className={`cursor-pointer rounded-lg border p-3 transition-all hover:shadow-md ${PRIORITY_STYLES[rec.priority]}`}
               onClick={() => setExpandedId(isExpanded ? null : rec.id)}
             >
               <div className="flex items-start gap-3">
@@ -345,9 +349,11 @@ export function RecommendationsPanel({ recommendations }: RecommendationsPanelPr
                 )}
               </AnimatePresence>
             </motion.div>
+            </MovingBorder>
           );
         })}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Spotlight>
   );
 }

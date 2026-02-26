@@ -82,8 +82,8 @@ function ProviderBadge({ model }: { model: string }) {
   const colorMap: Record<string, string> = {
     "GPT-4o Mini": "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
     "Claude 3.5 Haiku": "bg-orange-500/15 text-orange-400 border-orange-500/30",
-    "Gemini 2.0 Flash": "bg-blue-500/15 text-blue-400 border-blue-500/30",
-    "Gemini 2.0 Flash (Direct)": "bg-blue-500/15 text-blue-400 border-blue-500/30",
+    "Gemini 2.0 Flash": "bg-teal-500/15 text-teal-400 border-teal-500/30",
+    "Gemini 2.0 Flash (Direct)": "bg-teal-500/15 text-teal-400 border-teal-500/30",
   };
   const colors = colorMap[model] || "bg-muted text-muted-foreground border-border";
 
@@ -161,10 +161,10 @@ export function LLMLogsPanel({ logs }: LLMLogsPanelProps) {
         {Object.values(grouped).map((group, groupIdx) => (
           <div key={groupIdx} className="rounded-lg border bg-card overflow-hidden">
             {/* Question / Prompt */}
-            <div className="px-4 py-3 border-b bg-blue-500/5">
+            <div className="px-4 py-3 border-b bg-teal-500/5">
               <div className="flex items-center gap-2 mb-1.5">
                 <svg
-                  className="w-4 h-4 text-blue-400 shrink-0"
+                  className="w-4 h-4 text-teal-400 shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -176,7 +176,7 @@ export function LLMLogsPanel({ logs }: LLMLogsPanelProps) {
                     d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-teal-400">
                   Prompt Sent
                 </span>
               </div>

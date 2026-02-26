@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { connectShopify } from "@/lib/api/integrations";
+import { getShopifyAuthUrl } from "@/lib/api/integrations";
 
 interface ShopifyConnectFormProps {
   email: string;
@@ -12,24 +12,27 @@ interface ShopifyConnectFormProps {
 
 export function ShopifyConnectForm({ email, onConnected }: ShopifyConnectFormProps) {
   const [shopDomain, setShopDomain] = useState("");
-  const [accessToken, setAccessToken] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!shopDomain.trim() || !accessToken.trim()) return;
+    if (!shopDomain.trim()) return;
 
     setConnecting(true);
     setError(null);
 
     try {
-      await connectShopify(email, shopDomain.trim(), accessToken.trim());
-      onConnected();
+      const returnTo =
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/settings/integrations";
+      const { auth_url } = await getShopifyAuthUrl(email, shopDomain.trim(), returnTo);
+      window.location.href = auth_url;
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error || "Failed to connect Shopify.";
+          ?.error || "Failed to start Shopify connection.";
       setError(message);
     } finally {
       setConnecting(false);
@@ -56,25 +59,11 @@ export function ShopifyConnectForm({ email, onConnected }: ShopifyConnectFormPro
           className="mt-1"
         />
       </div>
-      <div>
-        <label className="text-sm font-medium" htmlFor="access-token">
-          Access Token
-        </label>
-        <Input
-          id="access-token"
-          type="password"
-          placeholder="shpat_xxxxx..."
-          value={accessToken}
-          onChange={(e) => setAccessToken(e.target.value)}
-          disabled={connecting}
-          className="mt-1"
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          From your Shopify Custom App &rarr; API credentials &rarr; Admin API access token.
-        </p>
-      </div>
+      <p className="text-xs text-muted-foreground mt-1">
+        You&apos;ll be redirected to Shopify to authorize this store.
+      </p>
       <Button type="submit" disabled={connecting} className="w-full">
-        {connecting ? "Connecting..." : "Connect Shopify"}
+        {connecting ? "Redirecting..." : "Connect Shopify"}
       </Button>
     </form>
   );

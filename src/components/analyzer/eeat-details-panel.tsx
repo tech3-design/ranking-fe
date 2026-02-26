@@ -48,7 +48,7 @@ export function EEATDetailsPanel({ details, score }: EEATDetailsPanelProps) {
   const staticAnalysis = (checks.static_analysis ?? {}) as Record<string, unknown>;
 
   return (
-    <Card>
+    <Card className="border-border/60 bg-card/65 backdrop-blur-xl shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-base">
           <span>E-E-A-T Signals</span>

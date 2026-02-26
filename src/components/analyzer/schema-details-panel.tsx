@@ -12,7 +12,7 @@ export function SchemaDetailsPanel({ details, score }: SchemaDetailsPanelProps) 
   const typesFound = (details?.types_found ?? []) as string[];
 
   return (
-    <Card>
+    <Card className="border-border/60 bg-card/65 backdrop-blur-xl shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-base">
           <span>Schema Markup</span>

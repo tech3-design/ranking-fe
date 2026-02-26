@@ -52,8 +52,8 @@ export function MovingBorder({
         />
         <defs>
           <radialGradient id="moving-border-gradient">
-            <stop offset="0%" stopColor="oklch(0.7 0.2 260)" />
-            <stop offset="100%" stopColor="oklch(0.7 0.2 260)" stopOpacity="0" />
+            <stop offset="0%" stopColor="oklch(0.7 0.12 186)" />
+            <stop offset="100%" stopColor="oklch(0.7 0.12 186)" stopOpacity="0" />
           </radialGradient>
           <filter id="moving-border-blur">
             <feGaussianBlur stdDeviation="2" />

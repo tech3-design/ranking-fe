@@ -45,6 +45,16 @@ export interface GADataSnapshot {
   sync_status: "pending" | "syncing" | "complete" | "failed";
   error_message: string;
   created_at: string;
+  page_match?: {
+    found: boolean;
+    host_match: boolean;
+    analyzed_host: string;
+    matched_host: string;
+    page_path: string;
+    sessions: number;
+    bounce_rate: number;
+    avg_session_duration: number;
+  };
 }
 
 // ---------- OAuth ----------
@@ -123,10 +133,13 @@ export async function syncGAData(email: string): Promise<{ message: string }> {
   return data;
 }
 
-export async function getGAData(email: string): Promise<GADataSnapshot> {
+export async function getGAData(
+  email: string,
+  analyzedUrl?: string,
+): Promise<GADataSnapshot> {
   const { data } = await apiClient.get<GADataSnapshot>(
     "/api/integrations/google-analytics/data/",
-    { params: { email } },
+    { params: { email, analyzed_url: analyzedUrl } },
   );
   return data;
 }
@@ -192,6 +205,18 @@ export async function connectShopify(
   const { data } = await apiClient.post(
     "/api/integrations/shopify/connect/",
     { email, shop_domain: shopDomain, access_token: accessToken },
+  );
+  return data;
+}
+
+export async function getShopifyAuthUrl(
+  email: string,
+  shopDomain: string,
+  returnTo?: string,
+): Promise<{ auth_url: string }> {
+  const { data } = await apiClient.get<{ auth_url: string }>(
+    "/api/integrations/shopify/auth-url/",
+    { params: { email, shop: shopDomain, return_to: returnTo } },
   );
   return data;
 }

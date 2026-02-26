@@ -27,7 +27,7 @@ const PLATFORM_CONFIG: Record<
   blog: {
     label: "Blogs",
     icon: <FileText className="w-4 h-4" />,
-    color: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+    color: "text-teal-400 bg-teal-500/10 border-teal-500/20",
   },
   news: {
     label: "News",
@@ -42,7 +42,7 @@ const PLATFORM_CONFIG: Record<
   social: {
     label: "Social Media",
     icon: <Users className="w-4 h-4" />,
-    color: "text-purple-400 bg-purple-500/10 border-purple-500/20",
+    color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
   },
   review: {
     label: "Review Sites",
@@ -63,7 +63,7 @@ const METHOD_LABELS: Record<string, { label: string; color: string }> = {
   },
   llm_analysis: {
     label: "AI Analysis",
-    color: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+    color: "text-teal-400 bg-teal-500/10 border-teal-500/20",
   },
 };
 

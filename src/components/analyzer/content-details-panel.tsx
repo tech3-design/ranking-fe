@@ -77,7 +77,7 @@ export function ContentDetailsPanel({ details, score }: ContentDetailsPanelProps
   const isNewFormat = !!checks.structure;
 
   return (
-    <Card>
+    <Card className="border-border/60 bg-card/65 backdrop-blur-xl shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-base">
           <span>Content &amp; GEO Quality</span>
@@ -126,7 +126,7 @@ export function ContentDetailsPanel({ details, score }: ContentDetailsPanelProps
                       <span className="text-muted-foreground">
                         {GEO_LABELS[key] || key.replace(/_/g, " ")}
                         {EFFECTIVENESS[key] && (
-                          <span className="text-xs ml-1 text-blue-400">({EFFECTIVENESS[key]})</span>
+                          <span className="text-xs ml-1 text-teal-400">({EFFECTIVENESS[key]})</span>
                         )}
                       </span>
                       <span className="font-mono text-sm">

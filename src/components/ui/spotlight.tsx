@@ -30,7 +30,7 @@ export function Spotlight({ children, className = "" }: SpotlightProps) {
         className="pointer-events-none absolute -inset-px transition-opacity duration-300"
         style={{
           opacity,
-          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, oklch(0.6 0.15 260 / 0.12), transparent 40%)`,
+          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, oklch(0.66 0.14 186 / 0.16), transparent 40%)`,
         }}
       />
       {children}

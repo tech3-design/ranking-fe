@@ -21,7 +21,7 @@ export default function GACallbackPage() {
 
     sendGACallback(code, state)
       .then(() => {
-        router.replace(routes.settingsIntegrations);
+        router.replace(routes.analyzer);
       })
       .catch((err) => {
         const msg =
@@ -38,10 +38,10 @@ export default function GACallbackPage() {
           {error}
         </div>
         <button
-          onClick={() => router.push(routes.settingsIntegrations)}
+          onClick={() => router.push(routes.analyzer)}
           className="text-sm text-muted-foreground hover:text-foreground underline"
         >
-          Back to Integrations
+          Back to Analyzer
         </button>
       </div>
     );

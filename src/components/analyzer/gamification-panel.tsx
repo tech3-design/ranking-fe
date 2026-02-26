@@ -17,7 +17,7 @@ interface GamificationPanelProps {
 const PRIORITY_COLORS: Record<string, string> = {
   critical: "bg-red-500/10 text-red-500 border-red-500/20",
   high: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  medium: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  medium: "bg-teal-500/10 text-teal-500 border-teal-500/20",
   low: "bg-gray-500/10 text-gray-400 border-gray-500/20",
 };
 
@@ -201,7 +201,7 @@ export function GamificationPanel({ email, recommendations, runId }: Gamificatio
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <motion.div 
-                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+                  className="h-full bg-gradient-to-r from-teal-500 to-cyan-500"
                   initial={{ width: 0 }}
                   animate={{ width: `${gamification.level_progress}%` }}
                   transition={{ duration: 0.5 }}
@@ -270,7 +270,7 @@ export function GamificationPanel({ email, recommendations, runId }: Gamificatio
                 {filteredActions.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="p-3 rounded-lg bg-muted/50 text-center">
-                      <p className="text-2xl font-bold text-blue-500">{pendingActions.length}</p>
+                      <p className="text-2xl font-bold text-teal-500">{pendingActions.length}</p>
                       <p className="text-xs text-muted-foreground">To Do</p>
                     </div>
                     <div className="p-3 rounded-lg bg-muted/50 text-center">
@@ -282,7 +282,7 @@ export function GamificationPanel({ email, recommendations, runId }: Gamificatio
                       <p className="text-xs text-muted-foreground">Completed</p>
                     </div>
                     <div className="p-3 rounded-lg bg-muted/50 text-center">
-                      <p className="text-2xl font-bold text-purple-500">{verifiedActions.length}</p>
+                      <p className="text-2xl font-bold text-cyan-500">{verifiedActions.length}</p>
                       <p className="text-xs text-muted-foreground">Verified</p>
                     </div>
                   </div>
@@ -317,7 +317,7 @@ export function GamificationPanel({ email, recommendations, runId }: Gamificatio
                     {/* Pending */}
                     {pendingActions.length > 0 && (
                       <div>
-                        <h4 className="text-xs font-semibold text-blue-500 uppercase tracking-wide mb-2">
+                        <h4 className="text-xs font-semibold text-teal-500 uppercase tracking-wide mb-2">
                           To Do ({pendingActions.length})
                         </h4>
                         <div className="space-y-2">

@@ -7,8 +7,8 @@ import { motion } from "framer-motion";
 import { useSession } from "@/lib/auth-client";
 import { getRunList, type AnalysisRunList } from "@/lib/api/analyzer";
 import { routes } from "@/lib/config";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { AppSidebar } from "@/components/navigation/app-sidebar";
 
 function getScoreColor(score: number): string {
   if (score >= 70) return "text-green-500 bg-green-500/10 border-green-500/20";
@@ -33,7 +33,7 @@ function getStatusBadge(status: string) {
       </span>
     );
   return (
-    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20 animate-pulse">
+    <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-500 border border-teal-500/20 animate-pulse">
       Running
     </span>
   );
@@ -85,8 +85,10 @@ export default function HistoryPage() {
   const domains = Object.keys(grouped).sort();
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="h-screen w-screen overflow-hidden">
+      <div className="flex h-full w-full overflow-hidden border border-border/60 bg-background/30">
+        <AppSidebar />
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -103,7 +105,6 @@ export default function HistoryPage() {
             <Link href={routes.analyzer}>
               <Button size="sm">New Analysis</Button>
             </Link>
-            <ThemeToggle />
           </div>
         </motion.div>
 
@@ -247,6 +248,7 @@ export default function HistoryPage() {
             })}
           </div>
         )}
+        </main>
       </div>
     </div>
   );

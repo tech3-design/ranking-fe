@@ -45,9 +45,9 @@ export function BackgroundBeams({ className = "" }: { className?: string }) {
               id={`beam-gradient-${i}`}
               gradientUnits="userSpaceOnUse"
             >
-              <stop stopColor="oklch(0.6 0.2 260)" stopOpacity="0" />
-              <stop offset="0.5" stopColor="oklch(0.6 0.2 260)" stopOpacity="0.6" />
-              <stop offset="1" stopColor="oklch(0.7 0.15 300)" stopOpacity="0" />
+              <stop stopColor="oklch(0.66 0.14 186)" stopOpacity="0" />
+              <stop offset="0.5" stopColor="oklch(0.66 0.14 186)" stopOpacity="0.6" />
+              <stop offset="1" stopColor="oklch(0.7 0.12 171)" stopOpacity="0" />
             </linearGradient>
           ))}
         </defs>
