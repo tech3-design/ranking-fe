@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { sendGACallback } from "@/lib/api/integrations";
 import { routes } from "@/lib/config";
 
+export const dynamic = "force-dynamic";
+
 function GACallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
