@@ -9,6 +9,8 @@ import {
   Eye,
   Bot,
   ListChecks,
+  FileSearch,
+  ListTodo,
   FileStack,
   Sparkles,
   Settings2,
@@ -38,6 +40,8 @@ import { LLMLogsPanel } from "@/components/analyzer/llm-logs-panel";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
 import { GamificationPanel } from "@/components/analyzer/gamification-panel";
+import { CrawlEssentialsPanel } from "@/components/analyzer/crawl-essentials-panel";
+import { BlogAutomationPanel } from "@/components/analyzer/blog-automation-panel";
 import { useSession } from "@/lib/auth-client";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -48,6 +52,8 @@ type TabKey =
   | "visibility"
   | "ai-logs"
   | "actions";
+
+type ActionSubmenuKey = "ai-crawl-essentials" | "ai-blog-automation" | "action-tracker";
 
 const staggerItem = {
   hidden: { opacity: 0, y: 20 },
@@ -71,10 +77,12 @@ export default function AnalyzerResultsPage() {
   const userEmail = session?.user?.email ?? "";
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [activeActionSubmenu, setActiveActionSubmenu] = useState<ActionSubmenuKey>("ai-crawl-essentials");
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
+    const actionSubmenu = searchParams.get("action_submenu");
     if (!tab) return;
     const validTabs: TabKey[] = [
       "overview",
@@ -85,6 +93,12 @@ export default function AnalyzerResultsPage() {
     ];
     if (validTabs.includes(tab as TabKey)) {
       setActiveTab(tab as TabKey);
+    }
+    if (actionSubmenu) {
+      const validActionSubmenus: ActionSubmenuKey[] = ["ai-crawl-essentials", "ai-blog-automation", "action-tracker"];
+      if (validActionSubmenus.includes(actionSubmenu as ActionSubmenuKey)) {
+        setActiveActionSubmenu(actionSubmenu as ActionSubmenuKey);
+      }
     }
   }, [searchParams]);
 
@@ -187,6 +201,16 @@ export default function AnalyzerResultsPage() {
     { key: "actions", label: "Actions", icon: ListChecks, badge: pendingActionsCount },
   ];
 
+  const actionSubmenus: Array<{
+    key: ActionSubmenuKey;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }> = [
+    { key: "ai-crawl-essentials", label: "AI Crawl Essentials", icon: FileSearch },
+    { key: "ai-blog-automation", label: "AI Blog Automation", icon: Sparkles },
+    { key: "action-tracker", label: "Action Tracker", icon: ListTodo },
+  ];
+
   return (
     <div className="h-screen w-screen overflow-hidden">
       <div className="flex h-full w-full overflow-hidden border border-border/60 bg-background/30">
@@ -219,39 +243,71 @@ export default function AnalyzerResultsPage() {
                     const Icon = tab.icon;
                     const active = activeTab === tab.key;
                     return (
-                      <SidebarLink
-                        key={tab.key}
-                        link={{
-                          label: tab.label,
-                          href: "#",
-                          icon: (
-                            <div className="relative">
-                              <Icon
-                                className={cn(
-                                  "h-4 w-4 shrink-0 transition-colors",
-                                  active ? "text-primary" : "text-muted-foreground",
+                      <div key={tab.key} className="space-y-1">
+                        <SidebarLink
+                          link={{
+                            label: tab.label,
+                            href: "#",
+                            icon: (
+                              <div className="relative">
+                                <Icon
+                                  className={cn(
+                                    "h-4 w-4 shrink-0 transition-colors",
+                                    active ? "text-primary" : "text-muted-foreground",
+                                  )}
+                                />
+                                {!!tab.badge && (
+                                  <span className="absolute -right-2 -top-1 rounded-full bg-primary/20 px-1 text-[9px] font-semibold text-primary">
+                                    {tab.badge}
+                                  </span>
                                 )}
-                              />
-                              {!!tab.badge && (
-                                <span className="absolute -right-2 -top-1 rounded-full bg-primary/20 px-1 text-[9px] font-semibold text-primary">
-                                  {tab.badge}
-                                </span>
-                              )}
-                            </div>
-                          ),
-                        }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setActiveTab(tab.key);
-                        }}
-                        className={cn(
-                          "h-10 rounded-lg border",
-                          open ? "px-2.5" : "mx-auto size-10 justify-center px-0",
-                          active
-                            ? "border-primary/60 bg-primary/25 shadow-sm shadow-primary/10"
-                            : "border-transparent hover:border-border/60 hover:bg-muted/40",
+                              </div>
+                            ),
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setActiveTab(tab.key);
+                            if (tab.key === "actions") {
+                              setActiveActionSubmenu("ai-crawl-essentials");
+                            }
+                          }}
+                          className={cn(
+                            "h-10 rounded-lg border",
+                            open ? "px-2.5" : "mx-auto size-10 justify-center px-0",
+                            active
+                              ? "border-primary/60 bg-primary/25 shadow-sm shadow-primary/10"
+                              : "border-transparent hover:border-border/60 hover:bg-muted/40",
+                          )}
+                        />
+
+                        {tab.key === "actions" && active && open && (
+                          <div className="ml-6 space-y-1 pr-2">
+                            {actionSubmenus.map((submenu) => {
+                              const SubmenuIcon = submenu.icon;
+                              const submenuActive = activeActionSubmenu === submenu.key;
+                              return (
+                                <button
+                                  key={submenu.key}
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveTab("actions");
+                                    setActiveActionSubmenu(submenu.key);
+                                  }}
+                                  className={cn(
+                                    "flex h-8 w-full items-center gap-2 rounded-md border px-2 text-left text-xs transition-colors",
+                                    submenuActive
+                                      ? "border-primary/40 bg-primary/15 text-primary"
+                                      : "border-transparent text-muted-foreground hover:border-border/50 hover:bg-muted/40 hover:text-foreground",
+                                  )}
+                                >
+                                  <SubmenuIcon className="size-3.5 shrink-0" />
+                                  <span className="truncate">{submenu.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
                         )}
-                      />
+                      </div>
                     );
                   })}
               </div>
@@ -542,11 +598,25 @@ export default function AnalyzerResultsPage() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <GamificationPanel
-                    email={userEmail}
-                    recommendations={results.recommendations}
-                    runId={Number(runId)}
-                  />
+                  {activeActionSubmenu === "ai-crawl-essentials" ? (
+                    <CrawlEssentialsPanel
+                      email={userEmail}
+                      runId={Number(runId)}
+                      analyzedUrl={results.url}
+                    />
+                  ) : activeActionSubmenu === "ai-blog-automation" ? (
+                    <BlogAutomationPanel
+                      email={userEmail}
+                      runId={Number(runId)}
+                      analyzedUrl={results.url}
+                    />
+                  ) : (
+                    <GamificationPanel
+                      email={userEmail}
+                      recommendations={results.recommendations}
+                      runId={Number(runId)}
+                    />
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
