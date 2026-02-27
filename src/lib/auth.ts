@@ -7,7 +7,23 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+const authSecret =
+  process.env.BETTER_AUTH_SECRET ??
+  process.env.AUTH_SECRET ??
+  process.env.NEXTAUTH_SECRET;
+
+if (
+  !authSecret ||
+  authSecret === "default-secret" ||
+  authSecret.includes("changeme-generate-a-random-secret-here")
+) {
+  throw new Error(
+    "BETTER_AUTH_SECRET is missing or using a placeholder value. Set a strong secret in environment variables.",
+  );
+}
+
 export const auth = betterAuth({
+  secret: authSecret,
   database: pool,
   emailAndPassword: {
     enabled: false,

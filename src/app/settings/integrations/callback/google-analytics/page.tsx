@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { sendGACallback } from "@/lib/api/integrations";
 import { routes } from "@/lib/config";
 
-export default function GACallbackPage() {
+function GACallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -53,5 +53,19 @@ export default function GACallbackPage() {
         Connecting Google Analytics...
       </p>
     </div>
+  );
+}
+
+export default function GACallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      }
+    >
+      <GACallbackContent />
+    </Suspense>
   );
 }
