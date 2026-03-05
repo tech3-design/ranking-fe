@@ -4,21 +4,19 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Sparkles,
-  PlusCircle,
-  History,
   PlugZap,
   ChartNoAxesCombined,
   LayoutDashboard,
-  Rows3,
-  Eye,
-  Bot,
-  ListChecks,
+  ArrowLeft,
+  User,
+  LogOut,
 } from "lucide-react";
 import { Sidebar, SidebarBody } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { routes } from "@/lib/config";
 import { cn } from "@/lib/utils";
-import { getRunDetail } from "@/lib/api/analyzer";
+import { getRunBySlug } from "@/lib/api/analyzer";
+import { signOut } from "@/lib/auth-client";
 
 type LinkItem = {
   label: string;
@@ -32,75 +30,88 @@ export function AppSidebar() {
   const router = useRouter();
   const [open, setOpen] = useState(true);
   const [runUrl, setRunUrl] = useState("");
+  const [signingOut, setSigningOut] = useState(false);
 
+  // Match /dashboard/[slug]/analytics or /dashboard/[slug]/integrations
   const runMatch = pathname.match(
-    /^\/analyzer\/(\d+)(?:\/(history|integrations|analytics))?$/,
+    /^\/dashboard\/([a-zA-Z0-9_-]+)\/(integrations|analytics)$/,
   );
-  const runId = runMatch ? Number(runMatch[1]) : null;
+  const slug = runMatch ? runMatch[1] : null;
   const runSubPage = runMatch?.[2] ?? null;
-  const isRunScopedSubpage = runId !== null && !!runSubPage;
+  const isRunScopedSubpage = slug !== null && !!runSubPage;
 
   useEffect(() => {
-    if (!isRunScopedSubpage || !runId) {
+    if (!isRunScopedSubpage || !slug) {
       setRunUrl("");
       return;
     }
-    getRunDetail(runId)
+    getRunBySlug(slug)
       .then((r) => setRunUrl(r.url || ""))
       .catch(() => setRunUrl(""));
-  }, [isRunScopedSubpage, runId]);
+  }, [isRunScopedSubpage, slug]);
 
   const mainItems: LinkItem[] = useMemo(() => {
-    if (isRunScopedSubpage && runId) {
-      return [
-        { label: "Overview", href: `${routes.analyzerResults(runId)}?tab=overview`, icon: LayoutDashboard, active: false },
-        { label: "Detailed", href: `${routes.analyzerResults(runId)}?tab=details`, icon: Rows3, active: false },
-        { label: "Visibility", href: `${routes.analyzerResults(runId)}?tab=visibility`, icon: Eye, active: false },
-        { label: "AI Logs", href: `${routes.analyzerResults(runId)}?tab=ai-logs`, icon: Bot, active: false },
-        { label: "Traffic", href: `${routes.analyzerResults(runId)}?tab=traffic`, icon: ChartNoAxesCombined, active: false },
-        { label: "Actions", href: `${routes.analyzerResults(runId)}?tab=actions`, icon: ListChecks, active: false },
-      ];
-    }
+    const isIntegrationsPage =
+      pathname === routes.settingsIntegrations ||
+      pathname.startsWith(`${routes.settingsIntegrations}/`);
+    const isAccountPage =
+      pathname === routes.settingsAccount ||
+      pathname.startsWith(`${routes.settingsAccount}/`);
 
-    return [
-      { label: "New Analysis", href: routes.analyzer, icon: PlusCircle, active: pathname === routes.analyzer },
-      { label: "History", href: routes.analyzerHistory, icon: History, active: pathname === routes.analyzerHistory },
-      { label: "Integrations", href: routes.settingsIntegrations, icon: PlugZap, active: pathname === routes.settingsIntegrations },
-    ];
-  }, [isRunScopedSubpage, runId, pathname]);
-
-  const quickItems: LinkItem[] = useMemo(() => {
-    if (isRunScopedSubpage && runId) {
+    if (isRunScopedSubpage && slug) {
       return [
         {
+          label: "Results",
+          href: routes.dashboardProject(slug),
+          icon: LayoutDashboard,
+          active: false,
+        },
+        {
           label: "Analytics",
-          href: routes.analyzerAnalytics(runId),
+          href: routes.dashboardProjectAnalytics(slug),
           icon: ChartNoAxesCombined,
-          active: pathname === routes.analyzerAnalytics(runId),
+          active: pathname.endsWith("/analytics"),
         },
         {
           label: "Integrations",
-          href: routes.analyzerIntegrations(runId),
+          href: routes.dashboardProjectIntegrations(slug),
           icon: PlugZap,
-          active: pathname === routes.analyzerIntegrations(runId),
+          active: pathname.endsWith("/integrations"),
         },
         {
-          label: "History",
-          href: routes.analyzerRunHistory(runId),
-          icon: History,
-          active: pathname === routes.analyzerRunHistory(runId),
-        },
-        {
-          label: "New Analysis",
-          href: routes.analyzer,
-          icon: PlusCircle,
+          label: "Projects",
+          href: routes.dashboard,
+          icon: ArrowLeft,
           active: false,
         },
       ];
     }
 
-    return [];
-  }, [isRunScopedSubpage, runId, pathname]);
+    return [
+      {
+        label: "Integrations",
+        href: routes.settingsIntegrations,
+        icon: PlugZap,
+        active: isIntegrationsPage,
+      },
+      {
+        label: "Account",
+        href: routes.settingsAccount,
+        icon: User,
+        active: isAccountPage,
+      },
+    ];
+  }, [isRunScopedSubpage, slug, pathname]);
+
+  async function handleSignOut() {
+    try {
+      setSigningOut(true);
+      await signOut();
+      router.push(routes.signIn);
+    } finally {
+      setSigningOut(false);
+    }
+  }
 
   return (
     <Sidebar open={open} setOpen={setOpen} hoverExpand={false}>
@@ -114,9 +125,9 @@ export function AppSidebar() {
               {open ? <span className="text-sm font-semibold text-foreground">Signalor GEO</span> : null}
             </div>
 
-            {open && isRunScopedSubpage && runId ? (
+            {open && isRunScopedSubpage && slug ? (
               <>
-                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary">Run #{runId}</p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary">Project</p>
                 <p className="mt-1 truncate text-xs text-muted-foreground">{runUrl || "Loading..."}</p>
               </>
             ) : null}
@@ -151,30 +162,23 @@ export function AppSidebar() {
         </div>
 
         <div className="space-y-2 border-t border-border/50 pt-3">
-          {quickItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.href + item.label}
-                type="button"
-                onClick={() => router.push(item.href)}
-                className={cn(
-                  "flex h-10 w-full items-center rounded-lg border transition-colors",
-                  open ? "justify-start gap-2.5 px-2.5" : "mx-auto size-10 justify-center px-0",
-                  item.active
-                    ? "border-primary/60 bg-primary/25 text-primary shadow-sm shadow-primary/10"
-                    : "border-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/40",
-                )}
-              >
-                <Icon className={cn("h-4 w-4 shrink-0", item.active ? "text-primary" : "text-muted-foreground")} />
-                {open ? (
-                  <span className={cn("text-sm", item.active ? "text-primary" : "text-foreground/85")}>
-                    {item.label}
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className={cn(
+              "flex h-10 w-full items-center rounded-lg border transition-colors",
+              open ? "justify-start gap-2.5 px-2.5" : "mx-auto size-10 justify-center px-0",
+              "border-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/40",
+            )}
+          >
+            <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
+            {open ? (
+              <span className="text-sm text-foreground/85">
+                {signingOut ? "Signing Out..." : "Sign Out"}
+              </span>
+            ) : null}
+          </button>
 
           {open ? (
             <div className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 p-2">
