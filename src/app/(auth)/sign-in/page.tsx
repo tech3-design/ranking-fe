@@ -40,18 +40,39 @@ export default function SignInPage() {
 
   const { title, description } = STEP_CONTENT[step] ?? STEP_CONTENT["auth-method"];
   const StepComponent = STEP_COMPONENTS[step];
+  const isOtpStep = step === "otp-verify";
 
   return (
-    <Card className="glass-card border-border/70 shadow-xl">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl md:text-3xl">{title}</CardTitle>
-        <CardDescription className="text-sm">{description}</CardDescription>
+    <Card className="border-0 bg-transparent shadow-none">
+      <CardHeader className="space-y-3 px-0 pb-4 pt-0">
+        <div className="flex items-center justify-between">
+          <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-medium tracking-wide text-indigo-700">
+            Sign in
+          </span>
+          <span className="text-xs text-slate-500">
+            Step {isOtpStep ? "2/2" : "1/2"}
+          </span>
+        </div>
+        <div className="space-y-1">
+          <CardTitle className="text-4xl font-semibold tracking-tight text-slate-900">
+            Get Started Now
+          </CardTitle>
+          <CardDescription className="text-sm text-slate-500">
+            Please log in to your account to continue.
+          </CardDescription>
+          <p className="pt-1 text-base font-medium text-slate-800">{title}</p>
+          <CardDescription className="text-sm text-slate-500">
+            {description}
+          </CardDescription>
+        </div>
       </CardHeader>
-      <CardContent>{StepComponent && <StepComponent />}</CardContent>
-      <CardFooter className="justify-center">
-        <p className="text-sm text-muted-foreground">
+      <CardContent className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        {StepComponent && <StepComponent />}
+      </CardContent>
+      <CardFooter className="justify-center px-0 pb-0 pt-5">
+        <p className="text-sm text-slate-500">
           Don&apos;t have an account?{" "}
-          <Link href="/sign-up" className="text-primary font-medium hover:underline">
+          <Link href="/sign-up" className="font-medium text-indigo-700 hover:text-indigo-600 hover:underline">
             Sign up
           </Link>
         </p>

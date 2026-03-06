@@ -12,13 +12,33 @@ import { startAnalysis } from "@/lib/api/analyzer";
 import { useAnalyzerStore } from "@/lib/stores/analyzer-store";
 import { routes } from "@/lib/config";
 
-export function UrlInputForm({ email }: { email?: string }) {
+export function UrlInputForm({
+  email,
+  orgId,
+  orgName,
+}: {
+  email?: string;
+  orgId?: number;
+  orgName?: string;
+}) {
   const [url, setUrl] = useState("");
   const [brandName, setBrandName] = useState("");
+  const [country, setCountry] = useState("United States");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const { setRunId, startPolling, reset } = useAnalyzerStore();
+  const countryOptions = [
+    "United States",
+    "Canada",
+    "United Kingdom",
+    "Australia",
+    "India",
+    "Germany",
+    "France",
+    "Singapore",
+    "United Arab Emirates",
+  ];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,13 +58,15 @@ export function UrlInputForm({ email }: { email?: string }) {
         url: normalizedUrl,
         run_type: "single_page",
         email,
-        brand_name: brandName.trim() || undefined,
+        brand_name: brandName.trim() || orgName || undefined,
+        country: country.trim() || undefined,
+        org_id: orgId,
       });
 
       reset();
       setRunId(result.id);
       startPolling();
-      router.push(routes.analyzerResults(result.id));
+      router.push(routes.dashboardProject(result.slug));
     } catch {
       setError("Failed to start analysis. Please check the URL and try again.");
     } finally {
@@ -70,7 +92,7 @@ export function UrlInputForm({ email }: { email?: string }) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
+            <div className="grid gap-4 md:grid-cols-[1.2fr_1fr_1fr]">
               <div className="space-y-2">
                 <Label htmlFor="url">Website URL</Label>
                 <Input
@@ -94,6 +116,23 @@ export function UrlInputForm({ email }: { email?: string }) {
                   onChange={(e) => setBrandName(e.target.value)}
                   className="h-10"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="country">Target Country</Label>
+                <select
+                  id="country"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  required
+                >
+                  {countryOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

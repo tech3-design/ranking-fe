@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
@@ -25,7 +25,7 @@ import { WordPressConnectForm } from "@/components/integrations/wordpress-connec
 import { WordPressContentTab } from "@/components/integrations/wordpress-content-tab";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
 
-export default function IntegrationsSettingsPage() {
+function IntegrationsSettingsContent() {
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   const email = session?.user?.email ?? "";
@@ -277,5 +277,19 @@ export default function IntegrationsSettingsPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function IntegrationsSettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      }
+    >
+      <IntegrationsSettingsContent />
+    </Suspense>
   );
 }

@@ -91,7 +91,7 @@ export default function ReportPage() {
       )}
 
       {/* Competitors */}
-      {results.competitors.filter((c) => c.scored).length > 0 && (
+      {results.competitors.length > 0 && (
         <div className="my-8">
           <h2 className="text-xl font-bold mb-4">Competitor Comparison</h2>
           <table className="w-full text-sm">
@@ -103,9 +103,9 @@ export default function ReportPage() {
               </tr>
             </thead>
             <tbody>
-              {results.competitors.filter((c) => c.scored).map((comp) => (
+              {results.competitors.map((comp) => (
                 <tr key={comp.id} className="border-b">
-                  <td className="py-2">{comp.name}</td>
+                  <td className="py-2">{comp.name}{!comp.scored ? " (Low confidence)" : ""}</td>
                   <td className="py-2 text-muted-foreground">{comp.url}</td>
                   <td className="text-right font-mono">
                     {comp.composite_score != null ? Math.round(comp.composite_score) : "—"}
