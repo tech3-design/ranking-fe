@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/analyzer", "/settings"];
+const ALWAYS_PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/settings"];
+const PROTECTED_ANALYZER_PATHS = [/^\/analyzer\/history(?:\/|$)/, /^\/analyzer\/[^/]+\/analytics(?:\/|$)/];
 const SESSION_COOKIE_CANDIDATES = [
   "better-auth.session_token",
   "__Secure-better-auth.session_token",
@@ -13,9 +14,9 @@ export function middleware(request: NextRequest) {
     request.cookies.has(cookieName),
   );
 
-  const isProtected = PROTECTED_PREFIXES.some((prefix) =>
-    pathname.startsWith(prefix),
-  );
+  const isProtected =
+    ALWAYS_PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
+    PROTECTED_ANALYZER_PATHS.some((pattern) => pattern.test(pathname));
 
   if (isProtected && !isAuthenticated) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
