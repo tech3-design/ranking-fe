@@ -7,16 +7,19 @@ export const config = {
 export const routes = {
   signIn: "/sign-in",
   signUp: "/sign-up",
-  dashboard: "/analyzer",
+  dashboard: "/dashboard",
   authCallback: "/auth/callback",
   onboardingCompanyInfo: "/onboarding/company-info",
+  dashboardNew: "/dashboard/new",
+  dashboardProject: (slug: string) => `/dashboard/${slug}`,
+  dashboardProjectAnalytics: (slug: string) => `/dashboard/${slug}/analytics`,
+  dashboardProjectIntegrations: (slug: string) => `/dashboard/${slug}/integrations`,
+  // kept for backward compat with existing sub-pages and PDF
   analyzer: "/analyzer",
-  analyzerHistory: "/analyzer/history",
   analyzerResults: (runId: string | number) => `/analyzer/${runId}`,
-  analyzerRunHistory: (runId: string | number) => `/analyzer/${runId}/history`,
-  analyzerReport: (runId: string | number) => `/analyzer/${runId}/report`,
   analyzerIntegrations: (runId: string | number) => `/analyzer/${runId}/integrations`,
   analyzerAnalytics: (runId: string | number) => `/analyzer/${runId}/analytics`,
   settingsIntegrations: "/settings/integrations",
+  settingsAccount: "/settings/account",
   gaCallbackPage: "/settings/integrations/callback/google-analytics",
 } as const;

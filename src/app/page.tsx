@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { routes } from "@/lib/config";
 import { Button } from "@/components/ui/button";
+import { HeroAnalyzerForm } from "@/components/analyzer/hero-analyzer-form";
 
 export default function Home() {
   return (
@@ -46,14 +47,7 @@ export default function Home() {
               Signalor gives you run-level scoring, visibility diagnostics, competitor benchmarks,
               and prioritized actions in one clean workflow.
             </p>
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-              <Button asChild size="lg" className="rounded-full bg-black/85 px-7 text-white hover:bg-black">
-                <Link href={routes.signUp}>Start Free Analysis</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full border-white/35 bg-white/10 px-7 text-white hover:bg-white/20">
-                <Link href={routes.analyzer}>Open Analyzer</Link>
-              </Button>
-            </div>
+            <HeroAnalyzerForm />
             <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-200/90">
               <span>Run-level composite GEO scoring</span>
               <span>Competitor and AI visibility diagnostics</span>

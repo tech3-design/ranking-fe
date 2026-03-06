@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/analyzer", "/settings"];
-const SESSION_COOKIE = "better-auth.session_token";
+const ALWAYS_PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/settings"];
+const PROTECTED_ANALYZER_PATHS = [/^\/analyzer\/history(?:\/|$)/, /^\/analyzer\/[^/]+\/analytics(?:\/|$)/];
+const SESSION_COOKIE_CANDIDATES = [
+  "better-auth.session_token",
+  "__Secure-better-auth.session_token",
+  "__Host-better-auth.session_token",
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isAuthenticated = request.cookies.has(SESSION_COOKIE);
-
-  const isProtected = PROTECTED_PREFIXES.some((prefix) =>
-    pathname.startsWith(prefix),
+  const isAuthenticated = SESSION_COOKIE_CANDIDATES.some((cookieName) =>
+    request.cookies.has(cookieName),
   );
+
+  const isProtected =
+    ALWAYS_PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
+    PROTECTED_ANALYZER_PATHS.some((pattern) => pattern.test(pathname));
 
   if (isProtected && !isAuthenticated) {
     return NextResponse.redirect(new URL("/sign-in", request.url));

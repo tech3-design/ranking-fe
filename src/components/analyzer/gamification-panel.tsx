@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -398,41 +399,44 @@ export function GamificationPanel({ email, recommendations, runId }: Gamificatio
         </CardContent>
       </Card>
 
-      {/* Level Up Modal */}
+            {/* Level Up Modal */}
       <AnimatePresence>
-        {showLevelUp && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.5, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.5, y: 50 }}
-              className="bg-card p-8 rounded-2xl text-center max-w-md mx-4"
-            >
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-2xl font-bold mb-2">Level Up!</h2>
-              <p className="text-muted-foreground mb-4">
-                You've earned enough points to level up!
-              </p>
-              {newAchievements.length > 0 && (
-                <div className="space-y-2">
-                  <p className="font-semibold">New Achievements Unlocked:</p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {newAchievements.map(ach => (
-                      <span key={ach} className="px-3 py-1 bg-primary/20 rounded-full text-sm">
-                        {ach}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
+        {showLevelUp && typeof document !== "undefined"
+          ? createPortal(
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] bg-black/50"
+              >
+                <motion.div
+                  initial={{ scale: 0.5, y: 50 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.5, y: 50 }}
+                  className="absolute left-1/2 top-1/2 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card p-8 text-center"
+                >
+                  <div className="text-4xl mb-4 font-bold">LVL+</div>
+                  <h2 className="text-2xl font-bold mb-2">Level Up!</h2>
+                  <p className="text-muted-foreground mb-4">
+                    You've earned enough points to level up!
+                  </p>
+                  {newAchievements.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="font-semibold">New Achievements Unlocked:</p>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {newAchievements.map(ach => (
+                          <span key={ach} className="px-3 py-1 bg-primary/20 rounded-full text-sm">
+                            {ach}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </motion.div>,
+              document.body,
+            )
+          : null}
       </AnimatePresence>
     </>
   );
@@ -540,3 +544,4 @@ const ACHIEVEMENTS = [
   { id: "streak_7", name: "Week Warrior", description: "7 day streak", icon: "💪", required: 0 },
   { id: "streak_30", name: "Monthly Master", description: "30 day streak", icon: "🎯", required: 0 },
 ];
+
