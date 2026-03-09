@@ -39,7 +39,7 @@ export function HeroAnalyzerForm() {
     try {
       const run = await startAnalysis({
         url: normalizedUrl,
-        run_type: "single_page",
+        run_type: "full_site",
         country,
       });
       router.push(routes.analyzerResults(run.id));
