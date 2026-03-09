@@ -87,20 +87,6 @@ export default function AnalyzerResultsPage() {
         <p className="mt-1 truncate text-sm text-muted-foreground">{result.url}</p>
       </header>
 
-      <section className="mt-4 rounded-xl border border-amber-300/40 bg-amber-50 p-4">
-        <p className="text-sm text-amber-900">
-          This is a quick report. Sign up to unlock full analysis, detailed recommendations, logs, and action tracking.
-        </p>
-        <div className="mt-3 flex gap-2">
-          <Button asChild size="sm">
-            <Link href={routes.signUp}>Sign up for full analysis</Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link href={routes.signIn}>Sign in</Link>
-          </Button>
-        </div>
-      </section>
-
       <section className="mt-5 grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
         <div className="rounded-xl border border-border/70 bg-card p-4">
           <ScoreGauge score={result.composite_score ?? 0} size={220} label="Overall GEO Score" />

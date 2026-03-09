@@ -106,7 +106,11 @@ export default function ReportPage() {
               {results.competitors.map((comp) => (
                 <tr key={comp.id} className="border-b">
                   <td className="py-2">{comp.name}{!comp.scored ? " (Low confidence)" : ""}</td>
-                  <td className="py-2 text-muted-foreground">{comp.url}</td>
+                  <td className="py-2 text-muted-foreground">
+                    <a href={comp.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {comp.url}
+                    </a>
+                  </td>
                   <td className="text-right font-mono">
                     {comp.composite_score != null ? Math.round(comp.composite_score) : "—"}
                   </td>

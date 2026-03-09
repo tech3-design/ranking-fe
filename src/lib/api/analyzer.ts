@@ -257,3 +257,25 @@ export async function recheckAllPrompts(slug: string): Promise<{ count: number }
   );
   return { count: data.count };
 }
+
+// ---------- Competitor CRUD ----------
+
+export async function addCompetitor(slug: string, name: string, url: string): Promise<Competitor> {
+  const { data } = await apiClient.post<Competitor>(
+    `/api/analyzer/runs/s/${slug}/competitors/`,
+    { name, url },
+  );
+  return data;
+}
+
+export async function updateCompetitor(slug: string, id: number, payload: { name?: string; url?: string }): Promise<Competitor> {
+  const { data } = await apiClient.patch<Competitor>(
+    `/api/analyzer/runs/s/${slug}/competitors/${id}/`,
+    payload,
+  );
+  return data;
+}
+
+export async function deleteCompetitor(slug: string, id: number): Promise<void> {
+  await apiClient.delete(`/api/analyzer/runs/s/${slug}/competitors/${id}/`);
+}

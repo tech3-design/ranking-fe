@@ -62,7 +62,14 @@ export function CompetitorTable({ competitors, yourScore }: CompetitorTableProps
                       </span>
                     )}
                   </p>
-                  <p className="truncate text-xs text-muted-foreground">{comp.url}</p>
+                  <a
+                    href={comp.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-xs text-muted-foreground underline-offset-2 hover:underline"
+                  >
+                    {comp.url}
+                  </a>
                 </div>
                 <div className="w-40">
                   <div className="h-2 overflow-hidden rounded-full bg-muted">

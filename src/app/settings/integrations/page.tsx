@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { useOrgStore } from "@/lib/stores/org-store";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,6 +30,8 @@ function IntegrationsSettingsContent() {
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   const email = session?.user?.email ?? "";
+  const { activeOrg } = useOrgStore();
+  const orgId = activeOrg?.id;
 
   const [integrations, setIntegrations] = useState<IntegrationInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,14 +53,14 @@ function IntegrationsSettingsContent() {
   const loadIntegrations = useCallback(async () => {
     if (!email) return;
     try {
-      const data = await getIntegrationStatus(email);
+      const data = await getIntegrationStatus(email, orgId);
       setIntegrations(data);
     } catch {
       // No integrations yet, that's fine.
     } finally {
       setLoading(false);
     }
-  }, [email]);
+  }, [email, orgId]);
 
   useEffect(() => {
     loadIntegrations();
@@ -89,7 +92,7 @@ function IntegrationsSettingsContent() {
     setDisconnectingShopify(true);
     setError(null);
     try {
-      await disconnectShopify(email);
+      await disconnectShopify(email, orgId);
       setIntegrations((prev) => prev.filter((i) => i.provider !== "shopify"));
     } catch {
       setError("Failed to disconnect Shopify.");
@@ -208,10 +211,10 @@ function IntegrationsSettingsContent() {
                         </Button>
                       </div>
                     </div>
-                    <ShopifyEcommerceTab email={email} />
+                    <ShopifyEcommerceTab email={email} orgId={orgId} />
                   </div>
                 ) : (
-                  <ShopifyConnectForm email={email} onConnected={loadIntegrations} />
+                  <ShopifyConnectForm email={email} orgId={orgId} onConnected={loadIntegrations} />
                 )}
               </CardContent>
             </Card>

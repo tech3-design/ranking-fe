@@ -13,9 +13,10 @@ import { ShopifyTopProductsTable } from "./shopify-top-products-table";
 
 interface ShopifyEcommerceTabProps {
   email: string;
+  orgId?: number;
 }
 
-export function ShopifyEcommerceTab({ email }: ShopifyEcommerceTabProps) {
+export function ShopifyEcommerceTab({ email, orgId }: ShopifyEcommerceTabProps) {
   const [data, setData] = useState<ShopifyDataSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -24,11 +25,12 @@ export function ShopifyEcommerceTab({ email }: ShopifyEcommerceTabProps) {
   useEffect(() => {
     if (!email) return;
     loadData();
-  }, [email]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email, orgId]);
 
   async function loadData() {
     try {
-      const snapshot = await getShopifyData(email);
+      const snapshot = await getShopifyData(email, orgId);
       setData(snapshot);
       setError(null);
     } catch {
@@ -43,11 +45,11 @@ export function ShopifyEcommerceTab({ email }: ShopifyEcommerceTabProps) {
     setError(null);
     let finished = false;
     try {
-      await syncShopifyData(email);
+      await syncShopifyData(email, orgId);
       // Poll for completion
       const poll = setInterval(async () => {
         try {
-          const snapshot = await getShopifyData(email);
+          const snapshot = await getShopifyData(email, orgId);
           if (snapshot.sync_status === "complete") {
             finished = true;
             setData(snapshot);
