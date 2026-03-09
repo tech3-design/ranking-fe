@@ -66,8 +66,10 @@ function IntegrationsSettingsContent() {
     loadIntegrations();
   }, [loadIntegrations]);
 
-  useEffect(() => {
+  // ...existing code...
+useEffect(() => {
     const shopifyStatus = searchParams.get("shopify");
+    const wordpressStatus = searchParams.get("wordpress");
     const reason = searchParams.get("reason");
 
     if (shopifyStatus === "connected") {
@@ -83,6 +85,22 @@ function IntegrationsSettingsContent() {
         reason
           ? `Shopify connection failed (${reason.replaceAll("_", " ")}).`
           : "Shopify connection failed.",
+      );
+    }
+
+    if (wordpressStatus === "connected") {
+      setNotice("WordPress connected successfully.");
+      setError(null);
+      loadIntegrations();
+      return;
+    }
+
+    if (wordpressStatus === "error") {
+      setNotice(null);
+      setError(
+        reason
+          ? `WordPress connection failed (${reason.replaceAll("_", " ")}).`
+          : "WordPress connection failed.",
       );
     }
   }, [searchParams, loadIntegrations]);

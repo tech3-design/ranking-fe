@@ -259,23 +259,23 @@ export async function getShopifyData(
 
 // ---------- WordPress API ----------
 
+// ...existing code...
+
 export async function connectWordPress(
   email: string,
   siteUrl: string,
   username: string,
   appPassword: string,
-): Promise<{ message: string; integration: IntegrationInfo }> {
-  const { data } = await apiClient.post(
-    "/api/integrations/wordpress/connect/",
-    {
-      email,
-      site_url: siteUrl,
-      username,
-      app_password: appPassword,
-    },
-  );
-  return data;
+): Promise<{ oauth_url?: string; message?: string; integration?: unknown }> {
+  const res = await apiClient.post("/api/integrations/wordpress/connect/", {
+    email,
+    site_url: siteUrl,
+    username,
+    app_password: appPassword,
+  });
+  return res.data;
 }
+
 
 export async function disconnectWordPress(
   email: string,
