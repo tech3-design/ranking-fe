@@ -90,10 +90,11 @@ export async function disconnectGA(email: string): Promise<{ message: string }> 
 
 export async function getIntegrationStatus(
   email: string,
+  orgId?: number,
 ): Promise<IntegrationInfo[]> {
   const { data } = await apiClient.get<IntegrationInfo[]>(
     "/api/integrations/status/",
-    { params: { email } },
+    { params: { email, org_id: orgId } },
   );
   return data;
 }
@@ -213,41 +214,45 @@ export async function getShopifyAuthUrl(
   email: string,
   shopDomain: string,
   returnTo?: string,
+  orgId?: number,
 ): Promise<{ auth_url: string }> {
   const { data } = await apiClient.get<{ auth_url: string }>(
     "/api/integrations/shopify/auth-url/",
-    { params: { email, shop: shopDomain, return_to: returnTo } },
+    { params: { email, shop: shopDomain, return_to: returnTo, org_id: orgId } },
   );
   return data;
 }
 
 export async function disconnectShopify(
   email: string,
+  orgId?: number,
 ): Promise<{ message: string }> {
   const { data } = await apiClient.delete(
     "/api/integrations/shopify/disconnect/",
-    { params: { email } },
+    { params: { email, org_id: orgId } },
   );
   return data;
 }
 
 export async function syncShopifyData(
   email: string,
+  orgId?: number,
 ): Promise<{ message: string }> {
   const { data } = await apiClient.post(
     "/api/integrations/shopify/sync/",
     null,
-    { params: { email } },
+    { params: { email, org_id: orgId } },
   );
   return data;
 }
 
 export async function getShopifyData(
   email: string,
+  orgId?: number,
 ): Promise<ShopifyDataSnapshot> {
   const { data } = await apiClient.get<ShopifyDataSnapshot>(
     "/api/integrations/shopify/data/",
-    { params: { email } },
+    { params: { email, org_id: orgId } },
   );
   return data;
 }

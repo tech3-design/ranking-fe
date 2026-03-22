@@ -7,10 +7,11 @@ import { getShopifyAuthUrl } from "@/lib/api/integrations";
 
 interface ShopifyConnectFormProps {
   email: string;
+  orgId?: number;
   onConnected: () => void;
 }
 
-export function ShopifyConnectForm({ email, onConnected }: ShopifyConnectFormProps) {
+export function ShopifyConnectForm({ email, orgId, onConnected }: ShopifyConnectFormProps) {
   const [shopDomain, setShopDomain] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +28,7 @@ export function ShopifyConnectForm({ email, onConnected }: ShopifyConnectFormPro
         typeof window !== "undefined"
           ? `${window.location.pathname}${window.location.search}`
           : "/settings/integrations";
-      const { auth_url } = await getShopifyAuthUrl(email, shopDomain.trim(), returnTo);
+      const { auth_url } = await getShopifyAuthUrl(email, shopDomain.trim(), returnTo, orgId);
       window.location.href = auth_url;
     } catch (err: unknown) {
       const message =
@@ -48,11 +49,11 @@ export function ShopifyConnectForm({ email, onConnected }: ShopifyConnectFormPro
       )}
       <div>
         <label className="text-sm font-medium" htmlFor="shop-domain">
-          Shop Domain
+          Store URL
         </label>
         <Input
           id="shop-domain"
-          placeholder="your-store.myshopify.com"
+          placeholder="your-store.myshopify.com or https://your-store.com"
           value={shopDomain}
           onChange={(e) => setShopDomain(e.target.value)}
           disabled={connecting}
@@ -60,10 +61,10 @@ export function ShopifyConnectForm({ email, onConnected }: ShopifyConnectFormPro
         />
       </div>
       <p className="text-xs text-muted-foreground mt-1">
-        You&apos;ll be redirected to Shopify to authorize this store.
+        Paste your store URL or myshopify.com domain. You&apos;ll be redirected to Shopify to authorize access.
       </p>
       <Button type="submit" disabled={connecting} className="w-full">
-        {connecting ? "Redirecting..." : "Connect Shopify"}
+        {connecting ? "Redirecting to Shopify..." : "Connect Shopify"}
       </Button>
     </form>
   );

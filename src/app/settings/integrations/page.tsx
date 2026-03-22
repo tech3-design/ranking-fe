@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { getOrganizations } from "@/lib/api/organizations";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,6 +30,7 @@ function IntegrationsSettingsContent() {
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   const email = session?.user?.email ?? "";
+  const [orgId, setOrgId] = useState<number | undefined>();
 
   const [integrations, setIntegrations] = useState<IntegrationInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,17 +49,25 @@ function IntegrationsSettingsContent() {
   );
   const connectedCount = [shopifyIntegration, wordpressIntegration].filter(Boolean).length;
 
+  // Resolve org by email
+  useEffect(() => {
+    if (!email) return;
+    getOrganizations(email)
+      .then((orgs) => { if (orgs.length > 0) setOrgId(orgs[0].id); })
+      .catch(() => {});
+  }, [email]);
+
   const loadIntegrations = useCallback(async () => {
     if (!email) return;
     try {
-      const data = await getIntegrationStatus(email);
+      const data = await getIntegrationStatus(email, orgId);
       setIntegrations(data);
     } catch {
       // No integrations yet, that's fine.
     } finally {
       setLoading(false);
     }
-  }, [email]);
+  }, [email, orgId]);
 
   useEffect(() => {
     loadIntegrations();
@@ -107,7 +117,7 @@ useEffect(() => {
     setDisconnectingShopify(true);
     setError(null);
     try {
-      await disconnectShopify(email);
+      await disconnectShopify(email, orgId);
       setIntegrations((prev) => prev.filter((i) => i.provider !== "shopify"));
     } catch {
       setError("Failed to disconnect Shopify.");
@@ -140,7 +150,7 @@ useEffect(() => {
 
   return (
     <div className="h-screen w-screen overflow-hidden">
-      <div className="flex h-full w-full overflow-hidden border border-border/60 bg-background/30">
+      <div className="flex h-full w-full overflow-hidden border border-white/[0.06] bg-[#171717]">
         <AppSidebar />
         <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
           <div className="space-y-6">
@@ -152,12 +162,12 @@ useEffect(() => {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-xs text-muted-foreground">
                   {connectedCount}/2 connected
                 </span>
                 <Link
                   href={routes.analyzer}
-                  className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  className="rounded-md border border-white/[0.08] px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 >
                   Analyzer
                 </Link>
@@ -176,7 +186,7 @@ useEffect(() => {
               </div>
             )}
 
-            <Card className="glass-card border-border/70">
+            <Card className="glass-card border-white/[0.08]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <svg
@@ -204,7 +214,7 @@ useEffect(() => {
                   <p className="text-sm text-muted-foreground">Checking connection status...</p>
                 ) : shopifyIntegration ? (
                   <div className="space-y-4">
-                    <div className="rounded-md border border-border/70 bg-background/70 p-3">
+                    <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="size-2 rounded-full bg-green-500" />
@@ -229,12 +239,12 @@ useEffect(() => {
                     <ShopifyEcommerceTab email={email} />
                   </div>
                 ) : (
-                  <ShopifyConnectForm email={email} onConnected={loadIntegrations} />
+                  <ShopifyConnectForm email={email} orgId={orgId} onConnected={loadIntegrations} />
                 )}
               </CardContent>
             </Card>
 
-            <Card className="glass-card border-border/70">
+            <Card className="glass-card border-white/[0.08]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <svg
@@ -262,7 +272,7 @@ useEffect(() => {
                   <p className="text-sm text-muted-foreground">Checking connection status...</p>
                 ) : wordpressIntegration ? (
                   <div className="space-y-4">
-                    <div className="rounded-md border border-border/70 bg-background/70 p-3">
+                    <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="size-2 rounded-full bg-green-500" />

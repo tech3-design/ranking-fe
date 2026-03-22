@@ -58,13 +58,13 @@ export function HeroAnalyzerForm() {
           placeholder="Enter website URL (example.com)"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="h-11 border-white/30 bg-white/10 text-white placeholder:text-slate-300"
+          className="h-11 border-white/15 bg-white/[0.06] text-white placeholder:text-slate-500"
           required
         />
         <select
           value={country}
           onChange={(e) => setCountry(e.target.value)}
-          className="h-11 rounded-md border border-white/30 bg-white/10 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="h-11 border border-white/15 bg-white/[0.06] px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#3ecf8e]/50"
           required
         >
           {COUNTRY_OPTIONS.map((option) => (
@@ -77,7 +77,7 @@ export function HeroAnalyzerForm() {
           type="submit"
           size="lg"
           disabled={loading || !url.trim()}
-          className="h-11 rounded-md bg-[#ff8c3a] px-6 text-black hover:bg-[#ffa35f]"
+          className="h-11 px-6"
         >
           {loading ? "Starting..." : "Check AI Visibility"}
         </Button>

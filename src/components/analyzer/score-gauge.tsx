@@ -57,6 +57,15 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
   return (
     <div className="mx-auto flex w-full max-w-[360px] flex-col items-center rounded-xl border border-border/60 bg-card/60 p-4">
       <svg width={size} height={size * 0.65} viewBox={`0 0 ${size} ${size * 0.75}`} className="overflow-visible">
+        <defs>
+          <filter id="arc-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         {/* Background arc */}
         <circle
           cx={center}
@@ -84,6 +93,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
           animate={{ strokeDashoffset: targetOffset }}
           transition={{ duration: 1.2, ease: "easeOut" }}
           transform={`rotate(135 ${center} ${center})`}
+          filter="url(#arc-glow)"
         />
         {/* Score text */}
         <text
@@ -94,6 +104,7 @@ export function ScoreGauge({ score, size = 200, label }: ScoreGaugeProps) {
           className="text-foreground"
           fontSize="36"
           fontWeight="bold"
+          style={{ textShadow: '0 0 20px rgba(62,207,142,0.5)' }}
         >
           <AnimatedNumber value={Math.round(score)} />
         </text>
