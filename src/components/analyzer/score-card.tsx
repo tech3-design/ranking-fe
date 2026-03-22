@@ -30,19 +30,20 @@ export function ScoreCard({ title, score, details }: ScoreCardProps) {
 
   return (
     <Spotlight className="rounded-xl">
-      <Card className="h-full border-border/60 bg-card/65 backdrop-blur-xl shadow-lg">
+      <Card className="h-full border-white/[0.08] bg-white/[0.03] backdrop-blur-xl shadow-lg">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium">{title}</CardTitle>
             <span
               className={`rounded-full border px-2.5 py-0.5 text-xs font-bold ${getScoreBadge(score)}`}
+              style={{ textShadow: '0 0 20px rgba(59,130,246,0.5)' }}
             >
               {Math.round(score)}
             </span>
           </div>
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted/70">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${getScoreFill(score)}`}
+              className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-blue-500 to-purple-500"
               style={{ width: `${Math.max(0, Math.min(100, score))}%` }}
             />
           </div>

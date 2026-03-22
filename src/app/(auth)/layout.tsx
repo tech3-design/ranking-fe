@@ -22,7 +22,7 @@ export default function AuthLayout({
               Signalor.ai
             </Link>
             <p className="text-xs text-blue-100/90">Built for modern growth teams</p>
-            <h1 className="max-w-md text-4xl font-semibold leading-tight tracking-tight md:text-6xl md:leading-[1.05]">
+            <h1 className="max-w-md text-2xl font-semibold leading-tight tracking-tight md:text-4xl lg:text-6xl lg:leading-[1.05]">
               Grow faster with answer-engine visibility that compounds.
             </h1>
             <p className="max-w-md text-sm text-blue-100/85 md:text-3xl md:leading-tight md:font-light">

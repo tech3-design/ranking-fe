@@ -130,7 +130,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
       </div>
 
       {/* Table header */}
-      <div className="grid grid-cols-[2rem_1fr_5rem_5rem_6rem] gap-3 px-5 py-2.5 text-[10px] font-medium uppercase tracking-wider text-neutral-600 border-b border-white/[0.04]">
+      <div className="hidden md:grid grid-cols-[2rem_1fr_5rem_5rem_6rem] gap-3 px-5 py-2.5 text-[10px] font-medium uppercase tracking-wider text-neutral-600 border-b border-white/[0.04]">
         <span>#</span>
         <span>Recommendation</span>
         <span>Priority</span>
@@ -151,10 +151,10 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
             <div key={rec.id}>
               {/* Row */}
               <div
-                className="grid grid-cols-[2rem_1fr_5rem_5rem_6rem] gap-3 px-5 py-3 cursor-pointer transition-colors hover:bg-white/[0.03] items-center"
+                className="grid grid-cols-[1fr_auto] md:grid-cols-[2rem_1fr_5rem_5rem_6rem] gap-2 md:gap-3 px-4 md:px-5 py-3 cursor-pointer transition-colors hover:bg-white/[0.03] items-center"
                 onClick={() => setExpandedId(isExpanded ? null : rec.id)}
               >
-                <span className="text-xs text-neutral-600 font-mono">{String(index + 1).padStart(2, "0")}</span>
+                <span className="hidden md:block text-xs text-neutral-600 font-mono">{String(index + 1).padStart(2, "0")}</span>
 
                 <div className="min-w-0 flex items-center gap-2">
                   {isExpanded
@@ -169,7 +169,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
                   {rec.priority}
                 </span>
 
-                <span className="text-[10px] text-neutral-500">{PILLAR_LABELS[rec.pillar] || rec.pillar}</span>
+                <span className="hidden md:block text-[10px] text-neutral-500">{PILLAR_LABELS[rec.pillar] || rec.pillar}</span>
 
                 <div className="text-right">
                   {fixResult ? (

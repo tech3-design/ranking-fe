@@ -103,7 +103,7 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
         <div>
           <h2 className="text-lg font-semibold text-white">Prompt Tracking</h2>
           <p className="mt-1 text-sm text-neutral-500">

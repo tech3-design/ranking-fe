@@ -279,7 +279,7 @@ export default function ProjectPage() {
 
         {/* Dark Main Content */}
         <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] bg-white/[0.02] backdrop-blur-xl px-6 py-4">
+          <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] bg-white/[0.02] backdrop-blur-xl px-4 md:px-6 py-3 md:py-4">
             <div className="min-w-0">
               <h1 className="truncate text-xl font-bold text-white">
                 Dashboard
@@ -318,7 +318,7 @@ export default function ProjectPage() {
             </div>
           )}
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
               {activeTab === "overview" && (
                 <div className="space-y-5">
                   {mainPage && (

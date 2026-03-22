@@ -41,7 +41,7 @@ export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTab
       </div>
 
       {/* Overall score + Platform scores */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5 md:gap-3">
         {/* Overall */}
         <div className="rounded-2xl border border-[#3ecf8e]/20 bg-[#3ecf8e]/[0.06] p-5 text-center">
           <p className="text-3xl font-bold text-[#3ecf8e]">{Math.round(visibility.overall_score)}</p>
@@ -68,11 +68,11 @@ export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTab
       </div>
 
       {/* Detail panels */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid gap-3 md:grid-cols-2 md:gap-4">
         <GoogleDetailsPanel details={googleDetails} score={visibility.google_score} />
         <RedditDetailsPanel details={redditDetails} score={visibility.reddit_score} />
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid gap-3 md:grid-cols-2 md:gap-4">
         <MediumDetailsPanel details={mediumDetails} score={visibility.medium_score} />
         <WebMentionsPanel details={webMentionsDetails ?? {}} score={visibility.web_mentions_score} />
       </div>

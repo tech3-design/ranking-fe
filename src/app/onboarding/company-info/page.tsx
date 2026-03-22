@@ -115,10 +115,10 @@ export default function CompanyInfoPage() {
         const { auth_url } = await getShopifyAuthUrl(
           email,
           domain,
-          "/dashboard",
+          "/pricing",
           orgId
         );
-        // Redirect to Shopify OAuth — after callback, user lands on /dashboard
+        // Redirect to Shopify OAuth — after callback, user lands on /pricing
         window.location.href = auth_url;
         return;
       }
@@ -138,18 +138,8 @@ export default function CompanyInfoPage() {
         }
       }
 
-      // Step 3: Start analysis
-      setStatusMsg("Starting analysis on your site...");
-      const analysis = await startAnalysis({
-        url: siteUrl,
-        run_type: "single_page",
-        email,
-        brand_name: companyName.trim(),
-        org_id: orgId,
-      });
-
-      // Step 4: Redirect to dashboard with the analysis
-      router.push(routes.dashboardProject(analysis.slug));
+      // Step 3: Redirect to pricing for payment
+      router.push("/pricing");
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const msg =

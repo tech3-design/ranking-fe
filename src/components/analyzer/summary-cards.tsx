@@ -31,7 +31,7 @@ export function SummaryCards({
         return (
           <div
             key={card.label}
-            className={`rounded-2xl border p-4 transition-all ${
+            className={`rounded-2xl border p-3 md:p-4 transition-all ${
               card.accent
                 ? "border-[#3ecf8e]/30 bg-[#3ecf8e]/[0.06] shadow-[0_0_20px_rgba(62,207,142,0.1)]"
                 : "border-white/[0.08] bg-white/[0.03]"
@@ -40,7 +40,7 @@ export function SummaryCards({
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-slate-500">{card.label}</p>
-                <p className={`mt-1 text-3xl font-bold tracking-tight ${card.accent ? "text-[#3ecf8e]" : "text-white"}`}>
+                <p className={`mt-1 text-2xl md:text-3xl font-bold tracking-tight ${card.accent ? "text-[#3ecf8e]" : "text-white"}`}>
                   {card.value}
                 </p>
               </div>

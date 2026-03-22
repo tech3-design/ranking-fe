@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { getOrganizations } from "@/lib/api/organizations";
 import { getRunList, startAnalysis } from "@/lib/api/analyzer";
+import { getSubscriptionStatus } from "@/lib/api/payments";
 import { routes } from "@/lib/config";
 import { UrlInputForm } from "@/components/analyzer/url-input-form";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -43,6 +44,16 @@ function DashboardContent() {
 
     const email = session.user.email;
     const shopifyStatus = searchParams.get("shopify");
+
+    // Check subscription before loading dashboard
+    getSubscriptionStatus(email)
+      .then((sub) => {
+        if (!sub.is_active) {
+          router.replace("/pricing");
+          return;
+        }
+      })
+      .catch(() => {});
 
     getOrganizations(email)
       .then(async (orgs) => {

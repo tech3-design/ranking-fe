@@ -21,9 +21,9 @@ export default function Home() {
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#171717]" />
 
-        <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 md:px-12">
+        <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 md:px-6 lg:px-12">
           {/* Nav */}
-          <header className="flex items-center justify-between py-5">
+          <header className="flex items-center justify-between py-4 md:py-5">
             <div className="text-sm font-light tracking-[0.25em] uppercase text-white">Signalor</div>
             <div className="flex items-center gap-3">
               <Link
@@ -46,7 +46,7 @@ export default function Home() {
             <div className="flex w-full flex-col gap-12 md:flex-row md:items-end md:justify-between">
               {/* Left: heading + subtitle + analyzer */}
               <div className="max-w-2xl flex-1">
-                <h1 className="text-4xl font-light leading-[1.1] tracking-tight text-white md:text-6xl lg:text-7xl">
+                <h1 className="text-3xl font-light leading-[1.1] tracking-tight text-white md:text-4xl lg:text-7xl">
                   Check your AI<br />
                   visibility score
                 </h1>
@@ -74,7 +74,7 @@ export default function Home() {
               </div>
 
               {/* Right: stats */}
-              <div className="flex gap-10 md:gap-14">
+              <div className="flex gap-6 md:gap-10 lg:gap-14">
                 <div>
                   <p className="text-4xl font-light tracking-tight text-white md:text-5xl">6</p>
                   <p className="mt-1 text-xs text-slate-500">GEO pillars<br />analyzed</p>

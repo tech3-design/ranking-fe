@@ -65,7 +65,7 @@ function SignUpContent() {
           <span className="text-xs text-slate-400">Step {stepIndex}</span>
         </div>
         <div className="space-y-1">
-          <CardTitle className="gradient-text text-4xl font-semibold tracking-tight">
+          <CardTitle className="gradient-text text-2xl md:text-4xl font-semibold tracking-tight">
             Get Started Now
           </CardTitle>
           <CardDescription className="text-sm text-slate-400">

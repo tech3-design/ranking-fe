@@ -16,7 +16,7 @@ const PLATFORMS = [
 export function VisibilitySummary({ visibility, onViewDetails }: VisibilitySummaryProps) {
   return (
     <button onClick={onViewDetails} className="w-full text-left">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
         {PLATFORMS.map((p) => {
           const score = Math.round(visibility[p.key] ?? 0);
           const circumference = 2 * Math.PI * 20;

@@ -55,7 +55,7 @@ export function FixCTACard({ recommendations, slug, email, orgId }: FixCTACardPr
   if (total === 0) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-[#3ecf8e]/20 bg-gradient-to-br from-[#3ecf8e]/15 to-[#2da06e]/5 p-6">
+    <div className="relative overflow-hidden rounded-2xl border border-[#3ecf8e]/20 bg-gradient-to-br from-[#3ecf8e]/15 to-[#2da06e]/5 p-4 md:p-6">
       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[#3ecf8e]/10 blur-2xl" />
       <div className="relative">
         <div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ export function FixCTACard({ recommendations, slug, email, orgId }: FixCTACardPr
           </div>
         ) : (
           <>
-            <p className="mt-3 text-3xl font-bold text-white">{remaining}</p>
+            <p className="mt-3 text-2xl md:text-3xl font-bold text-white">{remaining}</p>
             <p className="text-xs text-slate-400">
               recommendation{remaining !== 1 ? "s" : ""} ready to apply
             </p>
