@@ -1,217 +1,217 @@
 import Link from "next/link";
 import { routes } from "@/lib/config";
-import { Button } from "@/components/ui/button";
 import { HeroAnalyzerForm } from "@/components/analyzer/hero-analyzer-form";
+import { Spotlight } from "@/components/ui/spotlight";
 
 export default function Home() {
   return (
-    <main className="overflow-x-hidden bg-white text-slate-900">
-      <section className="relative left-1/2 h-screen w-[100dvw] -translate-x-1/2 overflow-hidden border-y border-[#5a6cf5]/25 bg-[#030416] px-6 py-3 text-slate-100 shadow-lg md:px-10 md:py-7">
+    <main className="overflow-x-hidden bg-[#171717] text-slate-100">
+      {/* Hero */}
+      <section className="relative min-h-screen overflow-hidden">
         <div
-          className="pointer-events-none absolute inset-0 bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('/hero-bg.jpg.jpg')",
-            backgroundSize: "100% 100%",
-          }}
-        />
-        <div className="mx-auto w-full max-w-6xl">
-          <header className="relative z-20 flex items-center justify-between py-2">
-            <div className="text-lg font-semibold tracking-tight text-white">Signalor GEO</div>
-            <nav className="hidden items-center gap-6 text-xs text-slate-200/90 md:flex">
-              <a href="#services" className="hover:text-white">Services</a>
-              <a href="#how-it-works" className="hover:text-white">How it works</a>
-              <a href="#our-work" className="hover:text-white">Our Work</a>
-              <a href="#pricing" className="hover:text-white">Pricing</a>
-              <a href="#our-team" className="hover:text-white">Our Team</a>
-            </nav>
-            <div className="flex items-center gap-2">
-              <Button asChild size="sm" variant="ghost" className="rounded-full border border-white/30 bg-white/10 text-white hover:bg-white/20">
-                <Link href={routes.signIn}>Sign in</Link>
-              </Button>
-              <Button asChild size="sm" className="rounded-full bg-[#ff8c3a] text-black hover:bg-[#ffa35f]">
-                <Link href={routes.signUp}>Get started</Link>
-              </Button>
+          className="absolute inset-0 overflow-hidden"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero2.jfif"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#171717]" />
+
+        <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 md:px-12">
+          {/* Nav */}
+          <header className="flex items-center justify-between py-5">
+            <div className="text-sm font-light tracking-[0.25em] uppercase text-white">Signalor</div>
+            <div className="flex items-center gap-3">
+              <Link
+                href={routes.signIn}
+                className="px-5 py-2 text-sm text-slate-300 transition hover:text-white"
+              >
+                Access Portal
+              </Link>
+              <Link
+                href={routes.signUp}
+                className="gradient-btn px-5 py-2 text-sm font-medium"
+              >
+                Begin Journey &rarr;
+              </Link>
             </div>
           </header>
 
-          <div className="relative z-10 flex min-h-[78vh] flex-col items-center justify-center pt-4 text-center">
-            <p className="inline-flex rounded-full border border-white/25 bg-black/35 px-3 py-1 text-xs font-medium text-slate-100">
-              AI Search Visibility Platform
-            </p>
-            <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-white md:text-7xl">
-              Track GEO performance
-              <br />
-              and improve what AI engines see first
-            </h1>
-            <p className="mt-5 max-w-3xl text-sm text-slate-200/90 md:text-base">
-              Signalor gives you run-level scoring, visibility diagnostics, competitor benchmarks,
-              and prioritized actions in one clean workflow.
-            </p>
-            <HeroAnalyzerForm />
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-200/90">
-              <span>Run-level composite GEO scoring</span>
-              <span>Competitor and AI visibility diagnostics</span>
-              <span>Prioritized actions and reporting exports</span>
+          {/* Hero content — bottom-left */}
+          <div className="flex flex-1 items-end pb-16 md:pb-24">
+            <div className="flex w-full flex-col gap-12 md:flex-row md:items-end md:justify-between">
+              {/* Left: heading + subtitle + analyzer */}
+              <div className="max-w-2xl flex-1">
+                <h1 className="text-4xl font-light leading-[1.1] tracking-tight text-white md:text-6xl lg:text-7xl">
+                  Check your AI<br />
+                  visibility score
+                </h1>
+                <p className="mt-5 max-w-md text-sm leading-relaxed text-slate-400 md:text-base">
+                  See how ChatGPT, Gemini, and Perplexity see your brand — analyze, diagnose, and auto-fix what they miss.
+                </p>
+
+                {/* Free Analyzer Form */}
+                <HeroAnalyzerForm />
+
+                <div className="mt-6 flex items-center gap-3">
+                  <Link
+                    href={routes.signUp}
+                    className="gradient-btn px-6 py-3 text-sm font-medium"
+                  >
+                    Begin Journey &rarr;
+                  </Link>
+                  <Link
+                    href={routes.signIn}
+                    className="border border-white/20 bg-transparent px-6 py-3 text-sm text-white transition hover:bg-white/[0.06]"
+                  >
+                    Explore More
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right: stats */}
+              <div className="flex gap-10 md:gap-14">
+                <div>
+                  <p className="text-4xl font-light tracking-tight text-white md:text-5xl">6</p>
+                  <p className="mt-1 text-xs text-slate-500">GEO pillars<br />analyzed</p>
+                </div>
+                <div>
+                  <p className="text-4xl font-light tracking-tight text-white md:text-5xl">4</p>
+                  <p className="mt-1 text-xs text-slate-500">AI engines<br />tracked</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col px-6 py-12 md:px-10">
-        <section id="services" className="mt-12 grid gap-4 md:grid-cols-3">
+      {/* Efficiency Stats */}
+      <section className="mx-auto w-full max-w-6xl px-6 py-20 md:px-12">
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-md">
+            <p className="text-xs uppercase tracking-widest text-[#3ecf8e]">Why Signalor</p>
+            <h2 className="mt-3 text-3xl font-light tracking-tight text-white md:text-4xl">
+              Boost Visibility by<br />Automating GEO
+            </h2>
+          </div>
+          <p className="max-w-sm text-sm leading-relaxed text-slate-400">
+            Save time by eliminating manual SEO audits, allowing teams to focus on high-value content strategy.
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            {
+              value: "40",
+              unit: "%",
+              label: "Visibility Boost",
+              desc: "Citation-optimized content lifts AI mentions",
+              accent: false,
+            },
+            {
+              value: "10",
+              unit: "+",
+              label: "Auto-Fix Types",
+              desc: "AI applies schema, content, and file fixes",
+              accent: false,
+            },
+            {
+              value: "2",
+              unit: "min",
+              label: "Full GEO Audit",
+              desc: "Analyze 6 pillars across any URL instantly",
+              accent: true,
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className={`rounded-2xl p-8 transition-all ${
+                item.accent
+                  ? "bg-gradient-to-br from-[#3ecf8e]/20 to-[#2da06e]/10 border border-[#3ecf8e]/20"
+                  : "bg-white/[0.03] border border-white/[0.08]"
+              }`}
+            >
+              <p className={`text-5xl font-light tracking-tight md:text-6xl ${item.accent ? "text-[#3ecf8e]" : "text-white"}`}>
+                {item.value}<span className="text-3xl md:text-4xl">{item.unit}</span>
+              </p>
+              <p className="mt-3 text-sm font-medium text-white">{item.label}</p>
+              <p className="mt-1 text-xs text-slate-500">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Services */}
+      <div className="mx-auto flex w-full max-w-6xl flex-col px-6 pb-16 md:px-12">
+        <section className="grid gap-4 md:grid-cols-3">
           {[
             {
               title: "Fast Analysis Runs",
-              description: "Launch new audits quickly and monitor status in real time.",
+              description: "Launch audits quickly and monitor status in real time. Get results in under 2 minutes.",
             },
             {
-              title: "Actionable Insights",
-              description: "Get practical next steps tied to each analyzed page and score pillar.",
+              title: "AI-Powered Auto-Fix",
+              description: "One click to apply recommendations directly to your Shopify or WordPress store.",
             },
             {
-              title: "Built for Teams",
-              description: "Use integrations and reporting to align SEO, content, and growth teams.",
+              title: "Visibility Tracking",
+              description: "Monitor your brand mentions across ChatGPT, Gemini, Perplexity, and Google AI.",
             },
           ].map((item) => (
-            <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h3 className="text-base font-semibold text-[#134a9f]">{item.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{item.description}</p>
-            </div>
+            <Spotlight key={item.title} className="rounded-xl">
+              <div className="glass-card rounded-xl p-6 h-full">
+                <h3 className="text-base font-semibold text-white">{item.title}</h3>
+                <p className="mt-2 text-sm text-slate-400">{item.description}</p>
+              </div>
+            </Spotlight>
           ))}
         </section>
 
-        <section id="our-work" className="mt-12 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-          <p className="text-sm font-semibold text-[#1f6fd1]">Platform Snapshot</p>
-          <div className="mt-4 grid gap-4 md:grid-cols-4">
+        {/* How it works */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-light tracking-tight text-white">How It Works</h2>
+          <p className="mt-1 text-sm text-slate-500">From URL input to AI-powered improvements.</p>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
             {[
-              { label: "Core GEO Pillars", value: "6" },
-              { label: "Visibility Channels", value: "3" },
-              { label: "Run Sections", value: "7+" },
-              { label: "Export Ready", value: "PDF" },
+              { step: "01", title: "Analyze", description: "Enter your URL and run a full GEO audit across 6 pillars." },
+              { step: "02", title: "Diagnose", description: "Review visibility checks and brand mentions across AI engines." },
+              { step: "03", title: "Auto-Fix", description: "Click 'Fix All' to let AI apply fixes to your connected store." },
             ].map((item) => (
-              <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-2xl font-bold tracking-tight text-[#ff8c3a]">{item.value}</p>
-                <p className="mt-1 text-xs text-slate-600">{item.label}</p>
+              <div key={item.step} className="glass-card rounded-xl p-6">
+                <span className="text-3xl font-light gradient-text-primary">{item.step}</span>
+                <h3 className="mt-3 text-base font-semibold text-white">{item.title}</h3>
+                <p className="mt-2 text-sm text-slate-400">{item.description}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section id="how-it-works" className="mt-12">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">How It Works</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              A simple workflow from URL input to prioritized GEO actions.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              {
-                title: "1. Analyze",
-                description:
-                  "Run a GEO audit for your primary site URL and fetch scoring across content, schema, E-E-A-T, technical, entity, and AI visibility.",
-              },
-              {
-                title: "2. Diagnose",
-                description:
-                  "Review AI logs, visibility checks, and competitor benchmarks to understand where and why your brand is underperforming.",
-              },
-              {
-                title: "3. Improve",
-                description:
-                  "Execute prioritized recommendations, track actions, and re-run analysis to measure progress over time.",
-              },
-            ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="text-base font-semibold text-[#134a9f]">{item.title}</h3>
-                <p className="mt-2 text-sm text-slate-600">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="our-team" className="mt-12">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Who Uses Signalor</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Built for teams that need reliable GEO visibility and execution clarity.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              {
-                title: "In-house SEO Teams",
-                description: "Track technical/content gaps and align roadmap with measurable GEO improvements.",
-              },
-              {
-                title: "Content & Brand Teams",
-                description: "Understand how AI surfaces your brand mentions and where authority signals are weak.",
-              },
-              {
-                title: "Agencies & Consultants",
-                description: "Deliver clear diagnostics, recommendations, and report-ready outputs for clients.",
-              },
-            ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="text-base font-semibold text-[#134a9f]">{item.title}</h3>
-                <p className="mt-2 text-sm text-slate-600">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-12">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Frequently Asked Questions</h2>
-          </div>
-          <div className="space-y-3">
-            {[
-              {
-                q: "Do I need integrations before running analysis?",
-                a: "No. You can run GEO analysis immediately. Integrations add business and traffic context later.",
-              },
-              {
-                q: "Can I compare multiple runs over time?",
-                a: "Yes. Use history and reports to compare score changes and recommendation progress.",
-              },
-              {
-                q: "Is this only for one domain?",
-                a: "No. You can run analyses for different domains and manage them from the analyzer workspace.",
-              },
-            ].map((item) => (
-              <div key={item.q} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <p className="text-sm font-semibold text-slate-900">{item.q}</p>
-                <p className="mt-1 text-sm text-slate-600">{item.a}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="pricing" className="mt-12 rounded-2xl border border-[#ff8c3a]/35 bg-[#fff4eb] p-6 md:p-8">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Ready to improve your AI search presence?</h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-700">
-            Start a new analysis, identify the exact blockers, and ship improvements with confidence.
+        {/* CTA */}
+        <section className="mt-16 glass-card glow-border rounded-2xl p-8 md:p-12 text-center">
+          <h2 className="text-2xl font-light tracking-tight text-white md:text-3xl">Ready to improve your AI search presence?</h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-400">
+            Start a free analysis and ship AI-powered improvements with one click.
           </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-[#ff8c3a] text-black hover:bg-[#ffa35f]">
-              <Link href={routes.signUp}>Create Account</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-[#1f6fd1]/45 text-[#134a9f] hover:bg-[#eaf3ff]">
-              <Link href={routes.analyzer}>Go to Analyzer</Link>
-            </Button>
+          <div className="mt-6">
+            <Link href={routes.signUp} className="gradient-btn inline-block px-8 py-3 text-sm font-medium">
+              Get Started Free &rarr;
+            </Link>
           </div>
         </section>
 
-        <footer className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5 text-sm text-slate-600">
-          <p>(c) {new Date().getFullYear()} Signalor GEO</p>
+        {/* Footer */}
+        <footer className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-6 text-xs text-slate-600">
+          <p>&copy; {new Date().getFullYear()} Signalor</p>
           <div className="flex items-center gap-4">
-            <Link href="/about" className="hover:text-slate-900">About</Link>
-            <Link href="/privacy-policy" className="hover:text-slate-900">Privacy Policy</Link>
-            <Link href="/terms-and-conditions" className="hover:text-slate-900">Terms & Conditions</Link>
+            <Link href="/privacy-policy" className="hover:text-white transition">Privacy</Link>
+            <Link href="/terms-and-conditions" className="hover:text-white transition">Terms</Link>
           </div>
         </footer>
       </div>
     </main>
   );
 }
-

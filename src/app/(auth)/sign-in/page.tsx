@@ -46,33 +46,33 @@ export default function SignInPage() {
     <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="space-y-3 px-0 pb-4 pt-0">
         <div className="flex items-center justify-between">
-          <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-medium tracking-wide text-indigo-700">
+          <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-xs font-medium tracking-wide text-blue-300">
             Sign in
           </span>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-400">
             Step {isOtpStep ? "2/2" : "1/2"}
           </span>
         </div>
         <div className="space-y-1">
-          <CardTitle className="text-4xl font-semibold tracking-tight text-slate-900">
+          <CardTitle className="gradient-text text-4xl font-semibold tracking-tight">
             Get Started Now
           </CardTitle>
-          <CardDescription className="text-sm text-slate-500">
+          <CardDescription className="text-sm text-slate-400">
             Please log in to your account to continue.
           </CardDescription>
-          <p className="pt-1 text-base font-medium text-slate-800">{title}</p>
-          <CardDescription className="text-sm text-slate-500">
+          <p className="pt-1 text-base font-medium text-slate-200">{title}</p>
+          <CardDescription className="text-sm text-slate-400">
             {description}
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <CardContent className="rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 shadow-sm">
         {StepComponent && <StepComponent />}
       </CardContent>
       <CardFooter className="justify-center px-0 pb-0 pt-5">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-400">
           Don&apos;t have an account?{" "}
-          <Link href="/sign-up" className="font-medium text-indigo-700 hover:text-indigo-600 hover:underline">
+          <Link href="/sign-up" className="font-medium text-emerald-400 hover:text-blue-300 hover:underline">
             Sign up
           </Link>
         </p>

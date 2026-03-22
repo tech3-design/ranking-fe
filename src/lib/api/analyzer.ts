@@ -61,6 +61,7 @@ export interface Recommendation {
   action: string;
   impact_estimate: string;
   category: string;
+  can_auto_fix: boolean;
 }
 
 export interface AIProbe {
@@ -256,4 +257,119 @@ export async function recheckAllPrompts(slug: string): Promise<{ count: number }
     `/api/analyzer/runs/s/${slug}/recheck-all/`,
   );
   return { count: data.count };
+}
+
+// ---------- Competitor CRUD ----------
+
+export async function addCompetitor(slug: string, name: string, url: string): Promise<Competitor> {
+  const { data } = await apiClient.post<Competitor>(
+    `/api/analyzer/runs/s/${slug}/competitors/`,
+    { name, url },
+  );
+  return data;
+}
+
+export async function updateCompetitor(slug: string, id: number, payload: { name?: string; url?: string }): Promise<Competitor> {
+  const { data } = await apiClient.patch<Competitor>(
+    `/api/analyzer/runs/s/${slug}/competitors/${id}/`,
+    payload,
+  );
+  return data;
+}
+
+export async function deleteCompetitor(slug: string, id: number): Promise<void> {
+  await apiClient.delete(`/api/analyzer/runs/s/${slug}/competitors/${id}/`);
+}
+
+// ── Score History ─────────────────────────────────────────────────────────
+
+export interface ScoreHistoryPoint {
+  date: string;
+  composite_score: number;
+  slug: string;
+}
+
+export async function getScoreHistory(
+  email: string,
+  orgId?: number,
+): Promise<ScoreHistoryPoint[]> {
+  const params: Record<string, string | number> = orgId
+    ? { org_id: orgId }
+    : { email };
+  const { data } = await apiClient.get<ScoreHistoryPoint[]>(
+    "/api/analyzer/runs/history/",
+    { params },
+  );
+  return data;
+}
+
+// ── Scheduled Analysis ────────────────────────────────────────────────────
+
+export interface ScheduledAnalysis {
+  id: number;
+  email: string;
+  url: string;
+  brand_name: string;
+  frequency: "weekly" | "monthly";
+  next_run_at: string;
+  last_run_at: string | null;
+  last_run_slug: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export async function getSchedule(
+  email: string,
+  orgId: number,
+): Promise<ScheduledAnalysis | null> {
+  const { data } = await apiClient.get<ScheduledAnalysis | null>(
+    "/api/analyzer/schedule/",
+    { params: { email, org_id: orgId } },
+  );
+  return data;
+}
+
+export async function toggleSchedule(payload: {
+  email: string;
+  org_id: number;
+  url: string;
+  brand_name?: string;
+  frequency: "weekly" | "monthly";
+  is_active: boolean;
+}): Promise<ScheduledAnalysis> {
+  const { data } = await apiClient.post<ScheduledAnalysis>(
+    "/api/analyzer/schedule/",
+    payload,
+  );
+  return data;
+}
+
+// ── Auto-Fix ──────────────────────────────────────────────────────────────
+
+export interface AutoFixResult {
+  recommendation_id: number;
+  status: "success" | "partial" | "failed";
+  message: string;
+  fix_type: string;
+}
+
+export async function applyAutoFix(
+  slug: string,
+  recommendationIds: number[],
+  email: string,
+  orgId?: number,
+): Promise<AutoFixResult[]> {
+  const { data } = await apiClient.post<AutoFixResult[]>(
+    `/api/analyzer/runs/s/${slug}/auto-fix/`,
+    { recommendation_ids: recommendationIds, email, org_id: orgId },
+    { timeout: 120_000 },
+  );
+  return data;
+}
+
+export async function getAutoFixStatus(slug: string): Promise<AutoFixResult[]> {
+  const { data } = await apiClient.get<AutoFixResult[]>(
+    `/api/analyzer/runs/s/${slug}/auto-fix/`,
+  );
+  return data;
 }

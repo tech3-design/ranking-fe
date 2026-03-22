@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackgroundBeams } from "@/components/ui/background-beams";
 
 export default function AuthLayout({
   children,
@@ -6,8 +7,9 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#dfe1e7] p-0">
-      <div className="grid min-h-screen w-full overflow-hidden bg-white md:grid-cols-[1.05fr_1fr]">
+    <div className="min-h-screen bg-[#171717] p-0">
+      <BackgroundBeams />
+      <div className="relative z-10 grid min-h-screen w-full overflow-hidden md:grid-cols-[1.05fr_1fr]">
         <div className="relative overflow-hidden p-8 text-white md:flex md:flex-col md:justify-between md:p-9">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,#5b86ff_0%,#3f40f0_28%,#2f31cf_52%,#2228a7_100%)]" />
           <div className="pointer-events-none absolute -bottom-14 -left-16 h-52 w-52 rounded-full bg-cyan-300/35 blur-3xl" />
@@ -44,7 +46,7 @@ export default function AuthLayout({
         </div>
 
         <div className="flex items-center justify-center px-4 py-8 md:px-10 md:py-10">
-          <div className="w-full max-w-lg">
+          <div className="relative z-10 w-full max-w-lg">
             {children}
           </div>
         </div>
