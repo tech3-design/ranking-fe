@@ -25,17 +25,12 @@ import {
 } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 
-/* ── palette ── */
-const C = {
-  paper: "#F6F4F1",
-  stone: "#E4DED2",
-  coral: "#F95C4B",
-  black: "#000000",
-};
+/* ── coral is theme-constant; everything else uses Tailwind classes ── */
+const CORAL = "#F95C4B";
 
 /* ── priority colors ── */
 const PRIORITY_COLORS: Record<string, string> = {
-  critical: C.coral,
+  critical: CORAL,
   high: "#D97706",
   medium: "#2563EB",
   low: "#7C3AED",
@@ -62,8 +57,8 @@ const FILTER_TABS = ["All", "Critical", "High", "Medium"] as const;
 function getScoreStrokeColor(score: number): string {
   if (score >= 80) return "#22c55e";
   if (score >= 60) return "#D97706";
-  if (score >= 40) return C.coral;
-  return C.coral;
+  if (score >= 40) return CORAL;
+  return CORAL;
 }
 
 /* ── page ── */
@@ -81,6 +76,26 @@ export default function SignalorDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [historyRange, setHistoryRange] = useState<"7d" | "1m" | "3m" | "all">("all");
   const [historyDropdownOpen, setHistoryDropdownOpen] = useState(false);
+
+  // Live greeting — updates every minute
+  const [greeting, setGreeting] = useState(() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good Morning";
+    if (h < 17) return "Good Afternoon";
+    if (h < 21) return "Good Evening";
+    return "Good Night";
+  });
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const h = new Date().getHours();
+      let g = "Good Night";
+      if (h < 12) g = "Good Morning";
+      else if (h < 17) g = "Good Afternoon";
+      else if (h < 21) g = "Good Evening";
+      setGreeting(g);
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const email = session?.user?.email ?? "";
 
@@ -164,6 +179,53 @@ export default function SignalorDashboard() {
     [recommendations],
   );
 
+  // 7-day prediction: parse impact_estimate numbers from recommendations
+  const prediction = useMemo(() => {
+    let totalImpact = 0;
+    const pillarImpacts: Record<string, number> = {};
+
+    for (const rec of recommendations) {
+      // Parse numbers like "~12 points", "+40%", "+37% Visibility"
+      const match = rec.impact_estimate?.match(/(\d+)/);
+      const pts = match ? parseInt(match[1], 10) : 0;
+      const weight = rec.priority === "critical" ? 1 : rec.priority === "high" ? 0.7 : rec.priority === "medium" ? 0.4 : 0.2;
+      const impact = Math.min(pts * weight, 15); // cap per-rec
+      totalImpact += impact;
+      if (rec.pillar) {
+        pillarImpacts[rec.pillar] = (pillarImpacts[rec.pillar] || 0) + impact;
+      }
+    }
+
+    const projected = Math.min(100, compositeScore + totalImpact);
+    const projectedGain = Math.round(projected - compositeScore);
+
+    // Build 7-day projected trajectory (gradual improvement)
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const dayScore = compositeScore + (projectedGain * ((i + 1) / 7));
+      const d = new Date();
+      d.setDate(d.getDate() + i + 1);
+      return { day: d.toLocaleDateString("en-US", { weekday: "short" }), score: Math.round(dayScore) };
+    });
+
+    return { projected: Math.round(projected), gain: projectedGain, days, pillarImpacts };
+  }, [recommendations, compositeScore]);
+
+  // AI Sentiment from probes
+  const sentiment = useMemo(() => {
+    const probes = run?.ai_probes ?? [];
+    if (probes.length === 0) return null;
+    const mentioned = probes.filter((p) => p.brand_mentioned).length;
+    const notMentioned = probes.length - mentioned;
+    const avgConfidence = probes.reduce((sum, p) => sum + p.confidence, 0) / probes.length;
+
+    // Categorize confidence levels
+    const high = probes.filter((p) => p.confidence >= 0.7).length;
+    const medium = probes.filter((p) => p.confidence >= 0.4 && p.confidence < 0.7).length;
+    const low = probes.filter((p) => p.confidence < 0.4).length;
+
+    return { total: probes.length, mentioned, notMentioned, avgConfidence, high, medium, low };
+  }, [run?.ai_probes]);
+
   const filteredRecs = useMemo(() => {
     let filtered = recommendations;
     if (activeFilter !== "All") {
@@ -187,7 +249,7 @@ export default function SignalorDashboard() {
     if (!brandVis) return [];
     return [
       {
-        label: "Google", value: Math.round(brandVis.google_score), color: C.coral,
+        label: "Google", value: Math.round(brandVis.google_score), color: CORAL,
         icon: (
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -198,7 +260,7 @@ export default function SignalorDashboard() {
         ),
       },
       {
-        label: "Reddit", value: Math.round(brandVis.reddit_score), color: C.black,
+        label: "Reddit", value: Math.round(brandVis.reddit_score), color: "hsl(var(--foreground))",
         icon: (
           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="#FF4500">
             <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 13.38c.15.24.23.53.23.84 0 1.7-1.98 3.08-4.43 3.08s-4.43-1.38-4.43-3.08c0-.31.08-.6.23-.84a1.39 1.39 0 0 1-.33-.9 1.4 1.4 0 0 1 2.39-.98c.97-.63 2.25-1.02 3.65-1.06l.72-3.3a.27.27 0 0 1 .33-.21l2.38.52a.96.96 0 1 1-.1.46l-2.13-.47-.64 2.97c1.36.06 2.6.44 3.55 1.06a1.4 1.4 0 0 1 2.39.98c0 .35-.13.67-.33.9zM9.83 13.2a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm4.34 0a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.3 3.17c.1.1.26.1.36 0 .5-.5 1.24-.75 1.97-.75s1.47.25 1.97.75c.1.1.26.1.36 0 .1-.1.1-.26 0-.36-.6-.6-1.44-.93-2.33-.93s-1.73.33-2.33.93c-.1.1-.1.26 0 .36z"/>
@@ -208,7 +270,7 @@ export default function SignalorDashboard() {
       {
         label: "Medium", value: Math.round(brandVis.medium_score), color: "#A39888",
         icon: (
-          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="#000000">
+          <svg viewBox="0 0 24 24" className="w-4 h-4 fill-foreground">
             <path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42zm3.04 0c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75c.66 0 1.19 2.58 1.19 5.75z"/>
           </svg>
         ),
@@ -216,7 +278,7 @@ export default function SignalorDashboard() {
       {
         label: "Web", value: Math.round(brandVis.web_mentions_score), color: "#C4BAA8",
         icon: (
-          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg viewBox="0 0 24 24" className="w-4 h-4 text-foreground" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
           </svg>
         ),
@@ -276,7 +338,7 @@ export default function SignalorDashboard() {
   if (error && !run) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${C.coral}10`, border: `1px solid ${C.coral}30`, color: C.coral }}>
+        <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${CORAL}10`, border: `1px solid ${CORAL}30`, color: CORAL }}>
           <AlertCircle className="h-4 w-4 shrink-0" />
           {error}
         </div>
@@ -286,72 +348,86 @@ export default function SignalorDashboard() {
 
   return (
     <>
-      {/* ── Top Bar ── */}
-      <header className="sticky top-0 z-20 px-6 pt-5 pb-3" style={{ backgroundColor: C.paper }}>
-        <div className="flex items-center justify-between">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-semibold" style={{ color: C.black }}>Dashboard</h1>
-            <p className="text-xs mt-0.5 truncate" style={{ color: `${C.black}50` }}>
-              Home / Dashboard / <span style={{ color: `${C.black}70` }}>{run?.url || "..."}</span>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: `${C.black}30` }} />
-              <input
-                type="text"
-                placeholder="Search recommendations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white rounded-xl py-2 pl-9 pr-4 text-sm w-52 focus:outline-none focus:ring-2"
-                style={{ border: `1px solid ${C.stone}`, color: C.black }}
-              />
-            </div>
-
-            <button
-              onClick={handleReanalyze}
-              disabled={reanalyzing || isRunning}
-              className="flex items-center gap-1.5 bg-white rounded-xl px-4 py-2 text-xs font-medium transition disabled:opacity-50 hover:opacity-80"
-              style={{ border: `1px solid ${C.stone}`, color: C.black }}
-            >
-              <RefreshCw className="w-3.5 h-3.5" /> Re-analyze
-            </button>
-            <button
-              onClick={handleDownloadPDF}
-              disabled={!run || isRunning}
-              className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-medium text-white transition disabled:opacity-50 hover:opacity-90"
-              style={{ backgroundColor: C.coral }}
-            >
-              <Download className="w-3.5 h-3.5" /> Download PDF
-            </button>
-          </div>
+      {/* ── Sticky Top Bar (compact) ── */}
+      <header className="sticky top-0 z-20 px-6 py-2.5 flex items-center justify-end gap-3 bg-background border-b border-border">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search recommendations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-card rounded-xl py-2 pl-9 pr-4 text-sm w-52 focus:outline-none focus:ring-2 border border-border text-foreground"
+          />
         </div>
+        <button
+          onClick={handleReanalyze}
+          disabled={reanalyzing || isRunning}
+          className="flex items-center gap-1.5 bg-card rounded-xl px-4 py-2 text-xs font-medium transition disabled:opacity-50 hover:opacity-80 border border-border text-foreground"
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> Re-analyze
+        </button>
+        <button
+          onClick={handleDownloadPDF}
+          disabled={!run || isRunning}
+          className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-medium text-white transition disabled:opacity-50 hover:opacity-90"
+          style={{ backgroundColor: CORAL }}
+        >
+          <Download className="w-3.5 h-3.5" /> Download PDF
+        </button>
       </header>
+
+      {/* ── Greeting + URL (scrollable) ── */}
+      <div className="px-6 pt-5 pb-4">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-none text-foreground">
+          {greeting}, <span style={{ color: CORAL }}>{session?.user?.name?.split(" ")[0] || "there"}</span>
+          <span style={{ color: CORAL }}>.</span>
+        </h1>
+        <p className="text-sm mt-1.5 text-muted-foreground">
+          Stay on top of your GEO score, monitor visibility, and track progress.
+        </p>
+
+        {/* URL bar */}
+        {run?.url && (
+          <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 bg-card mt-4 border border-border">
+            <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: `${CORAL}15` }}>
+              <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </div>
+            <span className="text-xs font-medium truncate text-muted-foreground">{run.url}</span>
+            {run.brand_name && (
+              <span className="ml-auto text-[10px] font-semibold rounded-md px-2 py-0.5 shrink-0" style={{ backgroundColor: `${CORAL}10`, color: CORAL }}>
+                {run.brand_name}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Running state */}
       {isRunning && (
         <div className="flex items-center justify-center py-16">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 md:p-8" style={{ border: `1px solid ${C.stone}` }}>
+          <div className="w-full max-w-md rounded-2xl bg-card p-6 md:p-8 border border-border">
             {/* Orbital loader */}
             <div className="flex flex-col items-center mb-6">
               <div className="relative w-20 h-20 mb-3">
                 <svg width={80} height={80} viewBox="0 0 80 80">
-                  <circle cx="40" cy="40" r="32" fill="none" stroke={C.stone} strokeWidth="3" />
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" strokeWidth="3" />
                   <circle
                     cx="40" cy="40" r="32" fill="none"
-                    stroke={C.coral} strokeWidth="3" strokeLinecap="round"
+                    stroke={CORAL} strokeWidth="3" strokeLinecap="round"
                     strokeDasharray="50 150"
                     className="animate-[signalor-spin_1.2s_linear_infinite]"
                     style={{ transformOrigin: "40px 40px" }}
                   />
-                  <text x="40" y="42" textAnchor="middle" dominantBaseline="middle" fill={C.black} fontSize="16" fontWeight="700">
+                  <text x="40" y="42" textAnchor="middle" dominantBaseline="middle" fill="var(--foreground)" fontSize="16" fontWeight="700">
                     {run?.progress != null ? Math.round(run.progress) : 0}%
                   </text>
                 </svg>
               </div>
-              <p className="text-base font-semibold" style={{ color: C.black }}>Analysis in progress</p>
-              <p className="text-xs mt-0.5" style={{ color: `${C.black}40` }}>
+              <p className="text-base font-semibold text-foreground">Analysis in progress</p>
+              <p className="text-xs mt-0.5 text-muted-foreground">
                 {run?.status === "pending" && "Queued — starting soon..."}
                 {run?.status === "crawling" && "Crawling your website..."}
                 {run?.status === "analyzing" && "AI is analyzing content..."}
@@ -362,10 +438,10 @@ export default function SignalorDashboard() {
             </div>
 
             {/* Progress bar */}
-            <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundColor: C.stone }}>
+            <div className="h-2 w-full rounded-full overflow-hidden bg-muted">
               <div
                 className="h-full rounded-full transition-all duration-700 relative"
-                style={{ width: `${run?.progress ?? 0}%`, backgroundColor: C.coral }}
+                style={{ width: `${run?.progress ?? 0}%`, backgroundColor: CORAL }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent shimmer" />
               </div>
@@ -379,24 +455,27 @@ export default function SignalorDashboard() {
         <div className="px-6 pb-6">
           {/* ── ROW 1 ── */}
           <div className="grid grid-cols-12 gap-4 mb-4">
-            {/* GEO Score Card */}
-            <div className="col-span-4 rounded-2xl p-6" style={{ background: `linear-gradient(135deg, #FFF5F3 0%, #FFFFFF 40%, #FFF9F0 100%)`, border: `1px solid ${C.coral}18` }}>
-              <div className="flex items-start gap-6">
+            {/* GEO Score Card — special coral gradient, kept as-is */}
+            <div className="col-span-4 rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(145deg, ${CORAL} 0%, #FF7A6B 50%, #FF9080 100%)`, border: "none" }}>
+              {/* Decorative circles */}
+              <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.12)" }} />
+              <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.08)" }} />
+              <div className="flex items-start gap-6 relative z-10">
                 <div className="flex flex-col items-center shrink-0">
-                  <p className="text-xs font-semibold mb-3" style={{ color: `${C.black}50` }}>GEO Score</p>
+                  <p className="text-xs font-semibold mb-3 text-white/70">GEO Score</p>
                   <div className="relative w-28 h-28">
                     <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="40" fill="none" stroke={C.stone} strokeWidth="7" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="7" />
                       <circle
                         cx="50" cy="50" r="40" fill="none"
-                        stroke={getScoreStrokeColor(compositeScore)} strokeWidth="7" strokeLinecap="round"
+                        stroke="#FFFFFF" strokeWidth="7" strokeLinecap="round"
                         strokeDasharray={`${compositeScore * 2.51} ${100 * 2.51}`}
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold" style={{ color: C.black }}>{Math.round(compositeScore)}</span>
+                      <span className="text-3xl font-bold text-white">{Math.round(compositeScore)}</span>
                       {scoreChange !== null && (
-                        <span className="text-[11px] font-semibold" style={{ color: scoreChange >= 0 ? "#22c55e" : C.coral }}>
+                        <span className="text-[11px] font-semibold text-white/80">
                           {scoreChange >= 0 ? "+" : ""}{scoreChange} pts
                         </span>
                       )}
@@ -405,20 +484,20 @@ export default function SignalorDashboard() {
                 </div>
 
                 <div className="flex flex-col gap-3 flex-1 pt-1">
-                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:shadow-sm" style={{ backgroundColor: C.paper }}>
-                    <p className="text-xs mb-1" style={{ color: `${C.black}40` }}>Recommendations</p>
+                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:brightness-110" style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                    <p className="text-xs mb-1 text-white/60">Recommendations</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold" style={{ color: C.black }}>{recommendations.length}</span>
+                      <span className="text-2xl font-bold text-white">{recommendations.length}</span>
                       {criticalCount > 0 && (
-                        <span className="text-xs" style={{ color: `${C.black}40` }}>{criticalCount} critical</span>
+                        <span className="text-xs text-white/70">{criticalCount} critical</span>
                       )}
                     </div>
                   </Link>
-                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:shadow-sm" style={{ backgroundColor: C.paper }}>
-                    <p className="text-xs mb-1" style={{ color: `${C.black}40` }}>Priority Issues</p>
+                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:brightness-110" style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                    <p className="text-xs mb-1 text-white/60">Priority Issues</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold" style={{ color: C.black }}>{criticalCount + highCount}</span>
-                      <span className="text-xs" style={{ color: `${C.black}40` }}>{criticalCount} critical / {highCount} high</span>
+                      <span className="text-2xl font-bold text-white">{criticalCount + highCount}</span>
+                      <span className="text-xs text-white/60">{criticalCount} critical / {highCount} high</span>
                     </div>
                   </Link>
                 </div>
@@ -426,33 +505,28 @@ export default function SignalorDashboard() {
             </div>
 
             {/* GEO Score History */}
-            <div className="col-span-4 bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
+            <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-semibold" style={{ color: C.black }}>GEO Score History</p>
+                <p className="text-sm font-semibold text-foreground">GEO Score History</p>
                 {/* Range dropdown */}
                 <div className="relative">
                   <button
                     onClick={() => setHistoryDropdownOpen(!historyDropdownOpen)}
-                    className="flex items-center gap-1 text-[11px] rounded-lg px-2.5 py-1 transition hover:opacity-80"
-                    style={{ color: `${C.black}50`, border: `1px solid ${C.stone}` }}
+                    className="flex items-center gap-1 text-[11px] rounded-lg px-2.5 py-1 transition hover:opacity-80 text-muted-foreground border border-border"
                   >
                     {{ "7d": "7 days", "1m": "1 month", "3m": "3 months", "all": "All time" }[historyRange]}
                     <ChevronDown className="w-3 h-3" />
                   </button>
                   {historyDropdownOpen && (
-                    <div
-                      className="absolute right-0 top-full mt-1 rounded-xl bg-white shadow-lg py-1 z-50 min-w-[110px]"
-                      style={{ border: `1px solid ${C.stone}` }}
-                    >
+                    <div className="absolute right-0 top-full mt-1 rounded-xl bg-card shadow-lg py-1 z-50 min-w-[110px] border border-border">
                       {([["7d", "7 days"], ["1m", "1 month"], ["3m", "3 months"], ["all", "All time"]] as const).map(([key, label]) => (
                         <button
                           key={key}
                           onClick={() => { setHistoryRange(key); setHistoryDropdownOpen(false); }}
-                          className="w-full text-left px-3 py-1.5 text-xs transition-colors"
+                          className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${historyRange === key ? "font-semibold" : "font-normal text-muted-foreground"}`}
                           style={{
-                            color: historyRange === key ? C.coral : `${C.black}60`,
-                            backgroundColor: historyRange === key ? `${C.coral}08` : "transparent",
-                            fontWeight: historyRange === key ? 600 : 400,
+                            color: historyRange === key ? CORAL : undefined,
+                            backgroundColor: historyRange === key ? `${CORAL}08` : "transparent",
                           }}
                         >
                           {label}
@@ -467,54 +541,54 @@ export default function SignalorDashboard() {
                   <svg viewBox="0 0 300 100" className="w-full h-full" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stopColor={C.coral} stopOpacity="0.2" />
-                        <stop offset="100%" stopColor={C.coral} stopOpacity="0" />
+                        <stop offset="0%" stopColor={CORAL} stopOpacity="0.2" />
+                        <stop offset="100%" stopColor={CORAL} stopOpacity="0" />
                       </linearGradient>
                     </defs>
                     <path d={historyPath.area} fill="url(#areaGrad)" />
-                    <path d={historyPath.line} fill="none" stroke={C.coral} strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
+                    <path d={historyPath.line} fill="none" stroke={CORAL} strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
                   </svg>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-xs" style={{ color: `${C.black}40` }}>Run more analyses to see trends</p>
+                    <p className="text-xs text-muted-foreground">Run more analyses to see trends</p>
                   </div>
                 )}
                 {historyPath && (
-                  <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-[9px] font-medium" style={{ color: `${C.black}25` }}>
+                  <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-[9px] font-medium text-muted-foreground">
                     <span>100</span><span>50</span><span>0</span>
                   </div>
                 )}
               </div>
               {historyPath && (
-                <div className="flex justify-between text-[10px] mt-2 px-1" style={{ color: `${C.black}40` }}>
+                <div className="flex justify-between text-[10px] mt-2 px-1 text-muted-foreground">
                   {historyPath.labels.map((l, i) => <span key={i}>{l}</span>)}
                 </div>
               )}
             </div>
 
             {/* Pillar Breakdown */}
-            <div className="col-span-4 bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
+            <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-semibold" style={{ color: C.black }}>Pillar Breakdown</p>
-                <button style={{ color: `${C.black}30` }}><MoreHorizontal className="w-4 h-4" /></button>
+                <p className="text-sm font-semibold text-foreground">Pillar Breakdown</p>
+                <button className="text-muted-foreground"><MoreHorizontal className="w-4 h-4" /></button>
               </div>
               <div className="flex flex-col gap-3">
                 {breakdownRows.length > 0 ? breakdownRows.map((row) => (
                   <div key={row.label}>
                     <div className="flex justify-between text-xs mb-1">
-                      <span style={{ color: `${C.black}60` }}>{row.label}</span>
-                      <span className="font-semibold" style={{ color: C.black }}>{Math.round(row.score)}/100</span>
+                      <span className="text-muted-foreground">{row.label}</span>
+                      <span className="font-semibold text-foreground">{Math.round(row.score)}/100</span>
                     </div>
-                    <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: `${C.stone}60` }}>
-                      <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, row.score)}%`, backgroundColor: C.coral }} />
+                    <div className="h-2 rounded-full overflow-hidden bg-muted">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, row.score)}%`, backgroundColor: CORAL }} />
                     </div>
                   </div>
                 )) : (
-                  <p className="text-xs text-center py-6" style={{ color: `${C.black}40` }}>No pillar data yet</p>
+                  <p className="text-xs text-center py-6 text-muted-foreground">No pillar data yet</p>
                 )}
               </div>
               {breakdownRows.length > 0 && (
-                <div className="flex justify-between text-[9px] mt-3" style={{ color: `${C.black}25` }}>
+                <div className="flex justify-between text-[9px] mt-3 text-muted-foreground">
                   <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
                 </div>
               )}
@@ -524,13 +598,13 @@ export default function SignalorDashboard() {
           {/* ── ROW 2 ── */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             {/* Top Issues */}
-            <div className="col-span-5 bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
+            <div className="col-span-5 bg-card rounded-2xl p-5 border border-border">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-semibold" style={{ color: C.black }}>Top Issues</p>
+                <p className="text-sm font-semibold text-foreground">Top Issues</p>
                 <Link
                   href={`/dashboard/${slug}/recommendations`}
                   className="flex items-center gap-1.5 text-xs rounded-lg px-3 py-1.5 transition hover:opacity-80"
-                  style={{ color: C.coral, border: `1px solid ${C.coral}30` }}
+                  style={{ color: CORAL, border: `1px solid ${CORAL}30` }}
                 >
                   View All ({recommendations.length})
                 </Link>
@@ -540,33 +614,32 @@ export default function SignalorDashboard() {
                   <Link
                     key={i}
                     href={`/dashboard/${slug}/recommendations`}
-                    className="rounded-xl p-4 transition hover:shadow-sm group"
-                    style={{ backgroundColor: C.paper, border: `1px solid ${C.stone}60` }}
+                    className="rounded-xl p-4 transition hover:shadow-sm group bg-background border border-border"
                   >
                     <div className="flex items-start gap-2 mb-1.5">
                       <span
                         className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                        style={{ backgroundColor: rec.priority === "critical" ? C.coral : "#D97706" }}
+                        style={{ backgroundColor: rec.priority === "critical" ? CORAL : "#D97706" }}
                       />
-                      <p className="text-sm font-semibold line-clamp-2 group-hover:underline" style={{ color: C.black }}>{rec.title}</p>
+                      <p className="text-sm font-semibold line-clamp-2 group-hover:underline text-foreground">{rec.title}</p>
                     </div>
-                    <p className="text-xs line-clamp-2 pl-3.5" style={{ color: `${C.black}40` }}>{rec.impact_estimate || `${rec.priority} priority`}</p>
+                    <p className="text-xs line-clamp-2 pl-3.5 text-muted-foreground">{rec.impact_estimate || `${rec.priority} priority`}</p>
                   </Link>
                 )) : (
-                  <p className="col-span-2 text-xs text-center py-6" style={{ color: `${C.black}40` }}>No critical issues found</p>
+                  <p className="col-span-2 text-xs text-center py-6 text-muted-foreground">No critical issues found</p>
                 )}
               </div>
             </div>
 
             {/* Visibility by Platform */}
-            <div className="col-span-7 bg-white rounded-2xl p-6" style={{ border: `1px solid ${C.stone}40` }}>
-              <p className="text-sm font-semibold mb-5" style={{ color: C.black }}>Visibility by Platform</p>
+            <div className="col-span-7 bg-card rounded-2xl p-6 border border-border">
+              <p className="text-sm font-semibold mb-5 text-foreground">Visibility by Platform</p>
               {visibilityBars.length > 0 ? (
                 <div className="flex items-end gap-5 px-2" style={{ height: 180 }}>
                   {/* Y-axis labels */}
                   <div className="flex flex-col justify-between h-full pb-7 shrink-0">
                     {[100, 75, 50, 25, 0].map((v) => (
-                      <span key={v} className="text-[10px] font-medium w-6 text-right" style={{ color: `${C.black}30` }}>{v}</span>
+                      <span key={v} className="text-[10px] font-medium w-6 text-right text-muted-foreground">{v}</span>
                     ))}
                   </div>
 
@@ -577,7 +650,7 @@ export default function SignalorDashboard() {
                       {/* Horizontal grid */}
                       <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                         {[0, 1, 2, 3, 4].map((i) => (
-                          <div key={i} className="w-full" style={{ borderBottom: `1px solid ${C.stone}50` }} />
+                          <div key={i} className="w-full border-b border-border" />
                         ))}
                       </div>
 
@@ -587,7 +660,7 @@ export default function SignalorDashboard() {
                           const pct = Math.max(bar.value, 3);
                           return (
                             <div key={bar.label} className="flex-1 flex flex-col items-center h-full justify-end">
-                              <span className="text-[11px] font-bold mb-1" style={{ color: C.black }}>{bar.value}</span>
+                              <span className="text-[11px] font-bold mb-1 text-foreground">{bar.value}</span>
                               <div
                                 className="w-full rounded-t-xl relative overflow-hidden"
                                 style={{
@@ -611,10 +684,10 @@ export default function SignalorDashboard() {
                     </div>
 
                     {/* X-axis labels with icons */}
-                    <div className="flex gap-3 px-2 pt-2.5 border-t" style={{ borderColor: `${C.stone}60` }}>
+                    <div className="flex gap-3 px-2 pt-2.5 border-t border-border">
                       {visibilityBars.map((bar) => (
                         <div key={bar.label} className="flex-1 flex flex-col items-center gap-1">
-                          <span className="text-[11px] font-semibold" style={{ color: `${C.black}70` }}>{bar.label}</span>
+                          <span className="text-[11px] font-semibold text-foreground/70">{bar.label}</span>
                           {bar.icon}
                         </div>
                       ))}
@@ -623,21 +696,178 @@ export default function SignalorDashboard() {
                 </div>
               ) : (
                 <div className="flex items-center justify-center" style={{ height: 180 }}>
-                  <p className="text-xs" style={{ color: `${C.black}40` }}>No visibility data yet</p>
+                  <p className="text-xs text-muted-foreground">No visibility data yet</p>
                 </div>
               )}
             </div>
           </div>
 
+          {/* ── ROW 2.5: Prediction & Sentiment ── */}
+          {(prediction.gain > 0 || sentiment) && (
+            <div className="grid grid-cols-12 gap-4 mb-4">
+              {/* 7-Day Prediction */}
+              <div className="col-span-7 bg-card rounded-2xl p-6 border border-border">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">7-Day Score Prediction</p>
+                    <p className="text-xs mt-0.5 text-muted-foreground">Projected improvement if you act on recommendations</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-foreground">{Math.round(compositeScore)}</span>
+                    <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
+                      <path d="M2 10L10 2L18 2" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M13 2H18V7" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="text-2xl font-bold" style={{ color: CORAL }}>{prediction.projected}</span>
+                  </div>
+                </div>
+
+                {/* Chart */}
+                <div className="relative" style={{ height: 140 }}>
+                  <svg viewBox="0 0 350 100" className="w-full h-full" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="predGrad" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor={CORAL} stopOpacity="0.15" />
+                        <stop offset="100%" stopColor={CORAL} stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    {/* Current score line (dashed) */}
+                    <line x1="0" y1={100 - compositeScore} x2="350" y2={100 - compositeScore} stroke="var(--border)" strokeWidth="1" strokeDasharray="4 4" />
+                    {/* Prediction area */}
+                    <path
+                      d={`M 0 ${100 - compositeScore} ${prediction.days.map((d, i) => `L ${((i + 1) / 7) * 350} ${100 - d.score}`).join(" ")} L 350 100 L 0 100 Z`}
+                      fill="url(#predGrad)"
+                    />
+                    {/* Prediction line */}
+                    <path
+                      d={`M 0 ${100 - compositeScore} ${prediction.days.map((d, i) => `L ${((i + 1) / 7) * 350} ${100 - d.score}`).join(" ")}`}
+                      fill="none" stroke={CORAL} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke"
+                    />
+                    {/* Endpoint dot */}
+                    <circle cx="350" cy={100 - prediction.projected} r="4" fill={CORAL} />
+                    {/* Start dot */}
+                    <circle cx="0" cy={100 - compositeScore} r="3" fill="var(--border)" />
+                  </svg>
+                  {/* Y labels */}
+                  <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-[9px] font-medium text-muted-foreground">
+                    <span>100</span><span>50</span><span>0</span>
+                  </div>
+                </div>
+                {/* Day labels */}
+                <div className="flex justify-between mt-2 px-1">
+                  <span className="text-[10px] font-medium text-muted-foreground">Today</span>
+                  {prediction.days.map((d, i) => (
+                    <span key={i} className="text-[10px] font-medium text-muted-foreground">{d.day}</span>
+                  ))}
+                </div>
+
+                {/* Pillar impact breakdown */}
+                {Object.keys(prediction.pillarImpacts).length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {Object.entries(prediction.pillarImpacts)
+                      .sort(([, a], [, b]) => b - a)
+                      .slice(0, 4)
+                      .map(([pillar, impact]) => (
+                        <div
+                          key={pillar}
+                          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5"
+                          style={{ backgroundColor: `${CORAL}08`, border: `1px solid ${CORAL}15` }}
+                        >
+                          <span className="text-[10px] font-semibold capitalize text-muted-foreground">
+                            {pillar.replace("_", " ")}
+                          </span>
+                          <span className="text-[10px] font-bold" style={{ color: CORAL }}>
+                            +{Math.round(impact)}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+
+              {/* AI Sentiment Analysis */}
+              <div className="col-span-5 bg-card rounded-2xl p-6 border border-border">
+                <p className="text-sm font-semibold mb-1 text-foreground">AI Sentiment Analysis</p>
+                <p className="text-xs mb-5 text-muted-foreground">How AI engines perceive your brand</p>
+
+                {sentiment ? (
+                  <div className="space-y-5">
+                    {/* Mention rate donut */}
+                    <div className="flex items-center gap-5">
+                      <div className="relative w-20 h-20 shrink-0">
+                        <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
+                          <circle cx="40" cy="40" r="30" fill="none" stroke="var(--border)" strokeWidth="6" />
+                          <circle
+                            cx="40" cy="40" r="30" fill="none"
+                            stroke={CORAL} strokeWidth="6" strokeLinecap="round"
+                            strokeDasharray={`${(sentiment.mentioned / sentiment.total) * 188.5} 188.5`}
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-lg font-bold text-foreground">
+                            {Math.round((sentiment.mentioned / sentiment.total) * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">Brand Mention Rate</p>
+                        <p className="text-[11px] mt-0.5 text-muted-foreground">
+                          {sentiment.mentioned}/{sentiment.total} AI probes mention your brand
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Confidence breakdown */}
+                    <div>
+                      <p className="text-xs font-semibold mb-2.5 text-muted-foreground">Confidence Levels</p>
+                      <div className="space-y-2">
+                        {[
+                          { label: "High confidence", count: sentiment.high, color: "#22c55e" },
+                          { label: "Medium confidence", count: sentiment.medium, color: "#D97706" },
+                          { label: "Low confidence", count: sentiment.low, color: CORAL },
+                        ].map((row) => (
+                          <div key={row.label} className="flex items-center gap-3">
+                            <span className="text-[11px] w-28 shrink-0 text-muted-foreground">{row.label}</span>
+                            <div className="flex-1 h-2 rounded-full overflow-hidden bg-muted">
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{ width: sentiment.total > 0 ? `${(row.count / sentiment.total) * 100}%` : "0%", backgroundColor: row.color }}
+                              />
+                            </div>
+                            <span className="text-[11px] font-bold w-6 text-right text-foreground">{row.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Avg confidence */}
+                    <div className="rounded-xl px-4 py-3 bg-background">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Average Confidence</span>
+                        <span className="text-sm font-bold" style={{ color: sentiment.avgConfidence >= 0.6 ? "#22c55e" : sentiment.avgConfidence >= 0.4 ? "#D97706" : CORAL }}>
+                          {(sentiment.avgConfidence * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-10">
+                    <p className="text-xs text-muted-foreground">No AI probe data available</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ── ROW 3: Recommendations ── */}
-          <div className="bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
+          <div className="bg-card rounded-2xl p-5 border border-border">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <p className="text-lg font-semibold" style={{ color: C.black }}>Recommendations</p>
+                <p className="text-lg font-semibold text-foreground">Recommendations</p>
                 <Link
                   href={`/dashboard/${slug}/recommendations`}
                   className="text-[11px] font-medium transition hover:opacity-80"
-                  style={{ color: C.coral }}
+                  style={{ color: CORAL }}
                 >
                   View all &rarr;
                 </Link>
@@ -647,12 +877,12 @@ export default function SignalorDashboard() {
                   <button
                     key={tab}
                     onClick={() => setActiveFilter(tab)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
-                    style={
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                       activeFilter === tab
-                        ? { backgroundColor: C.coral, color: "#fff" }
-                        : { backgroundColor: C.paper, color: `${C.black}50` }
-                    }
+                        ? "text-white"
+                        : "bg-background text-muted-foreground"
+                    }`}
+                    style={activeFilter === tab ? { backgroundColor: CORAL } : undefined}
                   >
                     {tab}
                   </button>
@@ -663,7 +893,7 @@ export default function SignalorDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: `${C.black}35`, borderBottom: `1px solid ${C.stone}60` }}>
+                  <tr className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
                     <th className="pb-3 px-2">Recommendation <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
                     <th className="pb-3 px-2">Pillar <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
                     <th className="pb-3 px-2">Category</th>
@@ -673,35 +903,35 @@ export default function SignalorDashboard() {
                 </thead>
                 <tbody>
                   {filteredRecs.length > 0 ? filteredRecs.map((rec) => (
-                    <tr key={rec.id} onClick={() => router.push(`/dashboard/${slug}/recommendations`)} className="transition-colors hover:opacity-80 cursor-pointer" style={{ borderBottom: `1px solid ${C.stone}30` }}>
+                    <tr key={rec.id} onClick={() => router.push(`/dashboard/${slug}/recommendations`)} className="transition-colors hover:opacity-80 cursor-pointer border-b border-border">
                       <td className="py-3.5 px-2">
                         <div className="flex items-center gap-3">
                           <div
                             className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white text-[10px] font-bold"
-                            style={{ backgroundColor: PRIORITY_COLORS[rec.priority] || C.stone }}
+                            style={{ backgroundColor: PRIORITY_COLORS[rec.priority] || "var(--border)" }}
                           >
                             {rec.title.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold truncate" style={{ color: C.black }}>{rec.title}</p>
-                            <p className="text-[11px] truncate max-w-[260px]" style={{ color: `${C.black}40` }}>{rec.description}</p>
+                            <p className="text-sm font-semibold truncate text-foreground">{rec.title}</p>
+                            <p className="text-[11px] truncate max-w-[260px] text-muted-foreground">{rec.description}</p>
                           </div>
                         </div>
                       </td>
                       <td className="py-3.5 px-2">
-                        <p className="text-sm font-medium" style={{ color: C.black }}>{PILLAR_LABELS[rec.pillar] || rec.pillar}</p>
+                        <p className="text-sm font-medium text-foreground">{PILLAR_LABELS[rec.pillar] || rec.pillar}</p>
                       </td>
-                      <td className="py-3.5 px-2 text-xs" style={{ color: `${C.black}50` }}>{rec.category || "General"}</td>
+                      <td className="py-3.5 px-2 text-xs text-muted-foreground">{rec.category || "General"}</td>
                       <td className="py-3.5 px-2">
                         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md capitalize ${STATUS_STYLES[rec.priority] || "bg-gray-100 text-gray-600"}`}>
                           {rec.priority}
                         </span>
                       </td>
-                      <td className="py-3.5 px-2 text-xs" style={{ color: `${C.black}50` }}>{rec.impact_estimate || "—"}</td>
+                      <td className="py-3.5 px-2 text-xs text-muted-foreground">{rec.impact_estimate || "—"}</td>
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-sm" style={{ color: `${C.black}40` }}>
+                      <td colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
                         No recommendations found
                       </td>
                     </tr>
@@ -716,7 +946,7 @@ export default function SignalorDashboard() {
       {/* Failed run */}
       {run?.status === "failed" && (
         <div className="px-6 py-8">
-          <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${C.coral}10`, border: `1px solid ${C.coral}30`, color: C.coral }}>
+          <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${CORAL}10`, border: `1px solid ${CORAL}30`, color: CORAL }}>
             <AlertCircle className="h-4 w-4 shrink-0" />
             Analysis failed: {run.error_message || "Unknown error. Try re-analyzing."}
           </div>

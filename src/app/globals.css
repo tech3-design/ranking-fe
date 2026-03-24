@@ -87,6 +87,78 @@
     --font-mono: "JetBrains Mono", monospace;
 }
 
+html.dark,
+.dark,
+[data-theme="dark"] {
+    --background: #111110;
+    --foreground: #F6F4F1;
+    --card: #1A1A18;
+    --card-foreground: #F6F4F1;
+    --popover: #1A1A18;
+    --popover-foreground: #F6F4F1;
+    --primary: #F95C4B;
+    --primary-foreground: #FFFFFF;
+    --secondary: #2A2926;
+    --secondary-foreground: #F6F4F1;
+    --muted: #1E1E1C;
+    --muted-foreground: #F6F4F166;
+    --accent: #1E1E1C;
+    --accent-foreground: #F6F4F1;
+    --destructive: #F95C4B;
+    --border: #2A2926;
+    --input: #2A2926;
+    --ring: #F95C4B;
+    --chart-1: #F95C4B;
+    --chart-2: #F6F4F1;
+    --chart-3: #2A2926;
+    --chart-4: #F6F4F166;
+    --chart-5: #F95C4B80;
+    --sidebar: #1A1A18;
+    --sidebar-foreground: #F6F4F1;
+    --sidebar-primary: #F95C4B;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #2A2926;
+    --sidebar-accent-foreground: #F6F4F1;
+    --sidebar-border: #2A2926;
+    --sidebar-ring: #F95C4B;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: #111110;
+    --foreground: #F6F4F1;
+    --card: #1A1A18;
+    --card-foreground: #F6F4F1;
+    --popover: #1A1A18;
+    --popover-foreground: #F6F4F1;
+    --primary: #F95C4B;
+    --primary-foreground: #FFFFFF;
+    --secondary: #2A2926;
+    --secondary-foreground: #F6F4F1;
+    --muted: #1E1E1C;
+    --muted-foreground: #F6F4F166;
+    --accent: #1E1E1C;
+    --accent-foreground: #F6F4F1;
+    --destructive: #F95C4B;
+    --border: #2A2926;
+    --input: #2A2926;
+    --ring: #F95C4B;
+    --chart-1: #F95C4B;
+    --chart-2: #F6F4F1;
+    --chart-3: #2A2926;
+    --chart-4: #F6F4F166;
+    --chart-5: #F95C4B80;
+    --sidebar: #1A1A18;
+    --sidebar-foreground: #F6F4F1;
+    --sidebar-primary: #F95C4B;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #2A2926;
+    --sidebar-accent-foreground: #F6F4F1;
+    --sidebar-border: #2A2926;
+    --sidebar-ring: #F95C4B;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

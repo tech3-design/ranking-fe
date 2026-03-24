@@ -10,7 +10,6 @@ import {
 } from "@/lib/api/analyzer";
 import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
 import { ShareOfVoicePanel } from "@/components/analyzer/share-of-voice-panel";
-import { PlatformBarChart } from "@/components/visibility/platform-bar-chart";
 import { AlertCircle } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 
@@ -45,8 +44,8 @@ export default function VisibilityPage() {
   return (
     <div className="px-6 py-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-[#000000]">Brand Visibility</h2>
-        <p className="text-xs mt-1 text-[#000000]/40">
+        <h2 className="text-2xl font-semibold text-foreground">Brand Visibility</h2>
+        <p className="text-xs mt-1 text-muted-foreground">
           How AI engines and platforms see your brand
         </p>
       </div>
@@ -58,7 +57,7 @@ export default function VisibilityPage() {
       )}
 
       {error && !loading && (
-        <div className="flex items-center gap-3 rounded-xl bg-[#F95C4B]/10 border border-[#F95C4B]/30 px-5 py-4 text-sm text-[#F95C4B]">
+        <div className="flex items-center gap-3 rounded-xl bg-primary/10 border border-primary/30 px-5 py-4 text-sm text-primary">
           <AlertCircle className="h-4 w-4 shrink-0" /> {error}
         </div>
       )}
@@ -67,12 +66,6 @@ export default function VisibilityPage() {
         <>
           {brandVis && (
             <>
-              <PlatformBarChart
-                google={brandVis.google_score}
-                reddit={brandVis.reddit_score}
-                medium={brandVis.medium_score}
-                web={brandVis.web_mentions_score}
-              />
               <BrandVisibilityTab
                 brandName={run.brand_name}
                 visibility={brandVis}
@@ -83,7 +76,7 @@ export default function VisibilityPage() {
           {sov.length > 0 && <ShareOfVoicePanel data={sov} />}
 
           {!brandVis && sov.length === 0 && (
-            <div className="text-center py-16 text-sm text-[#000000]/40">
+            <div className="text-center py-16 text-sm text-muted-foreground">
               No visibility data available for this analysis run.
             </div>
           )}
