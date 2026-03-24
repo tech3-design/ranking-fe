@@ -34,29 +34,29 @@ export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTab
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-lg font-semibold text-white">Brand Visibility</h2>
-        <p className="mt-1 text-sm text-neutral-500">
-          How <span className="text-neutral-200 font-medium">{brandName}</span> appears across platforms
+        <h2 className="text-lg font-semibold text-foreground">Brand Visibility</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          How <span className="text-foreground font-medium">{brandName}</span> appears across platforms
         </p>
       </div>
 
       {/* Overall score + Platform scores */}
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5 md:gap-3">
         {/* Overall */}
-        <div className="rounded-2xl border border-[#3ecf8e]/20 bg-[#3ecf8e]/[0.06] p-5 text-center">
-          <p className="text-3xl font-bold text-[#3ecf8e]">{Math.round(visibility.overall_score)}</p>
-          <p className="mt-1 text-xs text-neutral-400">Overall Score</p>
+        <div className="rounded-lg border border-primary/20 bg-primary/[0.06] p-5 text-center">
+          <p className="text-3xl font-bold text-primary">{Math.round(visibility.overall_score)}</p>
+          <p className="mt-1 text-xs text-muted-foreground">Overall Score</p>
         </div>
 
         {/* Per platform */}
         {PLATFORMS.map((p) => {
           const score = Math.round(visibility[p.key] ?? 0);
           return (
-            <div key={p.key} className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 text-center">
-              <p className="text-2xl font-bold text-white">{score}</p>
+            <div key={p.key} className="rounded-lg border border-border bg-card p-5 text-center">
+              <p className="text-2xl font-bold text-foreground">{score}</p>
               <div className="mt-2 flex items-center justify-center gap-1.5">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
-                <p className="text-xs text-neutral-500">{p.label}</p>
+                <p className="text-xs text-muted-foreground">{p.label}</p>
               </div>
               {/* Mini bar */}
               <div className="mt-2 h-1.5 w-full rounded-full bg-white/[0.06]">

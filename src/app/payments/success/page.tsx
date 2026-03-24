@@ -37,15 +37,15 @@ export default function PaymentSuccessPage() {
   }, [session, router]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#171717] px-4 text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
       {checking ? (
         <>
-          <Loader2 className="h-8 w-8 animate-spin text-[#3ecf8e]" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="mt-4 text-sm text-neutral-400">Confirming your payment...</p>
         </>
       ) : (
         <>
-          <CheckCircle2 className="h-12 w-12 text-[#3ecf8e]" />
+          <CheckCircle2 className="h-12 w-12 text-primary" />
           <h1 className="mt-4 text-xl md:text-2xl font-bold text-white">Payment Successful!</h1>
           <p className="mt-2 text-sm text-neutral-400">Redirecting to your dashboard...</p>
         </>

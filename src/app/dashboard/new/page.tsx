@@ -46,7 +46,7 @@ export default function NewProjectPage() {
   return (
     <div className="relative min-h-screen">
       <div className="relative z-20 mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 md:px-8">
-        <header className="glass-card flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
+        <header className="glass-card flex flex-wrap items-center justify-between gap-3 rounded-lg px-4 py-3">
           <div>
             <h1 className="text-lg font-semibold">New Analysis</h1>
             <p className="text-xs text-muted-foreground">

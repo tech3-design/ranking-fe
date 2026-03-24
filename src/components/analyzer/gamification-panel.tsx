@@ -413,7 +413,7 @@ export function GamificationPanel({ email, recommendations, runId }: Gamificatio
                   initial={{ scale: 0.5, y: 50 }}
                   animate={{ scale: 1, y: 0 }}
                   exit={{ scale: 0.5, y: 50 }}
-                  className="absolute left-1/2 top-1/2 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card p-8 text-center"
+                  className="absolute left-1/2 top-1/2 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-card p-8 text-center"
                 >
                   <div className="text-4xl mb-4 font-bold">LVL+</div>
                   <h2 className="text-2xl font-bold mb-2">Level Up!</h2>

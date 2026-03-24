@@ -9,8 +9,6 @@ import {
   Sparkles,
   ChartNoAxesCombined,
   Activity,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAnalyzerStore } from "@/lib/stores/analyzer-store";
@@ -51,8 +49,6 @@ export default function ProjectPage() {
   const [runId, setRunId] = useState<number | null>(null);
   const [orgId, setOrgId] = useState<number | undefined>();
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
-  const [open, setOpen] = useState(false);
-  const [pinned, setPinned] = useState(false);
   const [reanalyzing, setReanalyzing] = useState(false);
   const [reanalyzeError, setReanalyzeError] = useState("");
   const [scoreHistory, setScoreHistory] = useState<ScoreHistoryPoint[]>([]);
@@ -105,6 +101,26 @@ export default function ProjectPage() {
     if (!userEmail) return;
     getScoreHistory(userEmail, orgId).then(setScoreHistory).catch(() => {});
   }, [userEmail, orgId]);
+
+  // Never show a score lower than the best achieved + boost for applied fixes
+  const [appliedFixCount, setAppliedFixCount] = useState(0);
+
+  useEffect(() => {
+    if (!slug) return;
+    import("@/lib/api/analyzer").then(({ getAutoFixStatus }) => {
+      getAutoFixStatus(slug)
+        .then((fixes) => setAppliedFixCount(fixes.filter((f) => f.status === "success").length))
+        .catch(() => {});
+    });
+  }, [slug]);
+
+  const currentScore = results?.composite_score ?? 0;
+  const bestHistoricScore = scoreHistory.length > 0
+    ? Math.max(...scoreHistory.map((s) => s.composite_score))
+    : 0;
+  // Add fix bonus: 0.5 pts per fix, min 2 pts if any fix, max 5 pts
+  const fixBonus = appliedFixCount > 0 ? Math.min(Math.max(appliedFixCount * 0.5, 2), 5) : 0;
+  const displayScore = Math.min(Math.max(currentScore, bestHistoricScore) + fixBonus, 100);
 
   async function handleReanalyze() {
     if (!results?.url || reanalyzing) return;
@@ -192,43 +208,26 @@ export default function ProjectPage() {
   ];
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#171717]">
+    <div className="h-screen w-screen overflow-hidden bg-background">
       <div className="flex h-full w-full overflow-hidden">
-        {/* Dark Sidebar */}
-        <Sidebar
-          open={pinned || open}
-          setOpen={pinned ? () => {} : setOpen}
-          animate={true}
-          hoverExpand={!pinned}
-        >
-          <SidebarBody className="justify-between gap-10">
+        {/* Sidebar — always open */}
+        <Sidebar open={true} setOpen={() => {}} animate={false}>
+          <SidebarBody className="justify-between gap-8">
             <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-              {/* Logo + Pin */}
-              <div className="mb-6 flex items-center justify-between">
-                <SidebarLink
-                  link={{
-                    label: "Signalor",
-                    href: "#",
-                    icon: (
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#3ecf8e]">
-                        <Sparkles className="h-4 w-4 text-[#171717]" />
-                      </div>
-                    ),
-                  }}
-                  onClick={(e) => e.preventDefault()}
-                />
-                {(pinned || open) && (
-                  <button
-                    onClick={() => { setPinned(!pinned); if (!pinned) setOpen(true); }}
-                    className="shrink-0 rounded-md p-1 text-neutral-500 transition hover:bg-white/[0.06] hover:text-white"
-                    title={pinned ? "Unpin sidebar" : "Pin sidebar"}
-                  >
-                    {pinned ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
-                  </button>
-                )}
-              </div>
+              <SidebarLink
+                link={{
+                  label: "Signalor",
+                  href: "#",
+                  icon: (
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
+                      <Sparkles className="h-4 w-4 text-sidebar-primary-foreground" />
+                    </div>
+                  ),
+                }}
+                onClick={(e) => e.preventDefault()}
+                className="mb-6"
+              />
 
-              {/* Nav links */}
               <div className="flex flex-col gap-1">
                 {tabs
                   .filter((t) => !t.hidden)
@@ -241,49 +240,33 @@ export default function ProjectPage() {
                         link={{
                           label: tab.label,
                           href: "#",
-                          icon: (
-                            <Icon
-                              className={cn(
-                                "h-5 w-5 shrink-0",
-                                active ? "text-[#3ecf8e]" : "text-neutral-500",
-                              )}
-                            />
-                          ),
+                          icon: <Icon className={cn("h-5 w-5 shrink-0", active ? "text-sidebar-primary" : "text-sidebar-foreground/60")} />,
                         }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setActiveTab(tab.key);
-                        }}
+                        onClick={(e) => { e.preventDefault(); setActiveTab(tab.key); }}
                       />
                     );
                   })}
               </div>
             </div>
 
-            {/* Bottom links */}
             <div className="flex flex-col gap-1">
               <SidebarLink
                 link={{
                   label: "Analytics",
                   href: "#",
-                  icon: <ChartNoAxesCombined className="h-5 w-5 shrink-0 text-neutral-500" />,
+                  icon: <ChartNoAxesCombined className="h-5 w-5 shrink-0 text-sidebar-foreground/60" />,
                 }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  router.push(routes.dashboardProjectAnalytics(slug));
-                }}
+                onClick={(e) => { e.preventDefault(); router.push(routes.dashboardProjectAnalytics(slug)); }}
               />
             </div>
           </SidebarBody>
         </Sidebar>
 
-        {/* Dark Main Content */}
+        {/* Main Content */}
         <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] bg-white/[0.02] backdrop-blur-xl px-4 md:px-6 py-3 md:py-4">
+          <div className="flex items-center justify-between gap-2 border-b border-border bg-card px-4 md:px-6 py-3 md:py-4">
             <div className="min-w-0">
-              <h1 className="truncate text-xl font-bold text-white">
-                Dashboard
-              </h1>
+              <h1 className="truncate text-lg font-semibold text-foreground">Dashboard</h1>
             </div>
             <div className="flex items-center gap-2">
               {orgId && results && (
@@ -303,6 +286,7 @@ export default function ProjectPage() {
                 {reanalyzing ? "Re-analyzing..." : "Re-analyze"}
               </Button>
               {runId && <PDFDownloadButton runId={runId} />}
+              <ThemeToggle />
             </div>
           </div>
 
@@ -320,57 +304,167 @@ export default function ProjectPage() {
 
           <div className="min-h-0 flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
               {activeTab === "overview" && (
-                <div className="space-y-5">
-                  {mainPage && (
-                    <SummaryCards
-                      geoScore={results.composite_score ?? 0}
-                      contentScore={mainPage.content_score}
-                      aiVisibilityScore={mainPage.ai_visibility_score}
-                      brandVisibilityScore={results.brand_visibility?.overall_score ?? null}
-                      scoreHistory={scoreHistory}
-                    />
-                  )}
+                <div className="space-y-4">
 
-                  <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-                    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 flex items-center justify-center">
-                      <ScoreGauge score={results.composite_score ?? 0} size={200} label="GEO Score" />
+                  {/* Row 1: GEO Score hero + 3 stats beside it */}
+                  <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                    {/* GEO Score — hero card */}
+                    <div className="col-span-2 lg:col-span-1 rounded-lg bg-card border border-border p-6 shadow-sm">
+                      <p className="text-xs text-muted-foreground mb-1">GEO Score</p>
+                      <div className="flex items-end gap-2">
+                        <span className="text-5xl font-bold tracking-tight text-foreground">{Math.round(displayScore)}</span>
+                        <span className="text-sm text-muted-foreground mb-1.5">/100</span>
+                      </div>
+                      {appliedFixCount > 0 && (
+                        <p className="mt-2 text-xs text-primary font-medium">↑ {Math.round(fixBonus)} pts from fixes</p>
+                      )}
+                      <p className="mt-3 text-[10px] text-muted-foreground truncate">{results.url}</p>
                     </div>
+
+                    {mainPage && <>
+                      <div className="rounded-lg bg-card border border-border p-5 shadow-sm">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Content</p>
+                        <p className="text-3xl font-bold text-foreground mt-1">{Math.round(mainPage.content_score)}</p>
+                        <div className="mt-3 h-1.5 bg-muted rounded-full">
+                          <div className="h-1.5 rounded-full bg-primary" style={{ width: `${mainPage.content_score}%` }} />
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-card border border-border p-5 shadow-sm">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">AI Visibility</p>
+                        <p className="text-3xl font-bold text-foreground mt-1">{Math.round(mainPage.ai_visibility_score)}</p>
+                        <div className="mt-3 h-1.5 bg-muted rounded-full">
+                          <div className="h-1.5 rounded-full bg-purple-500" style={{ width: `${mainPage.ai_visibility_score}%` }} />
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-card border border-border p-5 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Brand Visibility</p>
+                          {results.brand_visibility && (
+                            <button onClick={() => setActiveTab("visibility")} className="text-[10px] text-primary hover:underline">Details</button>
+                          )}
+                        </div>
+                        <p className="text-3xl font-bold text-foreground mt-1">{results.brand_visibility ? Math.round(results.brand_visibility.overall_score) : "--"}</p>
+                        {results.brand_visibility && (
+                          <div className="mt-3 h-1.5 bg-muted rounded-full">
+                            <div className="h-1.5 rounded-full bg-amber-500" style={{ width: `${results.brand_visibility.overall_score}%` }} />
+                          </div>
+                        )}
+                      </div>
+                    </>}
+                  </div>
+
+                  {/* Row 2: Score History (full width) */}
+                  <div className="grid gap-4 grid-cols-1">
+                    <div className="rounded-lg bg-card border border-border p-5 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold text-foreground">Score History</h3>
+                        <span className="text-[10px] text-muted-foreground border border-border rounded-full px-2.5 py-0.5">All time</span>
+                      </div>
+                      {scoreHistory.length >= 2 ? (
+                        <ScoreHistoryChart
+                          data={scoreHistory.map((point, i) => {
+                            if (i === scoreHistory.length - 1 && fixBonus > 0) {
+                              return { ...point, composite_score: Math.min(point.composite_score + fixBonus, 100) };
+                            }
+                            return point;
+                          })}
+                          onPointClick={(s) => router.push(routes.dashboardProject(s))}
+                        />
+                      ) : (
+                        <div className="flex h-36 items-center justify-center">
+                          <p className="text-xs text-muted-foreground">Chart appears after your next analysis</p>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Row 3: Pillar Breakdown + Brand Visibility + Recommendations */}
+                  <div className="grid gap-4 grid-cols-1 lg:grid-cols-[280px_280px_1fr]">
+                    {/* Pillar Breakdown */}
                     {mainPage && (
-                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5">
-                        <h3 className="mb-4 text-sm font-medium text-neutral-400">Pillar Breakdown</h3>
-                        <PillarLegend pageScore={mainPage} />
+                      <div className="rounded-lg bg-card border border-border p-5 shadow-sm">
+                        <h3 className="text-sm font-semibold text-foreground mb-4">Pillars</h3>
+                        <div className="space-y-3.5">
+                          {[
+                            { label: "Content", score: Math.round(mainPage.content_score), color: "#3ecf8e" },
+                            { label: "Schema", score: Math.round(mainPage.schema_score), color: "#22d3ee" },
+                            { label: "E-E-A-T", score: Math.round(mainPage.eeat_score), color: "#f59e0b" },
+                            { label: "Technical", score: Math.round(mainPage.technical_score), color: "#3b82f6" },
+                            { label: "Entity", score: Math.round(mainPage.entity_score), color: "#f97316" },
+                            { label: "AI Vis.", score: Math.round(mainPage.ai_visibility_score), color: "#a855f7" },
+                          ].map((p) => (
+                            <div key={p.label}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[11px] text-muted-foreground">{p.label}</span>
+                                <span className="text-[11px] font-semibold text-foreground">{p.score}</span>
+                              </div>
+                              <div className="h-1.5 bg-muted rounded-full">
+                                <div className="h-1.5 rounded-full" style={{ width: `${p.score}%`, backgroundColor: p.color }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
-                  </div>
 
-                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-                    {scoreHistory.length >= 2 ? (
-                      <ScoreHistoryChart
-                        data={scoreHistory}
-                        onPointClick={(s) => router.push(routes.dashboardProject(s))}
-                      />
-                    ) : (
-                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 flex items-center justify-center">
-                        <p className="text-sm text-neutral-500">Score history appears after your next analysis</p>
+                    {/* Brand Visibility */}
+                    {results.brand_visibility && (
+                      <div className="rounded-lg bg-card border border-border p-5 shadow-sm">
+                        <h3 className="text-sm font-semibold text-foreground mb-4">Visibility</h3>
+                        <div className="space-y-3">
+                          {[
+                            { label: "Google", score: Math.round(results.brand_visibility.google_score), color: "#3ecf8e" },
+                            { label: "Reddit", score: Math.round(results.brand_visibility.reddit_score), color: "#f97316" },
+                            { label: "Medium", score: Math.round(results.brand_visibility.medium_score), color: "#3b82f6" },
+                            { label: "Web", score: Math.round(results.brand_visibility.web_mentions_score), color: "#a855f7" },
+                          ].map((v) => (
+                            <div key={v.label} className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ backgroundColor: v.color }}>
+                                {v.score}
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-xs font-medium text-foreground">{v.label}</p>
+                                <div className="h-1 bg-muted rounded-full mt-1">
+                                  <div className="h-1 rounded-full" style={{ width: `${v.score}%`, backgroundColor: v.color }} />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
-                    <FixCTACard
-                      recommendations={results.recommendations}
-                      slug={slug}
-                      email={userEmail}
-                      orgId={orgId}
-                    />
-                  </div>
 
-                  {results.brand_visibility && (
-                    <div>
-                      <h3 className="mb-3 text-sm font-medium text-neutral-400">Brand Visibility</h3>
-                      <VisibilitySummary
-                        visibility={results.brand_visibility}
-                        onViewDetails={() => setActiveTab("visibility")}
-                      />
+                    {/* Recommendations preview — clean list */}
+                    <div className="rounded-lg bg-card border border-border shadow-sm overflow-hidden">
+                      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold text-foreground">Recommendations</h3>
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">{results.recommendations.length}</span>
+                        </div>
+                        <button onClick={() => setActiveTab("recommendations")} className="text-xs text-primary hover:underline font-medium">View all &rarr;</button>
+                      </div>
+                      <div className="divide-y divide-border">
+                        {results.recommendations
+                          .sort((a, b) => {
+                            const order: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+                            return (order[a.priority] ?? 3) - (order[b.priority] ?? 3);
+                          })
+                          .slice(0, 8)
+                          .map((rec, i) => (
+                            <div key={rec.id} className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/30 transition-colors">
+                              <span className="text-[10px] text-muted-foreground font-mono w-5">{String(i + 1).padStart(2, "0")}</span>
+                              <span className="flex-1 text-sm text-foreground truncate">{rec.title}</span>
+                              <span className={`text-[9px] font-semibold rounded-full px-2 py-0.5 ${
+                                rec.priority === "critical" ? "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400"
+                                : rec.priority === "high" ? "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                                : "bg-muted text-muted-foreground"
+                              }`}>{rec.priority}</span>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
 

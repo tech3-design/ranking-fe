@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Roboto, DM_Serif_Display, JetBrains_Mono } from "next/font/google";
+import { Inter, DM_Serif_Display, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-const fontSans = Roboto({
+const fontSans = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
   variable: "--font-sans",
 });
 
@@ -31,15 +30,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased bg-[#171717]`}
+        className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          forcedTheme="dark"
-          enableSystem={false}
+          defaultTheme="light"
+          enableSystem={true}
           disableTransitionOnChange
         >
           {children}

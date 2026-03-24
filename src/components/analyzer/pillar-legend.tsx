@@ -26,16 +26,16 @@ export function PillarLegend({ pageScore }: PillarLegendProps) {
               className="h-2.5 w-2.5 shrink-0 rounded-full"
               style={{ backgroundColor: pillar.color, boxShadow: `0 0 6px ${pillar.color}60` }}
             />
-            <span className="w-20 shrink-0 text-xs text-slate-400">{pillar.label}</span>
+            <span className="w-20 shrink-0 text-xs text-muted-foreground">{pillar.label}</span>
             <div className="flex-1">
-              <div className="h-1.5 w-full rounded-full bg-white/[0.06]">
+              <div className="h-1.5 w-full rounded-full bg-muted">
                 <div
                   className="h-1.5 rounded-full transition-all duration-700"
                   style={{ width: `${score}%`, backgroundColor: pillar.color }}
                 />
               </div>
             </div>
-            <span className="w-8 shrink-0 text-right text-xs font-medium text-white">{score}</span>
+            <span className="w-8 shrink-0 text-right text-xs font-medium text-foreground">{score}</span>
           </div>
         );
       })}

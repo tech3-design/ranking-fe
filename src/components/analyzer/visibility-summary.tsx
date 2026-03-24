@@ -24,7 +24,7 @@ export function VisibilitySummary({ visibility, onViewDetails }: VisibilitySumma
           return (
             <div
               key={p.key}
-              className="group rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-center transition-all hover:border-white/[0.15] hover:bg-white/[0.05]"
+              className="group rounded-lg border border-border bg-card p-4 text-center transition-all hover:border-border hover:bg-muted"
             >
               <div className="mx-auto mb-2 relative h-14 w-14">
                 <svg viewBox="0 0 48 48" className="h-14 w-14 -rotate-90">
@@ -36,11 +36,11 @@ export function VisibilitySummary({ visibility, onViewDetails }: VisibilitySumma
                     style={{ filter: `drop-shadow(0 0 4px ${p.color}60)` }}
                   />
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground">
                   {score}
                 </span>
               </div>
-              <p className="text-xs text-slate-400">{p.label}</p>
+              <p className="text-xs text-muted-foreground">{p.label}</p>
             </div>
           );
         })}

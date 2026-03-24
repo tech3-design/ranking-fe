@@ -40,8 +40,6 @@ export default function CompanyInfoPage() {
 
   // WordPress fields
   const [wpSiteUrl, setWpSiteUrl] = useState("");
-  const [wpUsername, setWpUsername] = useState("");
-  const [wpAppPassword, setWpAppPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -79,10 +77,13 @@ export default function CompanyInfoPage() {
     try {
       // Step 1: Create org
       let org;
-      const siteUrl =
+      let siteUrl =
         platform === "shopify"
           ? `https://${shopDomain.replace(/^https?:\/\//, "")}`
           : wpSiteUrl.trim();
+      if (!siteUrl.startsWith("http://") && !siteUrl.startsWith("https://")) {
+        siteUrl = `https://${siteUrl}`;
+      }
 
       try {
         org = await createOrganization({
@@ -115,31 +116,47 @@ export default function CompanyInfoPage() {
         const { auth_url } = await getShopifyAuthUrl(
           email,
           domain,
-          "/pricing",
+          "/dashboard",
           orgId
         );
-        // Redirect to Shopify OAuth — after callback, user lands on /pricing
+        // Redirect to Shopify OAuth — after callback, user lands on /dashboard
         window.location.href = auth_url;
         return;
       }
 
       if (platform === "wordpress") {
+        let siteUrl = wpSiteUrl.trim();
+        if (!siteUrl.startsWith("http://") && !siteUrl.startsWith("https://")) {
+          siteUrl = `https://${siteUrl}`;
+        }
         const result = await connectWordPress(
           email,
-          wpSiteUrl.trim(),
-          wpUsername.trim(),
-          wpAppPassword.trim()
+          siteUrl,
+          "",
+          ""
         );
 
-        // If WordPress.com, redirect to OAuth
+        // Redirect to WordPress.com OAuth
         if (result.oauth_url) {
           window.location.href = result.oauth_url;
           return;
         }
+
+        // Self-hosted WordPress connected directly — start analysis now
+        setStatusMsg("Starting analysis on your site...");
+        const wpAnalysis = await startAnalysis({
+          url: siteUrl,
+          run_type: "single_page",
+          email,
+          brand_name: companyName.trim(),
+          org_id: orgId,
+        });
+        router.push(routes.dashboardProject(wpAnalysis.slug));
+        return;
       }
 
-      // Step 3: Redirect to pricing for payment
-      router.push("/pricing");
+      // Fallback
+      router.push("/dashboard");
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const msg =
@@ -165,7 +182,7 @@ export default function CompanyInfoPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#171717] px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
       <BackgroundBeams />
       <div className="relative z-10 w-full max-w-lg">
         {/* Step 1: Company name */}
@@ -333,7 +350,7 @@ export default function CompanyInfoPage() {
                 Connect WordPress
               </CardTitle>
               <CardDescription>
-                Enter your WordPress site details
+                Enter your WordPress site URL to connect
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -342,37 +359,15 @@ export default function CompanyInfoPage() {
                   <Label htmlFor="wp-url">Site URL</Label>
                   <Input
                     id="wp-url"
-                    type="url"
-                    placeholder="https://your-site.com"
+                    type="text"
+                    placeholder="your-site.wordpress.com"
                     value={wpSiteUrl}
                     onChange={(e) => setWpSiteUrl(e.target.value)}
                     required
                     autoFocus
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="wp-username">Username</Label>
-                  <Input
-                    id="wp-username"
-                    placeholder="admin"
-                    value={wpUsername}
-                    onChange={(e) => setWpUsername(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="wp-password">Application Password</Label>
-                  <Input
-                    id="wp-password"
-                    type="password"
-                    placeholder="xxxx xxxx xxxx xxxx"
-                    value={wpAppPassword}
-                    onChange={(e) => setWpAppPassword(e.target.value)}
-                    required
-                  />
                   <p className="text-xs text-muted-foreground">
-                    Generate one in WordPress under Users &rarr; Profile &rarr; Application Passwords.
-                    For WordPress.com sites, just enter the site URL.
+                    Enter your WordPress.com site URL. You&apos;ll be redirected to authorize.
                   </p>
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
@@ -404,7 +399,7 @@ export default function CompanyInfoPage() {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {statusMsg || "Connecting..."}
+                        Connecting...
                       </>
                     ) : (
                       "Connect & Analyze"

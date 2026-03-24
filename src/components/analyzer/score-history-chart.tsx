@@ -20,9 +20,8 @@ export function ScoreHistoryChart({ data, onPointClick }: ScoreHistoryChartProps
   }));
 
   return (
-    <div className="glass-card rounded-2xl p-5">
-      <h3 className="mb-4 text-sm font-medium text-slate-400">GEO Score Over Time</h3>
-      <ResponsiveContainer width="100%" height={200}>
+    <div>
+      <ResponsiveContainer width="100%" height={160}>
         <AreaChart
           data={chartData}
           margin={{ top: 4, right: 8, bottom: 0, left: -16 }}

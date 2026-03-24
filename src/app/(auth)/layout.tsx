@@ -7,7 +7,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#171717] p-0">
+    <div className="min-h-screen bg-background p-0">
       <BackgroundBeams />
       <div className="relative z-10 grid min-h-screen w-full overflow-hidden md:grid-cols-[1.05fr_1fr]">
         <div className="relative overflow-hidden p-8 text-white md:flex md:flex-col md:justify-between md:p-9">

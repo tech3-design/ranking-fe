@@ -58,17 +58,17 @@ export function HeroAnalyzerForm() {
           placeholder="Enter website URL (example.com)"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="h-11 border-white/15 bg-white/[0.06] text-white placeholder:text-slate-500"
+          className="h-11 border-border bg-input text-foreground placeholder:text-slate-500"
           required
         />
         <select
           value={country}
           onChange={(e) => setCountry(e.target.value)}
-          className="h-11 border border-white/15 bg-white/[0.06] px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#3ecf8e]/50"
+          className="h-11 border border-border bg-input px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
           required
         >
           {COUNTRY_OPTIONS.map((option) => (
-            <option key={option} value={option} className="text-black">
+            <option key={option} value={option} className="text-foreground">
               {option}
             </option>
           ))}
