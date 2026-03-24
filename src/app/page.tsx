@@ -57,20 +57,6 @@ export default function Home() {
                 {/* Free Analyzer Form */}
                 <HeroAnalyzerForm />
 
-                <div className="mt-6 flex items-center gap-3">
-                  <Link
-                    href={routes.signUp}
-                    className="gradient-btn px-6 py-3 text-sm font-medium"
-                  >
-                    Begin Journey &rarr;
-                  </Link>
-                  <Link
-                    href={routes.signIn}
-                    className="border border-white/20 bg-transparent px-6 py-3 text-sm text-foreground transition hover:bg-white/[0.06]"
-                  >
-                    Explore More
-                  </Link>
-                </div>
               </div>
 
               {/* Right: stats */}

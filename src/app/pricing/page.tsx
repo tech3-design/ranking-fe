@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { createCheckoutSession, getSubscriptionStatus } from "@/lib/api/payments";
 import { routes } from "@/lib/config";
-import { Loader2, Check, Zap } from "lucide-react";
-import { BackgroundBeams } from "@/components/ui/background-beams";
+import { Check, Zap, ArrowLeft } from "lucide-react";
+import { SignalorLoader } from "@/components/ui/signalor-loader";
+import Link from "next/link";
 
 export default function PricingPage() {
   const { data: session, isPending } = useSession();
@@ -16,7 +17,6 @@ export default function PricingPage() {
   const [isIndian, setIsIndian] = useState(false);
 
   useEffect(() => {
-    // Detect Indian locale
     const lang = navigator.language || "";
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
     setIsIndian(lang.includes("IN") || lang.includes("hi") || tz.includes("Kolkata") || tz.includes("Calcutta"));
@@ -28,7 +28,6 @@ export default function PricingPage() {
       router.replace(routes.signIn);
       return;
     }
-    // If already subscribed, go to dashboard
     getSubscriptionStatus(session.user.email)
       .then((s) => {
         if (s.is_active) router.replace(routes.dashboard);
@@ -52,8 +51,8 @@ export default function PricingPage() {
 
   if (isPending || !session) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+      <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "#F6F4F1" }}>
+        <SignalorLoader size="lg" />
       </div>
     );
   }
@@ -73,58 +72,92 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
-      <BackgroundBeams />
-      <div className="relative z-10 w-full max-w-sm md:max-w-md">
+    <div className="flex min-h-screen items-center justify-center px-4" style={{ backgroundColor: "#F6F4F1" }}>
+      <div className="w-full max-w-md">
+        {/* Back link */}
+        <Link
+          href={routes.dashboard}
+          className="inline-flex items-center gap-1.5 text-xs font-medium mb-6 transition hover:opacity-70"
+          style={{ color: "#00000060" }}
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Back to Dashboard
+        </Link>
+
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-white">Upgrade to Pro</h1>
-          <p className="mt-2 text-sm text-neutral-400">
-            Your store is connected. Subscribe to unlock the full dashboard.
+          <div
+            className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold mb-4"
+            style={{ backgroundColor: "#F95C4B15", color: "#F95C4B" }}
+          >
+            <Zap className="w-3.5 h-3.5" /> PRO
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: "#000000" }}>
+            Upgrade to Pro
+          </h1>
+          <p className="mt-2 text-sm" style={{ color: "#00000060" }}>
+            Subscribe to unlock the full dashboard.
           </p>
         </div>
 
-        <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 md:p-8">
+        {/* Card */}
+        <div className="rounded-2xl bg-white p-6 md:p-8" style={{ border: "1px solid #E4DED2" }}>
           {/* Price */}
           <div className="text-center mb-6">
             <div className="flex items-baseline justify-center gap-1">
-              <span className="text-4xl md:text-5xl font-bold text-white">{price}</span>
-              <span className="text-neutral-400">{period}</span>
+              <span className="text-5xl md:text-6xl font-bold" style={{ color: "#000000" }}>{price}</span>
+              <span className="text-base" style={{ color: "#00000050" }}>{period}</span>
             </div>
-            {/* Currency toggle */}
             <button
               onClick={() => setIsIndian(!isIndian)}
-              className="mt-2 text-xs text-neutral-500 hover:text-neutral-300 transition"
+              className="mt-2 text-xs transition hover:opacity-70"
+              style={{ color: "#00000040" }}
             >
               Switch to {isIndian ? "USD ($12/mo)" : "INR (₹1,000/mo)"}
             </button>
           </div>
 
+          {/* Divider */}
+          <div className="w-full h-px my-5" style={{ backgroundColor: "#E4DED2" }} />
+
           {/* Features */}
-          <div className="space-y-3 mb-8">
+          <div className="space-y-3.5 mb-8">
             {features.map((f) => (
               <div key={f} className="flex items-center gap-3">
-                <Check className="h-4 w-4 shrink-0 text-primary" />
-                <span className="text-sm text-neutral-300">{f}</span>
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: "#F95C4B15" }}
+                >
+                  <Check className="h-3 w-3" style={{ color: "#F95C4B" }} />
+                </div>
+                <span className="text-sm" style={{ color: "#000000CC" }}>{f}</span>
               </div>
             ))}
           </div>
 
           {/* Subscribe button */}
-          {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
+          {error && (
+            <p className="mb-3 text-sm rounded-lg px-3 py-2" style={{ color: "#F95C4B", backgroundColor: "#F95C4B10" }}>
+              {error}
+            </p>
+          )}
           <button
             onClick={handleSubscribe}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 bg-primary py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+            style={{ backgroundColor: "#F95C4B" }}
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <SignalorLoader size="sm" />
             ) : (
-              <Zap className="h-4 w-4" />
+              <>
+                <Zap className="h-4 w-4" />
+                Subscribe Now
+              </>
             )}
-            {loading ? "Redirecting to Stripe..." : "Subscribe Now"}
           </button>
 
-          <p className="mt-4 text-center text-[10px] text-neutral-600">
+          <p className="mt-4 text-center text-[11px]" style={{ color: "#00000040" }}>
             Secure payment via Stripe. Cancel anytime.
           </p>
         </div>

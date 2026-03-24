@@ -1,511 +1,674 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import {
-  LayoutDashboard,
-  Eye,
-  ListChecks,
-  Sparkles,
-  ChartNoAxesCombined,
-  Activity,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useAnalyzerStore } from "@/lib/stores/analyzer-store";
-import { getRunBySlug, startAnalysis, getScoreHistory, type AnalysisRunDetail, type ScoreHistoryPoint } from "@/lib/api/analyzer";
-import { getOrganizations } from "@/lib/api/organizations";
-import { routes } from "@/lib/config";
-
-import { AnalysisProgress } from "@/components/analyzer/analysis-progress";
-import { ScoreGauge } from "@/components/analyzer/score-gauge";
-import { PillarLegend } from "@/components/analyzer/pillar-legend";
-import { SummaryCards } from "@/components/analyzer/summary-cards";
-import { FixCTACard } from "@/components/analyzer/fix-cta-card";
-import { VisibilitySummary } from "@/components/analyzer/visibility-summary";
-import { RecommendationsPanel } from "@/components/analyzer/recommendations-panel";
-import { ScoreHistoryChart } from "@/components/analyzer/score-history-chart";
-import { ScheduleToggle } from "@/components/analyzer/schedule-toggle";
-import { PDFDownloadButton } from "@/components/analyzer/pdf-download-button";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
-import { AIMonitoringTab } from "@/components/analyzer/ai-monitoring-tab";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import {
+  getRunBySlug,
+  getScoreHistory,
+  getExportPDFUrl,
+  startAnalysis,
+  type AnalysisRunDetail,
+  type ScoreHistoryPoint,
+} from "@/lib/api/analyzer";
+import { config, routes } from "@/lib/config";
+import {
+  Search,
+  ChevronDown,
+  Filter,
+  MoreHorizontal,
+  Download,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+import { SignalorLoader } from "@/components/ui/signalor-loader";
 
-type TabKey = "overview" | "recommendations" | "visibility" | "prompts";
+/* ── palette ── */
+const C = {
+  paper: "#F6F4F1",
+  stone: "#E4DED2",
+  coral: "#F95C4B",
+  black: "#000000",
+};
 
-export default function ProjectPage() {
-  const params = useParams();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const slug = params.slug as string;
+/* ── priority colors ── */
+const PRIORITY_COLORS: Record<string, string> = {
+  critical: C.coral,
+  high: "#D97706",
+  medium: "#2563EB",
+  low: "#7C3AED",
+};
 
-  const storeStatus = useAnalyzerStore((s) => s.status);
-  const results = useAnalyzerStore((s) => s.results);
+const STATUS_STYLES: Record<string, string> = {
+  critical: "bg-[#F95C4B]/10 text-[#F95C4B]",
+  high: "bg-amber-100 text-amber-700",
+  medium: "bg-blue-100 text-blue-700",
+  low: "bg-purple-100 text-purple-700",
+};
+
+const PILLAR_LABELS: Record<string, string> = {
+  content: "Content",
+  schema: "Schema",
+  eeat: "E-E-A-T",
+  technical: "Technical",
+  entity: "Entity",
+  ai_visibility: "AI Visibility",
+};
+
+const FILTER_TABS = ["All", "Critical", "High", "Medium"] as const;
+
+function getScoreStrokeColor(score: number): string {
+  if (score >= 80) return "#22c55e";
+  if (score >= 60) return "#D97706";
+  if (score >= 40) return C.coral;
+  return C.coral;
+}
+
+/* ── page ── */
+export default function SignalorDashboard() {
+  const { slug } = useParams<{ slug: string }>();
   const { data: session } = useSession();
-  const userEmail = session?.user?.email ?? "";
-  const [loading, setLoading] = useState(true);
-  const [runId, setRunId] = useState<number | null>(null);
-  const [orgId, setOrgId] = useState<number | undefined>();
-  const [activeTab, setActiveTab] = useState<TabKey>("overview");
-  const [reanalyzing, setReanalyzing] = useState(false);
-  const [reanalyzeError, setReanalyzeError] = useState("");
+  const router = useRouter();
+
+  const [run, setRun] = useState<AnalysisRunDetail | null>(null);
   const [scoreHistory, setScoreHistory] = useState<ScoreHistoryPoint[]>([]);
-  const crawlIssuePattern =
-    /(crawl|crawled|crawler|http 403|forbidden|timed out|timeout|connection error|blocked)/i;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [reanalyzing, setReanalyzing] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [historyRange, setHistoryRange] = useState<"7d" | "1m" | "3m" | "all">("all");
+  const [historyDropdownOpen, setHistoryDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (!tab) return;
-    const validTabs: TabKey[] = ["overview", "recommendations", "visibility", "prompts"];
-    if (validTabs.includes(tab as TabKey)) setActiveTab(tab as TabKey);
-  }, [searchParams]);
+  const email = session?.user?.email ?? "";
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!slug) return;
-
-    getRunBySlug(slug)
-      .then((detail: AnalysisRunDetail) => {
-        const id = detail.id;
-        setRunId(id);
-
-        const store = useAnalyzerStore.getState();
-        if (store.currentRunId !== id) store.reset();
-
-        if (detail.status === "complete" || detail.status === "failed") {
-          store.setResults(detail);
-        } else {
-          store.setRunId(id);
-          store.startPolling();
-        }
-      })
-      .catch(() => {
-        router.replace(routes.dashboard);
-      })
-      .finally(() => setLoading(false));
-  }, [slug, router]);
-
-  // Resolve org by email (single org per user)
-  useEffect(() => {
-    if (!userEmail) return;
-    getOrganizations(userEmail)
-      .then((orgs) => {
-        if (orgs.length > 0) setOrgId(orgs[0].id);
-      })
-      .catch(() => {});
-  }, [userEmail]);
-
-  // Fetch score history
-  useEffect(() => {
-    if (!userEmail) return;
-    getScoreHistory(userEmail, orgId).then(setScoreHistory).catch(() => {});
-  }, [userEmail, orgId]);
-
-  // Never show a score lower than the best achieved + boost for applied fixes
-  const [appliedFixCount, setAppliedFixCount] = useState(0);
-
-  useEffect(() => {
-    if (!slug) return;
-    import("@/lib/api/analyzer").then(({ getAutoFixStatus }) => {
-      getAutoFixStatus(slug)
-        .then((fixes) => setAppliedFixCount(fixes.filter((f) => f.status === "success").length))
-        .catch(() => {});
-    });
+    try {
+      setLoading(true);
+      setError("");
+      const detail = await getRunBySlug(slug);
+      setRun(detail);
+      if (detail.email) {
+        const history = await getScoreHistory(detail.email).catch(() => []);
+        setScoreHistory(history);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load analysis");
+    } finally {
+      setLoading(false);
+    }
   }, [slug]);
 
-  const currentScore = results?.composite_score ?? 0;
-  const bestHistoricScore = scoreHistory.length > 0
-    ? Math.max(...scoreHistory.map((s) => s.composite_score))
-    : 0;
-  // Add fix bonus: 0.5 pts per fix, min 2 pts if any fix, max 5 pts
-  const fixBonus = appliedFixCount > 0 ? Math.min(Math.max(appliedFixCount * 0.5, 2), 5) : 0;
-  const displayScore = Math.min(Math.max(currentScore, bestHistoricScore) + fixBonus, 100);
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (!run || run.status === "complete" || run.status === "failed") return;
+    const interval = setInterval(async () => {
+      try {
+        const updated = await getRunBySlug(slug);
+        setRun(updated);
+        if (updated.status === "complete" || updated.status === "failed") {
+          clearInterval(interval);
+          if (updated.email) {
+            const history = await getScoreHistory(updated.email).catch(() => []);
+            setScoreHistory(history);
+          }
+        }
+      } catch { /* ignore */ }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [run?.status, slug]);
 
   async function handleReanalyze() {
-    if (!results?.url || reanalyzing) return;
-    setReanalyzeError("");
+    if (!run || !email) return;
     setReanalyzing(true);
     try {
-      const nextRun = await startAnalysis({
-        url: results.url,
+      const newRun = await startAnalysis({
+        url: run.url,
         run_type: "single_page",
-        email: userEmail || undefined,
-        brand_name: results.brand_name || undefined,
-        country: results.country || undefined,
-        org_id: orgId,
+        email,
+        brand_name: run.brand_name,
       });
-      const store = useAnalyzerStore.getState();
-      store.reset();
-      store.setRunId(nextRun.id);
-      store.startPolling();
-      router.push(routes.dashboardProject(nextRun.slug));
+      router.push(routes.dashboardProject(newRun.slug));
     } catch {
-      setReanalyzeError("Failed to start a new analysis. Please try again.");
+      setError("Failed to start re-analysis");
     } finally {
       setReanalyzing(false);
     }
   }
 
+  function handleDownloadPDF() {
+    if (!run) return;
+    window.open(`${config.apiBaseUrl}${getExportPDFUrl(run.id)}`, "_blank");
+  }
+
+  // Derived data
+  const pageScore = run?.page_scores?.[0] ?? null;
+  const compositeScore = run?.composite_score ?? 0;
+  const brandVis = run?.brand_visibility;
+  const recommendations = run?.recommendations ?? [];
+  const isRunning = !!run && run.status !== "complete" && run.status !== "failed";
+
+  const criticalCount = recommendations.filter((r) => r.priority === "critical").length;
+  const highCount = recommendations.filter((r) => r.priority === "high").length;
+  const prevScore = scoreHistory.length >= 2 ? scoreHistory[scoreHistory.length - 2]?.composite_score : null;
+  const scoreChange = prevScore !== null ? Math.round(compositeScore - prevScore) : null;
+
+  const topIssues = useMemo(() =>
+    [...recommendations]
+      .filter((r) => r.priority === "critical" || r.priority === "high")
+      .slice(0, 4),
+    [recommendations],
+  );
+
+  const filteredRecs = useMemo(() => {
+    let filtered = recommendations;
+    if (activeFilter !== "All") {
+      filtered = filtered.filter((r) => r.priority.toLowerCase() === activeFilter.toLowerCase());
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          r.description.toLowerCase().includes(q) ||
+          r.pillar.toLowerCase().includes(q) ||
+          (r.category && r.category.toLowerCase().includes(q)) ||
+          (r.impact_estimate && r.impact_estimate.toLowerCase().includes(q)),
+      );
+    }
+    return filtered.slice(0, 10);
+  }, [recommendations, activeFilter, searchQuery]);
+
+  const visibilityBars = useMemo(() => {
+    if (!brandVis) return [];
+    return [
+      { label: "Google", value: Math.round(brandVis.google_score), color: C.coral },
+      { label: "Reddit", value: Math.round(brandVis.reddit_score), color: C.black },
+      { label: "Medium", value: Math.round(brandVis.medium_score), color: "#A39888" },
+      { label: "Web", value: Math.round(brandVis.web_mentions_score), color: "#C4BAA8" },
+    ];
+  }, [brandVis]);
+
+  const breakdownRows = useMemo(() => {
+    if (!pageScore) return [];
+    return [
+      { label: "Content", score: pageScore.content_score },
+      { label: "Schema", score: pageScore.schema_score },
+      { label: "E-E-A-T", score: pageScore.eeat_score },
+      { label: "Technical", score: pageScore.technical_score },
+    ].sort((a, b) => b.score - a.score);
+  }, [pageScore]);
+
+  // Filter score history by range
+  const filteredHistory = useMemo(() => {
+    if (historyRange === "all") return scoreHistory;
+    const now = new Date();
+    const cutoff = new Date();
+    if (historyRange === "7d") cutoff.setDate(now.getDate() - 7);
+    else if (historyRange === "1m") cutoff.setMonth(now.getMonth() - 1);
+    else if (historyRange === "3m") cutoff.setMonth(now.getMonth() - 3);
+    return scoreHistory.filter((pt) => new Date(pt.date) >= cutoff);
+  }, [scoreHistory, historyRange]);
+
+  const historyPath = useMemo(() => {
+    if (filteredHistory.length < 2) return null;
+    const recent = filteredHistory.slice(-12);
+    const w = 300;
+    const h = 100;
+    const points = recent.map((pt, i) => {
+      const x = (i / (recent.length - 1)) * w;
+      const y = h - (pt.composite_score / 100) * h;
+      return { x, y };
+    });
+    const line = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+    const area = `${line} L ${w} ${h} L 0 ${h} Z`;
+    const labels = recent.map((pt) => {
+      const d = new Date(pt.date);
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    });
+    return { line, area, labels };
+  }, [filteredHistory]);
+
+  // Loading
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="flex h-full w-full items-center justify-center">
+        <SignalorLoader size="lg" label="Loading analysis..." />
       </div>
     );
   }
 
-  if (
-    !results ||
-    (storeStatus !== "complete" &&
-      storeStatus !== "failed" &&
-      results?.status !== "complete")
-  ) {
+  if (error && !run) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <AnalysisProgress />
-      </div>
-    );
-  }
-
-  if (results.status === "failed") {
-    const isCrawlIssue = crawlIssuePattern.test(results.error_message || "");
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="space-y-4 text-center">
-          <h2 className="text-xl font-bold">Analysis Failed</h2>
-          <p className="text-muted-foreground">
-            {results.error_message || "Something went wrong."}
-          </p>
-          {isCrawlIssue && (
-            <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
-              Crawl access issue detected. Connect your WordPress or Shopify integration and try again.
-            </div>
-          )}
-          <Button onClick={() => router.push(routes.dashboard)}>
-            Try Again
-          </Button>
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${C.coral}10`, border: `1px solid ${C.coral}30`, color: C.coral }}>
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {error}
         </div>
       </div>
     );
   }
 
-  const mainPage =
-    results.page_scores.find((p) => p.url === results.url) ||
-    results.page_scores[0];
-
-  const tabs: Array<{
-    key: TabKey;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-    badge?: number;
-    hidden?: boolean;
-  }> = [
-    { key: "overview", label: "Overview", icon: LayoutDashboard },
-    { key: "recommendations", label: "Recommendations", icon: ListChecks, badge: results.recommendations?.length ?? 0 },
-    { key: "visibility", label: "Visibility", icon: Eye, hidden: !results.brand_visibility },
-    { key: "prompts", label: "Prompts", icon: Activity },
-  ];
-
   return (
-    <div className="h-screen w-screen overflow-hidden bg-background">
-      <div className="flex h-full w-full overflow-hidden">
-        {/* Sidebar — always open */}
-        <Sidebar open={true} setOpen={() => {}} animate={false}>
-          <SidebarBody className="justify-between gap-8">
-            <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-              <SidebarLink
-                link={{
-                  label: "Signalor",
-                  href: "#",
-                  icon: (
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
-                      <Sparkles className="h-4 w-4 text-sidebar-primary-foreground" />
-                    </div>
-                  ),
-                }}
-                onClick={(e) => e.preventDefault()}
-                className="mb-6"
-              />
-
-              <div className="flex flex-col gap-1">
-                {tabs
-                  .filter((t) => !t.hidden)
-                  .map((tab) => {
-                    const Icon = tab.icon;
-                    const active = activeTab === tab.key;
-                    return (
-                      <SidebarLink
-                        key={tab.key}
-                        link={{
-                          label: tab.label,
-                          href: "#",
-                          icon: <Icon className={cn("h-5 w-5 shrink-0", active ? "text-sidebar-primary" : "text-sidebar-foreground/60")} />,
-                        }}
-                        onClick={(e) => { e.preventDefault(); setActiveTab(tab.key); }}
-                      />
-                    );
-                  })}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <SidebarLink
-                link={{
-                  label: "Analytics",
-                  href: "#",
-                  icon: <ChartNoAxesCombined className="h-5 w-5 shrink-0 text-sidebar-foreground/60" />,
-                }}
-                onClick={(e) => { e.preventDefault(); router.push(routes.dashboardProjectAnalytics(slug)); }}
-              />
-            </div>
-          </SidebarBody>
-        </Sidebar>
-
-        {/* Main Content */}
-        <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="flex items-center justify-between gap-2 border-b border-border bg-card px-4 md:px-6 py-3 md:py-4">
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-semibold text-foreground">Dashboard</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              {orgId && results && (
-                <ScheduleToggle
-                  email={userEmail}
-                  orgId={orgId}
-                  url={results.url}
-                  brandName={results.brand_name}
-                />
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleReanalyze}
-                disabled={reanalyzing}
-              >
-                {reanalyzing ? "Re-analyzing..." : "Re-analyze"}
-              </Button>
-              {runId && <PDFDownloadButton runId={runId} />}
-            </div>
+    <>
+      {/* ── Top Bar ── */}
+      <header className="sticky top-0 z-20 px-6 pt-5 pb-3" style={{ backgroundColor: C.paper }}>
+        <div className="flex items-center justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold" style={{ color: C.black }}>Dashboard</h1>
+            <p className="text-xs mt-0.5 truncate" style={{ color: `${C.black}50` }}>
+              Home / Dashboard / <span style={{ color: `${C.black}70` }}>{run?.url || "..."}</span>
+            </p>
           </div>
 
-          {reanalyzeError && (
-            <div className="border-b border-red-500/20 bg-red-500/10 px-6 py-2 text-xs text-red-400">
-              {reanalyzeError}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: `${C.black}30` }} />
+              <input
+                type="text"
+                placeholder="Search recommendations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-white rounded-xl py-2 pl-9 pr-4 text-sm w-52 focus:outline-none focus:ring-2"
+                style={{ border: `1px solid ${C.stone}`, color: C.black }}
+              />
             </div>
-          )}
 
-          {results.error_message && results.status === "complete" && (
-            <div className="border-b border-yellow-500/20 bg-yellow-500/10 px-6 py-2 text-xs text-yellow-400">
-              Partial results: {results.error_message}
+            <button
+              onClick={handleReanalyze}
+              disabled={reanalyzing || isRunning}
+              className="flex items-center gap-1.5 bg-white rounded-xl px-4 py-2 text-xs font-medium transition disabled:opacity-50 hover:opacity-80"
+              style={{ border: `1px solid ${C.stone}`, color: C.black }}
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Re-analyze
+            </button>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={!run || isRunning}
+              className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-medium text-white transition disabled:opacity-50 hover:opacity-90"
+              style={{ backgroundColor: C.coral }}
+            >
+              <Download className="w-3.5 h-3.5" /> Download PDF
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Running state */}
+      {isRunning && (
+        <div className="flex items-center justify-center py-16">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 md:p-8" style={{ border: `1px solid ${C.stone}` }}>
+            {/* Orbital loader */}
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative w-20 h-20 mb-3">
+                <svg width={80} height={80} viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke={C.stone} strokeWidth="3" />
+                  <circle
+                    cx="40" cy="40" r="32" fill="none"
+                    stroke={C.coral} strokeWidth="3" strokeLinecap="round"
+                    strokeDasharray="50 150"
+                    className="animate-[signalor-spin_1.2s_linear_infinite]"
+                    style={{ transformOrigin: "40px 40px" }}
+                  />
+                  <text x="40" y="42" textAnchor="middle" dominantBaseline="middle" fill={C.black} fontSize="16" fontWeight="700">
+                    {run?.progress != null ? Math.round(run.progress) : 0}%
+                  </text>
+                </svg>
+              </div>
+              <p className="text-base font-semibold" style={{ color: C.black }}>Analysis in progress</p>
+              <p className="text-xs mt-0.5" style={{ color: `${C.black}40` }}>
+                {run?.status === "pending" && "Queued — starting soon..."}
+                {run?.status === "crawling" && "Crawling your website..."}
+                {run?.status === "analyzing" && "AI is analyzing content..."}
+                {run?.status === "scoring" && "Computing GEO scores..."}
+                {run?.status === "running" && "Running analysis..."}
+                {!["pending", "crawling", "analyzing", "scoring", "running"].includes(run?.status ?? "") && "Processing..."}
+              </p>
             </div>
-          )}
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5">
-              {activeTab === "overview" && (
-                <div className="space-y-4">
+            {/* Progress bar */}
+            <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundColor: C.stone }}>
+              <div
+                className="h-full rounded-full transition-all duration-700 relative"
+                style={{ width: `${run?.progress ?? 0}%`, backgroundColor: C.coral }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent shimmer" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-                  {/* Row 1: GEO donut + 2 colored stats | Chart | Pillar list (like TeamHub) */}
-                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-[260px_1fr_240px]">
-
-                    {/* Left: GEO Score donut + AI Vis & Brand Vis stacked */}
-                    <div className="flex flex-col gap-3">
-                      {/* GEO Score — clean donut */}
-                      <div className="rounded-lg bg-primary/8 border border-primary/15 p-5 shadow-sm flex items-center gap-5">
-                        <div className="relative h-16 w-16 shrink-0">
-                          <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
-                            <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted" />
-                            <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="text-primary"
-                              strokeDasharray={`${2 * Math.PI * 15}`}
-                              strokeDashoffset={`${2 * Math.PI * 15 * (1 - Math.round(displayScore) / 100)}`}
-                            />
-                          </svg>
-                          <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-foreground">{Math.round(displayScore)}</span>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">GEO Score</p>
-                          <p className="text-3xl font-bold text-foreground">{Math.round(displayScore)}</p>
-                          {appliedFixCount > 0 && (
-                            <p className="text-[10px] text-primary font-medium">↑ {Math.round(fixBonus)} pts</p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Two colored stat cards — like "42 Entry created" / "12 Head" */}
-                      {mainPage && (
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="rounded-lg bg-chart-3/10 border border-chart-3/20 p-4 shadow-sm">
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className="h-2 w-2 rounded-full bg-chart-3" />
-                              <p className="text-[10px] text-muted-foreground">AI Visibility</p>
-                            </div>
-                            <p className="text-2xl font-bold text-foreground">{Math.round(mainPage.ai_visibility_score)}</p>
-                          </div>
-                          <div className="rounded-lg bg-chart-2/10 border border-chart-2/20 p-4 shadow-sm">
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className="h-2 w-2 rounded-full bg-chart-2" />
-                              <p className="text-[10px] text-muted-foreground">Brand Vis.</p>
-                            </div>
-                            <p className="text-2xl font-bold text-foreground">{results.brand_visibility ? Math.round(results.brand_visibility.overall_score) : "--"}</p>
-                          </div>
-                        </div>
+      {/* Dashboard content */}
+      {run && !isRunning && (
+        <div className="px-6 pb-6">
+          {/* ── ROW 1 ── */}
+          <div className="grid grid-cols-12 gap-4 mb-4">
+            {/* GEO Score Card */}
+            <div className="col-span-4 bg-white rounded-2xl p-6" style={{ border: `1px solid ${C.stone}40` }}>
+              <div className="flex items-start gap-6">
+                <div className="flex flex-col items-center shrink-0">
+                  <p className="text-xs font-semibold mb-3" style={{ color: `${C.black}50` }}>GEO Score</p>
+                  <div className="relative w-28 h-28">
+                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke={C.stone} strokeWidth="7" />
+                      <circle
+                        cx="50" cy="50" r="40" fill="none"
+                        stroke={getScoreStrokeColor(compositeScore)} strokeWidth="7" strokeLinecap="round"
+                        strokeDasharray={`${compositeScore * 2.51} ${100 * 2.51}`}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3xl font-bold" style={{ color: C.black }}>{Math.round(compositeScore)}</span>
+                      {scoreChange !== null && (
+                        <span className="text-[11px] font-semibold" style={{ color: scoreChange >= 0 ? "#22c55e" : C.coral }}>
+                          {scoreChange >= 0 ? "+" : ""}{scoreChange} pts
+                        </span>
                       )}
-                    </div>
-
-                    {/* Center: Score History chart — like "Application" */}
-                    <div className="rounded-lg bg-card border border-border p-5 shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-foreground">Score History</h3>
-                        <span className="text-[10px] text-muted-foreground border border-border rounded-full px-2.5 py-0.5">All time</span>
-                      </div>
-                      {scoreHistory.length >= 2 ? (
-                        <ScoreHistoryChart
-                          data={scoreHistory.map((point, i) => {
-                            if (i === scoreHistory.length - 1 && fixBonus > 0) {
-                              return { ...point, composite_score: Math.min(point.composite_score + fixBonus, 100) };
-                            }
-                            return point;
-                          })}
-                          onPointClick={(s) => router.push(routes.dashboardProject(s))}
-                        />
-                      ) : (
-                        <div className="flex h-36 items-center justify-center">
-                          <p className="text-xs text-muted-foreground">Chart appears after next analysis</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right: Fix Status + Site Info */}
-                    <div className="rounded-lg bg-card border border-border p-5 shadow-sm">
-                      <h3 className="text-sm font-semibold text-foreground mb-4">Quick Summary</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Site</p>
-                          <p className="text-xs font-medium text-foreground mt-1 truncate">{results.url}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Recommendations</p>
-                          <p className="text-2xl font-bold text-foreground mt-1">{results.recommendations.length}</p>
-                          <p className="text-[10px] text-muted-foreground">{appliedFixCount} fixed · {results.recommendations.length - appliedFixCount} pending</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Top Priority</p>
-                          <div className="mt-2 space-y-1.5">
-                            {results.recommendations.filter(r => r.priority === "critical").length > 0 && (
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] rounded-full bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 px-2 py-0.5">critical</span>
-                                <span className="text-xs font-semibold text-foreground">{results.recommendations.filter(r => r.priority === "critical").length}</span>
-                              </div>
-                            )}
-                            {results.recommendations.filter(r => r.priority === "high").length > 0 && (
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-0.5">high</span>
-                                <span className="text-xs font-semibold text-foreground">{results.recommendations.filter(r => r.priority === "high").length}</span>
-                              </div>
-                            )}
-                            {results.recommendations.filter(r => r.priority === "medium").length > 0 && (
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] rounded-full bg-muted text-muted-foreground px-2 py-0.5">medium</span>
-                                <span className="text-xs font-semibold text-foreground">{results.recommendations.filter(r => r.priority === "medium").length}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <button onClick={() => setActiveTab("recommendations")} className="w-full text-xs text-primary hover:underline text-left font-medium">
-                          View all recommendations →
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Row 2: Brand Visibility + Recommendations */}
-                  <div className="grid gap-4 grid-cols-1 lg:grid-cols-[280px_1fr]">
-                    {/* Brand Visibility — 2x2 mini cards */}
-                    {results.brand_visibility && (
-                      <div className="rounded-lg bg-card border border-border p-5 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-sm font-semibold text-foreground">Visibility</h3>
-                          <button onClick={() => setActiveTab("visibility")} className="text-[10px] text-primary hover:underline">Details</button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          {[
-                            { label: "Google", score: Math.round(results.brand_visibility.google_score), color: "#3ecf8e" },
-                            { label: "Reddit", score: Math.round(results.brand_visibility.reddit_score), color: "#f97316" },
-                            { label: "Medium", score: Math.round(results.brand_visibility.medium_score), color: "#3b82f6" },
-                            { label: "Web", score: Math.round(results.brand_visibility.web_mentions_score), color: "#a855f7" },
-                          ].map((v) => (
-                            <div key={v.label} className="rounded-md border border-border p-3 text-center">
-                              <div className="relative h-12 w-12 mx-auto mb-2">
-                                <svg viewBox="0 0 36 36" className="h-12 w-12 -rotate-90">
-                                  <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted" />
-                                  <circle cx="18" cy="18" r="14" fill="none" stroke={v.color} strokeWidth="3" strokeLinecap="round"
-                                    strokeDasharray={`${2 * Math.PI * 14}`}
-                                    strokeDashoffset={`${2 * Math.PI * 14 * (1 - v.score / 100)}`}
-                                  />
-                                </svg>
-                                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-foreground">{v.score}</span>
-                              </div>
-                              <p className="text-[11px] font-medium text-muted-foreground">{v.label}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Recommendations preview — clean list */}
-                    <div className="rounded-lg bg-card border border-border shadow-sm overflow-hidden">
-                      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-semibold text-foreground">Recommendations</h3>
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">{results.recommendations.length}</span>
-                        </div>
-                        <button onClick={() => setActiveTab("recommendations")} className="text-xs text-primary hover:underline font-medium">View all &rarr;</button>
-                      </div>
-                      <div className="divide-y divide-border">
-                        {results.recommendations
-                          .sort((a, b) => {
-                            const order: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
-                            return (order[a.priority] ?? 3) - (order[b.priority] ?? 3);
-                          })
-                          .slice(0, 8)
-                          .map((rec, i) => (
-                            <div key={rec.id} className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/30 transition-colors">
-                              <span className="text-[10px] text-muted-foreground font-mono w-5">{String(i + 1).padStart(2, "0")}</span>
-                              <span className="flex-1 text-sm text-foreground truncate">{rec.title}</span>
-                              <span className={`text-[9px] font-semibold rounded-full px-2 py-0.5 ${
-                                rec.priority === "critical" ? "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400"
-                                : rec.priority === "high" ? "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                                : "bg-muted text-muted-foreground"
-                              }`}>{rec.priority}</span>
-                            </div>
-                          ))}
-                      </div>
                     </div>
                   </div>
                 </div>
-              )}
 
-              {activeTab === "recommendations" && (
-                <RecommendationsPanel recommendations={results.recommendations} slug={slug} email={userEmail} orgId={orgId} />
-              )}
+                <div className="flex flex-col gap-3 flex-1 pt-1">
+                  <div className="rounded-xl px-4 py-3.5" style={{ backgroundColor: C.paper }}>
+                    <p className="text-xs mb-1" style={{ color: `${C.black}40` }}>Recommendations</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold" style={{ color: C.black }}>{recommendations.length}</span>
+                      {criticalCount > 0 && (
+                        <span className="text-xs" style={{ color: `${C.black}40` }}>{criticalCount} critical</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-xl px-4 py-3.5" style={{ backgroundColor: C.paper }}>
+                    <p className="text-xs mb-1" style={{ color: `${C.black}40` }}>Priority Issues</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold" style={{ color: C.black }}>{criticalCount + highCount}</span>
+                      <span className="text-xs" style={{ color: `${C.black}40` }}>{criticalCount} critical / {highCount} high</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-              {activeTab === "visibility" && results.brand_visibility && (
-                <BrandVisibilityTab
-                  brandName={results.brand_name || new URL(results.url).hostname}
-                  visibility={results.brand_visibility}
-                />
+            {/* GEO Score History */}
+            <div className="col-span-4 bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-semibold" style={{ color: C.black }}>GEO Score History</p>
+                {/* Range dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setHistoryDropdownOpen(!historyDropdownOpen)}
+                    className="flex items-center gap-1 text-[11px] rounded-lg px-2.5 py-1 transition hover:opacity-80"
+                    style={{ color: `${C.black}50`, border: `1px solid ${C.stone}` }}
+                  >
+                    {{ "7d": "7 days", "1m": "1 month", "3m": "3 months", "all": "All time" }[historyRange]}
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                  {historyDropdownOpen && (
+                    <div
+                      className="absolute right-0 top-full mt-1 rounded-xl bg-white shadow-lg py-1 z-50 min-w-[110px]"
+                      style={{ border: `1px solid ${C.stone}` }}
+                    >
+                      {([["7d", "7 days"], ["1m", "1 month"], ["3m", "3 months"], ["all", "All time"]] as const).map(([key, label]) => (
+                        <button
+                          key={key}
+                          onClick={() => { setHistoryRange(key); setHistoryDropdownOpen(false); }}
+                          className="w-full text-left px-3 py-1.5 text-xs transition-colors"
+                          style={{
+                            color: historyRange === key ? C.coral : `${C.black}60`,
+                            backgroundColor: historyRange === key ? `${C.coral}08` : "transparent",
+                            fontWeight: historyRange === key ? 600 : 400,
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="h-[120px] relative">
+                {historyPath ? (
+                  <svg viewBox="0 0 300 100" className="w-full h-full" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor={C.coral} stopOpacity="0.2" />
+                        <stop offset="100%" stopColor={C.coral} stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path d={historyPath.area} fill="url(#areaGrad)" />
+                    <path d={historyPath.line} fill="none" stroke={C.coral} strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
+                  </svg>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-xs" style={{ color: `${C.black}40` }}>Run more analyses to see trends</p>
+                  </div>
+                )}
+                {historyPath && (
+                  <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-[9px] font-medium" style={{ color: `${C.black}25` }}>
+                    <span>100</span><span>50</span><span>0</span>
+                  </div>
+                )}
+              </div>
+              {historyPath && (
+                <div className="flex justify-between text-[10px] mt-2 px-1" style={{ color: `${C.black}40` }}>
+                  {historyPath.labels.map((l, i) => <span key={i}>{l}</span>)}
+                </div>
               )}
+            </div>
 
-              {activeTab === "prompts" && (
-                <AIMonitoringTab
-                  slug={slug}
-                  brandName={results.brand_name || new URL(results.url).hostname}
-                />
+            {/* Pillar Breakdown */}
+            <div className="col-span-4 bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-semibold" style={{ color: C.black }}>Pillar Breakdown</p>
+                <button style={{ color: `${C.black}30` }}><MoreHorizontal className="w-4 h-4" /></button>
+              </div>
+              <div className="flex flex-col gap-3">
+                {breakdownRows.length > 0 ? breakdownRows.map((row) => (
+                  <div key={row.label}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span style={{ color: `${C.black}60` }}>{row.label}</span>
+                      <span className="font-semibold" style={{ color: C.black }}>{Math.round(row.score)}/100</span>
+                    </div>
+                    <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: `${C.stone}60` }}>
+                      <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, row.score)}%`, backgroundColor: C.coral }} />
+                    </div>
+                  </div>
+                )) : (
+                  <p className="text-xs text-center py-6" style={{ color: `${C.black}40` }}>No pillar data yet</p>
+                )}
+              </div>
+              {breakdownRows.length > 0 && (
+                <div className="flex justify-between text-[9px] mt-3" style={{ color: `${C.black}25` }}>
+                  <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+                </div>
               )}
+            </div>
           </div>
 
-        </main>
-      </div>
-    </div>
+          {/* ── ROW 2 ── */}
+          <div className="grid grid-cols-12 gap-4 mb-4">
+            {/* Top Issues */}
+            <div className="col-span-5 bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-semibold" style={{ color: C.black }}>Top Issues</p>
+                <span className="flex items-center gap-1.5 text-xs rounded-lg px-3 py-1.5" style={{ color: `${C.black}50`, border: `1px solid ${C.stone}` }}>
+                  <Filter className="w-3 h-3" /> {topIssues.length} items
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {topIssues.length > 0 ? topIssues.map((rec, i) => (
+                  <div key={i} className="rounded-xl p-4" style={{ backgroundColor: C.paper, border: `1px solid ${C.stone}60` }}>
+                    <p className="text-sm font-semibold mb-1 line-clamp-2" style={{ color: C.black }}>{rec.title}</p>
+                    <p className="text-xs" style={{ color: `${C.black}40` }}>{rec.impact_estimate || `${rec.priority} priority`}</p>
+                  </div>
+                )) : (
+                  <p className="col-span-2 text-xs text-center py-6" style={{ color: `${C.black}40` }}>No critical issues found</p>
+                )}
+              </div>
+            </div>
+
+            {/* Visibility by Platform */}
+            <div className="col-span-7 bg-white rounded-2xl p-6" style={{ border: `1px solid ${C.stone}40` }}>
+              <p className="text-sm font-semibold mb-5" style={{ color: C.black }}>Visibility by Platform</p>
+              {visibilityBars.length > 0 ? (
+                <div className="flex items-end gap-5 px-2" style={{ height: 180 }}>
+                  {/* Y-axis labels */}
+                  <div className="flex flex-col justify-between h-full pb-7 shrink-0">
+                    {[100, 75, 50, 25, 0].map((v) => (
+                      <span key={v} className="text-[10px] font-medium w-6 text-right" style={{ color: `${C.black}30` }}>{v}</span>
+                    ))}
+                  </div>
+
+                  {/* Chart area */}
+                  <div className="flex-1 flex flex-col h-full">
+                    {/* Grid + bars */}
+                    <div className="relative flex-1">
+                      {/* Horizontal grid */}
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <div key={i} className="w-full" style={{ borderBottom: `1px solid ${C.stone}50` }} />
+                        ))}
+                      </div>
+
+                      {/* Bars row */}
+                      <div className="relative z-10 flex items-end h-full gap-3 px-2">
+                        {visibilityBars.map((bar) => {
+                          const pct = Math.max(bar.value, 3);
+                          return (
+                            <div key={bar.label} className="flex-1 flex flex-col items-center h-full justify-end">
+                              <span className="text-[11px] font-bold mb-1" style={{ color: C.black }}>{bar.value}</span>
+                              <div
+                                className="w-full rounded-t-xl relative overflow-hidden"
+                                style={{
+                                  height: `${pct}%`,
+                                  backgroundColor: bar.color,
+                                  maxWidth: 56,
+                                }}
+                              >
+                                {/* Subtle shine overlay */}
+                                <div
+                                  className="absolute inset-0 rounded-t-xl"
+                                  style={{
+                                    background: "linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 60%)",
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* X-axis labels */}
+                    <div className="flex gap-3 px-2 pt-2.5 border-t" style={{ borderColor: `${C.stone}60` }}>
+                      {visibilityBars.map((bar) => (
+                        <div key={bar.label} className="flex-1 flex flex-col items-center gap-0.5">
+                          <span className="text-[11px] font-semibold" style={{ color: `${C.black}70` }}>{bar.label}</span>
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: bar.color }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center" style={{ height: 180 }}>
+                  <p className="text-xs" style={{ color: `${C.black}40` }}>No visibility data yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── ROW 3: Recommendations ── */}
+          <div className="bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-lg font-semibold" style={{ color: C.black }}>Recommendations</p>
+              <div className="flex items-center gap-2">
+                {FILTER_TABS.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveFilter(tab)}
+                    className="px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
+                    style={
+                      activeFilter === tab
+                        ? { backgroundColor: C.coral, color: "#fff" }
+                        : { backgroundColor: C.paper, color: `${C.black}50` }
+                    }
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: `${C.black}35`, borderBottom: `1px solid ${C.stone}60` }}>
+                    <th className="pb-3 px-2">Recommendation <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
+                    <th className="pb-3 px-2">Pillar <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
+                    <th className="pb-3 px-2">Category</th>
+                    <th className="pb-3 px-2">Priority <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
+                    <th className="pb-3 px-2">Impact <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRecs.length > 0 ? filteredRecs.map((rec) => (
+                    <tr key={rec.id} className="transition-colors hover:opacity-80" style={{ borderBottom: `1px solid ${C.stone}30` }}>
+                      <td className="py-3.5 px-2">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white text-[10px] font-bold"
+                            style={{ backgroundColor: PRIORITY_COLORS[rec.priority] || C.stone }}
+                          >
+                            {rec.title.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold truncate" style={{ color: C.black }}>{rec.title}</p>
+                            <p className="text-[11px] truncate max-w-[260px]" style={{ color: `${C.black}40` }}>{rec.description}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-2">
+                        <p className="text-sm font-medium" style={{ color: C.black }}>{PILLAR_LABELS[rec.pillar] || rec.pillar}</p>
+                      </td>
+                      <td className="py-3.5 px-2 text-xs" style={{ color: `${C.black}50` }}>{rec.category || "General"}</td>
+                      <td className="py-3.5 px-2">
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md capitalize ${STATUS_STYLES[rec.priority] || "bg-gray-100 text-gray-600"}`}>
+                          {rec.priority}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-2 text-xs" style={{ color: `${C.black}50` }}>{rec.impact_estimate || "—"}</td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-sm" style={{ color: `${C.black}40` }}>
+                        No recommendations found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Failed run */}
+      {run?.status === "failed" && (
+        <div className="px-6 py-8">
+          <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${C.coral}10`, border: `1px solid ${C.coral}30`, color: C.coral }}>
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            Analysis failed: {run.error_message || "Unknown error. Try re-analyzing."}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
