@@ -7,6 +7,7 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { getSubscriptionStatus } from "@/lib/api/payments";
 import { routes } from "@/lib/config";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   LayoutDashboard,
   ListChecks,
@@ -58,6 +59,7 @@ export default function DashboardSlugLayout({
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const userEmail = session?.user?.email || "";
   const userInitials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const userImage = (session?.user as Record<string, unknown>)?.image as string | undefined;
 
   const basePath = `/dashboard/${slug}`;
 
@@ -163,13 +165,7 @@ export default function DashboardSlugLayout({
             <div className="absolute bottom-full left-0 right-0 mb-1 rounded-xl bg-card p-3 shadow-lg z-50 border border-border">
               {/* Profile info */}
               <div className="flex items-center gap-3 px-1 pb-3 mb-2 border-b border-border">
-                <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden flex items-center justify-center shrink-0">
-                  <img
-                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${userInitials}&backgroundColor=E4DED2&textColor=000000`}
-                    alt="avatar"
-                    className="w-full h-full"
-                  />
-                </div>
+                <UserAvatar src={userImage} initials={userInitials} size={40} />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate">{userName}</p>
                   <p className="text-[11px] text-muted-foreground truncate">{userEmail}</p>
@@ -206,13 +202,7 @@ export default function DashboardSlugLayout({
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className="flex items-center gap-2.5 px-2 py-2.5 w-full rounded-xl transition-colors hover:bg-accent"
           >
-            <div className="w-9 h-9 rounded-full bg-secondary overflow-hidden flex items-center justify-center shrink-0">
-              <img
-                src={`https://api.dicebear.com/7.x/initials/svg?seed=${userInitials}&backgroundColor=E4DED2&textColor=000000`}
-                alt="avatar"
-                className="w-full h-full"
-              />
-            </div>
+            <UserAvatar src={userImage} initials={userInitials} size={36} />
             <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-semibold text-foreground truncate">{userName}</p>
             </div>

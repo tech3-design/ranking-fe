@@ -10,13 +10,16 @@ import {
   type Organization,
 } from "@/lib/api/organizations";
 import { useOrgStore } from "@/lib/stores/org-store";
-import { Loader2, Pencil, Trash2, Plus } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, Camera } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 export default function ProfileSettingsPage() {
   const { data: session } = useSession();
   const email = session?.user?.email ?? "";
   const userName = session?.user?.name || email.split("@")[0] || "User";
+  const userImage = (session?.user as Record<string, unknown>)?.image as string | undefined;
+  const userInitials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
   const { setOrganizations } = useOrgStore();
 
   const [organizations, setLocalOrgs] = useState<Organization[]>([]);
@@ -106,17 +109,20 @@ export default function ProfileSettingsPage() {
 
       {/* Profile card */}
       <div className="bg-card rounded-2xl p-6 border border-border">
-        <p className="text-sm font-semibold text-foreground mb-1">Account</p>
-        <div className="flex items-center gap-4 mt-3">
-          <div className="w-12 h-12 rounded-full bg-secondary overflow-hidden flex items-center justify-center">
-            <img
-              src={`https://api.dicebear.com/7.x/initials/svg?seed=${userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}&backgroundColor=E4DED2&textColor=000000`}
-              alt="avatar" className="w-full h-full"
-            />
+        <p className="text-sm font-semibold text-foreground mb-4">Account</p>
+        <div className="flex items-center gap-5">
+          <div className="relative group">
+            <UserAvatar src={userImage} initials={userInitials} size={64} />
+            <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+              <Camera className="w-5 h-5 text-white" />
+            </div>
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">{userName}</p>
+            <p className="text-base font-semibold text-foreground">{userName}</p>
             <p className="text-xs text-muted-foreground">{email}</p>
+            {userImage && (
+              <p className="text-[10px] text-muted-foreground mt-1">Photo from Google</p>
+            )}
           </div>
         </div>
       </div>

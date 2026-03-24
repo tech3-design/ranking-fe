@@ -146,7 +146,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
       </div>
 
       {/* Rows */}
-      <div className="divide-y divide-white/[0.04]">
+      <div className="divide-y divide-border">
         {recommendations.map((rec, index) => {
           const isExpanded = expandedId === rec.id;
           const priority = PRIORITY_CONFIG[rec.priority] || PRIORITY_CONFIG.medium;
@@ -181,25 +181,29 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
                 <div className="text-right">
                   {fixResult ? (
                     fixResult.status === "success" ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-medium text-emerald-500">
                         <CheckCircle2 className="h-3 w-3" /> Fixed
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-red-400">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[10px] font-medium text-red-500">
                         <XCircle className="h-3 w-3" /> Failed
                       </span>
                     )
                   ) : isFixing ? (
-                    <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-primary" />
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Fixing...
+                    </span>
                   ) : rec.can_auto_fix && slug && email ? (
                     <button
                       onClick={(e) => { e.stopPropagation(); handleApplyFix(rec.id); }}
-                      className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+                      className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold text-white transition hover:bg-primary/90"
                     >
                       <Wrench className="h-3 w-3" /> Fix
                     </button>
                   ) : (
-                    <span className="text-[10px] text-muted-foreground">Manual</span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-medium text-muted-foreground">
+                      Manual
+                    </span>
                   )}
                 </div>
               </div>
@@ -207,7 +211,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
               {/* Expanded details */}
               {isExpanded && (
                 <div className="px-5 pb-4 pt-1">
-                  <div className="ml-8 space-y-3 rounded-xl border border-border bg-white/[0.02] p-4">
+                  <div className="ml-8 space-y-3 rounded-xl border border-border bg-accent p-4">
                     {/* Description */}
                     <p className="text-xs text-muted-foreground leading-relaxed">{rec.description}</p>
 
@@ -269,7 +273,7 @@ function ActionContent({ action }: { action: string }) {
   const hasCode = action.includes("<script") || action.includes("<") || action.includes("{\"@");
 
   return (
-    <div className="space-y-1.5 text-xs text-neutral-300 leading-relaxed">
+    <div className="space-y-1.5 text-xs text-muted-foreground leading-relaxed">
       {lines.map((line, i) => {
         const trimmed = line.trim();
         if (!trimmed) return null;
@@ -301,7 +305,7 @@ function ActionContent({ action }: { action: string }) {
         if (trimmed.startsWith("<") || trimmed.startsWith("{") || trimmed.startsWith("}") || trimmed.startsWith('"@')) {
           return (
             <div key={i} className="relative group">
-              <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-neutral-300 overflow-x-auto">
+              <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto">
                 {trimmed}
               </pre>
               <button

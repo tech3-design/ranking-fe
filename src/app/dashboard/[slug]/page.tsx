@@ -632,7 +632,7 @@ export default function SignalorDashboard() {
             </div>
 
             {/* Visibility by Platform */}
-            <div className="col-span-7 bg-card rounded-2xl p-6 border border-border">
+            <div className="col-span-4 bg-card rounded-2xl p-6 border border-border">
               <p className="text-sm font-semibold mb-5 text-foreground">Visibility by Platform</p>
               {visibilityBars.length > 0 ? (
                 <div className="flex items-end gap-5 px-2" style={{ height: 180 }}>
@@ -697,6 +697,66 @@ export default function SignalorDashboard() {
               ) : (
                 <div className="flex items-center justify-center" style={{ height: 180 }}>
                   <p className="text-xs text-muted-foreground">No visibility data yet</p>
+                </div>
+              )}
+            </div>
+
+            {/* AI Engine Probes */}
+            <div className="col-span-3 bg-card rounded-2xl p-5 border border-border flex flex-col">
+              <p className="text-sm font-semibold text-foreground mb-4">AI Engine Probes</p>
+              {sentiment ? (
+                <div className="flex flex-col gap-3 flex-1">
+                  {/* Mention donut */}
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-14 h-14 shrink-0">
+                      <svg viewBox="0 0 56 56" className="w-full h-full -rotate-90">
+                        <circle cx="28" cy="28" r="22" fill="none" stroke="var(--border)" strokeWidth="4" />
+                        <circle
+                          cx="28" cy="28" r="22" fill="none"
+                          stroke="#F95C4B" strokeWidth="4" strokeLinecap="round"
+                          strokeDasharray={`${(sentiment.mentioned / sentiment.total) * 138.2} 138.2`}
+                        />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground">
+                        {Math.round((sentiment.mentioned / sentiment.total) * 100)}%
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Mentioned</p>
+                      <p className="text-[10px] text-muted-foreground">{sentiment.mentioned}/{sentiment.total} probes</p>
+                    </div>
+                  </div>
+
+                  {/* Confidence bars */}
+                  <div className="space-y-2 flex-1">
+                    {[
+                      { label: "High", count: sentiment.high, color: "#22c55e" },
+                      { label: "Med", count: sentiment.medium, color: "#D97706" },
+                      { label: "Low", count: sentiment.low, color: "#F95C4B" },
+                    ].map((row) => (
+                      <div key={row.label} className="flex items-center gap-2">
+                        <span className="text-[10px] w-7 text-muted-foreground">{row.label}</span>
+                        <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${(row.count / sentiment.total) * 100}%`, backgroundColor: row.color }} />
+                        </div>
+                        <span className="text-[10px] font-bold w-4 text-right text-foreground">{row.count}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Avg confidence */}
+                  <div className="rounded-lg px-3 py-2 bg-background">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-muted-foreground">Avg Confidence</span>
+                      <span className="text-sm font-bold" style={{ color: sentiment.avgConfidence >= 0.6 ? "#22c55e" : sentiment.avgConfidence >= 0.4 ? "#D97706" : "#F95C4B" }}>
+                        {(sentiment.avgConfidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <p className="text-xs text-muted-foreground">No probe data</p>
                 </div>
               )}
             </div>
