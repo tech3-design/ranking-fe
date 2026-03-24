@@ -150,7 +150,7 @@ useEffect(() => {
 
   return (
     <div className="h-screen w-screen overflow-hidden">
-      <div className="flex h-full w-full overflow-hidden border border-white/[0.06] bg-[#171717]">
+      <div className="flex h-full w-full overflow-hidden border border-sidebar-border bg-background">
         <AppSidebar />
         <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
           <div className="space-y-6">
@@ -214,7 +214,7 @@ useEffect(() => {
                   <p className="text-sm text-muted-foreground">Checking connection status...</p>
                 ) : shopifyIntegration ? (
                   <div className="space-y-4">
-                    <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-3">
+                    <div className="rounded-md border border-sidebar-border bg-white/[0.03] p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="size-2 rounded-full bg-green-500" />
@@ -272,7 +272,7 @@ useEffect(() => {
                   <p className="text-sm text-muted-foreground">Checking connection status...</p>
                 ) : wordpressIntegration ? (
                   <div className="space-y-4">
-                    <div className="rounded-md border border-white/[0.06] bg-white/[0.03] p-3">
+                    <div className="rounded-md border border-sidebar-border bg-white/[0.03] p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="size-2 rounded-full bg-green-500" />

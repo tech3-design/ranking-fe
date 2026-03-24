@@ -5,20 +5,20 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] active:scale-[0.98] cursor-pointer",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all duration-150 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] active:scale-[0.98] cursor-pointer rounded-md",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-[#3ecf8e] to-[#2da06e] text-[#171717] font-medium shadow-sm hover:shadow-[0_0_20px_rgba(62,207,142,0.35)] hover:-translate-y-[1px]",
+        default: "bg-primary text-primary-foreground font-medium shadow-sm hover:bg-primary/90 hover:shadow-md",
         destructive:
-          "bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30",
+          "bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20",
         outline:
-          "border border-white/15 bg-transparent text-white hover:bg-white/[0.06] hover:border-white/25",
+          "border border-border bg-card text-foreground hover:bg-muted",
         secondary:
-          "bg-white/[0.06] text-white border border-white/10 hover:bg-white/[0.1]",
+          "bg-secondary text-secondary-foreground border border-border hover:bg-muted",
         ghost:
-          "text-slate-300 hover:bg-white/[0.06] hover:text-white",
-        link: "text-[#3ecf8e] underline-offset-4 hover:underline",
+          "text-muted-foreground hover:bg-muted hover:text-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-5 py-2 has-[>svg]:px-3",

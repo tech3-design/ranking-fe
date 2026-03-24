@@ -52,7 +52,7 @@ export default function PricingPage() {
 
   if (isPending || !session) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#171717]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
       </div>
     );
@@ -73,7 +73,7 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#171717] px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
       <BackgroundBeams />
       <div className="relative z-10 w-full max-w-sm md:max-w-md">
         <div className="text-center mb-8">
@@ -83,7 +83,7 @@ export default function PricingPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 md:p-8">
+        <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-5 md:p-8">
           {/* Price */}
           <div className="text-center mb-6">
             <div className="flex items-baseline justify-center gap-1">
@@ -103,7 +103,7 @@ export default function PricingPage() {
           <div className="space-y-3 mb-8">
             {features.map((f) => (
               <div key={f} className="flex items-center gap-3">
-                <Check className="h-4 w-4 shrink-0 text-[#3ecf8e]" />
+                <Check className="h-4 w-4 shrink-0 text-primary" />
                 <span className="text-sm text-neutral-300">{f}</span>
               </div>
             ))}
@@ -114,7 +114,7 @@ export default function PricingPage() {
           <button
             onClick={handleSubscribe}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 bg-[#3ecf8e] py-3 text-sm font-medium text-[#171717] transition hover:bg-[#35b87d] disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 bg-primary py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
