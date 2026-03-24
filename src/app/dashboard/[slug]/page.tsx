@@ -566,7 +566,7 @@ export default function SignalorDashboard() {
               )}
             </div>
 
-            {/* Pillar Breakdown */}
+            {/* Pillar Breakdown — horizontal bars */}
             <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-foreground">Pillar Breakdown</p>
@@ -701,60 +701,53 @@ export default function SignalorDashboard() {
               )}
             </div>
 
-            {/* AI Engine Probes */}
+            {/* AI Engine Probes — pie chart */}
             <div className="col-span-3 bg-card rounded-2xl p-5 border border-border flex flex-col">
-              <p className="text-sm font-semibold text-foreground mb-4">AI Engine Probes</p>
-              {sentiment ? (
-                <div className="flex flex-col gap-3 flex-1">
-                  {/* Mention donut */}
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-14 h-14 shrink-0">
-                      <svg viewBox="0 0 56 56" className="w-full h-full -rotate-90">
-                        <circle cx="28" cy="28" r="22" fill="none" stroke="var(--border)" strokeWidth="4" />
-                        <circle
-                          cx="28" cy="28" r="22" fill="none"
-                          stroke="#F95C4B" strokeWidth="4" strokeLinecap="round"
-                          strokeDasharray={`${(sentiment.mentioned / sentiment.total) * 138.2} 138.2`}
+              <p className="text-sm font-semibold text-foreground mb-3">AI Engine Probes</p>
+              {sentiment ? (() => {
+                const mentionPct = sentiment.mentioned / sentiment.total;
+                const missPct = 1 - mentionPct;
+                // SVG pie: two arcs
+                const r = 40;
+                const c = 251.3; // 2 * PI * 40
+                return (
+                  <div className="flex flex-col items-center flex-1 justify-center">
+                    {/* Pie */}
+                    <div className="relative w-28 h-28">
+                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                        {/* Mentioned slice */}
+                        <circle cx="50" cy="50" r={r} fill="none"
+                          stroke={CORAL} strokeWidth="20"
+                          strokeDasharray={`${mentionPct * c} ${c}`}
+                        />
+                        {/* Not mentioned slice */}
+                        <circle cx="50" cy="50" r={r} fill="none"
+                          stroke="var(--border)" strokeWidth="20"
+                          strokeDasharray={`${missPct * c} ${c}`}
+                          strokeDashoffset={`${-mentionPct * c}`}
                         />
                       </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground">
-                        {Math.round((sentiment.mentioned / sentiment.total) * 100)}%
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-foreground">Mentioned</p>
-                      <p className="text-[10px] text-muted-foreground">{sentiment.mentioned}/{sentiment.total} probes</p>
-                    </div>
-                  </div>
-
-                  {/* Confidence bars */}
-                  <div className="space-y-2 flex-1">
-                    {[
-                      { label: "High", count: sentiment.high, color: "#22c55e" },
-                      { label: "Med", count: sentiment.medium, color: "#D97706" },
-                      { label: "Low", count: sentiment.low, color: "#F95C4B" },
-                    ].map((row) => (
-                      <div key={row.label} className="flex items-center gap-2">
-                        <span className="text-[10px] w-7 text-muted-foreground">{row.label}</span>
-                        <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${(row.count / sentiment.total) * 100}%`, backgroundColor: row.color }} />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <div className="w-14 h-14 rounded-full bg-card flex items-center justify-center">
+                          <span className="text-lg font-bold text-foreground">{Math.round(mentionPct * 100)}%</span>
                         </div>
-                        <span className="text-[10px] font-bold w-4 text-right text-foreground">{row.count}</span>
                       </div>
-                    ))}
-                  </div>
+                    </div>
 
-                  {/* Avg confidence */}
-                  <div className="rounded-lg px-3 py-2 bg-background">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-muted-foreground">Avg Confidence</span>
-                      <span className="text-sm font-bold" style={{ color: sentiment.avgConfidence >= 0.6 ? "#22c55e" : sentiment.avgConfidence >= 0.4 ? "#D97706" : "#F95C4B" }}>
-                        {(sentiment.avgConfidence * 100).toFixed(0)}%
-                      </span>
+                    {/* Legend */}
+                    <div className="flex items-center gap-4 mt-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CORAL }} />
+                        <span className="text-[10px] text-muted-foreground">Mentioned <span className="font-bold text-foreground">{Math.round(mentionPct * 100)}%</span></span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-border" />
+                        <span className="text-[10px] text-muted-foreground">Missed <span className="font-bold text-foreground">{Math.round(missPct * 100)}%</span></span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
+                );
+              })() : (
                 <div className="flex-1 flex items-center justify-center">
                   <p className="text-xs text-muted-foreground">No probe data</p>
                 </div>
@@ -845,68 +838,55 @@ export default function SignalorDashboard() {
                 )}
               </div>
 
-              {/* AI Sentiment Analysis */}
+              {/* AI Sentiment Analysis — stacked bar + stat grid */}
               <div className="col-span-5 bg-card rounded-2xl p-6 border border-border">
                 <p className="text-sm font-semibold mb-1 text-foreground">AI Sentiment Analysis</p>
                 <p className="text-xs mb-5 text-muted-foreground">How AI engines perceive your brand</p>
 
                 {sentiment ? (
                   <div className="space-y-5">
-                    {/* Mention rate donut */}
-                    <div className="flex items-center gap-5">
-                      <div className="relative w-20 h-20 shrink-0">
-                        <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
-                          <circle cx="40" cy="40" r="30" fill="none" stroke="var(--border)" strokeWidth="6" />
-                          <circle
-                            cx="40" cy="40" r="30" fill="none"
-                            stroke={CORAL} strokeWidth="6" strokeLinecap="round"
-                            strokeDasharray={`${(sentiment.mentioned / sentiment.total) * 188.5} 188.5`}
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-lg font-bold text-foreground">
-                            {Math.round((sentiment.mentioned / sentiment.total) * 100)}%
-                          </span>
-                        </div>
+                    {/* Big stat row */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="rounded-xl p-3.5 bg-background border border-border text-center">
+                        <p className="text-2xl font-bold text-foreground">{sentiment.mentioned}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">Mentioned</p>
                       </div>
-                      <div>
-                        <p className="text-xs font-semibold text-foreground">Brand Mention Rate</p>
-                        <p className="text-[11px] mt-0.5 text-muted-foreground">
-                          {sentiment.mentioned}/{sentiment.total} AI probes mention your brand
-                        </p>
+                      <div className="rounded-xl p-3.5 bg-background border border-border text-center">
+                        <p className="text-2xl font-bold text-foreground">{sentiment.notMentioned}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">Not Found</p>
+                      </div>
+                      <div className="rounded-xl p-3.5 text-center" style={{ background: `linear-gradient(135deg, ${CORAL}, #FF7A6B)` }}>
+                        <p className="text-2xl font-bold text-white">{(sentiment.avgConfidence * 100).toFixed(0)}%</p>
+                        <p className="text-[10px] text-white/70 mt-0.5">Avg Conf.</p>
                       </div>
                     </div>
 
-                    {/* Confidence breakdown */}
+                    {/* Stacked sentiment bar */}
                     <div>
-                      <p className="text-xs font-semibold mb-2.5 text-muted-foreground">Confidence Levels</p>
-                      <div className="space-y-2">
+                      <p className="text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Confidence Distribution</p>
+                      <div className="flex h-3 rounded-full overflow-hidden">
+                        {sentiment.high > 0 && (
+                          <div className="h-full" style={{ width: `${(sentiment.high / sentiment.total) * 100}%`, backgroundColor: "#22c55e" }} />
+                        )}
+                        {sentiment.medium > 0 && (
+                          <div className="h-full" style={{ width: `${(sentiment.medium / sentiment.total) * 100}%`, backgroundColor: "#D97706" }} />
+                        )}
+                        {sentiment.low > 0 && (
+                          <div className="h-full" style={{ width: `${(sentiment.low / sentiment.total) * 100}%`, backgroundColor: CORAL }} />
+                        )}
+                      </div>
+                      {/* Legend */}
+                      <div className="flex items-center gap-4 mt-2">
                         {[
-                          { label: "High confidence", count: sentiment.high, color: "#22c55e" },
-                          { label: "Medium confidence", count: sentiment.medium, color: "#D97706" },
-                          { label: "Low confidence", count: sentiment.low, color: CORAL },
-                        ].map((row) => (
-                          <div key={row.label} className="flex items-center gap-3">
-                            <span className="text-[11px] w-28 shrink-0 text-muted-foreground">{row.label}</span>
-                            <div className="flex-1 h-2 rounded-full overflow-hidden bg-muted">
-                              <div
-                                className="h-full rounded-full transition-all"
-                                style={{ width: sentiment.total > 0 ? `${(row.count / sentiment.total) * 100}%` : "0%", backgroundColor: row.color }}
-                              />
-                            </div>
-                            <span className="text-[11px] font-bold w-6 text-right text-foreground">{row.count}</span>
+                          { label: "High", count: sentiment.high, color: "#22c55e" },
+                          { label: "Medium", count: sentiment.medium, color: "#D97706" },
+                          { label: "Low", count: sentiment.low, color: CORAL },
+                        ].map((l) => (
+                          <div key={l.label} className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
+                            <span className="text-[10px] text-muted-foreground">{l.label} <span className="font-bold text-foreground">{l.count}</span></span>
                           </div>
                         ))}
-                      </div>
-                    </div>
-
-                    {/* Avg confidence */}
-                    <div className="rounded-xl px-4 py-3 bg-background">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Average Confidence</span>
-                        <span className="text-sm font-bold" style={{ color: sentiment.avgConfidence >= 0.6 ? "#22c55e" : sentiment.avgConfidence >= 0.4 ? "#D97706" : CORAL }}>
-                          {(sentiment.avgConfidence * 100).toFixed(0)}%
-                        </span>
                       </div>
                     </div>
                   </div>
