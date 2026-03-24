@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -185,10 +186,41 @@ export default function SignalorDashboard() {
   const visibilityBars = useMemo(() => {
     if (!brandVis) return [];
     return [
-      { label: "Google", value: Math.round(brandVis.google_score), color: C.coral },
-      { label: "Reddit", value: Math.round(brandVis.reddit_score), color: C.black },
-      { label: "Medium", value: Math.round(brandVis.medium_score), color: "#A39888" },
-      { label: "Web", value: Math.round(brandVis.web_mentions_score), color: "#C4BAA8" },
+      {
+        label: "Google", value: Math.round(brandVis.google_score), color: C.coral,
+        icon: (
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+        ),
+      },
+      {
+        label: "Reddit", value: Math.round(brandVis.reddit_score), color: C.black,
+        icon: (
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="#FF4500">
+            <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 13.38c.15.24.23.53.23.84 0 1.7-1.98 3.08-4.43 3.08s-4.43-1.38-4.43-3.08c0-.31.08-.6.23-.84a1.39 1.39 0 0 1-.33-.9 1.4 1.4 0 0 1 2.39-.98c.97-.63 2.25-1.02 3.65-1.06l.72-3.3a.27.27 0 0 1 .33-.21l2.38.52a.96.96 0 1 1-.1.46l-2.13-.47-.64 2.97c1.36.06 2.6.44 3.55 1.06a1.4 1.4 0 0 1 2.39.98c0 .35-.13.67-.33.9zM9.83 13.2a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm4.34 0a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.3 3.17c.1.1.26.1.36 0 .5-.5 1.24-.75 1.97-.75s1.47.25 1.97.75c.1.1.26.1.36 0 .1-.1.1-.26 0-.36-.6-.6-1.44-.93-2.33-.93s-1.73.33-2.33.93c-.1.1-.1.26 0 .36z"/>
+          </svg>
+        ),
+      },
+      {
+        label: "Medium", value: Math.round(brandVis.medium_score), color: "#A39888",
+        icon: (
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="#000000">
+            <path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42zm3.04 0c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75c.66 0 1.19 2.58 1.19 5.75z"/>
+          </svg>
+        ),
+      },
+      {
+        label: "Web", value: Math.round(brandVis.web_mentions_score), color: "#C4BAA8",
+        icon: (
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        ),
+      },
     ];
   }, [brandVis]);
 
@@ -348,7 +380,7 @@ export default function SignalorDashboard() {
           {/* ── ROW 1 ── */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             {/* GEO Score Card */}
-            <div className="col-span-4 bg-white rounded-2xl p-6" style={{ border: `1px solid ${C.stone}40` }}>
+            <div className="col-span-4 rounded-2xl p-6" style={{ background: `linear-gradient(135deg, #FFF5F3 0%, #FFFFFF 40%, #FFF9F0 100%)`, border: `1px solid ${C.coral}18` }}>
               <div className="flex items-start gap-6">
                 <div className="flex flex-col items-center shrink-0">
                   <p className="text-xs font-semibold mb-3" style={{ color: `${C.black}50` }}>GEO Score</p>
@@ -373,7 +405,7 @@ export default function SignalorDashboard() {
                 </div>
 
                 <div className="flex flex-col gap-3 flex-1 pt-1">
-                  <div className="rounded-xl px-4 py-3.5" style={{ backgroundColor: C.paper }}>
+                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:shadow-sm" style={{ backgroundColor: C.paper }}>
                     <p className="text-xs mb-1" style={{ color: `${C.black}40` }}>Recommendations</p>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold" style={{ color: C.black }}>{recommendations.length}</span>
@@ -381,14 +413,14 @@ export default function SignalorDashboard() {
                         <span className="text-xs" style={{ color: `${C.black}40` }}>{criticalCount} critical</span>
                       )}
                     </div>
-                  </div>
-                  <div className="rounded-xl px-4 py-3.5" style={{ backgroundColor: C.paper }}>
+                  </Link>
+                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:shadow-sm" style={{ backgroundColor: C.paper }}>
                     <p className="text-xs mb-1" style={{ color: `${C.black}40` }}>Priority Issues</p>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold" style={{ color: C.black }}>{criticalCount + highCount}</span>
                       <span className="text-xs" style={{ color: `${C.black}40` }}>{criticalCount} critical / {highCount} high</span>
                     </div>
-                  </div>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -495,16 +527,31 @@ export default function SignalorDashboard() {
             <div className="col-span-5 bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold" style={{ color: C.black }}>Top Issues</p>
-                <span className="flex items-center gap-1.5 text-xs rounded-lg px-3 py-1.5" style={{ color: `${C.black}50`, border: `1px solid ${C.stone}` }}>
-                  <Filter className="w-3 h-3" /> {topIssues.length} items
-                </span>
+                <Link
+                  href={`/dashboard/${slug}/recommendations`}
+                  className="flex items-center gap-1.5 text-xs rounded-lg px-3 py-1.5 transition hover:opacity-80"
+                  style={{ color: C.coral, border: `1px solid ${C.coral}30` }}
+                >
+                  View All ({recommendations.length})
+                </Link>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {topIssues.length > 0 ? topIssues.map((rec, i) => (
-                  <div key={i} className="rounded-xl p-4" style={{ backgroundColor: C.paper, border: `1px solid ${C.stone}60` }}>
-                    <p className="text-sm font-semibold mb-1 line-clamp-2" style={{ color: C.black }}>{rec.title}</p>
-                    <p className="text-xs" style={{ color: `${C.black}40` }}>{rec.impact_estimate || `${rec.priority} priority`}</p>
-                  </div>
+                  <Link
+                    key={i}
+                    href={`/dashboard/${slug}/recommendations`}
+                    className="rounded-xl p-4 transition hover:shadow-sm group"
+                    style={{ backgroundColor: C.paper, border: `1px solid ${C.stone}60` }}
+                  >
+                    <div className="flex items-start gap-2 mb-1.5">
+                      <span
+                        className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
+                        style={{ backgroundColor: rec.priority === "critical" ? C.coral : "#D97706" }}
+                      />
+                      <p className="text-sm font-semibold line-clamp-2 group-hover:underline" style={{ color: C.black }}>{rec.title}</p>
+                    </div>
+                    <p className="text-xs line-clamp-2 pl-3.5" style={{ color: `${C.black}40` }}>{rec.impact_estimate || `${rec.priority} priority`}</p>
+                  </Link>
                 )) : (
                   <p className="col-span-2 text-xs text-center py-6" style={{ color: `${C.black}40` }}>No critical issues found</p>
                 )}
@@ -563,15 +610,12 @@ export default function SignalorDashboard() {
                       </div>
                     </div>
 
-                    {/* X-axis labels */}
+                    {/* X-axis labels with icons */}
                     <div className="flex gap-3 px-2 pt-2.5 border-t" style={{ borderColor: `${C.stone}60` }}>
                       {visibilityBars.map((bar) => (
-                        <div key={bar.label} className="flex-1 flex flex-col items-center gap-0.5">
+                        <div key={bar.label} className="flex-1 flex flex-col items-center gap-1">
                           <span className="text-[11px] font-semibold" style={{ color: `${C.black}70` }}>{bar.label}</span>
-                          <span
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: bar.color }}
-                          />
+                          {bar.icon}
                         </div>
                       ))}
                     </div>
@@ -588,7 +632,16 @@ export default function SignalorDashboard() {
           {/* ── ROW 3: Recommendations ── */}
           <div className="bg-white rounded-2xl p-5" style={{ border: `1px solid ${C.stone}40` }}>
             <div className="flex items-center justify-between mb-4">
-              <p className="text-lg font-semibold" style={{ color: C.black }}>Recommendations</p>
+              <div className="flex items-center gap-3">
+                <p className="text-lg font-semibold" style={{ color: C.black }}>Recommendations</p>
+                <Link
+                  href={`/dashboard/${slug}/recommendations`}
+                  className="text-[11px] font-medium transition hover:opacity-80"
+                  style={{ color: C.coral }}
+                >
+                  View all &rarr;
+                </Link>
+              </div>
               <div className="flex items-center gap-2">
                 {FILTER_TABS.map((tab) => (
                   <button
@@ -620,7 +673,7 @@ export default function SignalorDashboard() {
                 </thead>
                 <tbody>
                   {filteredRecs.length > 0 ? filteredRecs.map((rec) => (
-                    <tr key={rec.id} className="transition-colors hover:opacity-80" style={{ borderBottom: `1px solid ${C.stone}30` }}>
+                    <tr key={rec.id} onClick={() => router.push(`/dashboard/${slug}/recommendations`)} className="transition-colors hover:opacity-80 cursor-pointer" style={{ borderBottom: `1px solid ${C.stone}30` }}>
                       <td className="py-3.5 px-2">
                         <div className="flex items-center gap-3">
                           <div
