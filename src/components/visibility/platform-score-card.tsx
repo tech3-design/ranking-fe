@@ -24,11 +24,11 @@ export function PlatformScoreCard({
   const colors = getScoreColor(displayScore);
 
   return (
-    <div className="rounded-2xl bg-white p-5 h-full" style={{ border: "1px solid #E4DED240" }}>
+    <div className="rounded-2xl bg-card p-5 h-full border border-border">
       <div className="flex items-center justify-between pb-3">
         <div className="flex items-center gap-2">
           {icon}
-          <p className="text-base font-semibold text-[#000000]">{platform}</p>
+          <p className="text-base font-semibold text-foreground">{platform}</p>
         </div>
         <span
           className="rounded-full px-2.5 py-0.5 text-sm font-bold"
@@ -41,17 +41,17 @@ export function PlatformScoreCard({
         <div className="space-y-2 pt-1">
           {Object.entries(subScores).map(([key, value]) => (
             <div key={key} className="flex items-center justify-between text-sm">
-              <span className="text-[#000000]/50 capitalize">
+              <span className="text-muted-foreground capitalize">
                 {key.replace(/_/g, " ")}
               </span>
               <div className="flex items-center gap-2">
-                <div className="h-1.5 w-20 rounded-full" style={{ backgroundColor: "#E4DED260" }}>
+                <div className="h-1.5 w-20 rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full transition-all"
-                    style={{ width: `${Math.min(100, value)}%`, backgroundColor: "#F95C4B" }}
+                    className="h-full rounded-full transition-all bg-primary"
+                    style={{ width: `${Math.min(100, value)}%` }}
                   />
                 </div>
-                <span className="font-mono text-xs w-8 text-right text-[#000000]">
+                <span className="font-mono text-xs w-8 text-right text-foreground">
                   {Math.round(value)}
                 </span>
               </div>
