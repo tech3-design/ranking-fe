@@ -236,9 +236,9 @@ export default function Home() {
         <div className="relative z-10 mx-auto max-w-7xl px-6 text-center lg:px-12">
           {/* Top Badge */}
           <div className="flex flex-col items-center justify-center gap-3 mb-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-600 border border-amber-200">
+            {/* <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-600 border border-amber-200">
               👑 The #1 GEO Scoring Platform for AI Search
-            </div>
+            </div> */}
           </div>
 
           {/* Headline — clearer, more direct */}
