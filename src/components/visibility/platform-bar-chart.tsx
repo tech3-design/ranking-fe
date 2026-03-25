@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface PlatformBarChartProps {
   google: number;
@@ -10,12 +9,12 @@ interface PlatformBarChartProps {
   web?: number;
 }
 
-function getBarColor(score: number): string {
-  if (score >= 70) return "bg-green-500";
-  if (score >= 50) return "bg-yellow-500";
-  if (score >= 30) return "bg-orange-500";
-  return "bg-red-500";
-}
+const PLATFORM_COLORS: Record<string, string> = {
+  Google: "#F95C4B",
+  Reddit: "var(--foreground)",
+  Medium: "#A39888",
+  "Web Mentions": "#C4BAA8",
+};
 
 export function PlatformBarChart({ google, reddit, medium, web }: PlatformBarChartProps) {
   const platforms = [
@@ -26,33 +25,30 @@ export function PlatformBarChart({ google, reddit, medium, web }: PlatformBarCha
   ];
 
   return (
-    <Card className="backdrop-blur-xl bg-card/50 border-border/50">
-      <CardHeader>
-        <CardTitle className="text-base">Platform Comparison</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {platforms.map((p, i) => (
-            <div key={p.name} className="space-y-1">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">
-                  {p.name}{" "}
-                  <span className="text-muted-foreground text-xs">({p.weight})</span>
-                </span>
-                <span className="font-mono font-bold">{Math.round(p.score)}</span>
-              </div>
-              <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
-                <motion.div
-                  className={`h-full rounded-full ${getBarColor(p.score)}`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(100, p.score)}%` }}
-                  transition={{ duration: 0.8, delay: i * 0.15, type: "spring", stiffness: 50 }}
-                />
-              </div>
+    <div className="bg-card rounded-2xl p-5 border border-border">
+      <p className="text-sm font-semibold text-foreground mb-4">Platform Comparison</p>
+      <div className="space-y-4">
+        {platforms.map((p, i) => (
+          <div key={p.name} className="space-y-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-foreground">
+                {p.name}{" "}
+                <span className="text-muted-foreground text-xs">({p.weight})</span>
+              </span>
+              <span className="font-mono font-bold text-foreground">{Math.round(p.score)}</span>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <div className="h-2.5 w-full rounded-full overflow-hidden bg-muted">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: PLATFORM_COLORS[p.name] || "#F95C4B" }}
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(100, p.score)}%` }}
+                transition={{ duration: 0.8, delay: i * 0.15, type: "spring", stiffness: 50 }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

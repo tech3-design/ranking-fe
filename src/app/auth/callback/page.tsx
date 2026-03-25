@@ -54,7 +54,7 @@ function CallbackResolver() {
   }, [session, isPending, router, searchParams]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-transparent">
       <p className="text-muted-foreground">Setting up your account...</p>
     </div>
   );

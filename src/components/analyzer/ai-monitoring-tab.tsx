@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { RefreshCw, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   getPromptTracks,
   getShareOfVoice,
@@ -50,7 +49,6 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
     }
   }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Schedule a poll cycle
   const schedulePoll = useCallback(
     (delay = 3000) => {
       if (pollRef.current) clearTimeout(pollRef.current);
@@ -83,7 +81,6 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
     schedulePoll(3000);
   }
 
-  // Called when a single row's re-check button is clicked — start polling
   function handleRechecked(_trackId: number) {
     schedulePoll(3000);
   }
@@ -95,7 +92,6 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
       const { count } = await recheckAllPrompts(slug);
       setRecheckCount(count);
       schedulePoll(3000);
-      // Clear the count badge after 4s
       setTimeout(() => setRecheckCount(null), 4000);
     } catch {
       // ignore
@@ -107,95 +103,67 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
         <div>
-          <h2 className="text-lg font-semibold">AI Monitor</h2>
+          <h2 className="text-lg font-semibold text-foreground">Prompt Tracking</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Track how{" "}
-            <span className="font-medium text-foreground">{brandName}</span>{" "}
-            appears across ChatGPT, Claude, Gemini, and Perplexity.
+            Track how <span className="text-foreground font-medium">{brandName}</span> appears in AI responses
           </p>
         </div>
-
         {tracks.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={handleRecheckAll}
             disabled={recheckingAll}
-            className="shrink-0 gap-1.5 text-xs"
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground transition hover:bg-muted disabled:opacity-50"
           >
-            {recheckingAll ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="h-3.5 w-3.5" />
-            )}
-            {recheckingAll
-              ? "Re-checking…"
-              : recheckCount !== null
-              ? `Started ${recheckCount} re-checks`
-              : "Re-check All"}
-          </Button>
+            {recheckingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+            {recheckingAll ? "Re-checking…" : recheckCount !== null ? `Started ${recheckCount}` : "Re-check All"}
+          </button>
         )}
       </div>
 
       {/* Share of Voice */}
-      <section className="space-y-3">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Share of Voice
-        </h3>
+      <div className="rounded-lg border border-border bg-card p-5">
+        <h3 className="mb-4 text-sm font-medium text-neutral-400">Share of Voice</h3>
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : (
           <ShareOfVoicePanel data={sov} />
         )}
-      </section>
+      </div>
 
       {/* Prompt Tracker */}
-      <section className="space-y-3">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Prompt Tracker
-        </h3>
+      <div className="rounded-lg border border-border bg-card p-5">
+        <h3 className="mb-4 text-sm font-medium text-neutral-400">Prompt Tracker</h3>
         <PromptTracker
           slug={slug}
           tracks={tracks}
           onAdded={handleAdded}
           onRechecked={handleRechecked}
         />
-      </section>
+      </div>
 
       {/* Sentiment Breakdown */}
       {tracks.some((t) => t.results.length > 0) && (
-        <section className="space-y-3">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Sentiment per Engine
-          </h3>
+        <div className="rounded-lg border border-border bg-card p-5">
+          <h3 className="mb-4 text-sm font-medium text-neutral-400">Sentiment per Engine</h3>
           <SentimentBreakdown tracks={tracks} />
-        </section>
+        </div>
       )}
 
       {/* Citation Trend */}
-      <section className="glass-card rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Citation Rate Over Time
-          </h3>
-          {trend.length === 0 && !loading && (
-            <span className="text-xs text-muted-foreground">
-              Builds up as you re-check prompts over time
-            </span>
-          )}
-        </div>
+      <div className="rounded-lg border border-border bg-card p-5">
+        <h3 className="mb-4 text-sm font-medium text-neutral-400">Citation Rate Over Time</h3>
         {trend.length > 0 ? (
           <CitationTrendChart data={trend} />
         ) : (
-          <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-border/50">
+          <div className="flex h-20 items-center justify-center rounded-xl border border-dashed border-white/[0.08]">
             <p className="text-xs text-muted-foreground">
-              No trend data yet — hit <strong>Re-check All</strong> periodically or set up the daily cron job
+              No trend data yet — re-check prompts periodically to build history
             </p>
           </div>
         )}
-      </section>
+      </div>
     </div>
   );
 }

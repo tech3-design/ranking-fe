@@ -1,13 +1,10 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Spotlight } from "@/components/ui/spotlight";
-
-function getScoreColor(score: number): string {
-  if (score >= 70) return "text-green-500 bg-green-500/10 border-green-500/20";
-  if (score >= 50) return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20";
-  if (score >= 30) return "text-orange-500 bg-orange-500/10 border-orange-500/20";
-  return "text-red-500 bg-red-500/10 border-red-500/20";
+function getScoreColor(score: number): { text: string; bg: string; border: string } {
+  if (score >= 70) return { text: "#22c55e", bg: "#22c55e15", border: "#22c55e30" };
+  if (score >= 50) return { text: "#D97706", bg: "#D9770615", border: "#D9770630" };
+  if (score >= 30) return { text: "#F95C4B", bg: "#F95C4B15", border: "#F95C4B30" };
+  return { text: "#F95C4B", bg: "#F95C4B15", border: "#F95C4B30" };
 }
 
 interface PlatformScoreCardProps {
@@ -24,48 +21,44 @@ export function PlatformScoreCard({
   subScores,
 }: PlatformScoreCardProps) {
   const displayScore = score != null ? Math.round(score) : 0;
+  const colors = getScoreColor(displayScore);
 
   return (
-    <Spotlight className="rounded-xl">
-      <Card className="backdrop-blur-xl bg-card/50 border-border/50 h-full">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {icon}
-              <CardTitle className="text-base">{platform}</CardTitle>
-            </div>
-            <span
-              className={`rounded-full px-2.5 py-0.5 text-sm font-bold border ${getScoreColor(displayScore)}`}
-            >
-              {displayScore}
-            </span>
-          </div>
-        </CardHeader>
-        {subScores && Object.keys(subScores).length > 0 && (
-          <CardContent className="pt-0">
-            <div className="space-y-2">
-              {Object.entries(subScores).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground capitalize">
-                    {key.replace(/_/g, " ")}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-20 rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-primary transition-all"
-                        style={{ width: `${Math.min(100, value)}%` }}
-                      />
-                    </div>
-                    <span className="font-mono text-xs w-8 text-right">
-                      {Math.round(value)}
-                    </span>
-                  </div>
+    <div className="rounded-2xl bg-card p-5 h-full border border-border">
+      <div className="flex items-center justify-between pb-3">
+        <div className="flex items-center gap-2">
+          {icon}
+          <p className="text-base font-semibold text-foreground">{platform}</p>
+        </div>
+        <span
+          className="rounded-full px-2.5 py-0.5 text-sm font-bold"
+          style={{ color: colors.text, backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}
+        >
+          {displayScore}
+        </span>
+      </div>
+      {subScores && Object.keys(subScores).length > 0 && (
+        <div className="space-y-2 pt-1">
+          {Object.entries(subScores).map(([key, value]) => (
+            <div key={key} className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground capitalize">
+                {key.replace(/_/g, " ")}
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-20 rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full transition-all bg-primary"
+                    style={{ width: `${Math.min(100, value)}%` }}
+                  />
                 </div>
-              ))}
+                <span className="font-mono text-xs w-8 text-right text-foreground">
+                  {Math.round(value)}
+                </span>
+              </div>
             </div>
-          </CardContent>
-        )}
-      </Card>
-    </Spotlight>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

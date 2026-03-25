@@ -54,7 +54,7 @@ export default function AnalyzerResultsPage() {
 
   if (loading || !result || (result.status !== "complete" && result.status !== "failed")) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-4" style={{ backgroundColor: "#F6F4F1" }}>
         <AnalysisProgress />
       </div>
     );
