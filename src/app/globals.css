@@ -48,7 +48,9 @@
     --font-serif: var(--font-serif);
 }
 
-:root {
+:root,
+.light,
+[data-theme="light"] {
     /* Paper / Stone / Coral / Black */
     --background: #F6F4F1;
     --foreground: #000000;
@@ -85,6 +87,10 @@
     --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
     --font-serif: "DM Serif Display", serif;
     --font-mono: "JetBrains Mono", monospace;
+}
+
+.light {
+  color-scheme: light;
 }
 
 html.dark,

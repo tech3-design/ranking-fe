@@ -25,6 +25,7 @@ import {
   ArrowLeft,
   Bell,
 } from "lucide-react";
+import LogoComp from "@/components/LogoComp";
 
 const MAIN_NAV = [
   { icon: LayoutDashboard, label: "Overview", path: "" },
@@ -79,7 +80,7 @@ export default function DashboardSlugLayout({
     if (!userEmail) return;
     getSubscriptionStatus(userEmail)
       .then((s) => setIsPro(s.is_active))
-      .catch(() => {});
+      .catch(() => { });
   }, [userEmail]);
 
   async function handleSignOut() {
@@ -105,11 +106,8 @@ export default function DashboardSlugLayout({
       {/* ═══ LEFT SIDEBAR ═══ */}
       <aside className="w-[220px] flex-shrink-0 flex flex-col h-full bg-card border-r border-border px-4 py-5">
         {/* Logo */}
-        <div className="flex items-center gap-2.5 px-2 mb-6">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-lg font-semibold tracking-tight text-foreground">Signalor</span>
+        <div className="flex items-center gap-2.5  mb-6">
+          <LogoComp />
         </div>
 
         {/* Back to Dashboard (when in settings) */}
@@ -139,11 +137,10 @@ export default function DashboardSlugLayout({
               <Link
                 key={item.label}
                 href={basePath + item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  active
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${active
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                }`}
+                  }`}
               >
                 <Icon className="w-[18px] h-[18px]" />
                 {item.label}

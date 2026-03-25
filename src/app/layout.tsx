@@ -22,6 +22,9 @@ const fontMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Signalor.ai",
   description: "AI-powered brand visibility and GEO analysis platform",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
