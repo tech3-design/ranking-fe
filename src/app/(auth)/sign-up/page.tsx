@@ -59,25 +59,25 @@ function SignUpContent() {
     <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="space-y-3 px-0 pb-4 pt-0">
         <div className="flex items-center justify-between">
-          <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-xs font-medium tracking-wide text-blue-300">
+          <span className="rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium tracking-wide text-primary">
             Create account
           </span>
-          <span className="text-xs text-slate-400">Step {stepIndex}</span>
+          <span className="text-xs text-muted-foreground">Step {stepIndex}</span>
         </div>
         <div className="space-y-1">
           <CardTitle className="gradient-text text-2xl md:text-4xl font-semibold tracking-tight">
             Get Started Now
           </CardTitle>
-          <CardDescription className="text-sm text-slate-400">
+          <CardDescription>
             Please create your account to continue.
           </CardDescription>
-          <p className="pt-1 text-base font-medium text-slate-200">{title}</p>
-          <CardDescription className="text-sm text-slate-400">
+          <p className="pt-1 text-base font-medium text-foreground">{title}</p>
+          <CardDescription>
             {description}
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 shadow-sm">
+      <CardContent className="space-y-4  p-5 ">
         {errorParam === "no-account" && step === "auth-method" && (
           <p className="rounded-lg border border-amber-200/20 bg-amber-500/10 p-2 text-center text-sm text-amber-300">
             No account found. Please sign up first.
@@ -86,9 +86,9 @@ function SignUpContent() {
         {StepComponent && <StepComponent />}
       </CardContent>
       <CardFooter className="justify-center px-0 pb-0 pt-5">
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/sign-in" className="font-medium text-emerald-400 hover:text-blue-300 hover:underline">
+          <Link href="/sign-in" className="font-medium text-primary hover:text-primary/90 hover:underline">
             Sign in
           </Link>
         </p>
