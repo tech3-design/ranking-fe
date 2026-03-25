@@ -9,7 +9,7 @@ import {
   getIntegrationStatus,
   type IntegrationInfo,
 } from "@/lib/api/integrations";
-import { getRunBySlug, type AnalysisRunDetail } from "@/lib/api/analyzer";
+import { useRun } from "../_components/run-context";
 import { GAPropertySelector } from "@/components/integrations/ga-property-selector";
 import { GATrafficTab } from "@/components/integrations/ga-traffic-tab";
 import { Loader2, AlertCircle, Unplug, PlugZap } from "lucide-react";
@@ -21,7 +21,7 @@ export default function ProjectAnalyticsPage() {
   const { data: session } = useSession();
   const email = session?.user?.email ?? "";
 
-  const [run, setRun] = useState<AnalysisRunDetail | null>(null);
+  const { run } = useRun();
   const [integrations, setIntegrations] = useState<IntegrationInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
@@ -44,13 +44,6 @@ export default function ProjectAnalyticsPage() {
       setLoading(false);
     }
   }, [email]);
-
-  useEffect(() => {
-    if (!slug) return;
-    getRunBySlug(slug)
-      .then((detail) => setRun(detail))
-      .catch(() => setRun(null));
-  }, [slug]);
 
   useEffect(() => {
     loadIntegrations();

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { Recommendation } from "@/lib/api/analyzer";
-import { applyAutoFix, getAutoFixStatus } from "@/lib/api/analyzer";
+import { applyAutoFix } from "@/lib/api/analyzer";
 import {
   Loader2, Wrench, CheckCircle2, XCircle, ChevronDown, ChevronRight,
   AlertTriangle, ArrowUp, Minus, Copy,
@@ -29,16 +29,22 @@ interface RecommendationsPanelProps {
   slug?: string;
   email?: string;
   orgId?: number;
+  initialFixResults?: Record<number, { status: string; message: string }>;
+  onFixResult?: (recId: number, result: { status: string; message: string }) => void;
 }
 
-export function RecommendationsPanel({ recommendations, slug, email, orgId }: RecommendationsPanelProps) {
+export function RecommendationsPanel({ recommendations, slug, email, orgId, initialFixResults, onFixResult }: RecommendationsPanelProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [fixingIds, setFixingIds] = useState<Set<number>>(new Set());
-  const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>({});
+  const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>(initialFixResults ?? {});
   const [fixingAll, setFixingAll] = useState(false);
   const [fixProgress, setFixProgress] = useState({ done: 0, total: 0 });
-  const loadedRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Sync if initialFixResults changes
+  useEffect(() => {
+    if (initialFixResults) setFixResults((prev) => ({ ...initialFixResults, ...prev }));
+  }, [initialFixResults]);
 
   // Cancel fix loop on unmount
   useEffect(() => {
@@ -48,26 +54,19 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
   const fixableRecs = recommendations.filter((r) => r.can_auto_fix);
   const hasFixable = fixableRecs.length > 0 && slug && email;
 
-  useEffect(() => {
-    if (!slug || loadedRef.current) return;
-    loadedRef.current = true;
-    getAutoFixStatus(slug)
-      .then((results) => {
-        const existing: Record<number, { status: string; message: string }> = {};
-        for (const r of results) existing[r.recommendation_id] = { status: r.status, message: r.message };
-        setFixResults((prev) => ({ ...existing, ...prev }));
-      })
-      .catch(() => {});
-  }, [slug]);
-
   async function handleApplyFix(recId: number) {
     if (!slug || !email) return;
     setFixingIds((prev) => new Set(prev).add(recId));
     try {
       const results = await applyAutoFix(slug, [recId], email, orgId);
-      if (results[0]) setFixResults((prev) => ({ ...prev, [recId]: results[0] }));
+      if (results[0]) {
+        setFixResults((prev) => ({ ...prev, [recId]: results[0] }));
+        onFixResult?.(recId, results[0]);
+      }
     } catch {
-      setFixResults((prev) => ({ ...prev, [recId]: { status: "failed", message: "Request failed" } }));
+      const fail = { status: "failed", message: "Request failed" };
+      setFixResults((prev) => ({ ...prev, [recId]: fail }));
+      onFixResult?.(recId, fail);
     } finally {
       setFixingIds((prev) => { const next = new Set(prev); next.delete(recId); return next; });
     }

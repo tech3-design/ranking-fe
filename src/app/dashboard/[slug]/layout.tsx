@@ -5,9 +5,14 @@ import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 import { getSubscriptionStatus } from "@/lib/api/payments";
+import { getOrganizations, type Organization } from "@/lib/api/organizations";
+import { getRunList } from "@/lib/api/analyzer";
+import { useOrgStore } from "@/lib/stores/org-store";
 import { routes } from "@/lib/config";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { RunProvider, useRun } from "./_components/run-context";
+import { AnalysisOverlay } from "./_components/analysis-overlay";
 import {
   LayoutDashboard,
   ListChecks,
@@ -24,6 +29,10 @@ import {
   PlugZap,
   ArrowLeft,
   Bell,
+  Building2,
+  ChevronsUpDown,
+  Check,
+  Loader2,
 } from "lucide-react";
 import LogoComp from "@/components/LogoComp";
 
@@ -42,6 +51,17 @@ const SETTINGS_NAV = [
   { icon: Bell, label: "Notifications", path: "/settings/notifications" },
 ];
 
+function AnalysisGate({ children }: { children: React.ReactNode }) {
+  const { run, loading } = useRun();
+  const isRunning = !!run && run.status !== "complete" && run.status !== "failed";
+
+  if (!loading && isRunning) {
+    return <AnalysisOverlay />;
+  }
+
+  return <>{children}</>;
+}
+
 export default function DashboardSlugLayout({
   children,
 }: {
@@ -55,7 +75,11 @@ export default function DashboardSlugLayout({
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [isPro, setIsPro] = useState(false);
+  const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
+  const [switchingOrg, setSwitchingOrg] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const orgRef = useRef<HTMLDivElement>(null);
+  const { organizations, activeOrg, setOrganizations, setActiveOrg } = useOrgStore();
 
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const userEmail = session?.user?.email || "";
@@ -83,6 +107,45 @@ export default function DashboardSlugLayout({
       .catch(() => { });
   }, [userEmail]);
 
+  // Load orgs
+  useEffect(() => {
+    if (!userEmail) return;
+    getOrganizations(userEmail)
+      .then((orgs) => setOrganizations(orgs))
+      .catch(() => {});
+  }, [userEmail, setOrganizations]);
+
+  // Close org dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (orgRef.current && !orgRef.current.contains(e.target as Node)) {
+        setOrgDropdownOpen(false);
+      }
+    }
+    if (orgDropdownOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [orgDropdownOpen]);
+
+  async function handleSwitchOrg(org: Organization) {
+    setOrgDropdownOpen(false);
+    if (org.id === activeOrg?.id) return;
+    setSwitchingOrg(true);
+    setActiveOrg(org);
+    try {
+      const runs = await getRunList(userEmail, org.id);
+      const latestRun = runs.find((r) => r.status !== "failed") ?? runs[0];
+      if (latestRun) {
+        router.push(routes.dashboardProject(latestRun.slug));
+      } else {
+        router.push(routes.dashboard);
+      }
+    } catch {
+      router.push(routes.dashboard);
+    } finally {
+      setSwitchingOrg(false);
+    }
+  }
+
   async function handleSignOut() {
     setSigningOut(true);
     try {
@@ -102,6 +165,8 @@ export default function DashboardSlugLayout({
   }
 
   return (
+    <RunProvider slug={slug}>
+    <AnalysisGate>
     <div className="flex h-screen w-full bg-background font-sans text-foreground overflow-hidden">
       {/* ═══ LEFT SIDEBAR ═══ */}
       <aside className="w-[220px] flex-shrink-0 flex flex-col h-full bg-card border-r border-border px-4 py-5">
@@ -109,6 +174,60 @@ export default function DashboardSlugLayout({
         <div className="flex items-center gap-2.5  mb-6">
           <LogoComp />
         </div>
+
+        {/* Org Switcher */}
+        {organizations.length > 0 && (
+          <div className="relative mb-4" ref={orgRef}>
+            <button
+              onClick={() => setOrgDropdownOpen(!orgDropdownOpen)}
+              disabled={switchingOrg}
+              className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl border border-border bg-background hover:bg-accent transition text-left disabled:opacity-60"
+            >
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Building2 className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-foreground truncate">
+                  {switchingOrg ? "Switching..." : (activeOrg?.name || organizations[0]?.name || "Select org")}
+                </p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {activeOrg?.url || organizations[0]?.url || ""}
+                </p>
+              </div>
+              {switchingOrg ? (
+                <Loader2 className="w-3.5 h-3.5 text-muted-foreground animate-spin shrink-0" />
+              ) : (
+                <ChevronsUpDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              )}
+            </button>
+
+            {orgDropdownOpen && (
+              <div className="absolute left-0 right-0 top-full mt-1 rounded-xl bg-card border border-border shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
+                {organizations.map((org) => {
+                  const isActive = org.id === activeOrg?.id;
+                  return (
+                    <button
+                      key={org.id}
+                      onClick={() => handleSwitchOrg(org)}
+                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors ${
+                        isActive ? "bg-primary/8" : "hover:bg-accent"
+                      }`}
+                    >
+                      <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                        <Building2 className="w-3 h-3 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">{org.name}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{org.url || "No URL"}</p>
+                      </div>
+                      {isActive && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Back to Dashboard (when in settings) */}
         {isSettingsPage && (
@@ -237,5 +356,7 @@ export default function DashboardSlugLayout({
         </footer>
       </main>
     </div>
+    </AnalysisGate>
+    </RunProvider>
   );
 }

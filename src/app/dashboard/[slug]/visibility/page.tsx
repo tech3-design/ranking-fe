@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import {
-  getRunBySlug,
   getShareOfVoice,
-  type AnalysisRunDetail,
   type ShareOfVoiceItem,
 } from "@/lib/api/analyzer";
+import { useRun } from "../_components/run-context";
 import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
 import { ShareOfVoicePanel } from "@/components/analyzer/share-of-voice-panel";
 import { AlertCircle } from "lucide-react";
@@ -15,29 +14,13 @@ import { SignalorLoader } from "@/components/ui/signalor-loader";
 
 export default function VisibilityPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [run, setRun] = useState<AnalysisRunDetail | null>(null);
+  const { run, loading, error } = useRun();
   const [sov, setSov] = useState<ShareOfVoiceItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  const fetchData = useCallback(async () => {
+  useEffect(() => {
     if (!slug) return;
-    try {
-      setLoading(true);
-      const [detail, sovData] = await Promise.all([
-        getRunBySlug(slug),
-        getShareOfVoice(slug).catch(() => []),
-      ]);
-      setRun(detail);
-      setSov(sovData);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load");
-    } finally {
-      setLoading(false);
-    }
+    getShareOfVoice(slug).catch(() => []).then(setSov);
   }, [slug]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
 
   const brandVis = run?.brand_visibility;
 
