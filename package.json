@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@radix-ui/react-select": "^2.2.6",
     "@tabler/icons-react": "^3.37.1",
     "@tanstack/react-router": "^1.160.0",
     "axios": "^1.13.5",
