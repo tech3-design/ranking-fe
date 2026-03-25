@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAnalyzerStore } from "@/lib/stores/analyzer-store";
 import { Globe, Search, Brain, BarChart3, CheckCircle2, XCircle } from "lucide-react";
+import { fireConfetti } from "@/lib/confetti";
 
 const STEPS = [
   { key: "pending", label: "Queuing analysis", icon: Globe },
@@ -41,11 +42,22 @@ export function AnalysisProgress() {
     useAnalyzerStore();
   const [elapsed, setElapsed] = useState(0);
 
+  const prevStatusRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (currentRunId && !isPolling && status !== "complete" && status !== "failed") {
       startPolling();
     }
   }, [currentRunId, isPolling, status, startPolling]);
+
+  // Fire confetti on completion
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    if (prev && prev !== "complete" && status === "complete") {
+      fireConfetti();
+    }
+    prevStatusRef.current = status;
+  }, [status]);
 
   // Timer
   useEffect(() => {

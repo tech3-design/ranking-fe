@@ -27,3 +27,25 @@ export async function getSubscriptionStatus(
   );
   return data;
 }
+
+export async function terminateAccount(
+  email: string,
+): Promise<{ message: string; deactivated_at?: string }> {
+  const { data } = await apiClient.post("/api/account/terminate/", { email });
+  return data;
+}
+
+export async function cancelTermination(
+  email: string,
+): Promise<{ message: string }> {
+  const { data } = await apiClient.post("/api/account/cancel-termination/", { email });
+  return data;
+}
+
+export async function deleteAccount(
+  email: string,
+  confirm: string,
+): Promise<{ message: string; deleted: Record<string, number> }> {
+  const { data } = await apiClient.post("/api/account/delete/", { email, confirm });
+  return data;
+}

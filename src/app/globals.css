@@ -252,3 +252,57 @@ html.dark,
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
+
+@keyframes signalor-draw {
+  0% { stroke-dashoffset: inherit; opacity: 0.3; }
+  50% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: inherit; opacity: 0.3; }
+}
+
+@keyframes signalor-logo-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes signalor-core-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes signalor-draw-slow {
+  0% { stroke-dashoffset: inherit; opacity: 0.2; }
+  40% { stroke-dashoffset: 0; opacity: 1; }
+  60% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: inherit; opacity: 0.2; }
+}
+
+@keyframes signalor-breathe {
+  0%, 100% { opacity: 0.5; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes signalor-ring1 {
+  0%, 100% { transform: scale(0.94); opacity: 0.5; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes signalor-ring2 {
+  0%, 100% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes signalor-ring3 {
+  0%, 100% { transform: scale(0.96); opacity: 0.55; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+@keyframes signalor-ring4 {
+  0%, 100% { transform: scale(0.97); opacity: 0.6; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+@keyframes signalor-ring5 {
+  0%, 100% { transform: scale(0.98); opacity: 0.65; }
+  50% { transform: scale(1.03); opacity: 1; }
+}
+
+@keyframes signalor-orbit {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: var(--orbit-len); }
+}

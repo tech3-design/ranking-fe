@@ -1,12 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import {
-  getRunBySlug,
-  type AnalysisRunDetail,
-} from "@/lib/api/analyzer";
+import { useRun } from "../_components/run-context";
 import { RecommendationsPanel } from "@/components/analyzer/recommendations-panel";
 import { AlertCircle } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
@@ -14,26 +10,9 @@ import { SignalorLoader } from "@/components/ui/signalor-loader";
 export default function RecommendationsPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: session } = useSession();
-  const [run, setRun] = useState<AnalysisRunDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { run, loading, error, fixResults, setFixResult } = useRun();
 
   const email = session?.user?.email ?? "";
-
-  const fetchData = useCallback(async () => {
-    if (!slug) return;
-    try {
-      setLoading(true);
-      const detail = await getRunBySlug(slug);
-      setRun(detail);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load");
-    } finally {
-      setLoading(false);
-    }
-  }, [slug]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
 
   return (
     <div className="px-6 py-6 space-y-6">
@@ -61,6 +40,8 @@ export default function RecommendationsPage() {
           recommendations={run.recommendations}
           slug={slug}
           email={email}
+          initialFixResults={fixResults}
+          onFixResult={setFixResult}
         />
       )}
 

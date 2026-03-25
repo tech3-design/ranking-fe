@@ -10,12 +10,17 @@ import {
   type Organization,
 } from "@/lib/api/organizations";
 import { useOrgStore } from "@/lib/stores/org-store";
-import { Loader2, Pencil, Trash2, Plus, Camera } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, Camera, AlertTriangle, ShieldX, Clock } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { terminateAccount, cancelTermination, deleteAccount } from "@/lib/api/payments";
+import { signOut } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { routes } from "@/lib/config";
 
 export default function ProfileSettingsPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const email = session?.user?.email ?? "";
   const userName = session?.user?.name || email.split("@")[0] || "User";
   const userImage = (session?.user as Record<string, unknown>)?.image as string | undefined;
@@ -30,6 +35,15 @@ export default function ProfileSettingsPage() {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newUrl, setNewUrl] = useState("");
+
+  // Terminate / Delete state
+  const [showTerminateDialog, setShowTerminateDialog] = useState(false);
+  const [terminateStep, setTerminateStep] = useState<"idle" | "done">("idle");
+  const [terminating, setTerminating] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
@@ -91,6 +105,39 @@ export default function ProfileSettingsPage() {
       setNotice("Organization deleted.");
     } catch { setError("Failed to delete."); }
     finally { setDeletingId(null); }
+  }
+
+  async function handleTerminate() {
+    if (!email) return;
+    setTerminating(true); setError(null);
+    try {
+      await terminateAccount(email);
+      setTerminateStep("done");
+      setShowTerminateDialog(false);
+      setNotice("Account scheduled for deactivation in 24 hours.");
+    } catch { setError("Failed to terminate account."); }
+    finally { setTerminating(false); }
+  }
+
+  async function handleCancelTermination() {
+    if (!email) return;
+    setCancelling(true); setError(null);
+    try {
+      await cancelTermination(email);
+      setTerminateStep("idle");
+      setNotice("Termination cancelled. Your account is active.");
+    } catch { setError("Failed to cancel termination."); }
+    finally { setCancelling(false); }
+  }
+
+  async function handleDeleteAccount() {
+    if (!email || deleteConfirmText !== "delete my account") return;
+    setDeleting(true); setError(null);
+    try {
+      await deleteAccount(email, deleteConfirmText);
+      await signOut();
+      router.push(routes.signIn);
+    } catch { setError("Failed to delete account."); setDeleting(false); }
   }
 
   return (
@@ -197,6 +244,159 @@ export default function ProfileSettingsPage() {
           </div>
         )}
       </div>
+
+      {/* ═══ DANGER ZONE ═══ */}
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertTriangle className="w-4 h-4 text-red-500" />
+          <p className="text-sm font-semibold text-red-500">Danger Zone</p>
+        </div>
+
+        <div className="space-y-4">
+          {/* Terminate Account */}
+          <div className="flex items-center justify-between rounded-xl bg-card border border-border p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Terminate Account</p>
+                <p className="text-[11px] text-muted-foreground">Deactivates in 24 hours. You can still use it until then.</p>
+              </div>
+            </div>
+
+            {terminateStep === "idle" ? (
+              <button
+                onClick={() => setShowTerminateDialog(true)}
+                className="text-xs font-medium px-4 py-2 rounded-lg border border-amber-500/30 text-amber-600 hover:bg-amber-500/10 transition"
+              >
+                Terminate
+              </button>
+            ) : (
+              <button
+                onClick={handleCancelTermination}
+                disabled={cancelling}
+                className="text-xs font-medium px-4 py-2 rounded-lg border border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 transition disabled:opacity-50"
+              >
+                {cancelling ? "Cancelling..." : "Undo Termination"}
+              </button>
+            )}
+          </div>
+
+          {/* Delete Account */}
+          <div className="flex items-center justify-between rounded-xl bg-card border border-border p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <ShieldX className="w-4 h-4 text-red-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Delete Account</p>
+                <p className="text-[11px] text-muted-foreground">Permanently delete all data. This cannot be undone.</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="text-xs font-medium px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+            >
+              Delete Account
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Terminate Confirmation Dialog */}
+      {showTerminateDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-md shadow-xl mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-foreground">Terminate Account</h3>
+                <p className="text-xs text-muted-foreground">Schedule deactivation</p>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 p-4 mb-5">
+              <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
+                Your account will be deactivated in <span className="font-bold">24 hours</span>. During this time you can still access your dashboard, download reports, and undo the termination. After 24 hours, your account will be suspended.
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleTerminate}
+                disabled={terminating}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 transition disabled:opacity-50"
+              >
+                {terminating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" />}
+                {terminating ? "Processing..." : "Confirm Termination"}
+              </button>
+              <button
+                onClick={() => setShowTerminateDialog(false)}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-md shadow-xl mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+                <ShieldX className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-foreground">Delete Account Permanently</h3>
+                <p className="text-xs text-muted-foreground">This action is irreversible</p>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-red-500/5 border border-red-500/20 p-3 mb-4">
+              <p className="text-xs text-red-500 leading-relaxed">
+                This will permanently delete your account, all analysis runs, organizations, subscription data, and everything associated with <span className="font-semibold">{email}</span>. This cannot be undone.
+              </p>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-xs text-muted-foreground mb-1.5 block">
+                Type <span className="font-mono font-semibold text-foreground">delete my account</span> to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="delete my account"
+                className="w-full bg-background rounded-xl px-3 py-2.5 text-sm border border-border focus:outline-none focus:ring-2 focus:ring-red-500/30 font-mono"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting || deleteConfirmText !== "delete my account"}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {deleting ? "Deleting..." : "Delete Forever"}
+              </button>
+              <button
+                onClick={() => { setShowDeleteDialog(false); setDeleteConfirmText(""); }}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

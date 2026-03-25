@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import {
-  getRunBySlug,
-  getScoreHistory,
   getExportPDFUrl,
   startAnalysis,
-  type AnalysisRunDetail,
-  type ScoreHistoryPoint,
 } from "@/lib/api/analyzer";
+import { useRun } from "./_components/run-context";
 import { config, routes } from "@/lib/config";
 import {
   Search,
@@ -24,6 +21,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { CommandPalette } from "@/components/ui/command-palette";
 
 /* ── coral is theme-constant; everything else uses Tailwind classes ── */
 const CORAL = "#F95C4B";
@@ -67,13 +65,12 @@ export default function SignalorDashboard() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  const [run, setRun] = useState<AnalysisRunDetail | null>(null);
-  const [scoreHistory, setScoreHistory] = useState<ScoreHistoryPoint[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { run, scoreHistory, loading, error, refetch } = useRun();
   const [reanalyzing, setReanalyzing] = useState(false);
+  const [reanalyzeError, setReanalyzeError] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [historyRange, setHistoryRange] = useState<"7d" | "1m" | "3m" | "all">("all");
   const [historyDropdownOpen, setHistoryDropdownOpen] = useState(false);
 
@@ -97,45 +94,19 @@ export default function SignalorDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  const email = session?.user?.email ?? "";
-
-  const fetchData = useCallback(async () => {
-    if (!slug) return;
-    try {
-      setLoading(true);
-      setError("");
-      const detail = await getRunBySlug(slug);
-      setRun(detail);
-      if (detail.email) {
-        const history = await getScoreHistory(detail.email).catch(() => []);
-        setScoreHistory(history);
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load analysis");
-    } finally {
-      setLoading(false);
-    }
-  }, [slug]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
+  // Cmd+K / Ctrl+K to open command palette
   useEffect(() => {
-    if (!run || run.status === "complete" || run.status === "failed") return;
-    const interval = setInterval(async () => {
-      try {
-        const updated = await getRunBySlug(slug);
-        setRun(updated);
-        if (updated.status === "complete" || updated.status === "failed") {
-          clearInterval(interval);
-          if (updated.email) {
-            const history = await getScoreHistory(updated.email).catch(() => []);
-            setScoreHistory(history);
-          }
-        }
-      } catch { /* ignore */ }
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [run?.status, slug]);
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  const email = session?.user?.email ?? "";
 
   async function handleReanalyze() {
     if (!run || !email) return;
@@ -149,7 +120,7 @@ export default function SignalorDashboard() {
       });
       router.push(routes.dashboardProject(newRun.slug));
     } catch {
-      setError("Failed to start re-analysis");
+      setReanalyzeError("Failed to start re-analysis");
     } finally {
       setReanalyzing(false);
     }
@@ -335,12 +306,12 @@ export default function SignalorDashboard() {
     );
   }
 
-  if (error && !run) {
+  if ((error || reanalyzeError) && !run) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${CORAL}10`, border: `1px solid ${CORAL}30`, color: CORAL }}>
           <AlertCircle className="h-4 w-4 shrink-0" />
-          {error}
+          {error || reanalyzeError}
         </div>
       </div>
     );
@@ -350,16 +321,14 @@ export default function SignalorDashboard() {
     <>
       {/* ── Sticky Top Bar (compact) ── */}
       <header className="sticky top-0 z-20 px-6 py-2.5 flex items-center justify-end gap-3 bg-background border-b border-border">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search recommendations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-card rounded-xl py-2 pl-9 pr-4 text-sm w-52 focus:outline-none focus:ring-2 border border-border text-foreground"
-          />
-        </div>
+        <button
+          onClick={() => setPaletteOpen(true)}
+          className="flex items-center gap-2 bg-card rounded-xl py-2 pl-3 pr-3 text-sm border border-border text-muted-foreground hover:bg-accent transition w-52"
+        >
+          <Search className="w-4 h-4 shrink-0" />
+          <span className="flex-1 text-left text-xs">Search...</span>
+          <kbd className="text-[10px] font-mono bg-accent border border-border rounded px-1.5 py-0.5">⌘K</kbd>
+        </button>
         <button
           onClick={handleReanalyze}
           disabled={reanalyzing || isRunning}
@@ -404,51 +373,6 @@ export default function SignalorDashboard() {
           </div>
         )}
       </div>
-
-      {/* Running state */}
-      {isRunning && (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-full max-w-md rounded-2xl bg-card p-6 md:p-8 border border-border">
-            {/* Orbital loader */}
-            <div className="flex flex-col items-center mb-6">
-              <div className="relative w-20 h-20 mb-3">
-                <svg width={80} height={80} viewBox="0 0 80 80">
-                  <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" strokeWidth="3" />
-                  <circle
-                    cx="40" cy="40" r="32" fill="none"
-                    stroke={CORAL} strokeWidth="3" strokeLinecap="round"
-                    strokeDasharray="50 150"
-                    className="animate-[signalor-spin_1.2s_linear_infinite]"
-                    style={{ transformOrigin: "40px 40px" }}
-                  />
-                  <text x="40" y="42" textAnchor="middle" dominantBaseline="middle" fill="var(--foreground)" fontSize="16" fontWeight="700">
-                    {run?.progress != null ? Math.round(run.progress) : 0}%
-                  </text>
-                </svg>
-              </div>
-              <p className="text-base font-semibold text-foreground">Analysis in progress</p>
-              <p className="text-xs mt-0.5 text-muted-foreground">
-                {run?.status === "pending" && "Queued — starting soon..."}
-                {run?.status === "crawling" && "Crawling your website..."}
-                {run?.status === "analyzing" && "AI is analyzing content..."}
-                {run?.status === "scoring" && "Computing GEO scores..."}
-                {run?.status === "running" && "Running analysis..."}
-                {!["pending", "crawling", "analyzing", "scoring", "running"].includes(run?.status ?? "") && "Processing..."}
-              </p>
-            </div>
-
-            {/* Progress bar */}
-            <div className="h-2 w-full rounded-full overflow-hidden bg-muted">
-              <div
-                className="h-full rounded-full transition-all duration-700 relative"
-                style={{ width: `${run?.progress ?? 0}%`, backgroundColor: CORAL }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent shimmer" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Dashboard content */}
       {run && !isRunning && (
@@ -992,6 +916,8 @@ export default function SignalorDashboard() {
           </div>
         </div>
       )}
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>
   );
 }
