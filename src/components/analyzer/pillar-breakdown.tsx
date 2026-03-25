@@ -32,7 +32,7 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
   const gridLevels = [0.25, 0.5, 0.75, 1.0];
 
   return (
-    <div className="w-full max-w-[360px] rounded-xl border border-border/60 bg-card/65 p-4 shadow-lg">
+    <div className="w-full max-w-[360px] rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-4 shadow-lg">
       <svg width={300} height={300} viewBox="0 0 300 300" className="mx-auto">
         {gridLevels.map((level) => {
           const gridPoints = PILLARS.map((_, i) => {
@@ -42,7 +42,7 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
             return `${x},${y}`;
           }).join(" ");
           return (
-            <polygon key={level} points={gridPoints} fill="none" stroke="var(--border)" strokeWidth="0.7" />
+            <polygon key={level} points={gridPoints} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.7" />
           );
         })}
 
@@ -50,14 +50,15 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
           const angle = startAngle + i * angleStep;
           const x = center + radius * Math.cos(angle);
           const y = center + radius * Math.sin(angle);
-          return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="var(--border)" strokeWidth="0.7" />;
+          return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="0.7" />;
         })}
 
         <polygon
           points={polygonPoints}
-          fill="oklch(0.68 0.12 186 / 0.18)"
+          fill="oklch(0.68 0.12 186 / 0.12)"
           stroke="oklch(0.68 0.12 186)"
           strokeWidth="2"
+          opacity="0.85"
         />
 
         {points.map((p, i) => (
@@ -77,6 +78,7 @@ export function PillarBreakdown({ pageScore }: PillarBreakdownProps) {
               textAnchor="middle"
               dominantBaseline="middle"
               fill="currentColor"
+              className="text-gray-400"
               fontSize="10"
               fontWeight="600"
             >

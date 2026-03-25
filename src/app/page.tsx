@@ -1,217 +1,850 @@
-import Link from "next/link";
-import { routes } from "@/lib/config";
-import { Button } from "@/components/ui/button";
-import { HeroAnalyzerForm } from "@/components/analyzer/hero-analyzer-form";
+"use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Plus_Jakarta_Sans } from "next/font/google";
+import {
+  Play,
+  CheckCircle2,
+  TrendingUp,
+  Brain,
+  BarChart3,
+  Zap,
+  Globe,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
+import LogoComp from "@/components/LogoComp";
+import { startAnalysis } from "@/lib/api/analyzer";
+import { routes } from "@/lib/config";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
+
+const COUNTRY_OPTIONS = [
+  { name: "United States", flag: "🇺🇸" },
+  { name: "Canada", flag: "🇨🇦" },
+  { name: "United Kingdom", flag: "🇬🇧" },
+  { name: "Australia", flag: "🇦🇺" },
+  { name: "India", flag: "🇮🇳" },
+  { name: "Germany", flag: "🇩🇪" },
+  { name: "France", flag: "🇫🇷" },
+  { name: "Singapore", flag: "🇸🇬" },
+  { name: "United Arab Emirates", flag: "🇦🇪" },
+];
+
+// --- Analyzer Form Component ---
+export function HeroAnalyzerForm() {
+  const router = useRouter();
+  const [url, setUrl] = useState("");
+  const [country, setCountry] = useState("United States");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!url.trim() || loading) return;
+
+    const normalizedUrl =
+      url.startsWith("http://") || url.startsWith("https://")
+        ? url.trim()
+        : `https://${url.trim()}`;
+
+    setError("");
+    setLoading(true);
+    try {
+      const run = await startAnalysis({
+        url: normalizedUrl,
+        run_type: "full_site",
+        country,
+      });
+      router.push(routes.analyzerResults(run.id));
+    } catch {
+      setError(
+        "Analysis failed to start. Please verify the URL and try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto mt-10 flex w-full max-w-2xl flex-col items-center justify-center">
+      <form onSubmit={handleSubmit} className="w-full">
+        <div className="group relative flex flex-col rounded-2xl bg-background p-1.5 shadow-lg ring-1 ring-border transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/50 hover:shadow-xl md:flex-row md:items-center md:rounded-full md:p-2">
+          {/* URL Input */}
+          <div className="relative flex flex-1 items-center px-4 py-3 md:py-0">
+            <Globe className="h-5 w-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Enter website URL "
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              required
+            />
+          </div>
+
+          {/* Divider (Desktop Only) */}
+          <div className="hidden h-8 w-[1px] bg-border md:block" />
+
+          {/* Shadcn Country Select with Flags */}
+          <div className="relative flex w-full items-center border-t border-border px-4 py-2 md:w-auto md:border-t-0 md:py-0">
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger className="w-full border-0 bg-transparent shadow-none focus:ring-0 md:w-[170px]">
+                <SelectValue placeholder="Select Country" />
+              </SelectTrigger>
+              <SelectContent>
+                {COUNTRY_OPTIONS.map((option) => (
+                  <SelectItem
+                    key={option.name}
+                    value={option.name}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{option.flag}</span>
+                      <span className="text-sm font-medium">{option.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading || !url.trim()}
+            className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground shadow-sm transition-transform active:scale-95 disabled:opacity-70 md:mt-0 md:w-auto md:rounded-full hover:opacity-90"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Scanning...</span>
+              </>
+            ) : (
+              <>
+                <span>Analyze Free</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Trust note below form */}
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          No sign-up required · Results in under 60 seconds · Free for any
+          website
+        </p>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50/50 px-4 py-3 text-sm text-red-600 backdrop-blur-sm">
+            <svg
+              className="h-4 w-4 flex-shrink-0"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {error}
+          </div>
+        )}
+      </form>
+    </div>
+  );
+}
+
+// --- Main Landing Page ---
 export default function Home() {
   return (
-    <main className="overflow-x-hidden bg-white text-slate-900">
-      <section className="relative left-1/2 h-screen w-[100dvw] -translate-x-1/2 overflow-hidden border-y border-[#5a6cf5]/25 bg-[#030416] px-6 py-3 text-slate-100 shadow-lg md:px-10 md:py-7">
-        <div
-          className="pointer-events-none absolute inset-0 bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('/hero-bg.jpg.jpg')",
-            backgroundSize: "100% 100%",
-          }}
-        />
-        <div className="mx-auto w-full max-w-6xl">
-          <header className="relative z-20 flex items-center justify-between py-2">
-            <div className="text-lg font-semibold tracking-tight text-white">Signalor GEO</div>
-            <nav className="hidden items-center gap-6 text-xs text-slate-200/90 md:flex">
-              <a href="#services" className="hover:text-white">Services</a>
-              <a href="#how-it-works" className="hover:text-white">How it works</a>
-              <a href="#our-work" className="hover:text-white">Our Work</a>
-              <a href="#pricing" className="hover:text-white">Pricing</a>
-              <a href="#our-team" className="hover:text-white">Our Team</a>
-            </nav>
-            <div className="flex items-center gap-2">
-              <Button asChild size="sm" variant="ghost" className="rounded-full border border-white/30 bg-white/10 text-white hover:bg-white/20">
-                <Link href={routes.signIn}>Sign in</Link>
-              </Button>
-              <Button asChild size="sm" className="rounded-full bg-[#ff8c3a] text-black hover:bg-[#ffa35f]">
-                <Link href={routes.signUp}>Get started</Link>
-              </Button>
-            </div>
-          </header>
+    <main
+      className={`${plusJakarta.className} overflow-x-hidden bg-background text-foreground selection:bg-primary/20 selection:text-primary`}
+    >
+      {/* Navigation */}
+      <header className="absolute top-0 left-0 right-0 z-50">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-6 lg:px-12">
+          <LogoComp />
 
-          <div className="relative z-10 flex min-h-[78vh] flex-col items-center justify-center pt-4 text-center">
-            <p className="inline-flex rounded-full border border-white/25 bg-black/35 px-3 py-1 text-xs font-medium text-slate-100">
-              AI Search Visibility Platform
-            </p>
-            <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-white md:text-7xl">
-              Track GEO performance
-              <br />
-              and improve what AI engines see first
-            </h1>
-            <p className="mt-5 max-w-3xl text-sm text-slate-200/90 md:text-base">
-              Signalor gives you run-level scoring, visibility diagnostics, competitor benchmarks,
-              and prioritized actions in one clean workflow.
-            </p>
-            <HeroAnalyzerForm />
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-200/90">
-              <span>Run-level composite GEO scoring</span>
-              <span>Competitor and AI visibility diagnostics</span>
-              <span>Prioritized actions and reporting exports</span>
+          {/* Desktop Nav */}
+          <nav className="hidden items-center gap-8 md:flex">
+            <Link href="/" className="text-sm font-medium text-foreground">
+              Home
+            </Link>
+            <Link
+              href="#features"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Features
+            </Link>
+            <Link
+              href="#pricing"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              How It Works
+            </Link>
+            <Link
+              href="#contact"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Contact Us
+            </Link>
+          </nav>
+
+          {/* Actions */}
+          <div className="hidden items-center gap-4 md:flex">
+            <Link
+              href="/sign-in"
+              className="text-sm font-medium text-foreground hover:text-primary"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/sign-up"
+              className="rounded-full bg-[#0A251C] px-6 py-2.5 text-sm font-medium text-white transition-transform hover:scale-105"
+            >
+              Get Started Free
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <section className="relative min-h-screen pt-32 pb-20 lg:pt-40 lg:pb-24">
+        {/* Abstract Background Elements */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/10 blur-[120px] rounded-full" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-7xl px-6 text-center lg:px-12">
+          {/* Top Badge */}
+          <div className="flex flex-col items-center justify-center gap-3 mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-600 border border-amber-200">
+              👑 The #1 GEO Scoring Platform for AI Search
+            </div>
+          </div>
+
+          {/* Headline — clearer, more direct */}
+          <h1 className="mx-auto max-w-4xl text-5xl leading-[1.1] tracking-tight text-foreground md:text-6xl lg:text-7xl">
+            Will AI Recommend <br className="hidden md:block" />
+            <span className="text-foreground/60">Your Brand?</span>
+          </h1>
+
+          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+            Check your GEO score in seconds.
+          </p>
+
+          {/* Subheadline — specific and benefit-led */}
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+            Signalor audits your website for Generative Engine Optimization
+            (GEO) — scoring how likely ChatGPT, Gemini, Perplexity, and Claude
+            are to cite and recommend your brand. Then it tells you exactly what
+            to fix.
+          </p>
+
+          {/* Integrated Form Component */}
+          <HeroAnalyzerForm />
+
+          {/* Floating GEO Score Cards */}
+          <div className="absolute top-40 left-[10%] hidden animate-pulse md:block">
+            <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lg border border-border">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+                73
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-bold text-foreground">GEO Score</p>
+                <p className="text-[10px] text-emerald-600">
+                  ↑ +5 pts this week
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="absolute top-32 right-[15%] hidden animate-pulse md:block delay-150">
+            <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lg border border-border">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-bold text-foreground">
+                  AI Citations
+                </p>
+                <p className="text-[10px] text-emerald-600">
+                  ↑ +40% in 30 days
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col px-6 py-12 md:px-10">
-        <section id="services" className="mt-12 grid gap-4 md:grid-cols-3">
-          {[
-            {
-              title: "Fast Analysis Runs",
-              description: "Launch new audits quickly and monitor status in real time.",
-            },
-            {
-              title: "Actionable Insights",
-              description: "Get practical next steps tied to each analyzed page and score pillar.",
-            },
-            {
-              title: "Built for Teams",
-              description: "Use integrations and reporting to align SEO, content, and growth teams.",
-            },
-          ].map((item) => (
-            <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h3 className="text-base font-semibold text-[#134a9f]">{item.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{item.description}</p>
+      {/* Trusted By / LLM Logos */}
+      <section className="border-y border-border/50 bg-background/50 py-10 backdrop-blur-sm">
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-8">
+          Optimize for every major AI search engine
+        </p>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-10 px-6 opacity-60 grayscale transition-all hover:grayscale-0 md:gap-16 lg:px-12">
+          <img
+            src="/logos/chatgpt.svg"
+            alt="ChatGPT"
+            className="h-8 object-contain hidden sm:block"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+          <span className="text-xl font-bold tracking-tight sm:hidden">
+            ChatGPT
+          </span>
+
+          <img
+            src="/logos/perplexity.svg"
+            alt="Perplexity"
+            className="h-8 object-contain hidden sm:block"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+          <span className="text-xl font-bold tracking-tight sm:hidden">
+            Perplexity
+          </span>
+
+          <img
+            src="/logos/gemini.svg"
+            alt="Gemini"
+            className="h-8 object-contain hidden sm:block"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+          <span className="text-xl font-bold tracking-tight sm:hidden">
+            Gemini
+          </span>
+
+          <img
+            src="/logos/google.svg"
+            alt="Google AI"
+            className="h-8 object-contain hidden sm:block"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+          <span className="text-xl font-bold tracking-tight sm:hidden">
+            Google
+          </span>
+
+          <img
+            src="/logos/claude.svg"
+            alt="Claude"
+            className="h-8 object-contain hidden sm:block"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+          <span className="text-xl font-bold tracking-tight sm:hidden">
+            Claude
+          </span>
+
+          <img
+            src="/logos/copilot.svg"
+            alt="Bing Copilot"
+            className="h-8 object-contain hidden sm:block"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
+          <span className="text-xl font-bold tracking-tight sm:hidden">
+            Copilot
+          </span>
+        </div>
+      </section>
+
+      {/* About Platform / Stats */}
+      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-12">
+        <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
+          <div className="flex flex-col items-start justify-center">
+            <span className="text-sm font-bold uppercase tracking-wider text-primary">
+              Why Signalor //
+            </span>
+            <h2 className="mt-4 font-sans text-4xl leading-tight tracking-tight text-foreground md:text-5xl">
+              SEO Got Your Site on Google. <br />{" "}
+              <span className="text-muted-foreground">
+                GEO Gets You Into AI Answers.
+              </span>
+            </h2>
+            <p className="mt-6 text-base text-muted-foreground">
+              Over 40% of searches now happen inside AI tools — and those tools
+              don't rank links, they cite sources. Signalor runs a full GEO
+              audit of your website, scoring your AI citability, structured
+              data, brand authority, and platform-specific visibility. You get a
+              clear, prioritized action plan — not just a report.
+            </p>
+            <Link
+              href="/about"
+              className="mt-8 rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground hover:opacity-90"
+            >
+              Learn More
+            </Link>
+          </div>
+
+          <div className="flex flex-col justify-center gap-6">
+            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-10 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute top-0 right-0 h-32 w-32 bg-primary/5 blur-3xl" />
+              <h3 className="font-sans text-5xl text-foreground md:text-6xl">
+                5,000+{" "}
+                <span className="text-2xl text-muted-foreground">Websites</span>
+              </h3>
+              <p className="mt-4 text-sm text-muted-foreground">
+                Brands already using Signalor to improve their visibility in
+                AI-generated answers and recommendations.
+              </p>
             </div>
-          ))}
-        </section>
+            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-10 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute top-0 right-0 h-32 w-32 bg-primary/5 blur-3xl" />
+              <h3 className="font-sans text-5xl text-foreground md:text-6xl">
+                40%{" "}
+                <span className="text-2xl text-muted-foreground">
+                  Avg. Lift
+                </span>
+              </h3>
+              <p className="mt-4 text-sm text-muted-foreground">
+                Average increase in AI citations within 90 days of implementing
+                Signalor's recommendations.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <section id="our-work" className="mt-12 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-          <p className="text-sm font-semibold text-[#1f6fd1]">Platform Snapshot</p>
-          <div className="mt-4 grid gap-4 md:grid-cols-4">
-            {[
-              { label: "Core GEO Pillars", value: "6" },
-              { label: "Visibility Channels", value: "3" },
-              { label: "Run Sections", value: "7+" },
-              { label: "Export Ready", value: "PDF" },
-            ].map((item) => (
-              <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-2xl font-bold tracking-tight text-[#ff8c3a]">{item.value}</p>
-                <p className="mt-1 text-xs text-slate-600">{item.label}</p>
+      {/* Features Section */}
+      <section
+        id="features"
+        className="mx-auto max-w-7xl px-6 py-24 lg:px-12 bg-muted/30 rounded-[3rem] my-12"
+      >
+        <div className="text-center">
+          <span className="text-sm font-bold uppercase tracking-wider text-primary">
+            Features //
+          </span>
+          <h2 className="mt-4 font-sans text-4xl tracking-tight text-foreground md:text-5xl">
+            Everything You Need to Win <br /> AI Search — In One Platform
+          </h2>
+        </div>
+
+        <div className="mt-16 grid gap-6 md:grid-cols-3">
+          {/* Card 1 — GEO Score */}
+          <div className="flex flex-col justify-between overflow-hidden rounded-[2.5rem] bg-[#0A251C] p-8 text-white h-[450px]">
+            <div>
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
+                <BarChart3 className="h-5 w-5 text-primary" />
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="how-it-works" className="mt-12">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">How It Works</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              A simple workflow from URL input to prioritized GEO actions.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              {
-                title: "1. Analyze",
-                description:
-                  "Run a GEO audit for your primary site URL and fetch scoring across content, schema, E-E-A-T, technical, entity, and AI visibility.",
-              },
-              {
-                title: "2. Diagnose",
-                description:
-                  "Review AI logs, visibility checks, and competitor benchmarks to understand where and why your brand is underperforming.",
-              },
-              {
-                title: "3. Improve",
-                description:
-                  "Execute prioritized recommendations, track actions, and re-run analysis to measure progress over time.",
-              },
-            ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="text-base font-semibold text-[#134a9f]">{item.title}</h3>
-                <p className="mt-2 text-sm text-slate-600">{item.description}</p>
+              <h3 className="text-2xl font-semibold">
+                Your GEO Score, Tracked Over Time
+              </h3>
+              <p className="mt-3 text-sm text-white/70">
+                A single 0–100 score that measures how well AI models
+                understand, trust, and cite your website — updated continuously
+                as you make improvements.
+              </p>
+            </div>
+            {/* Mockup Score UI */}
+            <div className="mt-8 rounded-2xl bg-white/10 p-5 border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-white/60">GEO Score</span>
+                <span className="text-xs text-primary font-bold">↑ +5 pts</span>
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="our-team" className="mt-12">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Who Uses Signalor</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Built for teams that need reliable GEO visibility and execution clarity.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              {
-                title: "In-house SEO Teams",
-                description: "Track technical/content gaps and align roadmap with measurable GEO improvements.",
-              },
-              {
-                title: "Content & Brand Teams",
-                description: "Understand how AI surfaces your brand mentions and where authority signals are weak.",
-              },
-              {
-                title: "Agencies & Consultants",
-                description: "Deliver clear diagnostics, recommendations, and report-ready outputs for clients.",
-              },
-            ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h3 className="text-base font-semibold text-[#134a9f]">{item.title}</h3>
-                <p className="mt-2 text-sm text-slate-600">{item.description}</p>
+              <div className="flex items-end gap-1 h-16">
+                {[30, 45, 40, 55, 60, 58, 73].map((h, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 rounded-t bg-primary/60"
+                    style={{ height: `${h}%` }}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-12">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Frequently Asked Questions</h2>
-          </div>
-          <div className="space-y-3">
-            {[
-              {
-                q: "Do I need integrations before running analysis?",
-                a: "No. You can run GEO analysis immediately. Integrations add business and traffic context later.",
-              },
-              {
-                q: "Can I compare multiple runs over time?",
-                a: "Yes. Use history and reports to compare score changes and recommendation progress.",
-              },
-              {
-                q: "Is this only for one domain?",
-                a: "No. You can run analyses for different domains and manage them from the analyzer workspace.",
-              },
-            ].map((item) => (
-              <div key={item.q} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <p className="text-sm font-semibold text-slate-900">{item.q}</p>
-                <p className="mt-1 text-sm text-slate-600">{item.a}</p>
+              <div className="flex justify-between mt-2">
+                {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"].map((m) => (
+                  <span key={m} className="text-[9px] text-white/40">
+                    {m}
+                  </span>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </section>
 
-        <section id="pricing" className="mt-12 rounded-2xl border border-[#ff8c3a]/35 bg-[#fff4eb] p-6 md:p-8">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Ready to improve your AI search presence?</h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-700">
-            Start a new analysis, identify the exact blockers, and ship improvements with confidence.
+          {/* Card 2 — Recommendations */}
+          <div className="flex flex-col justify-between overflow-hidden rounded-[2.5rem] bg-[#EAF5F0] p-8 text-[#0A251C] h-[450px]">
+            <div>
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A251C]/10">
+                <Brain className="h-5 w-5 text-[#0A251C]" />
+              </div>
+              <h3 className="text-2xl font-semibold">
+                Fixes That Actually Move the Needle
+              </h3>
+              <p className="mt-3 text-sm text-[#0A251C]/70">
+                Prioritized, plain-English recommendations — from adding JSON-LD
+                schema and building authoritative citations to restructuring
+                content the way AI models prefer to read it.
+              </p>
+            </div>
+            {/* Mockup Recommendations */}
+            <div className="mt-8 space-y-3">
+              <div className="rounded-xl bg-white p-3 shadow-sm flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-red-400 flex-shrink-0" />
+                <div className="space-y-1 w-full">
+                  <div className="h-2 w-3/4 rounded bg-slate-200" />
+                  <div className="text-[10px] text-[#0A251C]/50">
+                    Critical · JSON-LD schema missing
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-xl bg-white/70 p-3 shadow-sm flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-amber-400 flex-shrink-0" />
+                <div className="space-y-1 w-full">
+                  <div className="h-2 w-1/2 rounded bg-slate-200" />
+                  <div className="text-[10px] text-[#0A251C]/50">
+                    High · Add third-party citations
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-xl bg-white/50 p-3 shadow-sm flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                <div className="space-y-1 w-full">
+                  <div className="h-2 w-2/3 rounded bg-slate-200" />
+                  <div className="text-[10px] text-[#0A251C]/50">
+                    Medium · Publish to Medium & Reddit
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3 — Platform Visibility */}
+          <div className="flex flex-col justify-between overflow-hidden rounded-[2.5rem] bg-white border border-border p-8 h-[450px]">
+            <div>
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <TrendingUp className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold text-foreground">
+                See Where You Show Up — and Where You Don't
+              </h3>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Understand your brand's presence across Google AI Overviews,
+                Reddit, Medium, and the open web. Know exactly which channels to
+                invest in next.
+              </p>
+            </div>
+            {/* Mockup Bar Chart */}
+            <div className="mt-8">
+              <div className="flex items-end justify-around gap-3 h-28 px-2">
+                {[
+                  { label: "Google", val: 9 },
+                  { label: "Reddit", val: 99 },
+                  { label: "Medium", val: 15 },
+                  { label: "Web", val: 63 },
+                ].map(({ label, val }) => (
+                  <div
+                    key={label}
+                    className="flex flex-col items-center gap-1 flex-1"
+                  >
+                    <span className="text-[10px] font-medium text-foreground">
+                      {val}
+                    </span>
+                    <div
+                      className="w-full rounded-t-lg bg-primary/80"
+                      style={{ height: `${val}%` }}
+                    />
+                    <span className="text-[9px] text-muted-foreground">
+                      {label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section
+        id="how-it-works"
+        className="mx-auto w-full max-w-7xl px-6 py-24 text-center lg:px-12"
+      >
+        <div className="relative mx-auto flex max-w-3xl flex-col items-center justify-center pt-20 pb-10">
+          <div className="absolute top-0 w-full h-[300px] border-t-2 border-dashed border-border rounded-t-full opacity-50" />
+
+          <div className="z-10 mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-primary text-white shadow-xl shadow-primary/20">
+            <Zap className="h-10 w-10" />
+          </div>
+
+          <h2 className="font-sans text-4xl tracking-tight text-foreground md:text-5xl">
+            Paste Your URL. <br />{" "}
+            <span className="text-muted-foreground">
+              Get Your Full GEO Audit in 60 Seconds.
+            </span>
+          </h2>
+          <p className="mt-4 text-sm text-muted-foreground max-w-lg">
+            No setup, no integrations, no waiting. Signalor scans your site,
+            scores every GEO signal, and hands you a prioritized action plan —
+            so you know exactly what to fix first.
           </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-[#ff8c3a] text-black hover:bg-[#ffa35f]">
-              <Link href={routes.signUp}>Create Account</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-[#1f6fd1]/45 text-[#134a9f] hover:bg-[#eaf3ff]">
-              <Link href={routes.analyzer}>Go to Analyzer</Link>
-            </Button>
-          </div>
-        </section>
+          <Link
+            href="/analyzer"
+            className="mt-8 rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground hover:opacity-90"
+          >
+            Run My Free Audit
+          </Link>
+        </div>
+      </section>
 
-        <footer className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5 text-sm text-slate-600">
-          <p>(c) {new Date().getFullYear()} Signalor GEO</p>
-          <div className="flex items-center gap-4">
-            <Link href="/about" className="hover:text-slate-900">About</Link>
-            <Link href="/privacy-policy" className="hover:text-slate-900">Privacy Policy</Link>
-            <Link href="/terms-and-conditions" className="hover:text-slate-900">Terms & Conditions</Link>
+      {/* Pricing Section */}
+      <section
+        id="pricing"
+        className="mx-auto w-full max-w-7xl px-6 py-24 lg:px-12"
+      >
+        <div className="text-center mb-10">
+          <span className="text-sm font-bold uppercase tracking-wider text-primary">
+            Pricing //
+          </span>
+          <h2 className="mt-4 font-sans text-4xl tracking-tight text-foreground md:text-5xl">
+            One Plan. Everything Included. <br />{" "}
+            <span className="text-muted-foreground">No Surprises.</span>
+          </h2>
+        </div>
+
+        {/* Billing Toggle */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex items-center rounded-full border border-border bg-card p-1 shadow-sm">
+            <button className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm">
+              Monthly
+            </button>
+            <button className="relative rounded-full px-6 py-2.5 text-sm font-medium text-muted-foreground cursor-not-allowed opacity-70">
+              Annual
+              <span className="absolute -top-3 -right-2 rounded-full bg-amber-100 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+                Coming Soon
+              </span>
+            </button>
           </div>
-        </footer>
-      </div>
+        </div>
+
+        <div className="mx-auto max-w-md">
+          {/* Pro Monthly Plan */}
+          <div className="rounded-[2.5rem] bg-[#0A251C] p-10 text-white shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
+            <div className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+              Pro Plan
+            </div>
+            <div className="mt-6 flex items-baseline gap-1">
+              <span className="font-sans text-6xl tracking-tight">£20</span>
+              <span className="text-white/60 text-lg font-medium">
+                {" "}
+                / month
+              </span>
+            </div>
+            <p className="mt-4 text-sm text-white/60 border-b border-white/10 pb-8">
+              Full access to every Signalor feature. Analyze unlimited sites,
+              track your GEO score over time, and implement fixes with
+              confidence.
+            </p>
+            <Link
+              href="/sign-up"
+              className="mt-8 block w-full rounded-full bg-primary py-4 text-center text-sm font-bold text-[#0A251C] hover:bg-primary/90 transition-colors"
+            >
+              Start 
+            </Link>
+            <ul className="mt-8 space-y-4">
+              {[
+                "Unlimited website analyses",
+                "Full GEO audit with AI citability scoring",
+                "Prioritized, plain-English recommendations",
+                "Platform visibility across Google AI, Reddit & Medium",
+                "One-click JSON-LD schema generator",
+                "Score history & progress tracking",
+                "Priority email support",
+              ].map((feature) => (
+                <li
+                  key={feature}
+                  className="flex items-center gap-3 text-sm text-white/80"
+                >
+                  <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom CTA Banner */}
+        <div className="mt-20 mx-auto max-w-5xl rounded-[2.5rem] bg-[#EAF5F0] p-10 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="font-sans text-3xl text-[#0A251C] md:text-4xl max-w-md">
+              Your Competitors Are Already{" "}
+              <span className="text-[#0A251C]/60">
+                Optimizing for AI Search.
+              </span>
+            </h2>
+            <p className="mt-4 text-sm text-[#0A251C]/70 max-w-sm">
+              Run a free GEO audit today and see exactly how AI engines
+              currently perceive your brand — before someone else owns that
+              space.
+            </p>
+            <Link
+              href="/sign-up"
+              className="mt-8 inline-block rounded-full bg-primary px-8 py-3.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            >
+              Get Started 
+            </Link>
+          </div>
+          {/* Abstract Graphic Right side */}
+          <div className="hidden md:block relative w-64 h-48">
+            <div className="absolute top-0 right-0 w-full h-16 bg-white rounded-xl shadow-sm opacity-80 flex items-center px-4 gap-3 animate-pulse">
+              <div className="h-6 w-6 rounded-full bg-primary/20" />
+              <div className="h-2 w-1/2 rounded bg-[#0A251C]/10" />
+            </div>
+            <div className="absolute top-20 right-4 w-5/6 h-16 bg-white rounded-xl shadow-sm opacity-90 flex items-center px-4 gap-3 animate-pulse delay-75">
+              <div className="h-6 w-6 rounded-full bg-emerald-100" />
+              <div className="h-2 w-2/3 rounded bg-[#0A251C]/10" />
+            </div>
+            <div className="absolute bottom-0 right-8 w-4/6 h-16 bg-white rounded-xl shadow-sm flex items-center px-4 gap-3 animate-pulse delay-150">
+              <div className="h-6 w-6 rounded-full bg-amber-100" />
+              <div className="h-2 w-1/2 rounded bg-[#0A251C]/10" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-background pt-20 pb-10">
+        <div className="mx-auto max-w-7xl px-6 lg:px-12">
+          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-2 text-xl font-bold text-foreground mb-6">
+                {/* <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                  <Zap className="h-4 w-4 text-white" />
+                </div>
+                Signalor */}
+                <LogoComp />
+              </div>
+              <p className="text-sm text-muted-foreground max-w-sm mb-6">
+                The GEO platform that helps brands get cited, recommended, and
+                surfaced by AI-powered search engines before their competitors
+                do.
+              </p>
+              {/* <div className="flex gap-2 max-w-sm">
+                <input
+                  type="email"
+                  placeholder="Your email address"
+                  className="flex-1 rounded-full border border-border bg-card px-4 py-2 text-sm outline-none focus:border-primary"
+                />
+                <button className="rounded-full bg-primary px-6 py-2 text-sm font-medium text-primary-foreground">
+                  Subscribe
+                </button>
+              </div> */}
+            </div>
+
+            <div>
+              <h4 className="font-bold text-foreground mb-6">Company</h4>
+              <ul className="space-y-4 text-sm text-muted-foreground">
+                <li>
+                  <Link href="#" className="hover:text-primary">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#pricing" className="hover:text-primary">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-primary">
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-primary">
+                    Security
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-primary">
+                    Blog
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-foreground mb-6">Product</h4>
+              <ul className="space-y-4 text-sm text-muted-foreground">
+                <li>
+                  <Link href="#features" className="hover:text-primary">
+                    GEO Score
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#features" className="hover:text-primary">
+                    AI Recommendations
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#features" className="hover:text-primary">
+                    Platform Visibility
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#features" className="hover:text-primary">
+                    JSON-LD Generator
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#features" className="hover:text-primary">
+                    Analytics
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-foreground mb-6">Support</h4>
+              <ul className="space-y-4 text-sm text-muted-foreground">
+                <li>
+                  <Link href="#" className="hover:text-primary">
+                    Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-primary">
+                    Documentation
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-primary">
+                    Community
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy-policy" className="hover:text-primary">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/terms-and-conditions"
+                    className="hover:text-primary"
+                  >
+                    Terms of Service
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-20 border-t border-border pt-8 text-center text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} Signalor Ltd. All Rights Reserved.
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }
-

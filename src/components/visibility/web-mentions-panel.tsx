@@ -52,7 +52,7 @@ const PLATFORM_CONFIG: Record<
   other: {
     label: "Other",
     icon: <Globe className="w-4 h-4" />,
-    color: "text-gray-400 bg-gray-500/10 border-gray-500/20",
+    color: "text-muted-foreground bg-muted border-border",
   },
 };
 

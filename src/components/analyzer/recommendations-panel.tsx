@@ -1,26 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Spotlight } from "@/components/ui/spotlight";
-import { MovingBorder } from "@/components/ui/moving-border";
+import { useState, useEffect, useRef } from "react";
 import type { Recommendation } from "@/lib/api/analyzer";
-
-const PRIORITY_STYLES: Record<string, string> = {
-  critical: "bg-red-500/10 text-red-500 border-red-500/20",
-  high: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  medium: "bg-teal-500/10 text-teal-500 border-teal-500/20",
-  low: "bg-gray-500/10 text-gray-400 border-gray-500/20",
-};
-
-const PRIORITY_BADGE: Record<string, string> = {
-  critical: "bg-red-500 text-white",
-  high: "bg-yellow-500 text-black",
-  medium: "bg-teal-500 text-white",
-  low: "bg-gray-500 text-white",
-};
+import { applyAutoFix, getAutoFixStatus } from "@/lib/api/analyzer";
+import {
+  Loader2, Wrench, CheckCircle2, XCircle, ChevronDown, ChevronRight,
+  AlertTriangle, ArrowUp, Minus, Copy,
+} from "lucide-react";
 
 const PILLAR_LABELS: Record<string, string> = {
   content: "Content",
@@ -31,329 +17,319 @@ const PILLAR_LABELS: Record<string, string> = {
   ai_visibility: "AI Visibility",
 };
 
-const POINTS_MAP: Record<string, number> = {
-  critical: 50,
-  high: 30,
-  medium: 20,
-  low: 10,
-  schema: 40,
-  technical: 30,
-  eeat: 35,
-  entity: 45,
-  content: 25,
-  ai_visibility: 40,
+const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: typeof AlertTriangle }> = {
+  critical: { color: "text-red-400", bg: "bg-red-500/10 border-red-500/20", icon: AlertTriangle },
+  high: { color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", icon: ArrowUp },
+  medium: { color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20", icon: Minus },
+  low: { color: "text-muted-foreground", bg: "bg-neutral-500/10 border-neutral-500/20", icon: Minus },
 };
-
-function getPointsForRecommendation(rec: Recommendation): number {
-  const priorityPoints = POINTS_MAP[rec.priority] || 10;
-  const categoryPoints = POINTS_MAP[rec.category] || 10;
-  return Math.max(priorityPoints, categoryPoints);
-}
-
-const ACTION_ICONS: Record<string, { icon: string; label: string }> = {
-  schema: { icon: "{ }", label: "Copy Code" },
-  technical: { icon: "\u2699", label: "Copy Config" },
-  entity: { icon: "\u21D7", label: "Open Guide" },
-  content: { icon: "\u270E", label: "Copy Template" },
-  eeat: { icon: "\u2713", label: "Copy Checklist" },
-};
-
-function extractCodeBlocks(text: string): { parts: Array<{ type: "text" | "code"; content: string }> } {
-  const lines = text.split("\n");
-  const parts: Array<{ type: "text" | "code"; content: string }> = [];
-  let currentCode: string[] = [];
-  let currentText: string[] = [];
-
-  for (const line of lines) {
-    const isCode =
-      line.trim().startsWith("<") ||
-      line.trim().startsWith("{") ||
-      line.trim().startsWith("}") ||
-      line.trim().startsWith('"@') ||
-      line.trim().startsWith("User-agent:") ||
-      line.trim().startsWith("Allow:") ||
-      line.trim().startsWith("Disallow:");
-
-    if (isCode) {
-      if (currentText.length) {
-        parts.push({ type: "text", content: currentText.join("\n") });
-        currentText = [];
-      }
-      currentCode.push(line);
-    } else {
-      if (currentCode.length) {
-        parts.push({ type: "code", content: currentCode.join("\n") });
-        currentCode = [];
-      }
-      currentText.push(line);
-    }
-  }
-  if (currentCode.length) parts.push({ type: "code", content: currentCode.join("\n") });
-  if (currentText.length) parts.push({ type: "text", content: currentText.join("\n") });
-
-  return { parts };
-}
-
-function CopyButton({ text, label }: { text: string; label: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // fallback
-    }
-  };
-
-  return (
-    <Button variant="outline" size="sm" onClick={handleCopy} className="h-7 text-xs gap-1.5 shrink-0">
-      {copied ? "Copied!" : label}
-    </Button>
-  );
-}
-
-function ActionSteps({ action, category }: { action: string; category: string }) {
-  const { parts } = extractCodeBlocks(action);
-  const hasSteps = action.includes("STEP ") || action.includes("Step ");
-
-  if (category === "entity" && (action.includes("reddit") || action.includes("Reddit") || action.includes("Medium") || action.includes("medium"))) {
-    return <CommunityGuide action={action} />;
-  }
-
-  return (
-    <div className="space-y-3">
-      {parts.map((part, i) => {
-        if (part.type === "code") {
-          return (
-            <div key={i} className="relative group">
-              <pre className="text-xs bg-background/80 rounded-md p-3 overflow-x-auto border border-border/50 font-mono leading-relaxed">
-                {part.content}
-              </pre>
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <CopyButton text={part.content} label="Copy" />
-              </div>
-            </div>
-          );
-        }
-        return (
-          <div key={i} className="text-xs whitespace-pre-wrap leading-relaxed">
-            {formatActionText(part.content, hasSteps)}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function formatActionText(text: string, hasSteps: boolean) {
-  const lines = text.split("\n");
-  return lines.map((line, i) => {
-    const trimmed = line.trim();
-    if (!trimmed) return <br key={i} />;
-
-    if (/^STEP \d/i.test(trimmed)) {
-      return (
-        <div key={i} className="flex items-center gap-2 mt-3 mb-1 first:mt-0">
-          <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">
-            {trimmed.match(/\d+/)?.[0]}
-          </span>
-          <span className="font-semibold text-foreground">
-            {trimmed.replace(/^STEP \d+ — ?/i, "")}
-          </span>
-        </div>
-      );
-    }
-
-    if (trimmed.startsWith("•") || trimmed.startsWith("-")) {
-      return (
-        <div key={i} className="flex gap-2 ml-7 text-muted-foreground">
-          <span className="text-primary/60 shrink-0">{"\u2022"}</span>
-          <span>{trimmed.replace(/^[•-]\s*/, "")}</span>
-        </div>
-      );
-    }
-
-    if (trimmed.startsWith("PRO TIP")) {
-      return (
-        <div key={i} className="mt-3 p-2.5 rounded-md bg-primary/5 border border-primary/10">
-          <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Pro Tip</span>
-          <p className="text-muted-foreground mt-0.5">{trimmed.replace(/^PRO TIP:?\s*/i, "")}</p>
-        </div>
-      );
-    }
-
-    if (trimmed.startsWith("AVOID:") || trimmed.startsWith("- AVOID:") || trimmed.startsWith("BAD:") || trimmed.startsWith("- BAD:")) {
-      return (
-        <div key={i} className="flex gap-2 ml-7">
-          <span className="text-red-400 shrink-0">{"\u2717"}</span>
-          <span className="text-red-400/80">{trimmed.replace(/^-?\s*(AVOID|BAD):?\s*/i, "")}</span>
-        </div>
-      );
-    }
-    if (trimmed.startsWith("USE:") || trimmed.startsWith("- USE:") || trimmed.startsWith("GOOD:") || trimmed.startsWith("- GOOD:")) {
-      return (
-        <div key={i} className="flex gap-2 ml-7">
-          <span className="text-green-400 shrink-0">{"\u2713"}</span>
-          <span className="text-green-400/80">{trimmed.replace(/^-?\s*(USE|GOOD):?\s*/i, "")}</span>
-        </div>
-      );
-    }
-
-    return <p key={i} className="text-muted-foreground">{trimmed}</p>;
-  });
-}
-
-function CommunityGuide({ action }: { action: string }) {
-  const isReddit = action.toLowerCase().includes("reddit");
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">{isReddit ? "\uD83D\uDCAC" : "\u270D\uFE0F"}</span>
-        <span className="text-xs font-semibold text-foreground">
-          {isReddit ? "Reddit Posting Playbook" : "Medium Publishing Playbook"}
-        </span>
-      </div>
-      <div className="text-xs whitespace-pre-wrap leading-relaxed">
-        {formatActionText(action, true)}
-      </div>
-    </div>
-  );
-}
 
 interface RecommendationsPanelProps {
   recommendations: Recommendation[];
+  slug?: string;
+  email?: string;
+  orgId?: number;
 }
 
-export function RecommendationsPanel({ recommendations }: RecommendationsPanelProps) {
+export function RecommendationsPanel({ recommendations, slug, email, orgId }: RecommendationsPanelProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [fixingIds, setFixingIds] = useState<Set<number>>(new Set());
+  const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>({});
+  const [fixingAll, setFixingAll] = useState(false);
+  const [fixProgress, setFixProgress] = useState({ done: 0, total: 0 });
+  const loadedRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Cancel fix loop on unmount
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
+  const fixableRecs = recommendations.filter((r) => r.can_auto_fix);
+  const hasFixable = fixableRecs.length > 0 && slug && email;
+
+  useEffect(() => {
+    if (!slug || loadedRef.current) return;
+    loadedRef.current = true;
+    getAutoFixStatus(slug)
+      .then((results) => {
+        const existing: Record<number, { status: string; message: string }> = {};
+        for (const r of results) existing[r.recommendation_id] = { status: r.status, message: r.message };
+        setFixResults((prev) => ({ ...existing, ...prev }));
+      })
+      .catch(() => {});
+  }, [slug]);
+
+  async function handleApplyFix(recId: number) {
+    if (!slug || !email) return;
+    setFixingIds((prev) => new Set(prev).add(recId));
+    try {
+      const results = await applyAutoFix(slug, [recId], email, orgId);
+      if (results[0]) setFixResults((prev) => ({ ...prev, [recId]: results[0] }));
+    } catch {
+      setFixResults((prev) => ({ ...prev, [recId]: { status: "failed", message: "Request failed" } }));
+    } finally {
+      setFixingIds((prev) => { const next = new Set(prev); next.delete(recId); return next; });
+    }
+  }
+
+  async function handleFixAll() {
+    if (!slug || !email || !fixableRecs.length) return;
+    const unfixed = fixableRecs.filter((r) => !fixResults[r.id] || fixResults[r.id].status === "failed");
+    if (!unfixed.length) return;
+    setFixingAll(true);
+    setFixProgress({ done: 0, total: unfixed.length });
+    abortRef.current = new AbortController();
+
+    // Run fixes sequentially — each reads updated content from the previous fix
+    for (const rec of unfixed) {
+      if (abortRef.current.signal.aborted) break;
+      setFixingIds((prev) => new Set(prev).add(rec.id));
+      try {
+        const results = await applyAutoFix(slug, [rec.id], email, orgId);
+        if (results[0]) setFixResults((prev) => ({ ...prev, [rec.id]: results[0] }));
+      } catch {
+        setFixResults((prev) => ({ ...prev, [rec.id]: { status: "failed", message: "Request failed" } }));
+      } finally {
+        setFixingIds((prev) => { const next = new Set(prev); next.delete(rec.id); return next; });
+        setFixProgress((prev) => ({ ...prev, done: prev.done + 1 }));
+      }
+    }
+    setFixingAll(false);
+    setFixProgress({ done: 0, total: 0 });
+  }
+
+  const fixedCount = Object.values(fixResults).filter((r) => r.status === "success").length;
+  const allFixed = fixableRecs.length > 0 && fixableRecs.every((r) => fixResults[r.id]?.status === "success");
 
   if (!recommendations.length) return null;
 
-  const quickWins = recommendations.filter(
-    (r) => r.category === "schema" || r.category === "technical"
-  );
-  const allCodeSnippets = quickWins
-    .map((r) => {
-      const { parts } = extractCodeBlocks(r.action);
-      return parts.filter((p) => p.type === "code").map((p) => p.content);
-    })
-    .flat()
-    .join("\n\n");
-
   return (
-    <Spotlight className="rounded-xl">
-      <Card className="border-border/60 bg-card/65 backdrop-blur-xl shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>What Needs to Be Done</span>
-            <span className="text-sm font-normal text-muted-foreground">
-              {recommendations.length} tasks
-            </span>
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Click each item to see action steps, then track completion in Actions.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {recommendations.map((rec, index) => {
+    <div className="rounded-lg border border-border bg-card overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">Recommendations</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">{recommendations.length} items to improve your GEO score</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {hasFixable && (
+            allFixed ? (
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                All fixed
+              </span>
+            ) : (
+              <button
+                onClick={handleFixAll}
+                disabled={fixingAll}
+                className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+              >
+                {fixingAll ? (
+                  <><Loader2 className="h-3 w-3 animate-spin" /> Fixing {fixProgress.done}/{fixProgress.total}</>
+                ) : (
+                  <><Wrench className="h-3 w-3" /> {fixedCount > 0 ? `Fix ${fixableRecs.length - fixedCount} Remaining` : `Fix All ${fixableRecs.length}`}</>
+                )}
+              </button>
+            )
+          )}
+        </div>
+      </div>
+
+      {/* Table header */}
+      <div className="hidden md:grid grid-cols-[2rem_1fr_5rem_5rem_6rem] gap-3 px-5 py-2.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground border-b border-border">
+        <span>#</span>
+        <span>Recommendation</span>
+        <span>Priority</span>
+        <span>Pillar</span>
+        <span className="text-right">Status</span>
+      </div>
+
+      {/* Rows */}
+      <div className="divide-y divide-border">
+        {recommendations.map((rec, index) => {
           const isExpanded = expandedId === rec.id;
-          const actionInfo = ACTION_ICONS[rec.category] || ACTION_ICONS.content;
-          const { parts } = extractCodeBlocks(rec.action);
-          const hasCode = parts.some((p) => p.type === "code");
-          const points = getPointsForRecommendation(rec);
+          const priority = PRIORITY_CONFIG[rec.priority] || PRIORITY_CONFIG.medium;
+          const PriorityIcon = priority.icon;
+          const fixResult = fixResults[rec.id];
+          const isFixing = fixingIds.has(rec.id);
 
           return (
-            <MovingBorder key={rec.id} className="rounded-lg">
-            <motion.div
-              key={rec.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.04, duration: 0.3 }}
-              className={`cursor-pointer rounded-lg border p-3 transition-all hover:shadow-md ${PRIORITY_STYLES[rec.priority]}`}
-              onClick={() => setExpandedId(isExpanded ? null : rec.id)}
-            >
-              <div className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-foreground/10 flex items-center justify-center text-xs font-bold">
-                  {index + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${PRIORITY_BADGE[rec.priority]}`}>
-                      {rec.priority.toUpperCase()}
-                    </span>
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-background/50 text-muted-foreground">
-                      {PILLAR_LABELS[rec.pillar] || rec.pillar}
-                    </span>
-                    {hasCode && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
-                        Has Code
-                      </span>
-                    )}
-                    <span className="text-sm font-medium truncate">
-                      {rec.title}
-                    </span>
-                  </div>
-                  <p className="text-xs mt-1 opacity-80 line-clamp-2">
-                    {rec.description}
-                  </p>
+            <div key={rec.id}>
+              {/* Row */}
+              <div
+                className="grid grid-cols-[1fr_auto] md:grid-cols-[2rem_1fr_5rem_5rem_6rem] gap-2 md:gap-3 px-4 md:px-5 py-3 cursor-pointer transition-colors hover:bg-card items-center"
+                onClick={() => setExpandedId(isExpanded ? null : rec.id)}
+              >
+                <span className="hidden md:block text-xs text-muted-foreground font-mono">{String(index + 1).padStart(2, "0")}</span>
+
+                <div className="min-w-0 flex items-center gap-2">
+                  {isExpanded
+                    ? <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    : <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  }
+                  <span className="text-sm text-foreground truncate">{rec.title}</span>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0 ml-1">
-                  {hasCode && !isExpanded && (
-                    <CopyButton
-                      text={parts.filter((p) => p.type === "code").map((p) => p.content).join("\n")}
-                      label={actionInfo.label}
-                    />
+
+                <span className={`inline-flex items-center gap-1 text-[10px] font-medium ${priority.color}`}>
+                  <PriorityIcon className="h-3 w-3" />
+                  {rec.priority}
+                </span>
+
+                <span className="hidden md:block text-[10px] text-muted-foreground">{PILLAR_LABELS[rec.pillar] || rec.pillar}</span>
+
+                <div className="text-right">
+                  {fixResult ? (
+                    fixResult.status === "success" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-medium text-emerald-500">
+                        <CheckCircle2 className="h-3 w-3" /> Fixed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[10px] font-medium text-red-500">
+                        <XCircle className="h-3 w-3" /> Failed
+                      </span>
+                    )
+                  ) : isFixing ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Fixing...
+                    </span>
+                  ) : rec.can_auto_fix && slug && email ? (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleApplyFix(rec.id); }}
+                      className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold text-white transition hover:bg-primary/90"
+                    >
+                      <Wrench className="h-3 w-3" /> Fix
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-medium text-muted-foreground">
+                      Manual
+                    </span>
                   )}
-                  <span className="text-xs w-5 text-center">
-                    {isExpanded ? "\u2212" : "+"}
-                  </span>
                 </div>
               </div>
 
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="mt-3 pt-3 border-t border-current/10 ml-9 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-foreground">Action Steps:</span>
-                        {hasCode && (
-                          <CopyButton
-                            text={parts.filter((p) => p.type === "code").map((p) => p.content).join("\n")}
-                            label={actionInfo.label}
-                          />
-                        )}
-                      </div>
+              {/* Expanded details */}
+              {isExpanded && (
+                <div className="px-5 pb-4 pt-1">
+                  <div className="ml-8 space-y-3 rounded-xl border border-border bg-accent p-4">
+                    {/* Description */}
+                    <p className="text-xs text-muted-foreground leading-relaxed">{rec.description}</p>
 
-                      <ActionSteps action={rec.action} category={rec.category} />
-
-                      {rec.impact_estimate && (
-                        <div className="flex items-center gap-2 mt-2 p-2 rounded bg-background/40 border border-border/30">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary shrink-0">
-                            <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
-                          </svg>
-                          <p className="text-xs italic text-muted-foreground">{rec.impact_estimate}</p>
-                        </div>
-                      )}
+                    {/* Action steps */}
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Action Steps</p>
+                      <ActionContent action={rec.action} />
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-            </MovingBorder>
+
+                    {/* Impact */}
+                    {rec.impact_estimate && (
+                      <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2">
+                        <span className="text-primary text-xs">⚡</span>
+                        <p className="text-xs text-muted-foreground">{rec.impact_estimate}</p>
+                      </div>
+                    )}
+
+                    {/* Fix result detail */}
+                    {fixResult && (
+                      <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs ${
+                        fixResult.status === "success"
+                          ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                          : "bg-red-500/10 border border-red-500/20 text-red-400"
+                      }`}>
+                        {fixResult.status === "success" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                        {fixResult.message}
+                      </div>
+                    )}
+
+                    {/* Fix button if not yet fixed */}
+                    {!fixResult && rec.can_auto_fix && slug && email && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleApplyFix(rec.id); }}
+                        disabled={isFixing}
+                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+                      >
+                        {isFixing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wrench className="h-3.5 w-3.5" />}
+                        Apply Fix
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           );
         })}
-        </CardContent>
-      </Card>
-    </Spotlight>
+      </div>
+    </div>
+  );
+}
+
+/* ── Action Content Renderer ─────────────────────────────────────────── */
+
+function ActionContent({ action }: { action: string }) {
+  const [copied, setCopied] = useState(false);
+  const lines = action.split("\n");
+
+  // Detect if there's code-like content
+  const hasCode = action.includes("<script") || action.includes("<") || action.includes("{\"@");
+
+  return (
+    <div className="space-y-1.5 text-xs text-muted-foreground leading-relaxed">
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+        if (!trimmed) return null;
+
+        // Step headers
+        if (/^STEP \d/i.test(trimmed)) {
+          const num = trimmed.match(/\d+/)?.[0];
+          return (
+            <div key={i} className="flex items-center gap-2 mt-3 first:mt-0">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                {num}
+              </span>
+              <span className="font-medium text-foreground">{trimmed.replace(/^STEP \d+ — ?/i, "")}</span>
+            </div>
+          );
+        }
+
+        // Bullet points
+        if (trimmed.startsWith("•") || trimmed.startsWith("-") || trimmed.startsWith("–")) {
+          return (
+            <div key={i} className="flex gap-2 pl-7">
+              <span className="text-primary/60 shrink-0">•</span>
+              <span className="text-muted-foreground">{trimmed.replace(/^[•\-–]\s*/, "")}</span>
+            </div>
+          );
+        }
+
+        // Code lines
+        if (trimmed.startsWith("<") || trimmed.startsWith("{") || trimmed.startsWith("}") || trimmed.startsWith('"@')) {
+          return (
+            <div key={i} className="relative group">
+              <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto">
+                {trimmed}
+              </pre>
+              <button
+                onClick={() => { navigator.clipboard.writeText(trimmed); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                className="absolute right-2 top-1.5 opacity-0 group-hover:opacity-100 transition text-muted-foreground hover:text-foreground"
+              >
+                <Copy className="h-3 w-3" />
+              </button>
+            </div>
+          );
+        }
+
+        // PRO TIP
+        if (/^PRO TIP/i.test(trimmed)) {
+          return (
+            <div key={i} className="mt-2 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2">
+              <span className="text-[9px] font-bold text-primary uppercase tracking-wider">Pro Tip</span>
+              <p className="text-muted-foreground mt-0.5">{trimmed.replace(/^PRO TIP:?\s*/i, "")}</p>
+            </div>
+          );
+        }
+
+        return <p key={i} className="text-muted-foreground pl-7">{trimmed}</p>;
+      })}
+    </div>
   );
 }

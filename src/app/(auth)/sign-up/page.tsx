@@ -59,36 +59,36 @@ function SignUpContent() {
     <Card className="border-0 bg-transparent shadow-none">
       <CardHeader className="space-y-3 px-0 pb-4 pt-0">
         <div className="flex items-center justify-between">
-          <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-medium tracking-wide text-indigo-700">
+          <span className="rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium tracking-wide text-primary">
             Create account
           </span>
-          <span className="text-xs text-slate-500">Step {stepIndex}</span>
+          <span className="text-xs text-muted-foreground">Step {stepIndex}</span>
         </div>
         <div className="space-y-1">
-          <CardTitle className="text-4xl font-semibold tracking-tight text-slate-900">
+          <CardTitle className="gradient-text text-2xl md:text-4xl font-semibold tracking-tight">
             Get Started Now
           </CardTitle>
-          <CardDescription className="text-sm text-slate-500">
+          <CardDescription>
             Please create your account to continue.
           </CardDescription>
-          <p className="pt-1 text-base font-medium text-slate-800">{title}</p>
-          <CardDescription className="text-sm text-slate-500">
+          <p className="pt-1 text-base font-medium text-foreground">{title}</p>
+          <CardDescription>
             {description}
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <CardContent className="space-y-4  p-5 ">
         {errorParam === "no-account" && step === "auth-method" && (
-          <p className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-center text-sm text-amber-800">
+          <p className="rounded-lg border border-amber-200/20 bg-amber-500/10 p-2 text-center text-sm text-amber-300">
             No account found. Please sign up first.
           </p>
         )}
         {StepComponent && <StepComponent />}
       </CardContent>
       <CardFooter className="justify-center px-0 pb-0 pt-5">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/sign-in" className="font-medium text-indigo-700 hover:text-indigo-600 hover:underline">
+          <Link href="/sign-in" className="font-medium text-primary hover:text-primary/90 hover:underline">
             Sign in
           </Link>
         </p>
