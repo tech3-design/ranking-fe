@@ -19,6 +19,7 @@ interface RunContextValue {
   fixResults: FixResultMap;
   loading: boolean;
   error: string;
+  scoreBump: number | null;
   refetch: () => Promise<void>;
   setFixResult: (recId: number, result: { status: string; message: string }) => void;
 }
@@ -29,6 +30,7 @@ const RunContext = createContext<RunContextValue>({
   fixResults: {},
   loading: true,
   error: "",
+  scoreBump: null,
   refetch: async () => {},
   setFixResult: () => {},
 });
@@ -43,6 +45,7 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
   const [fixResults, setFixResults] = useState<FixResultMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [scoreBump, setScoreBump] = useState<number | null>(null);
   const prevStatusRef = useRef<string | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -78,11 +81,38 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
   useEffect(() => {
     if (!run) return;
     const prev = prevStatusRef.current;
+
+    // Compute score bump from history
+    function computeBump() {
+      if (!run.composite_score || scoreHistory.length < 2) return;
+      const prevScore = scoreHistory[scoreHistory.length - 2]?.composite_score;
+      if (prevScore != null) {
+        const diff = Math.round(run.composite_score - prevScore);
+        if (diff > 0) {
+          setScoreBump(diff);
+          // Auto-clear after 5s
+          setTimeout(() => setScoreBump(null), 5000);
+        }
+      }
+    }
+
+    // Transition detected: was running, now complete
     if (prev && prev !== "complete" && prev !== "failed" && run.status === "complete") {
       fireConfetti();
+      computeBump();
     }
+
+    // First load: if run just completed recently (within 30s), fire confetti
+    if (!prev && run.status === "complete" && run.updated_at) {
+      const completedAgo = Date.now() - new Date(run.updated_at).getTime();
+      if (completedAgo < 30_000) {
+        fireConfetti();
+        computeBump();
+      }
+    }
+
     prevStatusRef.current = run.status;
-  }, [run?.status]);
+  }, [run?.status, run?.updated_at, run?.composite_score, scoreHistory]);
 
   // Poll while running
   useEffect(() => {
@@ -115,7 +145,7 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
   }, []);
 
   return (
-    <RunContext.Provider value={{ run, scoreHistory, fixResults, loading, error, refetch: fetchData, setFixResult }}>
+    <RunContext.Provider value={{ run, scoreHistory, fixResults, loading, error, scoreBump, refetch: fetchData, setFixResult }}>
       {children}
     </RunContext.Provider>
   );

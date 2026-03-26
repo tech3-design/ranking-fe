@@ -213,8 +213,24 @@ export default function SignalorDashboard() {
           (r.impact_estimate && r.impact_estimate.toLowerCase().includes(q)),
       );
     }
+    // Sort: recs for lowest-scoring pillars first (most impactful)
+    if (pageScore) {
+      const pillarScores: Record<string, number> = {
+        content: pageScore.content_score,
+        schema: pageScore.schema_score,
+        eeat: pageScore.eeat_score,
+        technical: pageScore.technical_score,
+        entity: pageScore.entity_score,
+        ai_visibility: pageScore.ai_visibility_score,
+      };
+      filtered = [...filtered].sort((a, b) => {
+        const aScore = pillarScores[a.pillar] ?? 50;
+        const bScore = pillarScores[b.pillar] ?? 50;
+        return aScore - bScore; // lowest pillar score first
+      });
+    }
     return filtered.slice(0, 10);
-  }, [recommendations, activeFilter, searchQuery]);
+  }, [recommendations, activeFilter, searchQuery, pageScore]);
 
   const visibilityBars = useMemo(() => {
     if (!brandVis) return [];
@@ -884,6 +900,13 @@ export default function SignalorDashboard() {
                       </td>
                       <td className="py-3.5 px-2">
                         <p className="text-sm font-medium text-foreground">{PILLAR_LABELS[rec.pillar] || rec.pillar}</p>
+                        {pageScore && (() => {
+                          const scoreKey = `${rec.pillar}_score` as keyof typeof pageScore;
+                          const score = typeof pageScore[scoreKey] === "number" ? Math.round(pageScore[scoreKey] as number) : null;
+                          if (score == null) return null;
+                          const color = score >= 70 ? "text-[#22c55e] bg-[#22c55e]/10" : score >= 40 ? "text-[#D97706] bg-[#D97706]/10" : "text-primary bg-primary/10";
+                          return <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${color}`}>{score}/100</span>;
+                        })()}
                       </td>
                       <td className="py-3.5 px-2 text-xs text-muted-foreground">{rec.category || "General"}</td>
                       <td className="py-3.5 px-2">

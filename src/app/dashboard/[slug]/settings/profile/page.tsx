@@ -41,7 +41,7 @@ export default function ProfileSettingsPage() {
   const [terminateStep, setTerminateStep] = useState<"idle" | "done">("idle");
   const [terminating, setTerminating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<0 | 1 | 2>(0); // 0=closed, 1=are you sure, 2=type confirm
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
 
@@ -253,15 +253,15 @@ export default function ProfileSettingsPage() {
         </div>
 
         <div className="space-y-4">
-          {/* Terminate Account */}
+          {/* Pause Account */}
           <div className="flex items-center justify-between rounded-xl bg-card border border-border p-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
                 <Clock className="w-4 h-4 text-amber-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">Terminate Account</p>
-                <p className="text-[11px] text-muted-foreground">Deactivates in 24 hours. You can still use it until then.</p>
+                <p className="text-sm font-medium text-foreground">Pause Account</p>
+                <p className="text-[11px] text-muted-foreground">Temporarily pause your account. You can resume anytime.</p>
               </div>
             </div>
 
@@ -270,7 +270,7 @@ export default function ProfileSettingsPage() {
                 onClick={() => setShowTerminateDialog(true)}
                 className="text-xs font-medium px-4 py-2 rounded-lg border border-amber-500/30 text-amber-600 hover:bg-amber-500/10 transition"
               >
-                Terminate
+                Pause
               </button>
             ) : (
               <button
@@ -278,7 +278,7 @@ export default function ProfileSettingsPage() {
                 disabled={cancelling}
                 className="text-xs font-medium px-4 py-2 rounded-lg border border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 transition disabled:opacity-50"
               >
-                {cancelling ? "Cancelling..." : "Undo Termination"}
+                {cancelling ? "Resuming..." : "Resume Account"}
               </button>
             )}
           </div>
@@ -296,7 +296,7 @@ export default function ProfileSettingsPage() {
             </div>
 
             <button
-              onClick={() => setShowDeleteDialog(true)}
+              onClick={() => setDeleteStep(1)}
               className="text-xs font-medium px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
             >
               Delete Account
@@ -305,7 +305,7 @@ export default function ProfileSettingsPage() {
         </div>
       </div>
 
-      {/* Terminate Confirmation Dialog */}
+      {/* Pause Account Dialog */}
       {showTerminateDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-md shadow-xl mx-4">
@@ -314,14 +314,14 @@ export default function ProfileSettingsPage() {
                 <Clock className="w-5 h-5 text-amber-500" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-foreground">Terminate Account</h3>
-                <p className="text-xs text-muted-foreground">Schedule deactivation</p>
+                <h3 className="text-base font-semibold text-foreground">Pause Account</h3>
+                <p className="text-xs text-muted-foreground">Temporarily pause your account</p>
               </div>
             </div>
 
             <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 p-4 mb-5">
               <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
-                Your account will be deactivated in <span className="font-bold">24 hours</span>. During this time you can still access your dashboard, download reports, and undo the termination. After 24 hours, your account will be suspended.
+                Your account will be paused. You can <span className="font-bold">resume anytime</span> from this settings page. While paused, scheduled analyses and integrations will be disabled.
               </p>
             </div>
 
@@ -332,7 +332,7 @@ export default function ProfileSettingsPage() {
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 transition disabled:opacity-50"
               >
                 {terminating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" />}
-                {terminating ? "Processing..." : "Confirm Termination"}
+                {terminating ? "Pausing..." : "Pause Account"}
               </button>
               <button
                 onClick={() => setShowTerminateDialog(false)}
@@ -345,8 +345,37 @@ export default function ProfileSettingsPage() {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
-      {showDeleteDialog && (
+      {/* Delete Dialog — Step 1: Are you sure? */}
+      {deleteStep === 1 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-sm shadow-xl mx-4 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+              <ShieldX className="w-6 h-6 text-red-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Are you sure?</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              You&apos;re about to delete your account. This will remove all your data permanently.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeleteStep(2)}
+                className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition"
+              >
+                Yes, continue
+              </button>
+              <button
+                onClick={() => setDeleteStep(0)}
+                className="flex-1 rounded-xl py-2.5 text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
+              >
+                No, go back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Dialog — Step 2: Type to confirm */}
+      {deleteStep === 2 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-md shadow-xl mx-4">
             <div className="flex items-center gap-3 mb-4">
@@ -374,6 +403,7 @@ export default function ProfileSettingsPage() {
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="delete my account"
+                autoFocus
                 className="w-full bg-background rounded-xl px-3 py-2.5 text-sm border border-border focus:outline-none focus:ring-2 focus:ring-red-500/30 font-mono"
               />
             </div>
@@ -388,7 +418,7 @@ export default function ProfileSettingsPage() {
                 {deleting ? "Deleting..." : "Delete Forever"}
               </button>
               <button
-                onClick={() => { setShowDeleteDialog(false); setDeleteConfirmText(""); }}
+                onClick={() => { setDeleteStep(0); setDeleteConfirmText(""); }}
                 className="px-5 py-2.5 rounded-xl text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
               >
                 Cancel

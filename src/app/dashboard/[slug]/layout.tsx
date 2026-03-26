@@ -13,6 +13,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { RunProvider, useRun } from "./_components/run-context";
 import { AnalysisOverlay } from "./_components/analysis-overlay";
+import { ScoreBump } from "./_components/score-bump";
 import {
   LayoutDashboard,
   ListChecks,
@@ -41,7 +42,6 @@ const MAIN_NAV = [
   { icon: ListChecks, label: "Recommendations", path: "/recommendations" },
   { icon: Eye, label: "Visibility", path: "/visibility" },
   { icon: MessageSquare, label: "Prompts", path: "/prompts" },
-  { icon: BarChart3, label: "Analytics", path: "/analytics" },
 ];
 
 const SETTINGS_NAV = [
@@ -342,11 +342,13 @@ export default function DashboardSlugLayout({
       </aside>
 
       {/* ═══ CENTER CONTENT ═══ */}
-      <main className="flex-1 h-full overflow-y-auto">
-        {children}
+      <main className="flex-1 h-full overflow-y-auto flex flex-col">
+        <div className="flex-1">
+          {children}
+        </div>
 
-        {/* Footer */}
-        <footer className="px-6 py-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-border">
+        {/* Footer — always at bottom */}
+        <footer className="shrink-0 px-6 py-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-border">
           <p>Copyright &copy; 2026 Signalor Ltd.</p>
           <div className="flex items-center gap-4">
             <a href="/privacy-policy" className="hover:text-foreground transition">Privacy Policy</a>
@@ -356,6 +358,7 @@ export default function DashboardSlugLayout({
         </footer>
       </main>
     </div>
+    <ScoreBump />
     </AnalysisGate>
     </RunProvider>
   );
