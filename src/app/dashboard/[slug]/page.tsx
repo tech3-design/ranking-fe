@@ -131,8 +131,8 @@ export default function SignalorDashboard() {
     window.open(`${config.apiBaseUrl}${getExportPDFUrl(run.id)}`, "_blank");
   }
 
-  // Derived data
-  const pageScore = run?.page_scores?.[0] ?? null;
+  // Derived data — match page score to the analyzed URL, not competitors
+  const pageScore = run?.page_scores?.find((p) => p.url === run.url) ?? run?.page_scores?.[0] ?? null;
   const compositeScore = run?.composite_score ?? 0;
   const brandVis = run?.brand_visibility;
   const recommendations = run?.recommendations ?? [];
@@ -181,21 +181,35 @@ export default function SignalorDashboard() {
     return { projected: Math.round(projected), gain: projectedGain, days, pillarImpacts };
   }, [recommendations, compositeScore]);
 
-  // AI Sentiment from probes
+  // Brand Sentiment from Reddit + web mentions + AI probes
   const sentiment = useMemo(() => {
+    const redditDetails = brandVis?.reddit_details as Record<string, unknown> | undefined;
+    const redditSentiment = redditDetails?.sentiment as { positive: number; negative: number; neutral: number; modifier: number } | undefined;
+
     const probes = run?.ai_probes ?? [];
-    if (probes.length === 0) return null;
     const mentioned = probes.filter((p) => p.brand_mentioned).length;
-    const notMentioned = probes.length - mentioned;
-    const avgConfidence = probes.reduce((sum, p) => sum + p.confidence, 0) / probes.length;
+    const total = probes.length;
 
-    // Categorize confidence levels
-    const high = probes.filter((p) => p.confidence >= 0.7).length;
-    const medium = probes.filter((p) => p.confidence >= 0.4 && p.confidence < 0.7).length;
-    const low = probes.filter((p) => p.confidence < 0.4).length;
+    // Combine Reddit sentiment + AI probe data
+    const positive = redditSentiment?.positive ?? 0;
+    const negative = redditSentiment?.negative ?? 0;
+    const neutral = redditSentiment?.neutral ?? 0;
+    const modifier = redditSentiment?.modifier ?? 0; // -20 to +20
 
-    return { total: probes.length, mentioned, notMentioned, avgConfidence, high, medium, low };
-  }, [run?.ai_probes]);
+    // Convert modifier to -10 to +10 scale
+    const score = Math.round(modifier / 2);
+
+    const hasData = (positive + negative + neutral) > 0 || total > 0;
+    if (!hasData) return null;
+
+    return {
+      positive, negative, neutral,
+      score, // -10 to +10
+      totalMentions: positive + negative + neutral,
+      aiMentioned: mentioned,
+      aiTotal: total,
+    };
+  }, [brandVis?.reddit_details, run?.ai_probes]);
 
   const filteredRecs = useMemo(() => {
     let filtered = recommendations;
@@ -778,61 +792,85 @@ export default function SignalorDashboard() {
                 )}
               </div>
 
-              {/* AI Sentiment Analysis — stacked bar + stat grid */}
+              {/* Sentiment Analysis — -10 to +10 scale */}
               <div className="col-span-5 bg-card rounded-2xl p-6 border border-border">
-                <p className="text-sm font-semibold mb-1 text-foreground">AI Sentiment Analysis</p>
-                <p className="text-xs mb-5 text-muted-foreground">How AI engines perceive your brand</p>
+                <p className="text-sm font-semibold mb-1 text-foreground">Sentiment Analysis</p>
+                <p className="text-xs mb-5 text-muted-foreground">What people say about your brand online</p>
 
                 {sentiment ? (
                   <div className="space-y-5">
-                    {/* Big stat row */}
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="rounded-xl p-3.5 bg-background border border-border text-center">
-                        <p className="text-2xl font-bold text-foreground">{sentiment.mentioned}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">Mentioned</p>
+                    {/* Score gauge -10 to +10 */}
+                    <div className="flex items-center gap-5">
+                      <div className="text-center shrink-0">
+                        <p
+                          className="text-4xl font-bold"
+                          style={{ color: sentiment.score > 0 ? "#22c55e" : sentiment.score < 0 ? CORAL : "var(--muted-foreground)" }}
+                        >
+                          {sentiment.score > 0 ? "+" : ""}{sentiment.score}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {sentiment.score >= 5 ? "Very Positive" : sentiment.score >= 1 ? "Positive" : sentiment.score === 0 ? "Neutral" : sentiment.score >= -4 ? "Negative" : "Very Negative"}
+                        </p>
                       </div>
-                      <div className="rounded-xl p-3.5 bg-background border border-border text-center">
-                        <p className="text-2xl font-bold text-foreground">{sentiment.notMentioned}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">Not Found</p>
-                      </div>
-                      <div className="rounded-xl p-3.5 text-center" style={{ background: `linear-gradient(135deg, ${CORAL}, #FF7A6B)` }}>
-                        <p className="text-2xl font-bold text-white">{(sentiment.avgConfidence * 100).toFixed(0)}%</p>
-                        <p className="text-[10px] text-white/70 mt-0.5">Avg Conf.</p>
+
+                      {/* Scale bar */}
+                      <div className="flex-1">
+                        <div className="relative h-3 rounded-full bg-muted">
+                          {/* Gradient: red → yellow → green */}
+                          <div className="absolute inset-0 rounded-full" style={{ background: "linear-gradient(to right, #F95C4B, #D97706, #22c55e)" }} />
+                          {/* Line indicator */}
+                          <div
+                            className="absolute -top-2 flex flex-col items-center"
+                            style={{ left: `${((sentiment.score + 10) / 20) * 100}%`, transform: "translateX(-50%)" }}
+                          >
+                            {/* Score label */}
+                            <span className="text-[9px] font-bold text-foreground bg-card border border-border rounded px-1 mb-0.5 shadow-sm">
+                              {sentiment.score > 0 ? "+" : ""}{sentiment.score}
+                            </span>
+                            {/* Vertical line */}
+                            <div className="w-0.5 h-7 bg-foreground rounded-full shadow-sm" />
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-[9px] text-muted-foreground mt-4">
+                          <span>-10</span><span>0</span><span>+10</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Stacked sentiment bar */}
-                    <div>
-                      <p className="text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Confidence Distribution</p>
-                      <div className="flex h-3 rounded-full overflow-hidden">
-                        {sentiment.high > 0 && (
-                          <div className="h-full" style={{ width: `${(sentiment.high / sentiment.total) * 100}%`, backgroundColor: "#22c55e" }} />
-                        )}
-                        {sentiment.medium > 0 && (
-                          <div className="h-full" style={{ width: `${(sentiment.medium / sentiment.total) * 100}%`, backgroundColor: "#D97706" }} />
-                        )}
-                        {sentiment.low > 0 && (
-                          <div className="h-full" style={{ width: `${(sentiment.low / sentiment.total) * 100}%`, backgroundColor: CORAL }} />
-                        )}
+                    {/* Breakdown stats */}
+                    <div className="grid grid-cols-4 gap-3">
+                      <div className="rounded-xl p-3 bg-[#22c55e]/10 border border-[#22c55e]/20 text-center">
+                        <p className="text-lg font-bold text-[#22c55e]">{sentiment.positive}</p>
+                        <p className="text-[9px] text-muted-foreground">Positive</p>
                       </div>
-                      {/* Legend */}
-                      <div className="flex items-center gap-4 mt-2">
-                        {[
-                          { label: "High", count: sentiment.high, color: "#22c55e" },
-                          { label: "Medium", count: sentiment.medium, color: "#D97706" },
-                          { label: "Low", count: sentiment.low, color: CORAL },
-                        ].map((l) => (
-                          <div key={l.label} className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
-                            <span className="text-[10px] text-muted-foreground">{l.label} <span className="font-bold text-foreground">{l.count}</span></span>
-                          </div>
-                        ))}
+                      <div className="rounded-xl p-3 bg-background border border-border text-center">
+                        <p className="text-lg font-bold text-muted-foreground">{sentiment.neutral}</p>
+                        <p className="text-[9px] text-muted-foreground">Neutral</p>
+                      </div>
+                      <div className="rounded-xl p-3 bg-primary/10 border border-primary/20 text-center">
+                        <p className="text-lg font-bold text-primary">{sentiment.negative}</p>
+                        <p className="text-[9px] text-muted-foreground">Negative</p>
+                      </div>
+                      <div className="rounded-xl p-3 bg-background border border-border text-center">
+                        <p className="text-lg font-bold text-foreground">{sentiment.aiMentioned}/{sentiment.aiTotal}</p>
+                        <p className="text-[9px] text-muted-foreground">AI Mentions</p>
                       </div>
                     </div>
+
+                    {/* Stacked bar */}
+                    {sentiment.totalMentions > 0 && (
+                      <div>
+                        <div className="flex h-2.5 rounded-full overflow-hidden">
+                          {sentiment.positive > 0 && <div className="h-full" style={{ width: `${(sentiment.positive / sentiment.totalMentions) * 100}%`, backgroundColor: "#22c55e" }} />}
+                          {sentiment.neutral > 0 && <div className="h-full" style={{ width: `${(sentiment.neutral / sentiment.totalMentions) * 100}%`, backgroundColor: "var(--border)" }} />}
+                          {sentiment.negative > 0 && <div className="h-full" style={{ width: `${(sentiment.negative / sentiment.totalMentions) * 100}%`, backgroundColor: CORAL }} />}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center py-10">
-                    <p className="text-xs text-muted-foreground">No AI probe data available</p>
+                    <p className="text-xs text-muted-foreground">No sentiment data available yet</p>
                   </div>
                 )}
               </div>
