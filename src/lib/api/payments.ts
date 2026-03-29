@@ -9,11 +9,10 @@ export interface SubscriptionStatus {
 
 export async function createCheckoutSession(
   email: string,
-  currency: string = "usd",
 ): Promise<{ checkout_url: string }> {
   const { data } = await apiClient.post<{ checkout_url: string }>(
     "/api/payments/create-checkout/",
-    { email, currency },
+    { email },
   );
   return data;
 }

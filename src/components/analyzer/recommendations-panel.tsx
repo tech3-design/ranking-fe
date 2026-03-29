@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 import type { Recommendation, FixPreview } from "@/lib/api/analyzer";
-import { applyAutoFix, previewFix, approveFix } from "@/lib/api/analyzer";
+import { previewFix, approveFix } from "@/lib/api/analyzer";
 import { FixPreviewModal } from "./fix-preview-modal";
 import {
   Loader2, Wrench, CheckCircle2, XCircle, ChevronDown, ChevronRight,
@@ -38,21 +39,13 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [fixingIds, setFixingIds] = useState<Set<number>>(new Set());
   const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>(initialFixResults ?? {});
-  const [fixingAll, setFixingAll] = useState(false);
-  const [fixProgress, setFixProgress] = useState({ done: 0, total: 0 });
   const [previewData, setPreviewData] = useState<FixPreview | null>(null);
   const [previewingId, setPreviewingId] = useState<number | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
 
   // Sync if initialFixResults changes
   useEffect(() => {
     if (initialFixResults) setFixResults((prev) => ({ ...initialFixResults, ...prev }));
   }, [initialFixResults]);
-
-  // Cancel fix loop on unmount
-  useEffect(() => {
-    return () => { abortRef.current?.abort(); };
-  }, []);
 
   const fixableRecs = recommendations.filter((r) => r.can_auto_fix);
   const hasFixable = fixableRecs.length > 0 && slug && email;
@@ -95,52 +88,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
     }
   }
 
-  // Legacy direct fix (used by Fix All)
-  async function handleApplyFix(recId: number) {
-    if (!slug || !email) return;
-    setFixingIds((prev) => new Set(prev).add(recId));
-    try {
-      const results = await applyAutoFix(slug, [recId], email, orgId);
-      if (results[0]) {
-        setFixResults((prev) => ({ ...prev, [recId]: results[0] }));
-        onFixResult?.(recId, results[0]);
-      }
-    } catch {
-      const fail = { status: "failed", message: "Request failed" };
-      setFixResults((prev) => ({ ...prev, [recId]: fail }));
-      onFixResult?.(recId, fail);
-    } finally {
-      setFixingIds((prev) => { const next = new Set(prev); next.delete(recId); return next; });
-    }
-  }
 
-  async function handleFixAll() {
-    if (!slug || !email || !fixableRecs.length) return;
-    const unfixed = fixableRecs.filter((r) => !fixResults[r.id] || fixResults[r.id].status === "failed");
-    if (!unfixed.length) return;
-    setFixingAll(true);
-    setFixProgress({ done: 0, total: unfixed.length });
-    abortRef.current = new AbortController();
-
-    // Run fixes sequentially — each reads updated content from the previous fix
-    for (const rec of unfixed) {
-      if (abortRef.current.signal.aborted) break;
-      setFixingIds((prev) => new Set(prev).add(rec.id));
-      try {
-        const results = await applyAutoFix(slug, [rec.id], email, orgId);
-        if (results[0]) setFixResults((prev) => ({ ...prev, [rec.id]: results[0] }));
-      } catch {
-        setFixResults((prev) => ({ ...prev, [rec.id]: { status: "failed", message: "Request failed" } }));
-      } finally {
-        setFixingIds((prev) => { const next = new Set(prev); next.delete(rec.id); return next; });
-        setFixProgress((prev) => ({ ...prev, done: prev.done + 1 }));
-      }
-    }
-    setFixingAll(false);
-    setFixProgress({ done: 0, total: 0 });
-  }
-
-  const fixedCount = Object.values(fixResults).filter((r) => r.status === "success").length;
   const allFixed = fixableRecs.length > 0 && fixableRecs.every((r) => fixResults[r.id]?.status === "success");
 
   if (!recommendations.length) return null;
@@ -288,13 +236,16 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
       </div>
 
       {/* Preview Modal */}
-      {previewData && (
-        <FixPreviewModal
-          preview={previewData}
-          onApprove={handleApprovePreview}
-          onCancel={() => { setPreviewData(null); setPreviewingId(null); }}
-        />
-      )}
+      <AnimatePresence>
+        {previewData && (
+          <FixPreviewModal
+            key="fix-preview"
+            preview={previewData}
+            onApprove={handleApprovePreview}
+            onCancel={() => { setPreviewData(null); setPreviewingId(null); }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -304,9 +255,6 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
 function ActionContent({ action }: { action: string }) {
   const [copied, setCopied] = useState(false);
   const lines = action.split("\n");
-
-  // Detect if there's code-like content
-  const hasCode = action.includes("<script") || action.includes("<") || action.includes("{\"@");
 
   return (
     <div className="space-y-1.5 text-xs text-muted-foreground leading-relaxed">

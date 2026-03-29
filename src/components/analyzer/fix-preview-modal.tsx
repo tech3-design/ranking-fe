@@ -1,9 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { X, Check, Loader2, Eye } from "lucide-react";
 import type { FixPreview } from "@/lib/api/analyzer";
+
+/** Fix types where preview contains code/tags, not renderable HTML */
+function isCodePreview(fixType: string): boolean {
+  return ["schema", "meta", "ai_meta", "llms", "robots", "canonical", "viewport", "noindex"].includes(fixType);
+}
 
 interface FixPreviewModalProps {
   preview: FixPreview;
@@ -25,19 +30,18 @@ export function FixPreviewModal({ preview, onApprove, onCancel }: FixPreviewModa
   }
 
   return (
-    <AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+    >
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col"
       >
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col"
-        >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
             <div className="flex items-center gap-3">
@@ -86,6 +90,8 @@ export function FixPreviewModal({ preview, onApprove, onCancel }: FixPreviewModa
                 ) : (
                   <p className="text-muted-foreground text-center py-8">No existing content</p>
                 )
+              ) : isCodePreview(preview.fix_type) ? (
+                <pre className="whitespace-pre-wrap font-mono text-xs text-foreground bg-muted/50 rounded-lg p-4 overflow-x-auto">{preview.preview}</pre>
               ) : (
                 <div
                   className="prose prose-sm max-w-none text-foreground"
@@ -98,14 +104,17 @@ export function FixPreviewModal({ preview, onApprove, onCancel }: FixPreviewModa
           {/* Footer */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-border shrink-0">
             <p className="text-[10px] text-muted-foreground">
-              {preview.fix_type === "schema" ? "JSON-LD will be injected into page head" :
-               preview.fix_type === "llms" ? "File will be created at /llms.txt" :
+              {preview.fix_type === "schema" ? "JSON-LD will be injected into page" :
+               preview.fix_type === "llms" ? "llms.txt page will be created on your store" :
+               preview.fix_type === "meta" ? "SEO title and description will be updated" :
+               preview.fix_type === "ai_meta" ? "AI crawler meta tags will be injected" :
                `Content will be updated (${preview.preview.length} chars)`}
             </p>
             <div className="flex gap-2">
               <button
                 onClick={onCancel}
-                className="px-4 py-2 rounded-xl text-xs font-medium border border-border text-muted-foreground hover:bg-accent transition"
+                disabled={applying}
+                className="px-4 py-2 rounded-xl text-xs font-medium border border-border text-muted-foreground hover:bg-accent transition disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -122,8 +131,7 @@ export function FixPreviewModal({ preview, onApprove, onCancel }: FixPreviewModa
               </button>
             </div>
           </div>
-        </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </motion.div>
   );
 }

@@ -36,9 +36,9 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, string> = {
   critical: "bg-[#F95C4B]/10 text-[#F95C4B]",
-  high: "bg-amber-100 text-amber-700",
-  medium: "bg-blue-100 text-blue-700",
-  low: "bg-purple-100 text-purple-700",
+  high: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  medium: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  low: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
 };
 
 const PILLAR_LABELS: Record<string, string> = {
@@ -132,7 +132,9 @@ export default function SignalorDashboard() {
   }
 
   // Derived data — match page score to the analyzed URL, not competitors
-  const pageScore = run?.page_scores?.find((p) => p.url === run.url) ?? run?.page_scores?.[0] ?? null;
+  // Normalize URLs for comparison (strip trailing slash + protocol differences)
+  const normalizeUrl = (u: string) => u.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+  const pageScore = run?.page_scores?.find((p) => normalizeUrl(p.url) === normalizeUrl(run.url)) ?? run?.page_scores?.[0] ?? null;
   const compositeScore = run?.composite_score ?? 0;
   const brandVis = run?.brand_visibility;
   const recommendations = run?.recommendations ?? [];
@@ -342,6 +344,42 @@ export default function SignalorDashboard() {
         <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${CORAL}10`, border: `1px solid ${CORAL}30`, color: CORAL }}>
           <AlertCircle className="h-4 w-4 shrink-0" />
           {error || reanalyzeError}
+        </div>
+      </div>
+    );
+  }
+
+  // Hard failure — show full-page error instead of dashboard with 0 scores
+  if (run?.status === "failed") {
+    return (
+      <div className="flex h-full w-full items-center justify-center px-6">
+        <div className="max-w-lg w-full text-center space-y-6">
+          <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${CORAL}15` }}>
+            <AlertCircle className="w-8 h-8" style={{ color: CORAL }} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground mb-2">Analysis Failed</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {run.error_message || "Something went wrong during analysis. Please try again."}
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={handleReanalyze}
+              disabled={reanalyzing}
+              className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50"
+              style={{ backgroundColor: CORAL }}
+            >
+              {reanalyzing ? (
+                <><RefreshCw className="w-4 h-4 animate-spin" /> Retrying...</>
+              ) : (
+                <><RefreshCw className="w-4 h-4" /> Try Again</>
+              )}
+            </button>
+          </div>
+          {reanalyzeError && (
+            <p className="text-xs text-red-500">{reanalyzeError}</p>
+          )}
         </div>
       </div>
     );
@@ -659,7 +697,7 @@ export default function SignalorDashboard() {
             <div className="col-span-3 bg-card rounded-2xl p-5 border border-border flex flex-col">
               <p className="text-sm font-semibold text-foreground mb-3">AI Engine Probes</p>
               {sentiment ? (() => {
-                const mentionPct = sentiment.mentioned / sentiment.total;
+                const mentionPct = sentiment.aiMentioned / sentiment.aiTotal;
                 const missPct = 1 - mentionPct;
                 // SVG pie: two arcs
                 const r = 40;
@@ -968,15 +1006,6 @@ export default function SignalorDashboard() {
         </div>
       )}
 
-      {/* Failed run */}
-      {run?.status === "failed" && (
-        <div className="px-6 py-8">
-          <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${CORAL}10`, border: `1px solid ${CORAL}30`, color: CORAL }}>
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            Analysis failed: {run.error_message || "Unknown error. Try re-analyzing."}
-          </div>
-        </div>
-      )}
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>
