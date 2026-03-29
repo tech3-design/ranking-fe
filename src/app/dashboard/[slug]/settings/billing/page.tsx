@@ -91,7 +91,7 @@ export default function BillingSettingsPage() {
 
           {/* Payment note */}
           <p className="text-[11px] text-muted-foreground text-center">
-            Payments are processed securely via Stripe. Cancel anytime from your Stripe dashboard.
+            Payments are processed securely. Cancel anytime from your account settings.
           </p>
         </>
       )}

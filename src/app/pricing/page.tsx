@@ -14,13 +14,6 @@ export default function PricingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isIndian, setIsIndian] = useState(false);
-
-  useEffect(() => {
-    const lang = navigator.language || "";
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-    setIsIndian(lang.includes("IN") || lang.includes("hi") || tz.includes("Kolkata") || tz.includes("Calcutta"));
-  }, []);
 
   useEffect(() => {
     if (isPending) return;
@@ -40,8 +33,7 @@ export default function PricingPage() {
     setLoading(true);
     setError("");
     try {
-      const currency = isIndian ? "inr" : "usd";
-      const { checkout_url } = await createCheckoutSession(session.user.email, currency);
+      const { checkout_url } = await createCheckoutSession(session.user.email);
       window.location.href = checkout_url;
     } catch {
       setError("Failed to start checkout. Please try again.");
@@ -57,7 +49,7 @@ export default function PricingPage() {
     );
   }
 
-  const price = isIndian ? "₹1,000" : "$12";
+  const price = "$12";
   const period = "/month";
 
   const features = [
@@ -108,13 +100,9 @@ export default function PricingPage() {
               <span className="text-5xl md:text-6xl font-bold" style={{ color: "#000000" }}>{price}</span>
               <span className="text-base" style={{ color: "#00000050" }}>{period}</span>
             </div>
-            <button
-              onClick={() => setIsIndian(!isIndian)}
-              className="mt-2 text-xs transition hover:opacity-70"
-              style={{ color: "#00000040" }}
-            >
-              Switch to {isIndian ? "USD ($12/mo)" : "INR (₹1,000/mo)"}
-            </button>
+            <p className="mt-2 text-xs" style={{ color: "#00000040" }}>
+              Price shown in USD. Local currency applied at checkout.
+            </p>
           </div>
 
           {/* Divider */}
@@ -158,7 +146,7 @@ export default function PricingPage() {
           </button>
 
           <p className="mt-4 text-center text-[11px]" style={{ color: "#00000040" }}>
-            Secure payment via Stripe. Cancel anytime.
+            Secure payment. Cancel anytime.
           </p>
         </div>
       </div>

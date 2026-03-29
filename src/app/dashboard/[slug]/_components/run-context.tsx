@@ -84,9 +84,9 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
 
     // Compute score bump from history
     function computeBump() {
-      if (!run.composite_score || scoreHistory.length < 2) return;
+      if (!run?.composite_score || scoreHistory.length < 2) return;
       const prevScore = scoreHistory[scoreHistory.length - 2]?.composite_score;
-      if (prevScore != null) {
+      if (prevScore != null && run.composite_score != null) {
         const diff = Math.round(run.composite_score - prevScore);
         if (diff > 0) {
           setScoreBump(diff);
