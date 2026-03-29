@@ -154,25 +154,11 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
           <p className="text-xs text-muted-foreground mt-0.5">{recommendations.length} items to improve your GEO score</p>
         </div>
         <div className="flex items-center gap-2">
-          {hasFixable && (
-            allFixed ? (
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                All fixed
-              </span>
-            ) : (
-              <button
-                onClick={handleFixAll}
-                disabled={fixingAll}
-                className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
-              >
-                {fixingAll ? (
-                  <><Loader2 className="h-3 w-3 animate-spin" /> Fixing {fixProgress.done}/{fixProgress.total}</>
-                ) : (
-                  <><Wrench className="h-3 w-3" /> {fixedCount > 0 ? `Fix ${fixableRecs.length - fixedCount} Remaining` : `Fix All ${fixableRecs.length}`}</>
-                )}
-              </button>
-            )
+          {hasFixable && allFixed && (
+            <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              All fixed
+            </span>
           )}
         </div>
       </div>
