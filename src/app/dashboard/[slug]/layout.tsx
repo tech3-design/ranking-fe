@@ -60,7 +60,9 @@ function AnalysisGate({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
+  
 }
+
 
 export default function DashboardSlugLayout({
   children,

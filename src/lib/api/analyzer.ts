@@ -373,3 +373,45 @@ export async function getAutoFixStatus(slug: string): Promise<AutoFixResult[]> {
   );
   return data;
 }
+
+// ── Preview + Approve Fix Flow ───────────────────────────────────────────
+
+export interface FixPreview {
+  status: "preview" | "error";
+  fix_type: string;
+  recommendation_id: number;
+  recommendation_title: string;
+  original: string;
+  preview: string;
+  full_content: string;
+  target_post_id?: number;
+  target_type?: string;
+  message?: string;
+}
+
+export async function previewFix(
+  slug: string,
+  recommendationId: number,
+  email: string,
+): Promise<FixPreview> {
+  const { data } = await apiClient.post<FixPreview>(
+    `/api/analyzer/runs/s/${slug}/auto-fix/preview/`,
+    { recommendation_id: recommendationId, email },
+    { timeout: 120_000 },
+  );
+  return data;
+}
+
+export async function approveFix(
+  slug: string,
+  recommendationId: number,
+  content: string,
+  fixType: string,
+): Promise<AutoFixResult> {
+  const { data } = await apiClient.post<AutoFixResult>(
+    `/api/analyzer/runs/s/${slug}/auto-fix/approve/`,
+    { recommendation_id: recommendationId, content, fix_type: fixType },
+    { timeout: 30_000 },
+  );
+  return data;
+}

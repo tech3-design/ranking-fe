@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import type { Recommendation } from "@/lib/api/analyzer";
-import { applyAutoFix } from "@/lib/api/analyzer";
+import type { Recommendation, FixPreview } from "@/lib/api/analyzer";
+import { applyAutoFix, previewFix, approveFix } from "@/lib/api/analyzer";
+import { FixPreviewModal } from "./fix-preview-modal";
 import {
   Loader2, Wrench, CheckCircle2, XCircle, ChevronDown, ChevronRight,
   AlertTriangle, ArrowUp, Minus, Copy,
@@ -39,6 +40,8 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
   const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>(initialFixResults ?? {});
   const [fixingAll, setFixingAll] = useState(false);
   const [fixProgress, setFixProgress] = useState({ done: 0, total: 0 });
+  const [previewData, setPreviewData] = useState<FixPreview | null>(null);
+  const [previewingId, setPreviewingId] = useState<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   // Sync if initialFixResults changes
@@ -54,6 +57,45 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
   const fixableRecs = recommendations.filter((r) => r.can_auto_fix);
   const hasFixable = fixableRecs.length > 0 && slug && email;
 
+  async function handlePreviewFix(recId: number) {
+    if (!slug || !email) return;
+    setPreviewingId(recId);
+    setFixingIds((prev) => new Set(prev).add(recId));
+    try {
+      const preview = await previewFix(slug, recId, email);
+      if (preview.status === "preview") {
+        setPreviewData(preview);
+      } else {
+        const fail = { status: "failed", message: preview.message || "Preview failed" };
+        setFixResults((prev) => ({ ...prev, [recId]: fail }));
+        onFixResult?.(recId, fail);
+      }
+    } catch {
+      const fail = { status: "failed", message: "Failed to generate preview" };
+      setFixResults((prev) => ({ ...prev, [recId]: fail }));
+      onFixResult?.(recId, fail);
+    } finally {
+      setFixingIds((prev) => { const next = new Set(prev); next.delete(recId); return next; });
+    }
+  }
+
+  async function handleApprovePreview() {
+    if (!slug || !previewData) return;
+    try {
+      const result = await approveFix(slug, previewData.recommendation_id, previewData.full_content, previewData.fix_type);
+      setFixResults((prev) => ({ ...prev, [previewData.recommendation_id]: result }));
+      onFixResult?.(previewData.recommendation_id, result);
+    } catch {
+      const fail = { status: "failed", message: "Apply failed" };
+      setFixResults((prev) => ({ ...prev, [previewData.recommendation_id]: fail }));
+      onFixResult?.(previewData.recommendation_id, fail);
+    } finally {
+      setPreviewData(null);
+      setPreviewingId(null);
+    }
+  }
+
+  // Legacy direct fix (used by Fix All)
   async function handleApplyFix(recId: number) {
     if (!slug || !email) return;
     setFixingIds((prev) => new Set(prev).add(recId));
@@ -190,11 +232,11 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                     )
                   ) : isFixing ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
-                      <Loader2 className="h-3 w-3 animate-spin" /> Fixing...
+                      <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Generating..." : "Fixing..."}
                     </span>
                   ) : rec.can_auto_fix && slug && email ? (
                     <button
-                      onClick={(e) => { e.stopPropagation(); handleApplyFix(rec.id); }}
+                      onClick={(e) => { e.stopPropagation(); handlePreviewFix(rec.id); }}
                       className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold text-white transition hover:bg-primary/90"
                     >
                       <Wrench className="h-3 w-3" /> Fix
@@ -243,12 +285,12 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                     {/* Fix button if not yet fixed */}
                     {!fixResult && rec.can_auto_fix && slug && email && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleApplyFix(rec.id); }}
+                        onClick={(e) => { e.stopPropagation(); handlePreviewFix(rec.id); }}
                         disabled={isFixing}
                         className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
                       >
                         {isFixing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wrench className="h-3.5 w-3.5" />}
-                        Apply Fix
+                        Preview & Fix
                       </button>
                     )}
                   </div>
@@ -258,6 +300,15 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
           );
         })}
       </div>
+
+      {/* Preview Modal */}
+      {previewData && (
+        <FixPreviewModal
+          preview={previewData}
+          onApprove={handleApprovePreview}
+          onCancel={() => { setPreviewData(null); setPreviewingId(null); }}
+        />
+      )}
     </div>
   );
 }
