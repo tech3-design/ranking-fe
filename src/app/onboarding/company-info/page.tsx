@@ -43,6 +43,7 @@ export default function CompanyInfoPage() {
   const [wpSiteUrl, setWpSiteUrl] = useState("");
   const [wpApiKey, setWpApiKey] = useState("");
   const [wpMode, setWpMode] = useState<"plugin" | "wpcom">("plugin");
+  const [showGuide, setShowGuide] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -406,40 +407,17 @@ export default function CompanyInfoPage() {
 
                 {wpMode === "plugin" && (
                   <>
-                    {/* Step-by-step guide */}
-                    <div className="rounded-lg bg-white/[0.04] border border-white/[0.08] p-4 space-y-3">
-                      <p className="text-xs font-semibold text-foreground">Setup in 3 steps:</p>
-                      <div className="space-y-2.5">
-                        <div className="flex gap-3">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.1] text-[10px] font-bold">1</span>
-                          <div className="text-xs text-muted-foreground">
-                            <a
-                              href="https://github.com/tech3-design/signalor-wordpress-plugin/releases/latest/download/signalor-geo.zip"
-                              target="_blank"
-                              rel="noopener"
-                              className="inline-flex items-center gap-1.5 rounded-md bg-white/[0.08] px-2.5 py-1 font-medium text-foreground hover:bg-white/[0.12] transition"
-                            >
-                              Download Plugin (.zip)
-                            </a>
-                          </div>
-                        </div>
-                        <div className="flex gap-3">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.1] text-[10px] font-bold">2</span>
-                          <p className="text-xs text-muted-foreground">
-                            In your WordPress admin: <strong className="text-foreground">Plugins &rarr; Add New &rarr; Upload Plugin</strong> &rarr; upload the zip &rarr; Activate
-                          </p>
-                        </div>
-                        <div className="flex gap-3">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.1] text-[10px] font-bold">3</span>
-                          <p className="text-xs text-muted-foreground">
-                            In your WordPress admin: <strong className="text-foreground">Settings &rarr; Signalor GEO</strong> (the plugin you just installed) &mdash; you&apos;ll see your API Key with a Copy button. Paste it below.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowGuide(true)}
+                      className="w-full rounded-lg border border-dashed border-white/[0.15] bg-white/[0.03] px-4 py-3 text-left hover:bg-white/[0.06] transition"
+                    >
+                      <p className="text-xs font-semibold text-foreground">Need help installing the plugin?</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">View step-by-step setup guide</p>
+                    </button>
 
                     <div className="space-y-2">
-                      <Label htmlFor="wp-api-key">API Key</Label>
+                      <Label htmlFor="wp-api-key">Plugin API Key</Label>
                       <Input
                         id="wp-api-key"
                         type="text"
@@ -449,6 +427,9 @@ export default function CompanyInfoPage() {
                         required
                         className="font-mono text-xs"
                       />
+                      <p className="text-[11px] text-muted-foreground">
+                        Find this in your WordPress admin &rarr; <strong className="text-foreground">Settings &rarr; Signalor GEO</strong>
+                      </p>
                     </div>
                   </>
                 )}
@@ -499,6 +480,113 @@ export default function CompanyInfoPage() {
           </Card>
         )}
       </div>
+
+      {/* WordPress Plugin Setup Guide Dialog */}
+      {showGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">WordPress Plugin Setup</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Follow these steps to connect your site</p>
+              </div>
+              <button
+                onClick={() => setShowGuide(false)}
+                className="rounded-lg p-1.5 hover:bg-accent transition"
+              >
+                <span className="text-lg leading-none text-muted-foreground">&times;</span>
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-6">
+              {/* Step 1 */}
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">1</span>
+                  <div className="flex-1 w-px bg-border mt-2" />
+                </div>
+                <div className="flex-1 pb-2">
+                  <p className="text-sm font-semibold text-foreground">Install the Signalor GEO Plugin</p>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Go to your WordPress admin dashboard. In the left sidebar, click <strong className="text-foreground">Plugins</strong> then <strong className="text-foreground">Add New Plugin</strong>.
+                  </p>
+                  <div className="mt-3 rounded-lg bg-muted/50 border border-border p-3 space-y-2">
+                    <p className="text-xs font-medium text-foreground">Option A: Search in WordPress</p>
+                    <p className="text-xs text-muted-foreground">
+                      In the search box, type <code className="bg-background px-1.5 py-0.5 rounded text-foreground font-mono">Signalor GEO</code> and press Enter. Click <strong className="text-foreground">Install Now</strong> then <strong className="text-foreground">Activate</strong>.
+                    </p>
+                  </div>
+                  <div className="mt-2 rounded-lg bg-muted/50 border border-border p-3 space-y-2">
+                    <p className="text-xs font-medium text-foreground">Option B: Upload manually</p>
+                    <p className="text-xs text-muted-foreground">
+                      If the plugin isn&apos;t in the directory yet, download the zip and upload it:
+                    </p>
+                    <a
+                      href="/downloads/signalor-geo.zip"
+                      download
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition"
+                    >
+                      Download signalor-geo.zip
+                    </a>
+                    <p className="text-xs text-muted-foreground">
+                      Then go to <strong className="text-foreground">Plugins &rarr; Add New &rarr; Upload Plugin</strong> &rarr; choose the zip file &rarr; <strong className="text-foreground">Install Now</strong> &rarr; <strong className="text-foreground">Activate</strong>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">2</span>
+                  <div className="flex-1 w-px bg-border mt-2" />
+                </div>
+                <div className="flex-1 pb-2">
+                  <p className="text-sm font-semibold text-foreground">Find Your API Key</p>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    After activating the plugin, go to your WordPress admin sidebar: <strong className="text-foreground">Settings &rarr; Signalor GEO</strong>.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                    You&apos;ll see a settings page with your <strong className="text-foreground">Site URL</strong> and <strong className="text-foreground">API Key</strong>. Click the <strong className="text-foreground">Copy</strong> button next to the API Key.
+                  </p>
+                  <div className="mt-3 rounded-lg bg-muted/50 border border-border p-3">
+                    <p className="text-xs text-muted-foreground">
+                      The API Key looks like: <code className="bg-background px-1.5 py-0.5 rounded text-foreground font-mono text-[10px]">aB3dEfGh1234ijKLmnOPqrST...</code>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">3</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">Paste the API Key Here</p>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Come back to this page and paste the API Key into the <strong className="text-foreground">Plugin API Key</strong> field. Enter your site URL and click <strong className="text-foreground">Connect &amp; Analyze</strong>.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                    That&apos;s it! Signalor will connect to your site, run a GEO analysis, and show you recommendations to improve your AI visibility.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 rounded-b-2xl">
+              <button
+                onClick={() => setShowGuide(false)}
+                className="w-full rounded-xl py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary/90 transition"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
