@@ -20,6 +20,12 @@ const SENTIMENT_COLORS: Record<Sentiment, string> = {
   negative: "bg-red-500/15 text-red-400 border-red-500/30",
 };
 
+const RANKING_STYLES: Record<string, string> = {
+  Strong: "bg-green-500/15 text-green-400 border-green-500/30",
+  Moderate: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  Weak: "bg-red-500/15 text-red-400 border-red-500/30",
+};
+
 interface PromptTrackerProps {
   slug: string;
   tracks: PromptTrack[];
@@ -98,8 +104,11 @@ export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrac
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border/60 bg-muted/30">
-                <th className="px-3 py-2.5 text-left font-medium text-muted-foreground w-1/3">
+                <th className="px-3 py-2.5 text-left font-medium text-muted-foreground w-1/4">
                   Prompt
+                </th>
+                <th className="px-3 py-2.5 text-center font-medium text-muted-foreground w-24">
+                  Score
                 </th>
                 {ENGINE_COLS.map((col) => (
                   <th key={col.key} className="px-3 py-2.5 text-center font-medium text-muted-foreground">
@@ -107,7 +116,7 @@ export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrac
                   </th>
                 ))}
                 <th className="px-3 py-2.5 text-center font-medium text-muted-foreground w-16">
-                  Checks
+                  Runs
                 </th>
                 <th className="px-2 py-2.5 w-10" />
               </tr>
@@ -126,6 +135,25 @@ export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrac
                         <span className="mt-0.5 inline-flex items-center rounded border border-border px-1 py-0.5 text-[10px] text-muted-foreground">
                           custom
                         </span>
+                      )}
+                    </td>
+
+                    {/* Score + Ranking Badge */}
+                    <td className="px-3 py-2.5 text-center">
+                      {track.results.length === 0 ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : (
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-sm font-bold tabular-nums text-foreground">
+                            {Math.round((track.score ?? 0) * 100)}
+                          </span>
+                          <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${RANKING_STYLES[track.ranking_label ?? "Weak"] ?? RANKING_STYLES.Weak}`}>
+                            {track.ranking_label ?? "Weak"}
+                          </span>
+                          <span className="text-[9px] text-muted-foreground">
+                            {track.visibility_pct ?? 0}% vis
+                          </span>
+                        </div>
                       )}
                     </td>
 

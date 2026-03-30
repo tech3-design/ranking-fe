@@ -199,8 +199,15 @@ export interface PromptTrack {
   id: number;
   prompt_text: string;
   is_custom: boolean;
+  score: number;
   created_at: string;
   results: PromptResult[];
+  visibility_pct: number;
+  avg_position: number;
+  sentiment_label: string;
+  ranking_label: string;
+  total_runs: number;
+  mentions: number;
 }
 
 export interface ShareOfVoiceItem {

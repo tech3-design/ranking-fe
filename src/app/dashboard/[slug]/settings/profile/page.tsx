@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useSession } from "@/lib/auth-client";
 import {
-  createOrganization,
   deleteOrganization,
   getOrganizations,
   updateOrganization,
@@ -32,9 +31,6 @@ export default function ProfileSettingsPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [creating, setCreating] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newUrl, setNewUrl] = useState("");
 
   // Terminate / Delete state
   const [showTerminateDialog, setShowTerminateDialog] = useState(false);
@@ -66,20 +62,6 @@ export default function ProfileSettingsPage() {
   }, [email, setOrganizations]);
 
   useEffect(() => { loadOrgs(); }, [loadOrgs]);
-
-  async function handleCreate(e: FormEvent) {
-    e.preventDefault();
-    if (!email || !newName.trim()) return;
-    setCreating(true); setError(null); setNotice(null);
-    try {
-      const created = await createOrganization({ name: newName.trim(), url: newUrl.trim(), email });
-      const next = [created, ...organizations];
-      setLocalOrgs(next); setOrganizations(next);
-      setNewName(""); setNewUrl("");
-      setNotice("Organization created.");
-    } catch { setError("Failed to create organization."); }
-    finally { setCreating(false); }
-  }
 
   async function handleSave(id: number) {
     if (!editName.trim()) return;
@@ -179,29 +161,13 @@ export default function ProfileSettingsPage() {
         <p className="text-sm font-semibold text-foreground mb-1">Organizations</p>
         <p className="text-xs text-muted-foreground mb-4">Add, edit, or remove your organizations.</p>
 
-        <form onSubmit={handleCreate} className="flex gap-2 mb-4">
-          <input
-            placeholder="Organization name"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            required
-            className="flex-1 bg-background rounded-xl px-3 py-2 text-sm border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          <input
-            placeholder="https://example.com"
-            value={newUrl}
-            onChange={(e) => setNewUrl(e.target.value)}
-            className="flex-1 bg-background rounded-xl px-3 py-2 text-sm border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          <button
-            type="submit"
-            disabled={creating || !newName.trim()}
-            className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white bg-primary transition hover:opacity-90 disabled:opacity-50"
-          >
-            {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-            Add
-          </button>
-        </form>
+        <button
+          onClick={() => router.push("/onboarding/company-info")}
+          className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white bg-primary transition hover:opacity-90 mb-4"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Add New Organization
+        </button>
 
         {loading ? (
           <div className="py-8 flex justify-center"><SignalorLoader size="sm" /></div>
