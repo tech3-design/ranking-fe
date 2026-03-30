@@ -37,9 +37,12 @@ export default function CompanyInfoPage() {
 
   // Shopify fields
   const [shopDomain, setShopDomain] = useState("");
+  const [storePassword, setStorePassword] = useState("");
 
   // WordPress fields
   const [wpSiteUrl, setWpSiteUrl] = useState("");
+  const [wpApiKey, setWpApiKey] = useState("");
+  const [wpMode, setWpMode] = useState<"plugin" | "wpcom">("plugin");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -117,7 +120,8 @@ export default function CompanyInfoPage() {
           email,
           domain,
           "/dashboard",
-          orgId
+          orgId,
+          storePassword || undefined,
         );
         // Redirect to Shopify OAuth — after callback, user lands on /dashboard
         window.location.href = auth_url;
@@ -129,20 +133,21 @@ export default function CompanyInfoPage() {
         if (!siteUrl.startsWith("http://") && !siteUrl.startsWith("https://")) {
           siteUrl = `https://${siteUrl}`;
         }
-        const result = await connectWordPress(
-          email,
-          siteUrl,
-          "",
-          ""
-        );
 
-        // Redirect to WordPress.com OAuth
-        if (result.oauth_url) {
-          window.location.href = result.oauth_url;
-          return;
+        if (wpMode === "wpcom") {
+          // WordPress.com OAuth flow
+          const result = await connectWordPress(email, siteUrl, "", "");
+          if (result.oauth_url) {
+            window.location.href = result.oauth_url;
+            return;
+          }
         }
 
-        // Self-hosted WordPress connected directly — start analysis now
+        // Self-hosted with plugin — pass API key
+        setStatusMsg("Connecting to your WordPress site...");
+        const result = await connectWordPress(email, siteUrl, wpApiKey.trim(), "");
+
+        // Start analysis
         setStatusMsg("Starting analysis on your site...");
         const wpAnalysis = await startAnalysis({
           url: siteUrl,
@@ -302,6 +307,19 @@ export default function CompanyInfoPage() {
                     e.g. your-store.myshopify.com
                   </p>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="store-password">Storefront password <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                  <Input
+                    id="store-password"
+                    type="password"
+                    placeholder="Leave empty if store is not password-protected"
+                    value={storePassword}
+                    onChange={(e) => setStorePassword(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Dev stores have password protection. Find it in Shopify Admin &rarr; Online Store &rarr; Preferences.
+                  </p>
+                </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 {statusMsg && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -350,26 +368,96 @@ export default function CompanyInfoPage() {
                 Connect WordPress
               </CardTitle>
               <CardDescription>
-                Enter your WordPress site URL to connect
+                Connect using the Signalor plugin or WordPress.com OAuth
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Tab toggle */}
+              <div className="flex rounded-lg bg-white/[0.04] p-1 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setWpMode("plugin")}
+                  className={`flex-1 rounded-md py-2 text-xs font-medium transition ${wpMode === "plugin" ? "bg-white/[0.1] text-foreground" : "text-muted-foreground"}`}
+                >
+                  Plugin (API Key)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWpMode("wpcom")}
+                  className={`flex-1 rounded-md py-2 text-xs font-medium transition ${wpMode === "wpcom" ? "bg-white/[0.1] text-foreground" : "text-muted-foreground"}`}
+                >
+                  WordPress.com
+                </button>
+              </div>
+
               <form onSubmit={handleConnect} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="wp-url">Site URL</Label>
                   <Input
                     id="wp-url"
                     type="text"
-                    placeholder="your-site.wordpress.com"
+                    placeholder={wpMode === "wpcom" ? "your-site.wordpress.com" : "your-site.com"}
                     value={wpSiteUrl}
                     onChange={(e) => setWpSiteUrl(e.target.value)}
                     required
                     autoFocus
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Enter your WordPress.com site URL. You&apos;ll be redirected to authorize.
-                  </p>
                 </div>
+
+                {wpMode === "plugin" && (
+                  <>
+                    {/* Step-by-step guide */}
+                    <div className="rounded-lg bg-white/[0.04] border border-white/[0.08] p-4 space-y-3">
+                      <p className="text-xs font-semibold text-foreground">Setup in 3 steps:</p>
+                      <div className="space-y-2.5">
+                        <div className="flex gap-3">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.1] text-[10px] font-bold">1</span>
+                          <div className="text-xs text-muted-foreground">
+                            <a
+                              href="https://github.com/tech3-design/signalor-wordpress-plugin/releases/latest/download/signalor-geo.zip"
+                              target="_blank"
+                              rel="noopener"
+                              className="inline-flex items-center gap-1.5 rounded-md bg-white/[0.08] px-2.5 py-1 font-medium text-foreground hover:bg-white/[0.12] transition"
+                            >
+                              Download Plugin (.zip)
+                            </a>
+                          </div>
+                        </div>
+                        <div className="flex gap-3">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.1] text-[10px] font-bold">2</span>
+                          <p className="text-xs text-muted-foreground">
+                            In your WordPress admin: <strong className="text-foreground">Plugins &rarr; Add New &rarr; Upload Plugin</strong> &rarr; upload the zip &rarr; Activate
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.1] text-[10px] font-bold">3</span>
+                          <p className="text-xs text-muted-foreground">
+                            In your WordPress admin: <strong className="text-foreground">Settings &rarr; Signalor GEO</strong> (the plugin you just installed) &mdash; you&apos;ll see your API Key with a Copy button. Paste it below.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="wp-api-key">API Key</Label>
+                      <Input
+                        id="wp-api-key"
+                        type="text"
+                        placeholder="Paste your API key here"
+                        value={wpApiKey}
+                        onChange={(e) => setWpApiKey(e.target.value)}
+                        required
+                        className="font-mono text-xs"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {wpMode === "wpcom" && (
+                  <p className="text-xs text-muted-foreground">
+                    You&apos;ll be redirected to WordPress.com to authorize access.
+                  </p>
+                )}
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 {statusMsg && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
