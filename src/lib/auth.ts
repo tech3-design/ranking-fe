@@ -25,6 +25,14 @@ if (
 export const auth = betterAuth({
   secret: authSecret,
   database: pool,
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // refresh session every 24 hours
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, // 5 min cache to reduce DB lookups
+    },
+  },
   emailAndPassword: {
     enabled: false,
   },
