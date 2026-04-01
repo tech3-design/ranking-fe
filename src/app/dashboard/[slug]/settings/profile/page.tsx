@@ -9,7 +9,7 @@ import {
   type Organization,
 } from "@/lib/api/organizations";
 import { useOrgStore } from "@/lib/stores/org-store";
-import { Loader2, Pencil, Trash2, Plus, Camera, AlertTriangle, ShieldX, Clock } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, Camera, AlertTriangle, ShieldX, Clock, LogOut } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { terminateAccount, cancelTermination, deleteAccount } from "@/lib/api/payments";
@@ -40,10 +40,12 @@ export default function ProfileSettingsPage() {
   const [deleteStep, setDeleteStep] = useState<0 | 1 | 2>(0); // 0=closed, 1=are you sure, 2=type confirm
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteOrgId, setDeleteOrgId] = useState<number | null>(null);
   const [deleteOrgName, setDeleteOrgName] = useState("");
+  const [deleteOrgConfirmText, setDeleteOrgConfirmText] = useState("");
   const [editName, setEditName] = useState("");
   const [editUrl, setEditUrl] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -123,6 +125,19 @@ export default function ProfileSettingsPage() {
     } catch { setError("Failed to delete account."); setDeleting(false); }
   }
 
+  async function handleSignOut() {
+    setSigningOut(true);
+    setError(null);
+    try {
+      await signOut();
+      router.push(routes.signIn);
+    } catch {
+      setError("Failed to sign out.");
+    } finally {
+      setSigningOut(false);
+    }
+  }
+
   return (
     <div className="px-6 py-6 space-y-6">
       <div>
@@ -199,7 +214,7 @@ export default function ProfileSettingsPage() {
                         <button onClick={() => { setEditingId(org.id); setEditName(org.name); setEditUrl(org.url ?? ""); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-card transition border border-border">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => { setDeleteOrgId(org.id); setDeleteOrgName(org.name); }} disabled={deletingId === org.id} className="w-8 h-8 rounded-lg flex items-center justify-center text-primary hover:bg-primary/10 transition border border-primary/30">
+                        <button onClick={() => { setDeleteOrgId(org.id); setDeleteOrgName(org.name); setDeleteOrgConfirmText(""); }} disabled={deletingId === org.id} className="w-8 h-8 rounded-lg flex items-center justify-center text-primary hover:bg-primary/10 transition border border-primary/30">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -269,6 +284,28 @@ export default function ProfileSettingsPage() {
               Delete Account
             </button>
           </div>
+
+          {/* Sign out — end session only (does not delete data) */}
+          <div className="flex items-center justify-between rounded-xl bg-card border border-border p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
+                <LogOut className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Sign out</p>
+                <p className="text-[11px] text-muted-foreground">End your session on this device. You can sign in again anytime.</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="text-xs font-medium px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent transition disabled:opacity-50"
+            >
+              {signingOut ? "Signing out…" : "Sign out"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -279,20 +316,35 @@ export default function ProfileSettingsPage() {
             <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
               <Trash2 className="w-6 h-6 text-red-500" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Delete Organization</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Are you sure you want to delete <strong className="text-foreground">&ldquo;{deleteOrgName}&rdquo;</strong>? This will remove all analysis runs and data for this organization.
+            <h3 className="text-lg font-semibold text-foreground mb-2">Delete project</h3>
+            <p className="text-sm text-muted-foreground mb-4 text-left">
+              This will remove all analysis runs and data for this project. Type the project name <strong className="text-foreground">&ldquo;{deleteOrgName}&rdquo;</strong> to confirm.
             </p>
+            <label className="block text-left text-xs font-medium text-muted-foreground mb-1.5">Project name</label>
+            <input
+              type="text"
+              value={deleteOrgConfirmText}
+              onChange={(e) => setDeleteOrgConfirmText(e.target.value)}
+              autoComplete="off"
+              placeholder={deleteOrgName}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground mb-4 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
             <div className="flex gap-2">
               <button
-                onClick={() => { handleDelete(deleteOrgId); setDeleteOrgId(null); setDeleteOrgName(""); }}
-                disabled={deletingId === deleteOrgId}
+                onClick={() => {
+                  if (deleteOrgId === null || deleteOrgConfirmText.trim() !== deleteOrgName.trim()) return;
+                  handleDelete(deleteOrgId);
+                  setDeleteOrgId(null);
+                  setDeleteOrgName("");
+                  setDeleteOrgConfirmText("");
+                }}
+                disabled={deletingId === deleteOrgId || deleteOrgConfirmText.trim() !== deleteOrgName.trim()}
                 className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition disabled:opacity-50"
               >
-                {deletingId === deleteOrgId ? "Deleting..." : "Delete"}
+                {deletingId === deleteOrgId ? "Deleting..." : "Delete project"}
               </button>
               <button
-                onClick={() => { setDeleteOrgId(null); setDeleteOrgName(""); }}
+                onClick={() => { setDeleteOrgId(null); setDeleteOrgName(""); setDeleteOrgConfirmText(""); }}
                 className="flex-1 rounded-xl py-2.5 text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
               >
                 Cancel

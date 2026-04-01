@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,31 @@ import { BackgroundBeams } from "@/components/ui/background-beams";
 type Platform = "shopify" | "wordpress" | null;
 type Step = "company" | "platform" | "connect" | "prompts" | "analytics" | "launch";
 
+const ONBOARDING_DRAFT_KEY = "signalor_onboarding_draft";
+
+type OnboardingDraftV1 = {
+  v: 1;
+  email: string;
+  step: Step;
+  companyName: string;
+  platform: Platform;
+  shopDomain: string;
+  storePassword: string;
+  wpSiteUrl: string;
+  wpApiKey: string;
+  wpMode: "plugin" | "wpcom";
+  orgId: number | null;
+  siteUrl: string;
+  prompts: string[];
+};
+
 export default function CompanyInfoPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const skipDraftHydration = useRef(false);
+  /** Only apply sessionStorage draft once per mount so session refetch can't reset step (e.g. Back from GA → company). */
+  const hasAppliedStoredDraft = useRef(false);
+  const [canPersistDraft, setCanPersistDraft] = useState(false);
 
   const [step, setStep] = useState<Step>("company");
   const [companyName, setCompanyName] = useState("");
@@ -70,6 +92,98 @@ export default function CompanyInfoPage() {
       router.replace(routes.signIn);
     }
   }, [isPending, session, router]);
+
+  // Restore draft once before paint (refresh / return) — never re-apply on session refetch (fixes Back: GA → company).
+  useLayoutEffect(() => {
+    if (typeof window === "undefined" || !session?.user?.email) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const shopifyResume =
+      params.get("resume") === "shopify" || params.get("shopify") === "connected";
+    if (shopifyResume && sessionStorage.getItem("signalor_onboarding")) {
+      skipDraftHydration.current = true;
+      setCanPersistDraft(true);
+      return;
+    }
+
+    if (skipDraftHydration.current) {
+      setCanPersistDraft(true);
+      return;
+    }
+
+    if (hasAppliedStoredDraft.current) {
+      setCanPersistDraft(true);
+      return;
+    }
+    hasAppliedStoredDraft.current = true;
+
+    try {
+      const raw = sessionStorage.getItem(ONBOARDING_DRAFT_KEY);
+      if (!raw) {
+        setCanPersistDraft(true);
+        return;
+      }
+      const d = JSON.parse(raw) as OnboardingDraftV1;
+      if (d.v !== 1 || d.email !== session.user.email) {
+        sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+        setCanPersistDraft(true);
+        return;
+      }
+      setStep(d.step);
+      setCompanyName(d.companyName ?? "");
+      setPlatform(d.platform ?? null);
+      setShopDomain(d.shopDomain ?? "");
+      setStorePassword(d.storePassword ?? "");
+      setWpSiteUrl(d.wpSiteUrl ?? "");
+      setWpApiKey(d.wpApiKey ?? "");
+      setWpMode(d.wpMode === "wpcom" ? "wpcom" : "plugin");
+      setOrgId(d.orgId ?? null);
+      setSiteUrl(d.siteUrl ?? "");
+      setPrompts(Array.isArray(d.prompts) ? d.prompts : []);
+    } catch {
+      sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+    }
+    setCanPersistDraft(true);
+  }, [session?.user?.email]);
+
+  // Persist draft whenever onboarding fields change (same tab / survive refresh)
+  useEffect(() => {
+    if (typeof window === "undefined" || !session?.user?.email || !canPersistDraft) return;
+    const draft: OnboardingDraftV1 = {
+      v: 1,
+      email: session.user.email,
+      step,
+      companyName,
+      platform,
+      shopDomain,
+      storePassword,
+      wpSiteUrl,
+      wpApiKey,
+      wpMode,
+      orgId,
+      siteUrl,
+      prompts,
+    };
+    try {
+      sessionStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      /* quota / private mode */
+    }
+  }, [
+    canPersistDraft,
+    session?.user?.email,
+    step,
+    companyName,
+    platform,
+    shopDomain,
+    storePassword,
+    wpSiteUrl,
+    wpApiKey,
+    wpMode,
+    orgId,
+    siteUrl,
+    prompts,
+  ]);
 
   // ── Step handlers ──
 
@@ -173,6 +287,7 @@ export default function CompanyInfoPage() {
       if (saved) {
         try {
           const data = JSON.parse(saved);
+          skipDraftHydration.current = true;
           setCompanyName(data.companyName || "");
           setOrgId(data.orgId);
           setSiteUrl(data.siteUrl || "");
@@ -257,6 +372,11 @@ export default function CompanyInfoPage() {
         brand_name: companyName.trim(),
         org_id: orgId,
       });
+      try {
+        sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+      } catch {
+        /* ignore */
+      }
       router.push(routes.dashboardProject(analysis.slug));
     } catch {
       setError("Failed to start analysis. Please try again.");
@@ -467,8 +587,19 @@ export default function CompanyInfoPage() {
 
         {/* Step 4: Google Analytics */}
         {step === "analytics" && (
-          <Card className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl">
-            <CardHeader className="text-center">
+          <Card className="relative bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl">
+            <button
+              type="button"
+              onClick={() => {
+                setError("");
+                setStep("launch");
+              }}
+              className="absolute right-3 top-3 z-10 rounded-lg p-2 text-muted-foreground transition hover:bg-white/[0.08] hover:text-foreground"
+              aria-label="Skip Google Analytics"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <CardHeader className="text-center pt-8 sm:pt-6">
               <div className="mx-auto w-10 h-10 rounded-xl bg-[#F9AB00]/10 flex items-center justify-center mb-2">
                 <BarChart3 className="w-5 h-5 text-[#F9AB00]" />
               </div>
@@ -476,10 +607,15 @@ export default function CompanyInfoPage() {
               <CardDescription>Connect Google Analytics to track how AI visibility affects your traffic.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <button
+              {error && <p className="text-sm text-destructive">{error}</p>}
+
+              <Button
+                className="gradient-btn flex w-full h-auto min-h-[3.25rem] flex-row items-center justify-start py-3 gap-3"
+                disabled={loading}
                 onClick={async () => {
                   if (!session) return;
                   setLoading(true);
+                  setError("");
                   try {
                     const { auth_url } = await getGAAuthUrl(session.user.email);
                     window.location.href = auth_url;
@@ -488,24 +624,34 @@ export default function CompanyInfoPage() {
                     setLoading(false);
                   }
                 }}
-                disabled={loading}
-                className="w-full flex items-center gap-4 rounded-xl border-2 border-transparent bg-white/[0.03] p-4 text-left transition-all hover:border-[#F9AB00]/40 hover:bg-white/[0.06]"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#F9AB00]/10">
-                  <BarChart3 className="h-6 w-6 text-[#F9AB00]" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                  {loading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-white" />
+                  ) : (
+                    <BarChart3 className="h-5 w-5 text-white" />
+                  )}
                 </div>
-                <div>
-                  <p className="font-semibold">Connect Google Analytics</p>
-                  <p className="text-sm text-muted-foreground">See traffic changes after GEO improvements</p>
-                </div>
-              </button>
+                <span className="flex flex-col items-start text-left">
+                  <span className="font-semibold">
+                    {loading ? "Redirecting…" : "Connect Google Analytics"}
+                  </span>
+                  <span className="text-xs font-normal opacity-90">
+                    See traffic changes after GEO improvements
+                  </span>
+                </span>
+              </Button>
 
-              {error && <p className="text-sm text-destructive">{error}</p>}
-
-              <div className="flex gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setStep("prompts")}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
-                <Button className="gradient-btn flex-1" onClick={() => setStep("launch")}>
-                  Skip for now <ArrowRight className="ml-2 h-4 w-4" />
+              <div className="flex gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setError("");
+                    setStep("prompts");
+                  }}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
               </div>
             </CardContent>
@@ -547,13 +693,24 @@ export default function CompanyInfoPage() {
               {error && <p className="text-sm text-destructive">{error}</p>}
               {statusMsg && <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />{statusMsg}</div>}
 
-              <Button className="gradient-btn w-full" onClick={handleLaunch} disabled={loading}>
-                {loading ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
-                ) : (
-                  <><Rocket className="mr-2 h-4 w-4" /> Start GEO Analysis</>
-                )}
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button className="gradient-btn w-full" onClick={handleLaunch} disabled={loading}>
+                  {loading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
+                  ) : (
+                    <><Rocket className="mr-2 h-4 w-4" /> Start GEO Analysis</>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-muted-foreground"
+                  onClick={() => setStep("analytics")}
+                  disabled={loading}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

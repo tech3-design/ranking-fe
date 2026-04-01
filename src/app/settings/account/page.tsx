@@ -35,6 +35,7 @@ export default function AccountSettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [deleteOrgDialog, setDeleteOrgDialog] = useState<{ id: number; name: string } | null>(null);
+  const [deleteOrgConfirmText, setDeleteOrgConfirmText] = useState("");
 
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
@@ -138,6 +139,7 @@ export default function AccountSettingsPage() {
   async function handleDeleteOrg(id: number) {
     setDeletingId(id);
     setDeleteOrgDialog(null);
+    setDeleteOrgConfirmText("");
     setError(null);
     setNotice(null);
     try {
@@ -285,7 +287,10 @@ export default function AccountSettingsPage() {
                                 <Button
                                   variant="destructive"
                                   size="sm"
-                                  onClick={() => setDeleteOrgDialog({ id: org.id, name: org.name })}
+                                  onClick={() => {
+                                    setDeleteOrgDialog({ id: org.id, name: org.name });
+                                    setDeleteOrgConfirmText("");
+                                  }}
                                   disabled={deletingId === org.id}
                                 >
                                   {deletingId === org.id ? "Deleting..." : "Delete"}
@@ -307,19 +312,38 @@ export default function AccountSettingsPage() {
       {deleteOrgDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-sm shadow-xl mx-4 text-center">
-            <h3 className="text-lg font-semibold text-foreground mb-2">Delete Organization</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Are you sure you want to delete <strong className="text-foreground">&ldquo;{deleteOrgDialog.name}&rdquo;</strong>? This cannot be undone.
+            <h3 className="text-lg font-semibold text-foreground mb-2">Delete project</h3>
+            <p className="text-sm text-muted-foreground mb-4 text-left">
+              This cannot be undone. Type the project name{" "}
+              <strong className="text-foreground">&ldquo;{deleteOrgDialog.name}&rdquo;</strong> to confirm.
             </p>
+            <label className="block text-left text-xs font-medium text-muted-foreground mb-1.5">
+              Project name
+            </label>
+            <input
+              type="text"
+              value={deleteOrgConfirmText}
+              onChange={(e) => setDeleteOrgConfirmText(e.target.value)}
+              autoComplete="off"
+              placeholder={deleteOrgDialog.name}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground mb-4 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
             <div className="flex gap-2">
               <button
-                onClick={() => handleDeleteOrg(deleteOrgDialog.id)}
-                className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition"
+                onClick={() => {
+                  if (!deleteOrgDialog || deleteOrgConfirmText.trim() !== deleteOrgDialog.name.trim()) return;
+                  handleDeleteOrg(deleteOrgDialog.id);
+                }}
+                disabled={deleteOrgConfirmText.trim() !== deleteOrgDialog.name.trim()}
+                className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition disabled:opacity-50"
               >
-                Delete
+                Delete project
               </button>
               <button
-                onClick={() => setDeleteOrgDialog(null)}
+                onClick={() => {
+                  setDeleteOrgDialog(null);
+                  setDeleteOrgConfirmText("");
+                }}
                 className="flex-1 rounded-xl py-2.5 text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
               >
                 Cancel
