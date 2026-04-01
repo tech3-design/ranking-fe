@@ -68,7 +68,13 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
         setScoreHistory(history);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load analysis");
+      const isAxios = err && typeof err === "object" && "response" in err;
+      const status = isAxios ? (err as { response?: { status?: number } }).response?.status : 0;
+      if (status === 404) {
+        setError("Not Found (404)");
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to load analysis");
+      }
     } finally {
       setLoading(false);
     }

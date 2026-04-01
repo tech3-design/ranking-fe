@@ -338,6 +338,12 @@ export default function SignalorDashboard() {
     );
   }
 
+  // If run not found (404 after deletion), redirect to /dashboard to find next valid run
+  if (error && !run && (error.includes("404") || error.includes("Not Found") || error.includes("not found"))) {
+    router.replace("/dashboard");
+    return null;
+  }
+
   if ((error || reanalyzeError) && !run) {
     return (
       <div className="flex h-full w-full items-center justify-center">
