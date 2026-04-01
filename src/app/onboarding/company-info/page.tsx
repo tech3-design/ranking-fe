@@ -145,21 +145,6 @@ export default function CompanyInfoPage() {
           wpUrl = `https://${wpUrl}`;
         }
 
-        if (wpMode === "wpcom") {
-          sessionStorage.setItem("signalor_onboarding", JSON.stringify({
-            step: "prompts",
-            companyName: companyName.trim(),
-            orgId: org?.id,
-            siteUrl: wpUrl,
-            platform: "wordpress",
-          }));
-          const result = await connectWordPress(email, wpUrl, "", "");
-          if (result.oauth_url) {
-            window.location.href = result.oauth_url;
-            return;
-          }
-        }
-
         setStatusMsg("Connecting to your WordPress site...");
         await connectWordPress(email, wpUrl, wpApiKey.trim(), "");
       }
@@ -383,37 +368,31 @@ export default function CompanyInfoPage() {
           <Card className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl">
             <CardHeader className="text-center">
               <CardTitle className="gradient-text text-2xl">Connect WordPress</CardTitle>
-              <CardDescription>Connect using the plugin or WordPress.com</CardDescription>
+              <CardDescription>Install the Signalor GEO plugin and paste your API key</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex rounded-lg bg-white/[0.04] p-1 mb-4">
-                <button type="button" onClick={() => setWpMode("plugin")} className={`flex-1 rounded-md py-2 text-xs font-medium transition ${wpMode === "plugin" ? "bg-white/[0.1] text-foreground" : "text-muted-foreground"}`}>Plugin (API Key)</button>
-                <button type="button" onClick={() => setWpMode("wpcom")} className={`flex-1 rounded-md py-2 text-xs font-medium transition ${wpMode === "wpcom" ? "bg-white/[0.1] text-foreground" : "text-muted-foreground"}`}>WordPress.com</button>
-              </div>
               <form onSubmit={handleConnect} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="wp-url">Site URL</Label>
-                  <Input id="wp-url" placeholder={wpMode === "wpcom" ? "your-site.wordpress.com" : "your-site.com"} value={wpSiteUrl} onChange={(e) => setWpSiteUrl(e.target.value)} required autoFocus />
+                  <Input id="wp-url" placeholder="your-site.com" value={wpSiteUrl} onChange={(e) => setWpSiteUrl(e.target.value)} required autoFocus />
                 </div>
-                {wpMode === "plugin" && (
-                  <>
-                    <button type="button" onClick={() => setShowGuide(true)} className="w-full rounded-lg border border-dashed border-white/[0.15] bg-white/[0.03] px-4 py-3 text-left hover:bg-white/[0.06] transition">
-                      <p className="text-xs font-semibold text-foreground">Need help installing the plugin?</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">View step-by-step setup guide</p>
-                    </button>
-                    <div className="space-y-2">
-                      <Label htmlFor="wp-api-key">Plugin API Key</Label>
-                      <Input id="wp-api-key" type="text" placeholder="Paste your API key here" value={wpApiKey} onChange={(e) => setWpApiKey(e.target.value)} required className="font-mono text-xs" />
-                      <p className="text-[11px] text-muted-foreground">Find this in WP admin &rarr; <strong className="text-foreground">Settings &rarr; Signalor GEO</strong></p>
-                    </div>
-                  </>
-                )}
-                {wpMode === "wpcom" && <p className="text-xs text-muted-foreground">You&apos;ll be redirected to WordPress.com to authorize.</p>}
+
+                <button type="button" onClick={() => setShowGuide(true)} className="w-full rounded-lg border border-dashed border-white/[0.15] bg-white/[0.03] px-4 py-3 text-left hover:bg-white/[0.06] transition">
+                  <p className="text-xs font-semibold text-foreground">Need help installing the plugin?</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">View step-by-step setup guide</p>
+                </button>
+
+                <div className="space-y-2">
+                  <Label htmlFor="wp-api-key">Plugin API Key</Label>
+                  <Input id="wp-api-key" type="text" placeholder="Paste your API key here" value={wpApiKey} onChange={(e) => setWpApiKey(e.target.value)} required className="font-mono text-xs" />
+                  <p className="text-[11px] text-muted-foreground">Find this in WP admin &rarr; <strong className="text-foreground">Settings &rarr; Signalor GEO</strong></p>
+                </div>
+
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 {statusMsg && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />{statusMsg}</div>}
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" onClick={() => { setStep("platform"); setError(""); }} disabled={loading}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
-                  <Button type="submit" className="gradient-btn flex-1" disabled={loading || !wpSiteUrl.trim() || (wpMode === "plugin" && !wpApiKey.trim())}>
+                  <Button type="submit" className="gradient-btn flex-1" disabled={loading || !wpSiteUrl.trim() || !wpApiKey.trim()}>
                     {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting...</> : "Connect"}
                   </Button>
                 </div>
@@ -600,17 +579,11 @@ export default function CompanyInfoPage() {
                   <div className="flex-1 w-px bg-border mt-2" />
                 </div>
                 <div className="flex-1 pb-2">
-                  <p className="text-sm font-semibold text-foreground">Install the Signalor GEO Plugin</p>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Go to your WordPress admin. Click <strong className="text-foreground">Plugins &rarr; Add New Plugin</strong>.</p>
-                  <div className="mt-3 rounded-lg bg-muted/50 border border-border p-3 space-y-2">
-                    <p className="text-xs font-medium text-foreground">Option A: Search in WordPress</p>
-                    <p className="text-xs text-muted-foreground">Type <code className="bg-background px-1.5 py-0.5 rounded text-foreground font-mono">Signalor GEO</code> → Install → Activate.</p>
-                  </div>
-                  <div className="mt-2 rounded-lg bg-muted/50 border border-border p-3 space-y-2">
-                    <p className="text-xs font-medium text-foreground">Option B: Upload manually</p>
-                    <a href="/downloads/signalor-geo.zip" download className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition">Download signalor-geo.zip</a>
-                    <p className="text-xs text-muted-foreground">Then <strong className="text-foreground">Plugins &rarr; Add New &rarr; Upload Plugin</strong> → choose zip → Install → Activate.</p>
-                  </div>
+                  <p className="text-sm font-semibold text-foreground">Download &amp; Install the Plugin</p>
+                  <a href="/downloads/signalor-geo.zip" download className="inline-flex items-center gap-2 mt-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition">Download Signalor GEO (.zip)</a>
+                  <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+                    In your WordPress admin: <strong className="text-foreground">Plugins &rarr; Add New &rarr; Upload Plugin</strong> &rarr; choose the zip &rarr; <strong className="text-foreground">Install Now</strong> &rarr; <strong className="text-foreground">Activate</strong>
+                  </p>
                 </div>
               </div>
               <div className="flex gap-4">

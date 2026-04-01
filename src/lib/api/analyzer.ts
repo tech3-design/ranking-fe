@@ -181,7 +181,7 @@ export function getExportPDFUrl(runId: number): string {
 
 // ── Prompt Tracking ───────────────────────────────────────────────────────
 
-export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity";
+export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity" | "google";
 export type Sentiment = "positive" | "neutral" | "negative";
 
 export interface PromptResult {

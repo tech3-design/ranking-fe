@@ -42,6 +42,8 @@ export default function ProfileSettingsPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [deleteOrgId, setDeleteOrgId] = useState<number | null>(null);
+  const [deleteOrgName, setDeleteOrgName] = useState("");
   const [editName, setEditName] = useState("");
   const [editUrl, setEditUrl] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -71,20 +73,19 @@ export default function ProfileSettingsPage() {
       const next = organizations.map((o) => (o.id === id ? updated : o));
       setLocalOrgs(next); setOrganizations(next);
       setEditingId(null);
-      setNotice("Organization updated.");
+      setNotice("Project updated.");
     } catch { setError("Failed to update."); }
     finally { setSavingId(null); }
   }
 
-  async function handleDelete(id: number, name: string) {
-    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  async function handleDelete(id: number) {
     setDeletingId(id); setError(null); setNotice(null);
     try {
       await deleteOrganization(id);
       const next = organizations.filter((o) => o.id !== id);
       setLocalOrgs(next); setOrganizations(next);
       if (editingId === id) setEditingId(null);
-      setNotice("Organization deleted.");
+      setNotice("Project deleted.");
     } catch { setError("Failed to delete."); }
     finally { setDeletingId(null); }
   }
@@ -156,23 +157,23 @@ export default function ProfileSettingsPage() {
         </div>
       </div>
 
-      {/* Organizations */}
+      {/* Projects */}
       <div className="bg-card rounded-2xl p-6 border border-border">
-        <p className="text-sm font-semibold text-foreground mb-1">Organizations</p>
-        <p className="text-xs text-muted-foreground mb-4">Add, edit, or remove your organizations.</p>
+        <p className="text-sm font-semibold text-foreground mb-1">Projects</p>
+        <p className="text-xs text-muted-foreground mb-4">Add, edit, or remove your projects.</p>
 
         <button
           onClick={() => router.push("/onboarding/company-info")}
           className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white bg-primary transition hover:opacity-90 mb-4"
         >
           <Plus className="w-3.5 h-3.5" />
-          Add New Organization
+          Add New Project
         </button>
 
         {loading ? (
           <div className="py-8 flex justify-center"><SignalorLoader size="sm" /></div>
         ) : organizations.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-6">No organizations yet.</p>
+          <p className="text-xs text-muted-foreground text-center py-6">No projects yet.</p>
         ) : (
           <div className="space-y-2">
             {organizations.map((org) => {
@@ -198,7 +199,7 @@ export default function ProfileSettingsPage() {
                         <button onClick={() => { setEditingId(org.id); setEditName(org.name); setEditUrl(org.url ?? ""); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-card transition border border-border">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => handleDelete(org.id, org.name)} disabled={deletingId === org.id} className="w-8 h-8 rounded-lg flex items-center justify-center text-primary hover:bg-primary/10 transition border border-primary/30">
+                        <button onClick={() => { setDeleteOrgId(org.id); setDeleteOrgName(org.name); }} disabled={deletingId === org.id} className="w-8 h-8 rounded-lg flex items-center justify-center text-primary hover:bg-primary/10 transition border border-primary/30">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -270,6 +271,36 @@ export default function ProfileSettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Organization Dialog */}
+      {deleteOrgId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-sm shadow-xl mx-4 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-red-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Delete Organization</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Are you sure you want to delete <strong className="text-foreground">&ldquo;{deleteOrgName}&rdquo;</strong>? This will remove all analysis runs and data for this organization.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { handleDelete(deleteOrgId); setDeleteOrgId(null); setDeleteOrgName(""); }}
+                disabled={deletingId === deleteOrgId}
+                className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition disabled:opacity-50"
+              >
+                {deletingId === deleteOrgId ? "Deleting..." : "Delete"}
+              </button>
+              <button
+                onClick={() => { setDeleteOrgId(null); setDeleteOrgName(""); }}
+                className="flex-1 rounded-xl py-2.5 text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Pause Account Dialog */}
       {showTerminateDialog && (

@@ -3,6 +3,7 @@
 import type { PromptTrack, Engine, Sentiment } from "@/lib/api/analyzer";
 
 const ENGINE_LABELS: Record<Engine, string> = {
+  google: "Google",
   chatgpt: "ChatGPT",
   claude: "Claude",
   gemini: "Gemini",
@@ -25,6 +26,7 @@ export function SentimentBreakdown({ tracks }: SentimentBreakdownProps) {
 
   // Aggregate per engine
   const stats: Record<Engine, Record<Sentiment, number>> = {
+    google: { positive: 0, neutral: 0, negative: 0 },
     chatgpt: { positive: 0, neutral: 0, negative: 0 },
     claude: { positive: 0, neutral: 0, negative: 0 },
     gemini: { positive: 0, neutral: 0, negative: 0 },

@@ -34,6 +34,7 @@ export default function AccountSettingsPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [deleteOrgDialog, setDeleteOrgDialog] = useState<{ id: number; name: string } | null>(null);
 
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
@@ -90,7 +91,7 @@ export default function AccountSettingsPage() {
       setOrganizations(next);
       setNewName("");
       setNewUrl("");
-      setNotice("Organization created.");
+      setNotice("Project created.");
     } catch {
       setError("Failed to create organization.");
     } finally {
@@ -126,7 +127,7 @@ export default function AccountSettingsPage() {
       setLocalOrganizations(next);
       setOrganizations(next);
       setEditingId(null);
-      setNotice("Organization updated.");
+      setNotice("Project updated.");
     } catch {
       setError("Failed to update organization.");
     } finally {
@@ -134,12 +135,9 @@ export default function AccountSettingsPage() {
     }
   }
 
-  async function handleDeleteOrg(id: number, name: string) {
-    const confirmed = window.confirm(
-      `Delete organization "${name}"? This action cannot be undone.`,
-    );
-    if (!confirmed) return;
+  async function handleDeleteOrg(id: number) {
     setDeletingId(id);
+    setDeleteOrgDialog(null);
     setError(null);
     setNotice(null);
     try {
@@ -150,7 +148,7 @@ export default function AccountSettingsPage() {
       if (editingId === id) {
         cancelEdit();
       }
-      setNotice("Organization deleted.");
+      setNotice("Project deleted.");
     } catch {
       setError("Failed to delete organization.");
     } finally {
@@ -216,7 +214,7 @@ export default function AccountSettingsPage() {
               <CardContent className="space-y-4">
                 <form onSubmit={handleCreateOrg} className="grid gap-2 md:grid-cols-3">
                   <Input
-                    placeholder="Organization name"
+                    placeholder="Project name"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     required
@@ -227,7 +225,7 @@ export default function AccountSettingsPage() {
                     onChange={(e) => setNewUrl(e.target.value)}
                   />
                   <Button type="submit" disabled={creating || !newName.trim()}>
-                    {creating ? "Creating..." : "Add Organization"}
+                    {creating ? "Creating..." : "Add Project"}
                   </Button>
                 </form>
 
@@ -251,7 +249,7 @@ export default function AccountSettingsPage() {
                               <Input
                                 value={editName}
                                 onChange={(e) => setEditName(e.target.value)}
-                                placeholder="Organization name"
+                                placeholder="Project name"
                               />
                               <Input
                                 value={editUrl}
@@ -287,7 +285,7 @@ export default function AccountSettingsPage() {
                                 <Button
                                   variant="destructive"
                                   size="sm"
-                                  onClick={() => handleDeleteOrg(org.id, org.name)}
+                                  onClick={() => setDeleteOrgDialog({ id: org.id, name: org.name })}
                                   disabled={deletingId === org.id}
                                 >
                                   {deletingId === org.id ? "Deleting..." : "Delete"}
@@ -305,6 +303,31 @@ export default function AccountSettingsPage() {
           </div>
         </main>
       </div>
+      {/* Delete Org Confirmation Dialog */}
+      {deleteOrgDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-sm shadow-xl mx-4 text-center">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Delete Organization</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Are you sure you want to delete <strong className="text-foreground">&ldquo;{deleteOrgDialog.name}&rdquo;</strong>? This cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleDeleteOrg(deleteOrgDialog.id)}
+                className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setDeleteOrgDialog(null)}
+                className="flex-1 rounded-xl py-2.5 text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
