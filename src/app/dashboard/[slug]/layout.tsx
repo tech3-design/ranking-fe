@@ -35,6 +35,8 @@ import {
   Loader2,
 } from "lucide-react";
 import LogoComp from "@/components/LogoComp";
+import { AiChat } from "@/components/analyzer/ai-chat";
+import { Sparkles } from "lucide-react";
 
 const MAIN_NAV = [
   { icon: LayoutDashboard, label: "Overview", path: "" },
@@ -74,6 +76,7 @@ export default function DashboardSlugLayout({
 
   const router = useRouter();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [isPro, setIsPro] = useState(false);
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
   const [switchingOrg, setSwitchingOrg] = useState(false);
@@ -337,6 +340,25 @@ export default function DashboardSlugLayout({
           </div>
         </footer>
       </main>
+
+      {/* ═══ RIGHT: AI CHAT ═══ */}
+      <AiChat
+        slug={slug}
+        brandName={activeOrg?.name || organizations[0]?.name}
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+      />
+
+      {/* Chat toggle button — fixed bottom right */}
+      {!chatOpen && (
+        <button
+          onClick={() => setChatOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span className="text-xs font-semibold">AI Assistant</span>
+        </button>
+      )}
     </div>
     <ScoreBump />
     </AnalysisGate>

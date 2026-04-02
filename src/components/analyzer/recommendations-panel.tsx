@@ -58,6 +58,10 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
       const preview = await previewFix(slug, recId, email);
       if (preview.status === "preview") {
         setPreviewData(preview);
+      } else if (preview.status === "manual") {
+        const manual = { status: "manual", message: preview.message || "This requires manual action. Follow the instructions above." };
+        setFixResults((prev) => ({ ...prev, [recId]: manual }));
+        onFixResult?.(recId, manual);
       } else {
         const fail = { status: "failed", message: preview.message || "Preview failed" };
         setFixResults((prev) => ({ ...prev, [recId]: fail }));
@@ -159,6 +163,10 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-medium text-emerald-500">
                         <CheckCircle2 className="h-3 w-3" /> Fixed
                       </span>
+                    ) : fixResult.status === "manual" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 text-[10px] font-medium text-amber-400">
+                        Manual
+                      </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[10px] font-medium text-red-500">
                         <XCircle className="h-3 w-3" /> Failed
@@ -209,9 +217,11 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                       <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs ${
                         fixResult.status === "success"
                           ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                          : fixResult.status === "manual"
+                          ? "bg-amber-500/10 border border-amber-500/20 text-amber-400"
                           : "bg-red-500/10 border border-red-500/20 text-red-400"
                       }`}>
-                        {fixResult.status === "success" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                        {fixResult.status === "success" ? <CheckCircle2 className="h-3.5 w-3.5" /> : fixResult.status === "manual" ? <AlertTriangle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
                         {fixResult.message}
                       </div>
                     )}

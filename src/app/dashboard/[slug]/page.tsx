@@ -311,14 +311,27 @@ export default function SignalorDashboard() {
   }, [scoreHistory, historyRange]);
 
   const historyPath = useMemo(() => {
-    if (filteredHistory.length < 2) return null;
+    if (filteredHistory.length === 0) return null;
     const recent = filteredHistory.slice(-12);
     const w = 300;
     const h = 100;
+
+    if (recent.length === 1) {
+      // Single point — show as a dot with a flat line
+      const y = h - (recent[0].composite_score / 100) * h;
+      const d = new Date(recent[0].date);
+      return {
+        line: `M 0 ${y.toFixed(1)} L ${w} ${y.toFixed(1)}`,
+        area: `M 0 ${y.toFixed(1)} L ${w} ${y.toFixed(1)} L ${w} ${h} L 0 ${h} Z`,
+        labels: [d.toLocaleDateString("en-US", { month: "short", day: "numeric" })],
+        points: [{ x: w / 2, y, score: recent[0].composite_score }],
+      };
+    }
+
     const points = recent.map((pt, i) => {
       const x = (i / (recent.length - 1)) * w;
       const y = h - (pt.composite_score / 100) * h;
-      return { x, y };
+      return { x, y, score: pt.composite_score };
     });
     const line = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
     const area = `${line} L ${w} ${h} L 0 ${h} Z`;
@@ -326,7 +339,7 @@ export default function SignalorDashboard() {
       const d = new Date(pt.date);
       return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     });
-    return { line, area, labels };
+    return { line, area, labels, points };
   }, [filteredHistory]);
 
   // Loading
@@ -543,12 +556,25 @@ export default function SignalorDashboard() {
                         <stop offset="100%" stopColor={CORAL} stopOpacity="0" />
                       </linearGradient>
                     </defs>
+                    {/* Grid lines */}
+                    <line x1="0" y1="50" x2="300" y2="50" stroke="currentColor" strokeOpacity="0.06" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                    <line x1="0" y1="25" x2="300" y2="25" stroke="currentColor" strokeOpacity="0.04" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                    <line x1="0" y1="75" x2="300" y2="75" stroke="currentColor" strokeOpacity="0.04" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                    {/* Area fill */}
                     <path d={historyPath.area} fill="url(#areaGrad)" />
-                    <path d={historyPath.line} fill="none" stroke={CORAL} strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
+                    {/* Line */}
+                    <path d={historyPath.line} fill="none" stroke={CORAL} strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+                    {/* Data points */}
+                    {historyPath.points?.map((pt, i) => (
+                      <g key={i}>
+                        <circle cx={pt.x} cy={pt.y} r="6" fill={CORAL} fillOpacity="0.15" vectorEffect="non-scaling-stroke" />
+                        <circle cx={pt.x} cy={pt.y} r="3" fill={CORAL} vectorEffect="non-scaling-stroke" />
+                      </g>
+                    ))}
                   </svg>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-xs text-muted-foreground">Run more analyses to see trends</p>
+                    <p className="text-xs text-muted-foreground">No analysis history yet</p>
                   </div>
                 )}
                 {historyPath && (

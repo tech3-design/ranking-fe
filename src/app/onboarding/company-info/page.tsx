@@ -44,7 +44,7 @@ type OnboardingDraftV1 = {
   storePassword: string;
   wpSiteUrl: string;
   wpApiKey: string;
-  wpMode: "plugin" | "wpcom";
+  wpStep: number;
   orgId: number | null;
   siteUrl: string;
   prompts: string[];
@@ -69,8 +69,7 @@ export default function CompanyInfoPage() {
   // WordPress fields
   const [wpSiteUrl, setWpSiteUrl] = useState("");
   const [wpApiKey, setWpApiKey] = useState("");
-  const [wpMode, setWpMode] = useState<"plugin" | "wpcom">("plugin");
-  const [showGuide, setShowGuide] = useState(false);
+  const [wpStep, setWpStep] = useState(1); // 1=download, 2=upload, 3=api key
 
   // Org created after connect
   const [orgId, setOrgId] = useState<number | null>(null);
@@ -136,7 +135,7 @@ export default function CompanyInfoPage() {
       setStorePassword(d.storePassword ?? "");
       setWpSiteUrl(d.wpSiteUrl ?? "");
       setWpApiKey(d.wpApiKey ?? "");
-      setWpMode(d.wpMode === "wpcom" ? "wpcom" : "plugin");
+      setWpStep(d.wpStep ?? 1);
       setOrgId(d.orgId ?? null);
       setSiteUrl(d.siteUrl ?? "");
       setPrompts(Array.isArray(d.prompts) ? d.prompts : []);
@@ -159,7 +158,7 @@ export default function CompanyInfoPage() {
       storePassword,
       wpSiteUrl,
       wpApiKey,
-      wpMode,
+      wpStep,
       orgId,
       siteUrl,
       prompts,
@@ -179,7 +178,7 @@ export default function CompanyInfoPage() {
     storePassword,
     wpSiteUrl,
     wpApiKey,
-    wpMode,
+    wpStep,
     orgId,
     siteUrl,
     prompts,
@@ -398,7 +397,7 @@ export default function CompanyInfoPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
       <BackgroundBeams />
-      <div className="relative z-10 w-full max-w-lg">
+      <div className={`relative z-10 w-full ${step === "prompts" ? "max-w-2xl" : "max-w-lg"}`}>
         {/* Progress indicator */}
         <div className="flex items-center justify-center gap-1.5 mb-6">
           {[1, 2, 3, 4, 5].map((n) => (
@@ -488,30 +487,88 @@ export default function CompanyInfoPage() {
           <Card className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl">
             <CardHeader className="text-center">
               <CardTitle className="gradient-text text-2xl">Connect WordPress</CardTitle>
-              <CardDescription>Install the Signalor GEO plugin and paste your API key</CardDescription>
+              <CardDescription>We&apos;ll walk you through it step by step</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleConnect} className="space-y-4">
+              <form onSubmit={handleConnect} className="space-y-5">
+                {/* Site URL — always visible */}
                 <div className="space-y-2">
-                  <Label htmlFor="wp-url">Site URL</Label>
-                  <Input id="wp-url" placeholder="your-site.com" value={wpSiteUrl} onChange={(e) => setWpSiteUrl(e.target.value)} required autoFocus />
+                  <Label htmlFor="wp-url">Your WordPress site URL</Label>
+                  <Input id="wp-url" placeholder="arkit.com" value={wpSiteUrl} onChange={(e) => { setWpSiteUrl(e.target.value); setWpStep(1); }} required autoFocus />
                 </div>
 
-                <button type="button" onClick={() => setShowGuide(true)} className="w-full rounded-lg border border-dashed border-white/[0.15] bg-white/[0.03] px-4 py-3 text-left hover:bg-white/[0.06] transition">
-                  <p className="text-xs font-semibold text-foreground">Need help installing the plugin?</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">View step-by-step setup guide</p>
-                </button>
+                {/* Step 1: Download the plugin */}
+                {wpSiteUrl.trim() && wpStep >= 1 && (
+                  <div className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-[11px] font-bold">1</span>
+                      <p className="text-xs font-semibold text-foreground">Download the Signalor GEO plugin</p>
+                    </div>
+                    <a
+                      href="/downloads/signalor-geo.zip"
+                      download
+                      onClick={() => setTimeout(() => setWpStep(2), 500)}
+                      className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary/10 border border-primary/30 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition"
+                    >
+                      <ArrowRight className="w-3.5 h-3.5 rotate-90" />
+                      Download signalor-geo.zip
+                    </a>
+                  </div>
+                )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="wp-api-key">Plugin API Key</Label>
-                  <Input id="wp-api-key" type="text" placeholder="Paste your API key here" value={wpApiKey} onChange={(e) => setWpApiKey(e.target.value)} required className="font-mono text-xs" />
-                  <p className="text-[11px] text-muted-foreground">Find this in WP admin &rarr; <strong className="text-foreground">Settings &rarr; Signalor GEO</strong></p>
-                </div>
+                {/* Step 2: Upload to their site */}
+                {wpStep >= 2 && (
+                  <div className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-[11px] font-bold">2</span>
+                      <p className="text-xs font-semibold text-foreground">Upload the plugin to your WordPress site</p>
+                    </div>
+
+                    <a
+                      href={`${wpSiteUrl.trim().replace(/\/$/, "").replace(/^(?!https?:\/\/)/, "https://")}/wp-admin/plugin-install.php?tab=upload`}
+                      target="_blank"
+                      rel="noopener"
+                      onClick={() => setTimeout(() => setWpStep(3), 1000)}
+                      className="flex items-center justify-center gap-2 w-full rounded-lg bg-[#21759b]/10 border border-[#21759b]/30 px-4 py-2.5 text-xs font-semibold text-[#21759b] hover:bg-[#21759b]/20 transition"
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                      Open Upload Plugin Page
+                    </a>
+
+                    <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3 space-y-2">
+                      <p className="text-[11px] text-muted-foreground">This opens your WordPress admin. After logging in:</p>
+                      <ol className="text-[11px] text-muted-foreground space-y-1.5 list-decimal list-inside">
+                        <li>Click <strong className="text-foreground">Choose File</strong> and select the <strong className="text-foreground">signalor-geo.zip</strong> you just downloaded</li>
+                        <li>Click <strong className="text-foreground">Install Now</strong></li>
+                        <li>After installation, click <strong className="text-foreground">Activate Plugin</strong></li>
+                      </ol>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Get API key */}
+                {wpStep >= 3 && (
+                  <div className="rounded-xl border border-white/[0.1] bg-white/[0.03] p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-[11px] font-bold">3</span>
+                      <p className="text-xs font-semibold text-foreground">Copy your API Key and paste it here</p>
+                    </div>
+                    <a
+                      href={`${wpSiteUrl.trim().replace(/\/$/, "").replace(/^(?!https?:\/\/)/, "https://")}/wp-admin/options-general.php?page=signalor-geo`}
+                      target="_blank"
+                      rel="noopener"
+                      className="flex items-center justify-center gap-2 w-full rounded-lg bg-white/[0.06] border border-white/[0.12] px-4 py-2.5 text-xs font-medium text-foreground hover:bg-white/[0.1] transition"
+                    >
+                      Open Settings → Signalor GEO on your site
+                    </a>
+                    <Input id="wp-api-key" type="text" placeholder="Paste your API key here" value={wpApiKey} onChange={(e) => setWpApiKey(e.target.value)} required className="font-mono text-xs" />
+                  </div>
+                )}
 
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 {statusMsg && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />{statusMsg}</div>}
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={() => { setStep("platform"); setError(""); }} disabled={loading}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
+                  <Button type="button" variant="outline" onClick={() => { setStep("platform"); setError(""); setWpStep(1); }} disabled={loading}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
                   <Button type="submit" className="gradient-btn flex-1" disabled={loading || !wpSiteUrl.trim() || !wpApiKey.trim()}>
                     {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting...</> : "Connect"}
                   </Button>
@@ -523,62 +580,102 @@ export default function CompanyInfoPage() {
 
         {/* Step 3: AI-Generated Prompts */}
         {step === "prompts" && (
-          <Card className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-              </div>
-              <CardTitle className="gradient-text text-2xl">Your AI Prompts</CardTitle>
-              <CardDescription>
-                These prompts will be used to track how AI engines mention your brand. Edit, add, or remove as needed.
+          <Card className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl w-full max-w-2xl">
+            <CardHeader>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Step 3 / 5</p>
+              <CardTitle className="text-xl font-bold text-foreground mt-1">Review Prompts</CardTitle>
+              <CardDescription className="text-sm">
+                We&apos;ll track these prompts across AI engines to see how they mention {companyName || "your brand"}. You can add or remove prompts.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               {loadingPrompts ? (
-                <div className="flex flex-col items-center gap-3 py-8">
+                <div className="flex flex-col items-center gap-3 py-10">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  <p className="text-xs text-muted-foreground">Generating prompts for {companyName}...</p>
+                  <p className="text-sm text-muted-foreground">Generating prompts for {companyName}...</p>
                 </div>
               ) : (
                 <>
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-foreground">Select prompts</p>
+                    <span className="text-xs text-muted-foreground">{prompts.length} / 15</span>
+                  </div>
+
+                  {/* Prompt list */}
+                  <div className="space-y-0 divide-y divide-white/[0.06] border border-white/[0.1] rounded-xl overflow-hidden">
                     {prompts.map((prompt, idx) => (
-                      <div key={idx} className="flex items-start gap-2 rounded-lg bg-white/[0.04] border border-white/[0.08] px-3 py-2.5 group">
+                      <div key={idx} className="flex items-center gap-3 px-5 py-4 bg-white/[0.02] hover:bg-white/[0.05] transition group">
                         {editingIdx === idx ? (
                           <div className="flex-1 flex gap-2">
-                            <Input value={editText} onChange={(e) => setEditText(e.target.value)} className="flex-1 text-xs h-8" autoFocus onKeyDown={(e) => e.key === "Enter" && handleSaveEdit(idx)} />
-                            <button onClick={() => handleSaveEdit(idx)} className="text-xs text-primary font-medium px-2">Save</button>
+                            <Input
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              className="flex-1 text-sm h-9"
+                              autoFocus
+                              onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(idx); if (e.key === "Escape") setEditingIdx(null); }}
+                            />
+                            <button onClick={() => handleSaveEdit(idx)} className="text-xs text-primary font-semibold px-3 py-1 rounded-lg hover:bg-primary/10 transition">Save</button>
+                            <button onClick={() => setEditingIdx(null)} className="text-xs text-muted-foreground px-2">Cancel</button>
                           </div>
                         ) : (
                           <>
-                            <span className="flex-1 text-xs text-foreground leading-relaxed">{prompt}</span>
-                            <button onClick={() => handleEditPrompt(idx)} className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-white/[0.1]">
-                              <Pencil className="w-3 h-3 text-muted-foreground" />
-                            </button>
-                            <button onClick={() => handleRemovePrompt(idx)} className="opacity-0 group-hover:opacity-100 transition p-1 rounded hover:bg-white/[0.1]">
-                              <X className="w-3 h-3 text-muted-foreground" />
-                            </button>
+                            {/* Checkbox */}
+                            <div className="w-5 h-5 rounded-md border-2 border-primary bg-primary/10 flex items-center justify-center shrink-0">
+                              <svg className="w-3 h-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+
+                            {/* Prompt text */}
+                            <span
+                              className="flex-1 text-[15px] text-foreground leading-relaxed cursor-pointer"
+                              onClick={() => handleEditPrompt(idx)}
+                            >
+                              {prompt}
+                            </span>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+                              <button onClick={() => handleEditPrompt(idx)} className="p-1.5 rounded-lg hover:bg-white/[0.1] transition" title="Edit">
+                                <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                              </button>
+                              <button onClick={() => handleRemovePrompt(idx)} className="p-1.5 rounded-lg hover:bg-red-500/10 transition" title="Remove">
+                                <X className="w-3.5 h-3.5 text-muted-foreground hover:text-red-400" />
+                              </button>
+                            </div>
                           </>
                         )}
                       </div>
                     ))}
                   </div>
 
-                  {/* Add new prompt */}
-                  <div className="flex gap-2">
-                    <Input value={newPrompt} onChange={(e) => setNewPrompt(e.target.value)} placeholder="Add a custom prompt..." className="flex-1 text-xs" onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPrompt())} />
-                    <button onClick={handleAddPrompt} disabled={!newPrompt.trim() || prompts.length >= 15} className="rounded-lg bg-white/[0.08] px-3 py-2 text-xs font-medium text-foreground hover:bg-white/[0.12] transition disabled:opacity-40">
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground text-center">{prompts.length}/15 prompts</p>
+                  {/* Add custom */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (prompts.length < 15) {
+                        setPrompts((prev) => [...prev, ""]);
+                        setEditingIdx(prompts.length);
+                        setEditText("");
+                      }
+                    }}
+                    disabled={prompts.length >= 15}
+                    className="flex items-center gap-2 w-full px-4 py-3 rounded-xl border border-dashed border-white/[0.15] text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition disabled:opacity-30"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add custom prompt
+                  </button>
                 </>
               )}
 
-              <div className="flex gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setStep("connect")}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
-                <Button className="gradient-btn flex-1" onClick={() => setStep("analytics")} disabled={loadingPrompts || prompts.length === 0}>
-                  Continue <ArrowRight className="ml-2 h-4 w-4" />
+              {/* Navigation */}
+              <div className="flex gap-3 pt-2">
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setStep("connect")}>
+                  Back
+                </Button>
+                <Button className="gradient-btn flex-[2]" onClick={() => setStep("analytics")} disabled={loadingPrompts || prompts.length === 0}>
+                  Next <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
@@ -716,59 +813,6 @@ export default function CompanyInfoPage() {
         )}
       </div>
 
-      {/* WordPress Plugin Setup Guide Dialog */}
-      {showGuide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between rounded-t-2xl">
-              <div>
-                <h3 className="text-base font-semibold text-foreground">WordPress Plugin Setup</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Follow these steps to connect your site</p>
-              </div>
-              <button onClick={() => setShowGuide(false)} className="rounded-lg p-1.5 hover:bg-accent transition">
-                <span className="text-lg leading-none text-muted-foreground">&times;</span>
-              </button>
-            </div>
-            <div className="px-6 py-5 space-y-6">
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">1</span>
-                  <div className="flex-1 w-px bg-border mt-2" />
-                </div>
-                <div className="flex-1 pb-2">
-                  <p className="text-sm font-semibold text-foreground">Download &amp; Install the Plugin</p>
-                  <a href="/downloads/signalor-geo.zip" download className="inline-flex items-center gap-2 mt-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition">Download Signalor GEO (.zip)</a>
-                  <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-                    In your WordPress admin: <strong className="text-foreground">Plugins &rarr; Add New &rarr; Upload Plugin</strong> &rarr; choose the zip &rarr; <strong className="text-foreground">Install Now</strong> &rarr; <strong className="text-foreground">Activate</strong>
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">2</span>
-                  <div className="flex-1 w-px bg-border mt-2" />
-                </div>
-                <div className="flex-1 pb-2">
-                  <p className="text-sm font-semibold text-foreground">Find Your API Key</p>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">In WP admin: <strong className="text-foreground">Settings &rarr; Signalor GEO</strong>. Click <strong className="text-foreground">Copy</strong> next to the API Key.</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white text-xs font-bold">3</span>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">Paste the API Key</p>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Come back here, paste the key, enter your URL, and click Connect.</p>
-                </div>
-              </div>
-            </div>
-            <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 rounded-b-2xl">
-              <button onClick={() => setShowGuide(false)} className="w-full rounded-xl py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary/90 transition">Got it</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
