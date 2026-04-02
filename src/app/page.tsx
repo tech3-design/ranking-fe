@@ -262,35 +262,6 @@ export default function Home() {
           {/* Integrated Form Component */}
           <HeroAnalyzerForm />
 
-          {/* Floating GEO Score Cards */}
-          <div className="absolute top-40 left-[10%] hidden animate-pulse md:block">
-            <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lg border border-border">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
-                73
-              </div>
-              <div className="text-left">
-                <p className="text-xs font-bold text-foreground">GEO Score</p>
-                <p className="text-[10px] text-emerald-600">
-                  ↑ +5 pts this week
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="absolute top-32 right-[15%] hidden animate-pulse md:block delay-150">
-            <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lg border border-border">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
-                <TrendingUp className="h-4 w-4 text-emerald-600" />
-              </div>
-              <div className="text-left">
-                <p className="text-xs font-bold text-foreground">
-                  AI Citations
-                </p>
-                <p className="text-[10px] text-emerald-600">
-                  ↑ +40% in 30 days
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -390,29 +361,53 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="flex flex-col justify-center gap-6">
-            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-10 shadow-sm transition-all hover:shadow-md">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md">
               <div className="absolute top-0 right-0 h-32 w-32 bg-primary/5 blur-3xl" />
-              <h3 className="font-sans text-5xl text-foreground md:text-6xl">
+              <h3 className="font-sans text-4xl text-foreground md:text-5xl">
                 5,000+{" "}
-                <span className="text-2xl text-muted-foreground">Websites</span>
+                <span className="text-xl text-muted-foreground">Websites</span>
               </h3>
-              <p className="mt-4 text-sm text-muted-foreground">
+              <p className="mt-3 text-sm text-muted-foreground">
                 Brands already using Signalor to improve their visibility in
                 AI-generated answers and recommendations.
               </p>
             </div>
-            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-10 shadow-sm transition-all hover:shadow-md">
+            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md">
               <div className="absolute top-0 right-0 h-32 w-32 bg-primary/5 blur-3xl" />
-              <h3 className="font-sans text-5xl text-foreground md:text-6xl">
+              <h3 className="font-sans text-4xl text-foreground md:text-5xl">
                 40%{" "}
-                <span className="text-2xl text-muted-foreground">
+                <span className="text-xl text-muted-foreground">
                   Avg. Lift
                 </span>
               </h3>
-              <p className="mt-4 text-sm text-muted-foreground">
+              <p className="mt-3 text-sm text-muted-foreground">
                 Average increase in AI citations within 90 days of implementing
-                Signalor's recommendations.
+                Signalor&apos;s recommendations.
+              </p>
+            </div>
+            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute top-0 right-0 h-32 w-32 bg-primary/5 blur-3xl" />
+              <h3 className="font-sans text-4xl text-foreground md:text-5xl">
+                40%{" "}
+                <span className="text-xl text-muted-foreground">
+                  Higher Intent
+                </span>
+              </h3>
+              <p className="mt-3 text-sm text-muted-foreground">
+                AI traffic carries 40% more buyer intent than traditional search — visitors from AI answers are ready to act.
+              </p>
+            </div>
+            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute top-0 right-0 h-32 w-32 bg-primary/5 blur-3xl" />
+              <h3 className="font-sans text-4xl text-foreground md:text-5xl">
+                5%{" "}
+                <span className="text-xl text-muted-foreground">
+                  in 24 Hours
+                </span>
+              </h3>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Average visibility growth within 24 hours of applying Signalor&apos;s auto-fix recommendations to your site.
               </p>
             </div>
           </div>
@@ -575,8 +570,14 @@ export default function Home() {
         <div className="relative mx-auto flex max-w-3xl flex-col items-center justify-center pt-20 pb-10">
           <div className="absolute top-0 w-full h-[300px] border-t-2 border-dashed border-border rounded-t-full opacity-50" />
 
-          <div className="z-10 mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-primary text-white shadow-xl shadow-primary/20">
-            <Zap className="h-10 w-10" />
+          <div className="z-10 mb-8 w-16 h-16">
+            <svg viewBox="0 0 1080 1080" className="w-full h-full">
+              <path d="M565.79,201.17c43.67-3.79,81.17,9.26,114.46,37.06,72.34,60.41,69.67,134.55,104.91,214.09,45.59,102.92,157.65,196.05,41.43,299.84-44.78,39.99-108.24,55.11-162.85,76.4-85,33.15-130.62,64.56-228.66,44.72-279.35-56.53-309.76-455.82-77.76-594.82,46.15-27.65,156.07-72.76,208.47-77.3ZM568,214.45c-58.22,5.52-189.54,65.9-234.39,104.54-164.55,141.78-133.25,460.72,89.16,526.74,99.37,29.49,151.25-3.57,239.8-36.07,73.92-27.13,214.99-62.76,202.49-169.19-5.05-43-71.95-132.08-93.19-179.28-34.95-77.64-30.97-157.5-101.48-215.3-30.04-24.62-63.48-35.13-102.39-31.44Z" fill="#F95C4B" className="origin-center animate-[signalor-ring1_3s_ease-in-out_infinite]" style={{transformOrigin:"540px 540px"}}/>
+              <path d="M541.41,267.61c43.38-3.96,85.03,14.63,115.42,44.99,46.12,46.07,53.19,108.76,79.59,166.31,18.03,39.32,45.84,78.9,61.27,118.16,30.53,77.71-34.74,131.9-98.61,160.49-47.32,21.18-166.45,71.33-213.74,72.07-259.82,4.08-322.49-377.1-108.88-501.03,37.36-21.68,122.92-57.16,164.96-61ZM757.75,699.92c65.98-66.57,15.37-111.39-17.66-175.94-24.71-48.28-35.17-87.92-53.21-137.3-20.87-57.16-75.06-108.91-139.43-104.17-40.85,3-130.99,43.35-165.77,66.84-207.44,140.12-95.06,536.35,176.85,442.68,53.98-18.6,161.1-53.63,199.23-92.1Z" fill="#F95C4B" className="origin-center animate-[signalor-ring2_2.7s_ease-in-out_infinite]" style={{transformOrigin:"540px 540px"}}/>
+              <path d="M523.7,334.09c45.4-2.29,88.35,25.85,114.34,61.55,18.67,25.65,23.9,52.81,36.35,81.06,14.28,32.38,58.57,110.48,57.82,141.04-.89,36.43-35.5,70.71-64.8,88.23-30.42,18.19-149.74,69.78-182.07,72.69-187.11,16.86-254.37-250.97-131.8-368.83,34.85-33.51,122.05-73.31,170.15-75.73ZM517.01,351.76c-34.96,3.97-105.39,39.33-132.45,62.5-116.74,99.92-67.45,357.74,103,342.25,28.53-2.59,134-44.3,162.96-58.57,28.08-13.84,64.06-44.33,66.14-77.96,1.67-26.97-36.61-86.82-48.9-114.48-20.07-45.18-26.48-92.97-66.05-126.68-25.35-21.6-51.12-30.86-84.7-27.05Z" fill="#F95C4B" className="origin-center animate-[signalor-ring3_2.4s_ease-in-out_infinite]" style={{transformOrigin:"540px 540px"}}/>
+              <path d="M383.15,695.95c-75.08-75.11-59.14-217.22,36.79-268.47,103.24-55.16,165.88-17.39,208.72,81.67,31.43,72.67,49.43,119.77-29.92,165.81-27.84,16.15-110.47,55.8-139.96,55.15-26.54-.58-57.13-15.65-75.63-34.16ZM499.28,418.23c-41.99,4.08-96.65,38.5-117.29,75.42-44.51,79.65-.35,244.88,112.29,207.54,30.61-10.15,98.42-37.76,121.74-57.7,34.09-29.15,25.13-49.63,12.29-87.48-19.82-58.41-52.18-145.26-129.03-137.79Z" fill="#F95C4B" className="origin-center animate-[signalor-ring4_2.1s_ease-in-out_infinite]" style={{transformOrigin:"540px 540px"}}/>
+              <path d="M466.02,469.13c51.39-6.95,91.95,17.75,110.77,65.3,16.09,40.65,14.25,67.74-20.9,95.46-12.94,10.21-75.24,48.51-88.75,50.81-71.7,12.21-98.77-92.71-79.84-146.29,11.3-32,44.89-60.7,78.72-65.28ZM474.88,486.85c-32.42,4.44-61.84,34.68-65.69,67.23-4.13,34.98,14.09,119.35,64,99.45,15.86-6.33,72.23-34.89,83.05-45.43,20.53-19.98,14.37-44.5,4.41-68.61-14.93-36.14-45.63-58.14-85.78-52.64Z" fill="#F95C4B" className="origin-center animate-[signalor-ring5_1.8s_ease-in-out_infinite]" style={{transformOrigin:"540px 540px"}}/>
+            </svg>
           </div>
 
           <h2 className="font-sans text-4xl tracking-tight text-foreground md:text-5xl">

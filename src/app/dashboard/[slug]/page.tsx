@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import {
-  getRunBySlug,
-  getScoreHistory,
   getExportPDFUrl,
   startAnalysis,
-  type AnalysisRunDetail,
-  type ScoreHistoryPoint,
 } from "@/lib/api/analyzer";
+import { useRun } from "./_components/run-context";
 import { config, routes } from "@/lib/config";
 import {
   Search,
@@ -24,6 +21,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { CommandPalette } from "@/components/ui/command-palette";
 
 /* ── coral is theme-constant; everything else uses Tailwind classes ── */
 const CORAL = "#F95C4B";
@@ -38,9 +36,9 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, string> = {
   critical: "bg-[#F95C4B]/10 text-[#F95C4B]",
-  high: "bg-amber-100 text-amber-700",
-  medium: "bg-blue-100 text-blue-700",
-  low: "bg-purple-100 text-purple-700",
+  high: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  medium: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  low: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
 };
 
 const PILLAR_LABELS: Record<string, string> = {
@@ -67,13 +65,12 @@ export default function SignalorDashboard() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  const [run, setRun] = useState<AnalysisRunDetail | null>(null);
-  const [scoreHistory, setScoreHistory] = useState<ScoreHistoryPoint[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { run, scoreHistory, loading, error, refetch } = useRun();
   const [reanalyzing, setReanalyzing] = useState(false);
+  const [reanalyzeError, setReanalyzeError] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [historyRange, setHistoryRange] = useState<"7d" | "1m" | "3m" | "all">("all");
   const [historyDropdownOpen, setHistoryDropdownOpen] = useState(false);
 
@@ -97,45 +94,19 @@ export default function SignalorDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  const email = session?.user?.email ?? "";
-
-  const fetchData = useCallback(async () => {
-    if (!slug) return;
-    try {
-      setLoading(true);
-      setError("");
-      const detail = await getRunBySlug(slug);
-      setRun(detail);
-      if (detail.email) {
-        const history = await getScoreHistory(detail.email).catch(() => []);
-        setScoreHistory(history);
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load analysis");
-    } finally {
-      setLoading(false);
-    }
-  }, [slug]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
+  // Cmd+K / Ctrl+K to open command palette
   useEffect(() => {
-    if (!run || run.status === "complete" || run.status === "failed") return;
-    const interval = setInterval(async () => {
-      try {
-        const updated = await getRunBySlug(slug);
-        setRun(updated);
-        if (updated.status === "complete" || updated.status === "failed") {
-          clearInterval(interval);
-          if (updated.email) {
-            const history = await getScoreHistory(updated.email).catch(() => []);
-            setScoreHistory(history);
-          }
-        }
-      } catch { /* ignore */ }
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [run?.status, slug]);
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  const email = session?.user?.email ?? "";
 
   async function handleReanalyze() {
     if (!run || !email) return;
@@ -149,7 +120,7 @@ export default function SignalorDashboard() {
       });
       router.push(routes.dashboardProject(newRun.slug));
     } catch {
-      setError("Failed to start re-analysis");
+      setReanalyzeError("Failed to start re-analysis");
     } finally {
       setReanalyzing(false);
     }
@@ -160,8 +131,10 @@ export default function SignalorDashboard() {
     window.open(`${config.apiBaseUrl}${getExportPDFUrl(run.id)}`, "_blank");
   }
 
-  // Derived data
-  const pageScore = run?.page_scores?.[0] ?? null;
+  // Derived data — match page score to the analyzed URL, not competitors
+  // Normalize URLs for comparison (strip trailing slash + protocol differences)
+  const normalizeUrl = (u: string) => u.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+  const pageScore = run?.page_scores?.find((p) => normalizeUrl(p.url) === normalizeUrl(run.url)) ?? run?.page_scores?.[0] ?? null;
   const compositeScore = run?.composite_score ?? 0;
   const brandVis = run?.brand_visibility;
   const recommendations = run?.recommendations ?? [];
@@ -210,21 +183,35 @@ export default function SignalorDashboard() {
     return { projected: Math.round(projected), gain: projectedGain, days, pillarImpacts };
   }, [recommendations, compositeScore]);
 
-  // AI Sentiment from probes
+  // Brand Sentiment from Reddit + web mentions + AI probes
   const sentiment = useMemo(() => {
+    const redditDetails = brandVis?.reddit_details as Record<string, unknown> | undefined;
+    const redditSentiment = redditDetails?.sentiment as { positive: number; negative: number; neutral: number; modifier: number } | undefined;
+
     const probes = run?.ai_probes ?? [];
-    if (probes.length === 0) return null;
     const mentioned = probes.filter((p) => p.brand_mentioned).length;
-    const notMentioned = probes.length - mentioned;
-    const avgConfidence = probes.reduce((sum, p) => sum + p.confidence, 0) / probes.length;
+    const total = probes.length;
 
-    // Categorize confidence levels
-    const high = probes.filter((p) => p.confidence >= 0.7).length;
-    const medium = probes.filter((p) => p.confidence >= 0.4 && p.confidence < 0.7).length;
-    const low = probes.filter((p) => p.confidence < 0.4).length;
+    // Combine Reddit sentiment + AI probe data
+    const positive = redditSentiment?.positive ?? 0;
+    const negative = redditSentiment?.negative ?? 0;
+    const neutral = redditSentiment?.neutral ?? 0;
+    const modifier = redditSentiment?.modifier ?? 0; // -20 to +20
 
-    return { total: probes.length, mentioned, notMentioned, avgConfidence, high, medium, low };
-  }, [run?.ai_probes]);
+    // Convert modifier to -10 to +10 scale
+    const score = Math.round(modifier / 2);
+
+    const hasData = (positive + negative + neutral) > 0 || total > 0;
+    if (!hasData) return null;
+
+    return {
+      positive, negative, neutral,
+      score, // -10 to +10
+      totalMentions: positive + negative + neutral,
+      aiMentioned: mentioned,
+      aiTotal: total,
+    };
+  }, [brandVis?.reddit_details, run?.ai_probes]);
 
   const filteredRecs = useMemo(() => {
     let filtered = recommendations;
@@ -242,8 +229,24 @@ export default function SignalorDashboard() {
           (r.impact_estimate && r.impact_estimate.toLowerCase().includes(q)),
       );
     }
+    // Sort: recs for lowest-scoring pillars first (most impactful)
+    if (pageScore) {
+      const pillarScores: Record<string, number> = {
+        content: pageScore.content_score,
+        schema: pageScore.schema_score,
+        eeat: pageScore.eeat_score,
+        technical: pageScore.technical_score,
+        entity: pageScore.entity_score,
+        ai_visibility: pageScore.ai_visibility_score,
+      };
+      filtered = [...filtered].sort((a, b) => {
+        const aScore = pillarScores[a.pillar] ?? 50;
+        const bScore = pillarScores[b.pillar] ?? 50;
+        return aScore - bScore; // lowest pillar score first
+      });
+    }
     return filtered.slice(0, 10);
-  }, [recommendations, activeFilter, searchQuery]);
+  }, [recommendations, activeFilter, searchQuery, pageScore]);
 
   const visibilityBars = useMemo(() => {
     if (!brandVis) return [];
@@ -308,14 +311,27 @@ export default function SignalorDashboard() {
   }, [scoreHistory, historyRange]);
 
   const historyPath = useMemo(() => {
-    if (filteredHistory.length < 2) return null;
+    if (filteredHistory.length === 0) return null;
     const recent = filteredHistory.slice(-12);
     const w = 300;
     const h = 100;
+
+    if (recent.length === 1) {
+      // Single point — show as a dot with a flat line
+      const y = h - (recent[0].composite_score / 100) * h;
+      const d = new Date(recent[0].date);
+      return {
+        line: `M 0 ${y.toFixed(1)} L ${w} ${y.toFixed(1)}`,
+        area: `M 0 ${y.toFixed(1)} L ${w} ${y.toFixed(1)} L ${w} ${h} L 0 ${h} Z`,
+        labels: [d.toLocaleDateString("en-US", { month: "short", day: "numeric" })],
+        points: [{ x: w / 2, y, score: recent[0].composite_score }],
+      };
+    }
+
     const points = recent.map((pt, i) => {
       const x = (i / (recent.length - 1)) * w;
       const y = h - (pt.composite_score / 100) * h;
-      return { x, y };
+      return { x, y, score: pt.composite_score };
     });
     const line = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
     const area = `${line} L ${w} ${h} L 0 ${h} Z`;
@@ -323,7 +339,7 @@ export default function SignalorDashboard() {
       const d = new Date(pt.date);
       return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     });
-    return { line, area, labels };
+    return { line, area, labels, points };
   }, [filteredHistory]);
 
   // Loading
@@ -335,12 +351,54 @@ export default function SignalorDashboard() {
     );
   }
 
-  if (error && !run) {
+  // If run not found (404 after deletion), redirect to /dashboard to find next valid run
+  if (error && !run && (error.includes("404") || error.includes("Not Found") || error.includes("not found"))) {
+    router.replace("/dashboard");
+    return null;
+  }
+
+  if ((error || reanalyzeError) && !run) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${CORAL}10`, border: `1px solid ${CORAL}30`, color: CORAL }}>
           <AlertCircle className="h-4 w-4 shrink-0" />
-          {error}
+          {error || reanalyzeError}
+        </div>
+      </div>
+    );
+  }
+
+  // Hard failure — show full-page error instead of dashboard with 0 scores
+  if (run?.status === "failed") {
+    return (
+      <div className="flex h-full w-full items-center justify-center px-6">
+        <div className="max-w-lg w-full text-center space-y-6">
+          <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${CORAL}15` }}>
+            <AlertCircle className="w-8 h-8" style={{ color: CORAL }} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground mb-2">Analysis Failed</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {run.error_message || "Something went wrong during analysis. Please try again."}
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={handleReanalyze}
+              disabled={reanalyzing}
+              className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50"
+              style={{ backgroundColor: CORAL }}
+            >
+              {reanalyzing ? (
+                <><RefreshCw className="w-4 h-4 animate-spin" /> Retrying...</>
+              ) : (
+                <><RefreshCw className="w-4 h-4" /> Try Again</>
+              )}
+            </button>
+          </div>
+          {reanalyzeError && (
+            <p className="text-xs text-red-500">{reanalyzeError}</p>
+          )}
         </div>
       </div>
     );
@@ -350,16 +408,14 @@ export default function SignalorDashboard() {
     <>
       {/* ── Sticky Top Bar (compact) ── */}
       <header className="sticky top-0 z-20 px-6 py-2.5 flex items-center justify-end gap-3 bg-background border-b border-border">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search recommendations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-card rounded-xl py-2 pl-9 pr-4 text-sm w-52 focus:outline-none focus:ring-2 border border-border text-foreground"
-          />
-        </div>
+        <button
+          onClick={() => setPaletteOpen(true)}
+          className="flex items-center gap-2 bg-card rounded-xl py-2 pl-3 pr-3 text-sm border border-border text-muted-foreground hover:bg-accent transition w-52"
+        >
+          <Search className="w-4 h-4 shrink-0" />
+          <span className="flex-1 text-left text-xs">Search...</span>
+          <kbd className="text-[10px] font-mono bg-accent border border-border rounded px-1.5 py-0.5">⌘K</kbd>
+        </button>
         <button
           onClick={handleReanalyze}
           disabled={reanalyzing || isRunning}
@@ -404,51 +460,6 @@ export default function SignalorDashboard() {
           </div>
         )}
       </div>
-
-      {/* Running state */}
-      {isRunning && (
-        <div className="flex items-center justify-center py-16">
-          <div className="w-full max-w-md rounded-2xl bg-card p-6 md:p-8 border border-border">
-            {/* Orbital loader */}
-            <div className="flex flex-col items-center mb-6">
-              <div className="relative w-20 h-20 mb-3">
-                <svg width={80} height={80} viewBox="0 0 80 80">
-                  <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" strokeWidth="3" />
-                  <circle
-                    cx="40" cy="40" r="32" fill="none"
-                    stroke={CORAL} strokeWidth="3" strokeLinecap="round"
-                    strokeDasharray="50 150"
-                    className="animate-[signalor-spin_1.2s_linear_infinite]"
-                    style={{ transformOrigin: "40px 40px" }}
-                  />
-                  <text x="40" y="42" textAnchor="middle" dominantBaseline="middle" fill="var(--foreground)" fontSize="16" fontWeight="700">
-                    {run?.progress != null ? Math.round(run.progress) : 0}%
-                  </text>
-                </svg>
-              </div>
-              <p className="text-base font-semibold text-foreground">Analysis in progress</p>
-              <p className="text-xs mt-0.5 text-muted-foreground">
-                {run?.status === "pending" && "Queued — starting soon..."}
-                {run?.status === "crawling" && "Crawling your website..."}
-                {run?.status === "analyzing" && "AI is analyzing content..."}
-                {run?.status === "scoring" && "Computing GEO scores..."}
-                {run?.status === "running" && "Running analysis..."}
-                {!["pending", "crawling", "analyzing", "scoring", "running"].includes(run?.status ?? "") && "Processing..."}
-              </p>
-            </div>
-
-            {/* Progress bar */}
-            <div className="h-2 w-full rounded-full overflow-hidden bg-muted">
-              <div
-                className="h-full rounded-full transition-all duration-700 relative"
-                style={{ width: `${run?.progress ?? 0}%`, backgroundColor: CORAL }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent shimmer" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Dashboard content */}
       {run && !isRunning && (
@@ -545,12 +556,25 @@ export default function SignalorDashboard() {
                         <stop offset="100%" stopColor={CORAL} stopOpacity="0" />
                       </linearGradient>
                     </defs>
+                    {/* Grid lines */}
+                    <line x1="0" y1="50" x2="300" y2="50" stroke="currentColor" strokeOpacity="0.06" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                    <line x1="0" y1="25" x2="300" y2="25" stroke="currentColor" strokeOpacity="0.04" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                    <line x1="0" y1="75" x2="300" y2="75" stroke="currentColor" strokeOpacity="0.04" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                    {/* Area fill */}
                     <path d={historyPath.area} fill="url(#areaGrad)" />
-                    <path d={historyPath.line} fill="none" stroke={CORAL} strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
+                    {/* Line */}
+                    <path d={historyPath.line} fill="none" stroke={CORAL} strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+                    {/* Data points */}
+                    {historyPath.points?.map((pt, i) => (
+                      <g key={i}>
+                        <circle cx={pt.x} cy={pt.y} r="6" fill={CORAL} fillOpacity="0.15" vectorEffect="non-scaling-stroke" />
+                        <circle cx={pt.x} cy={pt.y} r="3" fill={CORAL} vectorEffect="non-scaling-stroke" />
+                      </g>
+                    ))}
                   </svg>
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <p className="text-xs text-muted-foreground">Run more analyses to see trends</p>
+                    <p className="text-xs text-muted-foreground">No analysis history yet</p>
                   </div>
                 )}
                 {historyPath && (
@@ -705,7 +729,7 @@ export default function SignalorDashboard() {
             <div className="col-span-3 bg-card rounded-2xl p-5 border border-border flex flex-col">
               <p className="text-sm font-semibold text-foreground mb-3">AI Engine Probes</p>
               {sentiment ? (() => {
-                const mentionPct = sentiment.mentioned / sentiment.total;
+                const mentionPct = sentiment.aiMentioned / sentiment.aiTotal;
                 const missPct = 1 - mentionPct;
                 // SVG pie: two arcs
                 const r = 40;
@@ -838,61 +862,85 @@ export default function SignalorDashboard() {
                 )}
               </div>
 
-              {/* AI Sentiment Analysis — stacked bar + stat grid */}
+              {/* Sentiment Analysis — -10 to +10 scale */}
               <div className="col-span-5 bg-card rounded-2xl p-6 border border-border">
-                <p className="text-sm font-semibold mb-1 text-foreground">AI Sentiment Analysis</p>
-                <p className="text-xs mb-5 text-muted-foreground">How AI engines perceive your brand</p>
+                <p className="text-sm font-semibold mb-1 text-foreground">Sentiment Analysis</p>
+                <p className="text-xs mb-5 text-muted-foreground">What people say about your brand online</p>
 
                 {sentiment ? (
                   <div className="space-y-5">
-                    {/* Big stat row */}
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="rounded-xl p-3.5 bg-background border border-border text-center">
-                        <p className="text-2xl font-bold text-foreground">{sentiment.mentioned}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">Mentioned</p>
+                    {/* Score gauge -10 to +10 */}
+                    <div className="flex items-center gap-5">
+                      <div className="text-center shrink-0">
+                        <p
+                          className="text-4xl font-bold"
+                          style={{ color: sentiment.score > 0 ? "#22c55e" : sentiment.score < 0 ? CORAL : "var(--muted-foreground)" }}
+                        >
+                          {sentiment.score > 0 ? "+" : ""}{sentiment.score}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {sentiment.score >= 5 ? "Very Positive" : sentiment.score >= 1 ? "Positive" : sentiment.score === 0 ? "Neutral" : sentiment.score >= -4 ? "Negative" : "Very Negative"}
+                        </p>
                       </div>
-                      <div className="rounded-xl p-3.5 bg-background border border-border text-center">
-                        <p className="text-2xl font-bold text-foreground">{sentiment.notMentioned}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">Not Found</p>
-                      </div>
-                      <div className="rounded-xl p-3.5 text-center" style={{ background: `linear-gradient(135deg, ${CORAL}, #FF7A6B)` }}>
-                        <p className="text-2xl font-bold text-white">{(sentiment.avgConfidence * 100).toFixed(0)}%</p>
-                        <p className="text-[10px] text-white/70 mt-0.5">Avg Conf.</p>
+
+                      {/* Scale bar */}
+                      <div className="flex-1">
+                        <div className="relative h-3 rounded-full bg-muted">
+                          {/* Gradient: red → yellow → green */}
+                          <div className="absolute inset-0 rounded-full" style={{ background: "linear-gradient(to right, #F95C4B, #D97706, #22c55e)" }} />
+                          {/* Line indicator */}
+                          <div
+                            className="absolute -top-2 flex flex-col items-center"
+                            style={{ left: `${((sentiment.score + 10) / 20) * 100}%`, transform: "translateX(-50%)" }}
+                          >
+                            {/* Score label */}
+                            <span className="text-[9px] font-bold text-foreground bg-card border border-border rounded px-1 mb-0.5 shadow-sm">
+                              {sentiment.score > 0 ? "+" : ""}{sentiment.score}
+                            </span>
+                            {/* Vertical line */}
+                            <div className="w-0.5 h-7 bg-foreground rounded-full shadow-sm" />
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-[9px] text-muted-foreground mt-4">
+                          <span>-10</span><span>0</span><span>+10</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Stacked sentiment bar */}
-                    <div>
-                      <p className="text-[10px] font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Confidence Distribution</p>
-                      <div className="flex h-3 rounded-full overflow-hidden">
-                        {sentiment.high > 0 && (
-                          <div className="h-full" style={{ width: `${(sentiment.high / sentiment.total) * 100}%`, backgroundColor: "#22c55e" }} />
-                        )}
-                        {sentiment.medium > 0 && (
-                          <div className="h-full" style={{ width: `${(sentiment.medium / sentiment.total) * 100}%`, backgroundColor: "#D97706" }} />
-                        )}
-                        {sentiment.low > 0 && (
-                          <div className="h-full" style={{ width: `${(sentiment.low / sentiment.total) * 100}%`, backgroundColor: CORAL }} />
-                        )}
+                    {/* Breakdown stats */}
+                    <div className="grid grid-cols-4 gap-3">
+                      <div className="rounded-xl p-3 bg-[#22c55e]/10 border border-[#22c55e]/20 text-center">
+                        <p className="text-lg font-bold text-[#22c55e]">{sentiment.positive}</p>
+                        <p className="text-[9px] text-muted-foreground">Positive</p>
                       </div>
-                      {/* Legend */}
-                      <div className="flex items-center gap-4 mt-2">
-                        {[
-                          { label: "High", count: sentiment.high, color: "#22c55e" },
-                          { label: "Medium", count: sentiment.medium, color: "#D97706" },
-                          { label: "Low", count: sentiment.low, color: CORAL },
-                        ].map((l) => (
-                          <div key={l.label} className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
-                            <span className="text-[10px] text-muted-foreground">{l.label} <span className="font-bold text-foreground">{l.count}</span></span>
-                          </div>
-                        ))}
+                      <div className="rounded-xl p-3 bg-background border border-border text-center">
+                        <p className="text-lg font-bold text-muted-foreground">{sentiment.neutral}</p>
+                        <p className="text-[9px] text-muted-foreground">Neutral</p>
+                      </div>
+                      <div className="rounded-xl p-3 bg-primary/10 border border-primary/20 text-center">
+                        <p className="text-lg font-bold text-primary">{sentiment.negative}</p>
+                        <p className="text-[9px] text-muted-foreground">Negative</p>
+                      </div>
+                      <div className="rounded-xl p-3 bg-background border border-border text-center">
+                        <p className="text-lg font-bold text-foreground">{sentiment.aiMentioned}/{sentiment.aiTotal}</p>
+                        <p className="text-[9px] text-muted-foreground">AI Mentions</p>
                       </div>
                     </div>
+
+                    {/* Stacked bar */}
+                    {sentiment.totalMentions > 0 && (
+                      <div>
+                        <div className="flex h-2.5 rounded-full overflow-hidden">
+                          {sentiment.positive > 0 && <div className="h-full" style={{ width: `${(sentiment.positive / sentiment.totalMentions) * 100}%`, backgroundColor: "#22c55e" }} />}
+                          {sentiment.neutral > 0 && <div className="h-full" style={{ width: `${(sentiment.neutral / sentiment.totalMentions) * 100}%`, backgroundColor: "var(--border)" }} />}
+                          {sentiment.negative > 0 && <div className="h-full" style={{ width: `${(sentiment.negative / sentiment.totalMentions) * 100}%`, backgroundColor: CORAL }} />}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center py-10">
-                    <p className="text-xs text-muted-foreground">No AI probe data available</p>
+                    <p className="text-xs text-muted-foreground">No sentiment data available yet</p>
                   </div>
                 )}
               </div>
@@ -960,6 +1008,13 @@ export default function SignalorDashboard() {
                       </td>
                       <td className="py-3.5 px-2">
                         <p className="text-sm font-medium text-foreground">{PILLAR_LABELS[rec.pillar] || rec.pillar}</p>
+                        {pageScore && (() => {
+                          const scoreKey = `${rec.pillar}_score` as keyof typeof pageScore;
+                          const score = typeof pageScore[scoreKey] === "number" ? Math.round(pageScore[scoreKey] as number) : null;
+                          if (score == null) return null;
+                          const color = score >= 70 ? "text-[#22c55e] bg-[#22c55e]/10" : score >= 40 ? "text-[#D97706] bg-[#D97706]/10" : "text-primary bg-primary/10";
+                          return <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${color}`}>{score}/100</span>;
+                        })()}
                       </td>
                       <td className="py-3.5 px-2 text-xs text-muted-foreground">{rec.category || "General"}</td>
                       <td className="py-3.5 px-2">
@@ -983,15 +1038,8 @@ export default function SignalorDashboard() {
         </div>
       )}
 
-      {/* Failed run */}
-      {run?.status === "failed" && (
-        <div className="px-6 py-8">
-          <div className="flex items-center gap-3 rounded-xl px-5 py-4 text-sm" style={{ backgroundColor: `${CORAL}10`, border: `1px solid ${CORAL}30`, color: CORAL }}>
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            Analysis failed: {run.error_message || "Unknown error. Try re-analyzing."}
-          </div>
-        </div>
-      )}
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>
   );
 }

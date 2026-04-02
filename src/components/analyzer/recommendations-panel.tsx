@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import type { Recommendation } from "@/lib/api/analyzer";
-import { applyAutoFix, getAutoFixStatus } from "@/lib/api/analyzer";
+import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
+import type { Recommendation, FixPreview } from "@/lib/api/analyzer";
+import { previewFix, approveFix } from "@/lib/api/analyzer";
+import { FixPreviewModal } from "./fix-preview-modal";
 import {
   Loader2, Wrench, CheckCircle2, XCircle, ChevronDown, ChevronRight,
   AlertTriangle, ArrowUp, Minus, Copy,
@@ -29,77 +31,68 @@ interface RecommendationsPanelProps {
   slug?: string;
   email?: string;
   orgId?: number;
+  initialFixResults?: Record<number, { status: string; message: string }>;
+  onFixResult?: (recId: number, result: { status: string; message: string }) => void;
 }
 
-export function RecommendationsPanel({ recommendations, slug, email, orgId }: RecommendationsPanelProps) {
+export function RecommendationsPanel({ recommendations, slug, email, orgId, initialFixResults, onFixResult }: RecommendationsPanelProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [fixingIds, setFixingIds] = useState<Set<number>>(new Set());
-  const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>({});
-  const [fixingAll, setFixingAll] = useState(false);
-  const [fixProgress, setFixProgress] = useState({ done: 0, total: 0 });
-  const loadedRef = useRef(false);
-  const abortRef = useRef<AbortController | null>(null);
+  const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>(initialFixResults ?? {});
+  const [previewData, setPreviewData] = useState<FixPreview | null>(null);
+  const [previewingId, setPreviewingId] = useState<number | null>(null);
 
-  // Cancel fix loop on unmount
+  // Sync if initialFixResults changes
   useEffect(() => {
-    return () => { abortRef.current?.abort(); };
-  }, []);
+    if (initialFixResults) setFixResults((prev) => ({ ...initialFixResults, ...prev }));
+  }, [initialFixResults]);
 
   const fixableRecs = recommendations.filter((r) => r.can_auto_fix);
   const hasFixable = fixableRecs.length > 0 && slug && email;
 
-  useEffect(() => {
-    if (!slug || loadedRef.current) return;
-    loadedRef.current = true;
-    getAutoFixStatus(slug)
-      .then((results) => {
-        const existing: Record<number, { status: string; message: string }> = {};
-        for (const r of results) existing[r.recommendation_id] = { status: r.status, message: r.message };
-        setFixResults((prev) => ({ ...existing, ...prev }));
-      })
-      .catch(() => {});
-  }, [slug]);
-
-  async function handleApplyFix(recId: number) {
+  async function handlePreviewFix(recId: number) {
     if (!slug || !email) return;
+    setPreviewingId(recId);
     setFixingIds((prev) => new Set(prev).add(recId));
     try {
-      const results = await applyAutoFix(slug, [recId], email, orgId);
-      if (results[0]) setFixResults((prev) => ({ ...prev, [recId]: results[0] }));
+      const preview = await previewFix(slug, recId, email);
+      if (preview.status === "preview") {
+        setPreviewData(preview);
+      } else if (preview.status === "manual") {
+        const manual = { status: "manual", message: preview.message || "This requires manual action. Follow the instructions above." };
+        setFixResults((prev) => ({ ...prev, [recId]: manual }));
+        onFixResult?.(recId, manual);
+      } else {
+        const fail = { status: "failed", message: preview.message || "Preview failed" };
+        setFixResults((prev) => ({ ...prev, [recId]: fail }));
+        onFixResult?.(recId, fail);
+      }
     } catch {
-      setFixResults((prev) => ({ ...prev, [recId]: { status: "failed", message: "Request failed" } }));
+      const fail = { status: "failed", message: "Failed to generate preview" };
+      setFixResults((prev) => ({ ...prev, [recId]: fail }));
+      onFixResult?.(recId, fail);
     } finally {
       setFixingIds((prev) => { const next = new Set(prev); next.delete(recId); return next; });
     }
   }
 
-  async function handleFixAll() {
-    if (!slug || !email || !fixableRecs.length) return;
-    const unfixed = fixableRecs.filter((r) => !fixResults[r.id] || fixResults[r.id].status === "failed");
-    if (!unfixed.length) return;
-    setFixingAll(true);
-    setFixProgress({ done: 0, total: unfixed.length });
-    abortRef.current = new AbortController();
-
-    // Run fixes sequentially — each reads updated content from the previous fix
-    for (const rec of unfixed) {
-      if (abortRef.current.signal.aborted) break;
-      setFixingIds((prev) => new Set(prev).add(rec.id));
-      try {
-        const results = await applyAutoFix(slug, [rec.id], email, orgId);
-        if (results[0]) setFixResults((prev) => ({ ...prev, [rec.id]: results[0] }));
-      } catch {
-        setFixResults((prev) => ({ ...prev, [rec.id]: { status: "failed", message: "Request failed" } }));
-      } finally {
-        setFixingIds((prev) => { const next = new Set(prev); next.delete(rec.id); return next; });
-        setFixProgress((prev) => ({ ...prev, done: prev.done + 1 }));
-      }
+  async function handleApprovePreview() {
+    if (!slug || !previewData) return;
+    try {
+      const result = await approveFix(slug, previewData.recommendation_id, previewData.full_content, previewData.fix_type);
+      setFixResults((prev) => ({ ...prev, [previewData.recommendation_id]: result }));
+      onFixResult?.(previewData.recommendation_id, result);
+    } catch {
+      const fail = { status: "failed", message: "Apply failed" };
+      setFixResults((prev) => ({ ...prev, [previewData.recommendation_id]: fail }));
+      onFixResult?.(previewData.recommendation_id, fail);
+    } finally {
+      setPreviewData(null);
+      setPreviewingId(null);
     }
-    setFixingAll(false);
-    setFixProgress({ done: 0, total: 0 });
   }
 
-  const fixedCount = Object.values(fixResults).filter((r) => r.status === "success").length;
+
   const allFixed = fixableRecs.length > 0 && fixableRecs.every((r) => fixResults[r.id]?.status === "success");
 
   if (!recommendations.length) return null;
@@ -113,25 +106,11 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
           <p className="text-xs text-muted-foreground mt-0.5">{recommendations.length} items to improve your GEO score</p>
         </div>
         <div className="flex items-center gap-2">
-          {hasFixable && (
-            allFixed ? (
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                All fixed
-              </span>
-            ) : (
-              <button
-                onClick={handleFixAll}
-                disabled={fixingAll}
-                className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
-              >
-                {fixingAll ? (
-                  <><Loader2 className="h-3 w-3 animate-spin" /> Fixing {fixProgress.done}/{fixProgress.total}</>
-                ) : (
-                  <><Wrench className="h-3 w-3" /> {fixedCount > 0 ? `Fix ${fixableRecs.length - fixedCount} Remaining` : `Fix All ${fixableRecs.length}`}</>
-                )}
-              </button>
-            )
+          {hasFixable && allFixed && (
+            <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              All fixed
+            </span>
           )}
         </div>
       </div>
@@ -184,6 +163,10 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-medium text-emerald-500">
                         <CheckCircle2 className="h-3 w-3" /> Fixed
                       </span>
+                    ) : fixResult.status === "manual" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 text-[10px] font-medium text-amber-400">
+                        Manual
+                      </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[10px] font-medium text-red-500">
                         <XCircle className="h-3 w-3" /> Failed
@@ -191,11 +174,11 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
                     )
                   ) : isFixing ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
-                      <Loader2 className="h-3 w-3 animate-spin" /> Fixing...
+                      <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Generating..." : "Fixing..."}
                     </span>
                   ) : rec.can_auto_fix && slug && email ? (
                     <button
-                      onClick={(e) => { e.stopPropagation(); handleApplyFix(rec.id); }}
+                      onClick={(e) => { e.stopPropagation(); handlePreviewFix(rec.id); }}
                       className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold text-white transition hover:bg-primary/90"
                     >
                       <Wrench className="h-3 w-3" /> Fix
@@ -234,9 +217,11 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
                       <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs ${
                         fixResult.status === "success"
                           ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                          : fixResult.status === "manual"
+                          ? "bg-amber-500/10 border border-amber-500/20 text-amber-400"
                           : "bg-red-500/10 border border-red-500/20 text-red-400"
                       }`}>
-                        {fixResult.status === "success" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                        {fixResult.status === "success" ? <CheckCircle2 className="h-3.5 w-3.5" /> : fixResult.status === "manual" ? <AlertTriangle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
                         {fixResult.message}
                       </div>
                     )}
@@ -244,12 +229,12 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
                     {/* Fix button if not yet fixed */}
                     {!fixResult && rec.can_auto_fix && slug && email && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleApplyFix(rec.id); }}
+                        onClick={(e) => { e.stopPropagation(); handlePreviewFix(rec.id); }}
                         disabled={isFixing}
                         className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
                       >
                         {isFixing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wrench className="h-3.5 w-3.5" />}
-                        Apply Fix
+                        Preview & Fix
                       </button>
                     )}
                   </div>
@@ -259,6 +244,18 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
           );
         })}
       </div>
+
+      {/* Preview Modal */}
+      <AnimatePresence>
+        {previewData && (
+          <FixPreviewModal
+            key="fix-preview"
+            preview={previewData}
+            onApprove={handleApprovePreview}
+            onCancel={() => { setPreviewData(null); setPreviewingId(null); }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -268,9 +265,6 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId }: Re
 function ActionContent({ action }: { action: string }) {
   const [copied, setCopied] = useState(false);
   const lines = action.split("\n");
-
-  // Detect if there's code-like content
-  const hasCode = action.includes("<script") || action.includes("<") || action.includes("{\"@");
 
   return (
     <div className="space-y-1.5 text-xs text-muted-foreground leading-relaxed">

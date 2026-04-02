@@ -184,22 +184,56 @@ html.dark,
   }
 }
 
+/* Ambient depth — light + dark (fixed layers, no interaction hit) */
+.signalor-body {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% -40%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 20%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 50%),
+    radial-gradient(ellipse 60% 45% at 0% 100%, color-mix(in srgb, var(--secondary) 35%, transparent), transparent 45%);
+  background-attachment: fixed;
+}
+
+.dark .signalor-body,
+html.dark .signalor-body {
+  background-image:
+    radial-gradient(ellipse 100% 70% at 50% -35%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 50%),
+    radial-gradient(ellipse 55% 40% at 95% 15%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 45%),
+    radial-gradient(ellipse 50% 40% at 0% 95%, color-mix(in srgb, var(--chart-3) 40%, transparent), transparent 40%);
+}
+
 @layer utilities {
   .glass-card {
     @apply bg-card border border-border rounded-lg shadow-sm;
-    transition: box-shadow 0.15s ease;
+    transition:
+      box-shadow 0.2s ease,
+      transform 0.2s ease,
+      border-color 0.2s ease;
   }
   .glass-card:hover {
-    @apply shadow-md;
+    @apply shadow-md border-primary/20;
+    transform: translateY(-1px);
   }
   .glow-border {
     @apply border-primary/30;
   }
   .gradient-text {
-    @apply text-foreground;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      120deg,
+      var(--foreground) 0%,
+      var(--foreground) 35%,
+      var(--primary) 55%,
+      color-mix(in srgb, var(--primary) 75%, #ffb4a8) 100%
+    );
   }
   .gradient-text-primary {
-    @apply text-primary;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      color-mix(in srgb, var(--primary) 70%, #ffc9be) 100%
+    );
   }
   .glow-text {
     @apply text-foreground;
@@ -208,14 +242,69 @@ html.dark,
     @apply text-primary;
   }
   .gradient-btn {
-    @apply bg-primary text-primary-foreground font-medium;
-    transition: all 0.15s ease;
+    @apply text-primary-foreground font-medium shadow-md;
+    background-image: linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      color-mix(in srgb, var(--primary) 82%, #ff7a68) 100%
+    );
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      filter 0.2s ease;
   }
   .gradient-btn:hover {
-    @apply bg-primary/90;
+    @apply shadow-lg;
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+  .gradient-btn:active {
+    transform: translateY(0);
+    @apply shadow-md;
+  }
+  /* Staggered entrance for dashboard sections */
+  .animate-enter {
+    animation: signalor-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-enter-delay-1 {
+    animation-delay: 0.05s;
+  }
+  .animate-enter-delay-2 {
+    animation-delay: 0.1s;
+  }
+  .animate-enter-delay-3 {
+    animation-delay: 0.15s;
   }
   .shimmer {
     animation: shimmer 1.7s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-card:hover {
+    transform: none;
+  }
+  .gradient-btn:hover,
+  .gradient-btn:active {
+    transform: none;
+  }
+  .animate-enter,
+  .animate-enter-delay-1,
+  .animate-enter-delay-2,
+  .animate-enter-delay-3 {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+@keyframes signalor-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -251,4 +340,58 @@ html.dark,
 @keyframes signalor-fade {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
+}
+
+@keyframes signalor-draw {
+  0% { stroke-dashoffset: inherit; opacity: 0.3; }
+  50% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: inherit; opacity: 0.3; }
+}
+
+@keyframes signalor-logo-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes signalor-core-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes signalor-draw-slow {
+  0% { stroke-dashoffset: inherit; opacity: 0.2; }
+  40% { stroke-dashoffset: 0; opacity: 1; }
+  60% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: inherit; opacity: 0.2; }
+}
+
+@keyframes signalor-breathe {
+  0%, 100% { opacity: 0.5; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes signalor-ring1 {
+  0%, 100% { transform: scale(0.94); opacity: 0.5; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes signalor-ring2 {
+  0%, 100% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes signalor-ring3 {
+  0%, 100% { transform: scale(0.96); opacity: 0.55; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+@keyframes signalor-ring4 {
+  0%, 100% { transform: scale(0.97); opacity: 0.6; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+@keyframes signalor-ring5 {
+  0%, 100% { transform: scale(0.98); opacity: 0.65; }
+  50% { transform: scale(1.03); opacity: 1; }
+}
+
+@keyframes signalor-orbit {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: var(--orbit-len); }
 }

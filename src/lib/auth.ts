@@ -22,9 +22,24 @@ if (
   );
 }
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export const auth = betterAuth({
   secret: authSecret,
   database: pool,
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // refresh session every 24 hours
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, // 5 min cache to reduce DB lookups
+    },
+  },
+  advanced: {
+    cookiePrefix: "better-auth",
+    useSecureCookies: isProduction, // false for localhost (HTTP), true for production (HTTPS)
+  },
   emailAndPassword: {
     enabled: false,
   },

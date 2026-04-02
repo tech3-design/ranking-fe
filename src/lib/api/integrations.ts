@@ -215,10 +215,11 @@ export async function getShopifyAuthUrl(
   shopDomain: string,
   returnTo?: string,
   orgId?: number,
+  storefrontPassword?: string,
 ): Promise<{ auth_url: string }> {
   const { data } = await apiClient.get<{ auth_url: string }>(
     "/api/integrations/shopify/auth-url/",
-    { params: { email, shop: shopDomain, return_to: returnTo, org_id: orgId } },
+    { params: { email, shop: shopDomain, return_to: returnTo, org_id: orgId, storefront_password: storefrontPassword || undefined } },
   );
   return data;
 }
@@ -264,15 +265,13 @@ export async function getShopifyData(
 export async function connectWordPress(
   email: string,
   siteUrl: string,
-  username: string,
-  appPassword: string,
+  apiKey: string,
   returnTo?: string,
-): Promise<{ oauth_url?: string; message?: string; integration?: unknown }> {
+): Promise<{ oauth_url?: string; status?: string; site_name?: string; message?: string }> {
   const res = await apiClient.post("/api/integrations/wordpress/connect/", {
     email,
     site_url: siteUrl,
-    username,
-    app_password: appPassword,
+    api_key: apiKey || undefined,
     return_to: returnTo || "/dashboard",
     frontend_base: window.location.origin,
   });

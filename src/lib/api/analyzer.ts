@@ -181,7 +181,7 @@ export function getExportPDFUrl(runId: number): string {
 
 // ── Prompt Tracking ───────────────────────────────────────────────────────
 
-export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity";
+export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity" | "google";
 export type Sentiment = "positive" | "neutral" | "negative";
 
 export interface PromptResult {
@@ -199,8 +199,15 @@ export interface PromptTrack {
   id: number;
   prompt_text: string;
   is_custom: boolean;
+  score: number;
   created_at: string;
   results: PromptResult[];
+  visibility_pct: number;
+  avg_position: number;
+  sentiment_label: string;
+  ranking_label: string;
+  total_runs: number;
+  mentions: number;
 }
 
 export interface ShareOfVoiceItem {
@@ -370,6 +377,48 @@ export async function applyAutoFix(
 export async function getAutoFixStatus(slug: string): Promise<AutoFixResult[]> {
   const { data } = await apiClient.get<AutoFixResult[]>(
     `/api/analyzer/runs/s/${slug}/auto-fix/`,
+  );
+  return data;
+}
+
+// ── Preview + Approve Fix Flow ───────────────────────────────────────────
+
+export interface FixPreview {
+  status: "preview" | "error";
+  fix_type: string;
+  recommendation_id: number;
+  recommendation_title: string;
+  original: string;
+  preview: string;
+  full_content: string;
+  target_post_id?: number;
+  target_type?: string;
+  message?: string;
+}
+
+export async function previewFix(
+  slug: string,
+  recommendationId: number,
+  email: string,
+): Promise<FixPreview> {
+  const { data } = await apiClient.post<FixPreview>(
+    `/api/analyzer/runs/s/${slug}/auto-fix/preview/`,
+    { recommendation_id: recommendationId, email },
+    { timeout: 120_000 },
+  );
+  return data;
+}
+
+export async function approveFix(
+  slug: string,
+  recommendationId: number,
+  content: string,
+  fixType: string,
+): Promise<AutoFixResult> {
+  const { data } = await apiClient.post<AutoFixResult>(
+    `/api/analyzer/runs/s/${slug}/auto-fix/approve/`,
+    { recommendation_id: recommendationId, content, fix_type: fixType },
+    { timeout: 30_000 },
   );
   return data;
 }

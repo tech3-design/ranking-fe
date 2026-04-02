@@ -3,6 +3,7 @@
 import type { ShareOfVoiceItem, Engine } from "@/lib/api/analyzer";
 
 const ENGINE_LABELS: Record<Engine, string> = {
+  google: "Google",
   chatgpt: "ChatGPT",
   claude: "Claude",
   gemini: "Gemini",
@@ -10,6 +11,7 @@ const ENGINE_LABELS: Record<Engine, string> = {
 };
 
 const ENGINE_COLORS: Record<Engine, string> = {
+  google: "text-red-400",
   chatgpt: "text-green-400",
   claude: "text-orange-400",
   gemini: "text-blue-400",

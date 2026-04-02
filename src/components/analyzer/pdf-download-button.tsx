@@ -39,7 +39,7 @@ export function PDFDownloadButton({ runId }: PDFDownloadButtonProps) {
       window.setTimeout(() => setStatus("idle"), 1800);
     } catch {
       setStatus("error");
-      alert("Failed to download PDF. Please try again.");
+      // Error shown via status state — no alert needed
     } finally {
       setLoading(false);
     }
