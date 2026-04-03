@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { AnalysisProgress } from "@/components/analyzer/analysis-progress";
+import { Loader2 } from "lucide-react";
 import { ScoreGauge } from "@/components/analyzer/score-gauge";
 import { CompetitorTable } from "@/components/analyzer/competitor-table";
 import { ScoreCard } from "@/components/analyzer/score-card";
@@ -54,8 +54,12 @@ export default function AnalyzerResultsPage() {
 
   if (loading || !result || (result.status !== "complete" && result.status !== "failed")) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4" style={{ backgroundColor: "#F6F4F1" }}>
-        <AnalysisProgress />
+      <div
+        className="flex min-h-screen flex-col items-center justify-center gap-4 p-4"
+        style={{ backgroundColor: "#F6F4F1" }}
+      >
+        <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+        <p className="text-sm text-muted-foreground">Preparing your report…</p>
       </div>
     );
   }
