@@ -219,7 +219,19 @@ export async function getShopifyAuthUrl(
 ): Promise<{ auth_url: string }> {
   const { data } = await apiClient.get<{ auth_url: string }>(
     "/api/integrations/shopify/auth-url/",
-    { params: { email, shop: shopDomain, return_to: returnTo, org_id: orgId, storefront_password: storefrontPassword || undefined } },
+    {
+      params: {
+        email,
+        shop: shopDomain,
+        return_to: returnTo,
+        org_id: orgId,
+        storefront_password: storefrontPassword || undefined,
+        // Must match the tab the user started from (localhost vs 127.0.0.1, prod domain).
+        ...(typeof window !== "undefined"
+          ? { frontend_base: window.location.origin }
+          : {}),
+      },
+    },
   );
   return data;
 }

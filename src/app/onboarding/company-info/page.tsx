@@ -20,8 +20,7 @@ import {
   getGAAuthUrl,
 } from "@/lib/api/integrations";
 import { startAnalysis } from "@/lib/api/analyzer";
-import { routes } from "@/lib/config";
-import { config } from "@/lib/config";
+import { config, routes, signalorWpPlugin } from "@/lib/config";
 import axios from "axios";
 import {
   Loader2, ShoppingBag, Globe, ArrowLeft, ArrowRight,
@@ -505,7 +504,7 @@ export default function CompanyInfoPage() {
                       <p className="text-xs font-semibold text-foreground">Download the Signalor GEO plugin</p>
                     </div>
                     <a
-                      href="/downloads/signalor-geo.zip"
+                      href={signalorWpPlugin.zipPath}
                       download
                       onClick={() => setTimeout(() => setWpStep(2), 500)}
                       className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary/10 border border-primary/30 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition"
@@ -513,6 +512,15 @@ export default function CompanyInfoPage() {
                       <ArrowRight className="w-3.5 h-3.5 rotate-90" />
                       Download signalor-geo.zip
                     </a>
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <a
+                        href={signalorWpPlugin.zipPathVersioned}
+                        download
+                        className="text-[11px] font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                      >
+                        Or download v{signalorWpPlugin.version} (pinned)
+                      </a>
+                    </div>
                   </div>
                 )}
 
@@ -537,6 +545,9 @@ export default function CompanyInfoPage() {
 
                     <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3 space-y-2">
                       <p className="text-[11px] text-muted-foreground">This opens your WordPress admin. After logging in:</p>
+                      <p className="text-[11px] text-amber-600/90 dark:text-amber-400/90">
+                        If you tried before and saw a PHP error, go to <strong className="text-foreground">Plugins</strong>, delete any <strong className="text-foreground">Signalor GEO</strong> install (including folders like signalor-geo-1), then upload again.
+                      </p>
                       <ol className="text-[11px] text-muted-foreground space-y-1.5 list-decimal list-inside">
                         <li>Click <strong className="text-foreground">Choose File</strong> and select the <strong className="text-foreground">signalor-geo.zip</strong> you just downloaded</li>
                         <li>Click <strong className="text-foreground">Install Now</strong></li>

@@ -4,6 +4,17 @@ export const config = {
     process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
 } as const;
 
+/**
+ * Self-hosted WordPress plugin zips in `public/downloads/`.
+ * When you release a new build: bump `version`, run `python scripts/build_signalor_geo_zip.py`,
+ * commit both zips, and set `zipPathVersioned` to match (e.g. signalor-geo-1.0.2.zip).
+ */
+export const signalorWpPlugin = {
+  version: "1.0.1",
+  zipPath: "/downloads/signalor-geo.zip",
+  zipPathVersioned: "/downloads/signalor-geo-1.0.1.zip",
+} as const;
+
 export const routes = {
   signIn: "/sign-in",
   signUp: "/sign-up",

@@ -19,6 +19,19 @@ interface FixPreviewModalProps {
 export function FixPreviewModal({ preview, onApprove, onCancel }: FixPreviewModalProps) {
   const [applying, setApplying] = useState(false);
   const [tab, setTab] = useState<"before" | "after">("after");
+  const [copiedFull, setCopiedFull] = useState(false);
+
+  async function copyFullFile() {
+    const text = preview.full_content || preview.preview || "";
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedFull(true);
+      setTimeout(() => setCopiedFull(false), 2000);
+    } catch {
+      /* ignore */
+    }
+  }
 
   async function handleApprove() {
     setApplying(true);
@@ -102,15 +115,32 @@ export function FixPreviewModal({ preview, onApprove, onCancel }: FixPreviewModa
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-border shrink-0">
-            <p className="text-[10px] text-muted-foreground">
-              {preview.fix_type === "schema" ? "JSON-LD will be injected into page" :
-               preview.fix_type === "llms" ? "llms.txt page will be created on your store" :
-               preview.fix_type === "meta" ? "SEO title and description will be updated" :
-               preview.fix_type === "ai_meta" ? "AI crawler meta tags will be injected" :
-               `Content will be updated (${preview.preview.length} chars)`}
-            </p>
-            <div className="flex gap-2">
+          <div className="flex flex-col gap-3 px-6 py-4 border-t border-border shrink-0 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0 space-y-1">
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                {preview.fix_type === "schema" ? "JSON-LD will be injected into page" :
+                 preview.fix_type === "llms" ? (
+                   <>
+                     llms.txt is sent to your connected app/plugin. On Shopify, /llms.txt often does not exist at the storefront root
+                     until App Proxy serves it (try /apps/signalor/llms.txt if configured). Use Copy full file below if you need the raw text.
+                   </>
+                 ) :
+                 preview.fix_type === "robots" ? "robots.txt is sent to your app/plugin; verify the live URL your theme or proxy exposes." :
+                 preview.fix_type === "meta" ? "SEO title and description will be updated" :
+                 preview.fix_type === "ai_meta" ? "AI crawler meta tags will be injected" :
+                 `Content will be updated (${preview.preview.length} chars)`}
+              </p>
+              {(preview.fix_type === "llms" || preview.fix_type === "robots") && (preview.full_content || preview.preview) ? (
+                <button
+                  type="button"
+                  onClick={copyFullFile}
+                  className="text-[10px] font-medium text-primary hover:underline"
+                >
+                  {copiedFull ? "Copied" : "Copy full file"}
+                </button>
+              ) : null}
+            </div>
+            <div className="flex shrink-0 gap-2">
               <button
                 onClick={onCancel}
                 disabled={applying}

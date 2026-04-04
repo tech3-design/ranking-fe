@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { connectWordPress } from "@/lib/api/integrations";
+import { signalorWpPlugin } from "@/lib/config";
 
 interface WordPressConnectFormProps {
   email: string;
@@ -89,6 +90,31 @@ export function WordPressConnectForm({
         </div>
       ) : (
         <>
+          <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-2">
+            <p className="text-xs font-medium text-foreground">
+              1. Install the Signalor GEO plugin on your site
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Upload via Plugins → Add New → Upload. Use the latest zip, or the
+              versioned file for this release ({signalorWpPlugin.version}).
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={signalorWpPlugin.zipPath}
+                download
+                className="inline-flex items-center justify-center rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/15"
+              >
+                Download latest (signalor-geo.zip)
+              </a>
+              <a
+                href={signalorWpPlugin.zipPathVersioned}
+                download
+                className="inline-flex items-center justify-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
+              >
+                Download v{signalorWpPlugin.version}
+              </a>
+            </div>
+          </div>
           <div>
             <label className="text-sm font-medium" htmlFor="wp-username">
               WordPress Username
