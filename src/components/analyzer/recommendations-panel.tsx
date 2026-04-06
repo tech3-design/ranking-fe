@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { Recommendation, FixPreview } from "@/lib/api/analyzer";
-import { previewFix, approveFix } from "@/lib/api/analyzer";
+import { previewFix, verifyFix } from "@/lib/api/analyzer";
 import { FixPreviewModal } from "./fix-preview-modal";
 import {
-  Loader2, Wrench, CheckCircle2, XCircle, ChevronDown, ChevronRight,
-  AlertTriangle, ArrowUp, Minus, Copy,
+  Loader2, Eye, CheckCircle2, XCircle, ChevronDown, ChevronRight,
+  AlertTriangle, ArrowUp, Minus, Copy, ShieldCheck,
 } from "lucide-react";
 
 const PILLAR_LABELS: Record<string, string> = {
@@ -42,15 +42,11 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
   const [previewData, setPreviewData] = useState<FixPreview | null>(null);
   const [previewingId, setPreviewingId] = useState<number | null>(null);
 
-  // Sync if initialFixResults changes
   useEffect(() => {
     if (initialFixResults) setFixResults((prev) => ({ ...initialFixResults, ...prev }));
   }, [initialFixResults]);
 
-  const fixableRecs = recommendations.filter((r) => r.can_auto_fix);
-  const hasFixable = fixableRecs.length > 0 && slug && email;
-
-  async function handlePreviewFix(recId: number) {
+  async function handlePreview(recId: number) {
     if (!slug || !email) return;
     setPreviewingId(recId);
     setFixingIds((prev) => new Set(prev).add(recId));
@@ -76,24 +72,32 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
     }
   }
 
-  async function handleApprovePreview() {
-    if (!slug || !previewData) return;
+  async function handleVerify(recId: number) {
+    if (!slug) return;
+    setFixingIds((prev) => new Set(prev).add(recId));
     try {
-      const result = await approveFix(slug, previewData.recommendation_id, previewData.full_content, previewData.fix_type);
-      setFixResults((prev) => ({ ...prev, [previewData.recommendation_id]: result }));
-      onFixResult?.(previewData.recommendation_id, result);
+      const result = await verifyFix(slug, recId);
+      setFixResults((prev) => ({ ...prev, [recId]: result }));
+      onFixResult?.(recId, result);
     } catch {
-      const fail = { status: "failed", message: "Apply failed" };
-      setFixResults((prev) => ({ ...prev, [previewData.recommendation_id]: fail }));
-      onFixResult?.(previewData.recommendation_id, fail);
+      const fail = { status: "failed", message: "Verification failed" };
+      setFixResults((prev) => ({ ...prev, [recId]: fail }));
+      onFixResult?.(recId, fail);
     } finally {
-      setPreviewData(null);
-      setPreviewingId(null);
+      setFixingIds((prev) => { const next = new Set(prev); next.delete(recId); return next; });
     }
   }
 
+  function handleModalClose() {
+    setPreviewData(null);
+    setPreviewingId(null);
+  }
 
-  const allFixed = fixableRecs.length > 0 && fixableRecs.every((r) => fixResults[r.id]?.status === "success");
+  async function handleModalVerify() {
+    if (!previewData || !slug) return;
+    await handleVerify(previewData.recommendation_id);
+    handleModalClose();
+  }
 
   if (!recommendations.length) return null;
 
@@ -104,14 +108,6 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
         <div>
           <h3 className="text-sm font-semibold text-foreground">Recommendations</h3>
           <p className="text-xs text-muted-foreground mt-0.5">{recommendations.length} items to improve your GEO score</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {hasFixable && allFixed && (
-            <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              All fixed
-            </span>
-          )}
         </div>
       </div>
 
@@ -159,9 +155,9 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
 
                 <div className="text-right">
                   {fixResult ? (
-                    fixResult.status === "success" ? (
+                    fixResult.status === "success" || fixResult.status === "verified" ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-medium text-emerald-500">
-                        <CheckCircle2 className="h-3 w-3" /> Fixed
+                        <ShieldCheck className="h-3 w-3" /> Verified
                       </span>
                     ) : fixResult.status === "manual" ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 text-[10px] font-medium text-amber-400">
@@ -174,19 +170,26 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                     )
                   ) : isFixing ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
-                      <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Generating..." : "Fixing..."}
+                      <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Generating..." : "Verifying..."}
                     </span>
-                  ) : rec.can_auto_fix && slug && email ? (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handlePreviewFix(rec.id); }}
-                      className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold text-white transition hover:bg-primary/90"
-                    >
-                      <Wrench className="h-3 w-3" /> Fix
-                    </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-medium text-muted-foreground">
-                      Manual
-                    </span>
+                    <div className="flex items-center gap-1 justify-end">
+                      {rec.can_auto_fix && slug && email && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handlePreview(rec.id); }}
+                          className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-medium text-foreground transition hover:bg-accent"
+                        >
+                          <Eye className="h-3 w-3" /> Preview
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
+                        disabled={!slug}
+                        className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+                      >
+                        <ShieldCheck className="h-3 w-3" /> Verify
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -195,16 +198,13 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
               {isExpanded && (
                 <div className="px-5 pb-4 pt-1">
                   <div className="ml-8 space-y-3 rounded-xl border border-border bg-accent p-4">
-                    {/* Description */}
                     <p className="text-xs text-muted-foreground leading-relaxed">{rec.description}</p>
 
-                    {/* Action steps */}
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Action Steps</p>
                       <ActionContent action={rec.action} />
                     </div>
 
-                    {/* Impact */}
                     {rec.impact_estimate && (
                       <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2">
                         <span className="text-primary text-xs">⚡</span>
@@ -212,30 +212,41 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                       </div>
                     )}
 
-                    {/* Fix result detail */}
                     {fixResult && (
                       <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs ${
-                        fixResult.status === "success"
+                        fixResult.status === "success" || fixResult.status === "verified"
                           ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
                           : fixResult.status === "manual"
                           ? "bg-amber-500/10 border border-amber-500/20 text-amber-400"
                           : "bg-red-500/10 border border-red-500/20 text-red-400"
                       }`}>
-                        {fixResult.status === "success" ? <CheckCircle2 className="h-3.5 w-3.5" /> : fixResult.status === "manual" ? <AlertTriangle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                        {fixResult.status === "success" || fixResult.status === "verified" ? <ShieldCheck className="h-3.5 w-3.5" /> : fixResult.status === "manual" ? <AlertTriangle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
                         {fixResult.message}
                       </div>
                     )}
 
-                    {/* Fix button if not yet fixed */}
-                    {!fixResult && rec.can_auto_fix && slug && email && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handlePreviewFix(rec.id); }}
-                        disabled={isFixing}
-                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
-                      >
-                        {isFixing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wrench className="h-3.5 w-3.5" />}
-                        Preview & Fix
-                      </button>
+                    {/* Action buttons */}
+                    {!fixResult && (
+                      <div className="flex items-center gap-2">
+                        {rec.can_auto_fix && slug && email && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handlePreview(rec.id); }}
+                            disabled={isFixing}
+                            className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-xs font-medium text-foreground transition hover:bg-accent disabled:opacity-60"
+                          >
+                            {isFixing && previewingId === rec.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
+                            Preview
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
+                          disabled={isFixing || !slug}
+                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-60"
+                        >
+                          {isFixing && previewingId !== rec.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                          Verify
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -245,14 +256,14 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
         })}
       </div>
 
-      {/* Preview Modal */}
+      {/* Preview Modal — view only, with verify button */}
       <AnimatePresence>
         {previewData && (
           <FixPreviewModal
             key="fix-preview"
             preview={previewData}
-            onApprove={handleApprovePreview}
-            onCancel={() => { setPreviewData(null); setPreviewingId(null); }}
+            onApprove={handleModalVerify}
+            onCancel={handleModalClose}
           />
         )}
       </AnimatePresence>
@@ -272,7 +283,6 @@ function ActionContent({ action }: { action: string }) {
         const trimmed = line.trim();
         if (!trimmed) return null;
 
-        // Step headers
         if (/^STEP \d/i.test(trimmed)) {
           const num = trimmed.match(/\d+/)?.[0];
           return (
@@ -285,7 +295,6 @@ function ActionContent({ action }: { action: string }) {
           );
         }
 
-        // Bullet points
         if (trimmed.startsWith("•") || trimmed.startsWith("-") || trimmed.startsWith("–")) {
           return (
             <div key={i} className="flex gap-2 pl-7">
@@ -295,7 +304,6 @@ function ActionContent({ action }: { action: string }) {
           );
         }
 
-        // Code lines
         if (trimmed.startsWith("<") || trimmed.startsWith("{") || trimmed.startsWith("}") || trimmed.startsWith('"@')) {
           return (
             <div key={i} className="relative group">
@@ -312,7 +320,6 @@ function ActionContent({ action }: { action: string }) {
           );
         }
 
-        // PRO TIP
         if (/^PRO TIP/i.test(trimmed)) {
           return (
             <div key={i} className="mt-2 rounded-lg bg-primary/5 border border-primary/10 px-3 py-2">
