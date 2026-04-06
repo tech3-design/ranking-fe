@@ -384,7 +384,7 @@ export async function getAutoFixStatus(slug: string): Promise<AutoFixResult[]> {
 // ── Preview + Approve Fix Flow ───────────────────────────────────────────
 
 export interface FixPreview {
-  status: "preview" | "error";
+  status: "preview" | "error" | "manual";
   fix_type: string;
   recommendation_id: number;
   recommendation_title: string;
@@ -419,6 +419,18 @@ export async function approveFix(
     `/api/analyzer/runs/s/${slug}/auto-fix/approve/`,
     { recommendation_id: recommendationId, content, fix_type: fixType },
     { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function verifyFix(
+  slug: string,
+  recommendationId: number,
+): Promise<AutoFixResult> {
+  const { data } = await apiClient.post<AutoFixResult>(
+    `/api/analyzer/runs/s/${slug}/auto-fix/verify/`,
+    { recommendation_id: recommendationId },
+    { timeout: 10_000 },
   );
   return data;
 }

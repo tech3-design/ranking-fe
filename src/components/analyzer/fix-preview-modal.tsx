@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Check, Loader2, Eye } from "lucide-react";
+import { X, Loader2, Eye, ShieldCheck } from "lucide-react";
 import type { FixPreview } from "@/lib/api/analyzer";
 
 /** Fix types where preview contains code/tags, not renderable HTML */
@@ -154,9 +154,9 @@ export function FixPreviewModal({ preview, onApprove, onCancel }: FixPreviewModa
                 className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary/90 transition disabled:opacity-50"
               >
                 {applying ? (
-                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Applying...</>
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Verifying...</>
                 ) : (
-                  <><Check className="w-3.5 h-3.5" /> Approve & Apply</>
+                  <><ShieldCheck className="w-3.5 h-3.5" /> Verify</>
                 )}
               </button>
             </div>
