@@ -72,12 +72,13 @@ export function AppSidebar() {
           icon: ChartNoAxesCombined,
           active: pathname.endsWith("/analytics"),
         },
-        {
-          label: "Integrations",
-          href: routes.dashboardProjectIntegrations(slug),
-          icon: PlugZap,
-          active: pathname.endsWith("/integrations"),
-        },
+        // Integrations disabled — Shopify/WordPress connect not active
+        // {
+        //   label: "Integrations",
+        //   href: routes.dashboardProjectIntegrations(slug),
+        //   icon: PlugZap,
+        //   active: pathname.endsWith("/integrations"),
+        // },
         {
           label: "Projects",
           href: routes.dashboard,
@@ -88,12 +89,13 @@ export function AppSidebar() {
     }
 
     return [
-      {
-        label: "Integrations",
-        href: routes.settingsIntegrations,
-        icon: PlugZap,
-        active: isIntegrationsPage,
-      },
+      // Integrations disabled — Shopify/WordPress connect not active
+      // {
+      //   label: "Integrations",
+      //   href: routes.settingsIntegrations,
+      //   icon: PlugZap,
+      //   active: isIntegrationsPage,
+      // },
       {
         label: "Account",
         href: routes.settingsAccount,

@@ -50,7 +50,6 @@ const PLANS: PlanConfig[] = [
       "Up to 75 prompts",
       "ChatGPT, Gemini & Perplexity",
       "Everything in Starter",
-      "Shopify & WordPress integration",
       "Scheduled re-analysis",
       "Score history & trends",
       "Brand visibility tracking",
