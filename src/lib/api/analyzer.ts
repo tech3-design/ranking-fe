@@ -52,6 +52,14 @@ export interface Competitor {
   page_score: PageScore | null;
 }
 
+export interface RecommendationStep {
+  n: number;
+  title: string;
+  detail: string;
+  code?: string;
+  xp: number;
+}
+
 export interface Recommendation {
   id: number;
   pillar: string;
@@ -62,6 +70,10 @@ export interface Recommendation {
   impact_estimate: string;
   category: string;
   can_auto_fix: boolean;
+  steps: RecommendationStep[];
+  xp_reward: number;
+  difficulty: string;
+  estimated_minutes: number;
 }
 
 export interface AIProbe {

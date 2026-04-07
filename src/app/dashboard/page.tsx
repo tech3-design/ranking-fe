@@ -4,7 +4,7 @@ import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { getOrganizations } from "@/lib/api/organizations";
-import { getRunList, startAnalysis } from "@/lib/api/analyzer";
+import { getRunList } from "@/lib/api/analyzer";
 import { getSubscriptionStatus } from "@/lib/api/payments";
 import { routes } from "@/lib/config";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
@@ -57,24 +57,14 @@ function DashboardRedirect() {
 
         const org = orgs[0];
         const runs = await getRunList(email, org.id);
-        const activeRun = runs.find((r) => r.status !== "failed") ?? runs[0];
 
-        if (activeRun) {
-          router.replace(routes.dashboardProject(activeRun.slug));
-        } else if (org.url) {
-          // Has org + URL (from Shopify/WordPress connect) but no runs → auto-start analysis
-          try {
-            const analysis = await startAnalysis({
-              url: org.url,
-              run_type: "single_page",
-              email,
-              brand_name: org.name,
-              org_id: org.id,
-            });
-            router.replace(routes.dashboardProject(analysis.slug));
-          } catch {
-            router.replace(routes.onboardingCompanyInfo);
-          }
+        if (runs.length > 0) {
+          // Pick the best run: prefer complete/in-progress over failed
+          const bestRun =
+            runs.find((r) => r.status === "complete") ??
+            runs.find((r) => r.status !== "failed") ??
+            runs[0];
+          router.replace(routes.dashboardProject(bestRun.slug));
         } else {
           router.replace(routes.onboardingCompanyInfo);
         }

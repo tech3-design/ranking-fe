@@ -29,7 +29,7 @@ export const auth = betterAuth({
   database: pool,
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    expiresIn: 60 * 60 * 24 * 10, // 10 days
     updateAge: 60 * 60 * 24, // refresh session every 24 hours
     cookieCache: {
       enabled: true,

@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -18,6 +18,8 @@ import {
   useOnboardingStore,
   type OnboardingStep,
 } from "@/lib/stores/onboarding-store";
+import { useSession } from "@/lib/auth-client";
+import { routes } from "@/lib/config";
 
 const STEP_CONTENT: Record<string, { title: string; description: string }> = {
   "auth-method": {
@@ -42,13 +44,19 @@ const STEP_COMPONENTS: Partial<Record<OnboardingStep, React.ComponentType>> = {
 
 function SignUpContent() {
   const { step, setAuthMode, reset } = useOnboardingStore();
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
   useEffect(() => {
+    if (!isPending && session) {
+      router.replace(routes.dashboard);
+      return;
+    }
     reset();
     setAuthMode("sign-up");
-  }, [reset, setAuthMode]);
+  }, [reset, setAuthMode, isPending, session, router]);
 
   const { title, description } =
     STEP_CONTENT[step] ?? STEP_CONTENT["auth-method"];

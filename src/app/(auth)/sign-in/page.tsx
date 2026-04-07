@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Card,
@@ -13,6 +14,8 @@ import {
 import { AuthMethodForm } from "@/components/auth/auth-method-form";
 import { OtpForm } from "@/components/auth/otp-form";
 import { useOnboardingStore, type OnboardingStep } from "@/lib/stores/onboarding-store";
+import { useSession } from "@/lib/auth-client";
+import { routes } from "@/lib/config";
 
 const STEP_CONTENT: Record<string, { title: string; description: string }> = {
   "auth-method": {
@@ -32,11 +35,17 @@ const STEP_COMPONENTS: Partial<Record<OnboardingStep, React.ComponentType>> = {
 
 export default function SignInPage() {
   const { step, setAuthMode, reset } = useOnboardingStore();
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
+    if (!isPending && session) {
+      router.replace(routes.dashboard);
+      return;
+    }
     reset();
     setAuthMode("sign-in");
-  }, [reset, setAuthMode]);
+  }, [reset, setAuthMode, isPending, session, router]);
 
   const { title, description } = STEP_CONTENT[step] ?? STEP_CONTENT["auth-method"];
   const StepComponent = STEP_COMPONENTS[step];
