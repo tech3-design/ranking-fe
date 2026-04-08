@@ -15,7 +15,12 @@ import {
 } from "@/components/ui/card";
 import { createOrganization } from "@/lib/api/organizations";
 import { startAnalysis } from "@/lib/api/analyzer";
+import { getSubscriptionStatus } from "@/lib/api/payments";
 import { config, routes } from "@/lib/config";
+import {
+  ONBOARDING_DRAFT_KEY,
+  storePendingAnalysisAfterPayment,
+} from "@/lib/internal-nav";
 import axios from "axios";
 import {
   Loader2, ArrowRight, ArrowLeft,
@@ -25,7 +30,33 @@ import { BackgroundBeams } from "@/components/ui/background-beams";
 
 type Step = "company" | "prompts" | "launch";
 
-const ONBOARDING_DRAFT_KEY = "signalor_onboarding_draft";
+function formatOnboardError(err: unknown): string {
+  if (!axios.isAxiosError(err)) {
+    return "Something went wrong. Please try again.";
+  }
+  const data = err.response?.data;
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const o = data as Record<string, unknown>;
+    if (typeof o.error === "string" && o.error.trim()) return o.error;
+    if (typeof o.detail === "string" && o.detail.trim()) return o.detail;
+    for (const v of Object.values(o)) {
+      if (Array.isArray(v) && v.length > 0 && typeof v[0] === "string") {
+        return v[0];
+      }
+      if (typeof v === "string" && v.trim()) return v;
+    }
+  }
+  if (err.code === "ERR_NETWORK" || err.message === "Network Error") {
+    return "Cannot reach the API. Start the backend (e.g. port 8000) and set NEXT_PUBLIC_API_URL in .env.local.";
+  }
+  if (err.response?.status === 403) {
+    return "You can't create a workspace yet (subscription required or project limit). Subscribe or upgrade to Pro for more projects.";
+  }
+  if (err.response?.status && err.response.status >= 500) {
+    return "Server error while creating workspace. Check backend logs.";
+  }
+  return err.message?.trim() || "Failed to create workspace.";
+}
 
 type OnboardingDraftV2 = {
   v: 2;
@@ -144,11 +175,7 @@ export default function CompanyInfoPage() {
       setStep("prompts");
       generatePrompts(companyName.trim(), url);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || err.response?.data?.detail || "Failed to create workspace.");
-      } else {
-        setError("Something went wrong. Please try again.");
-      }
+      setError(formatOnboardError(err));
     } finally {
       setLoading(false);
       setStatusMsg("");
@@ -207,9 +234,26 @@ export default function CompanyInfoPage() {
     if (!session || !orgId) return;
     setLoading(true);
     setError("");
-    setStatusMsg("Starting your GEO analysis...");
+    setStatusMsg("Checking your plan...");
 
     try {
+      const sub = await getSubscriptionStatus(session.user.email);
+      if (!sub.is_active) {
+        storePendingAnalysisAfterPayment({
+          url: siteUrl,
+          run_type: "single_page",
+          email: session.user.email,
+          brand_name: companyName.trim(),
+          org_id: orgId,
+        });
+        setStatusMsg("");
+        setLoading(false);
+        const returnTo = encodeURIComponent(routes.onboardingCompanyInfo);
+        router.push(`/pricing?returnTo=${returnTo}`);
+        return;
+      }
+
+      setStatusMsg("Starting your GEO analysis...");
       const analysis = await startAnalysis({
         url: siteUrl,
         run_type: "single_page",
@@ -221,8 +265,8 @@ export default function CompanyInfoPage() {
         sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
       } catch { /* ignore */ }
       router.push(routes.dashboardProject(analysis.slug));
-    } catch {
-      setError("Failed to start analysis. Please try again.");
+    } catch (err) {
+      setError(formatOnboardError(err));
       setStatusMsg("");
       setLoading(false);
     }

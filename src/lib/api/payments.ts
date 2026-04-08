@@ -16,6 +16,8 @@ export interface SubscriptionStatus {
   plan: string;
   plan_label: string;
   limits: PlanLimits;
+  /** True when backend has a Dodo payment_id and PDF can be downloaded */
+  invoice_available?: boolean;
 }
 
 export async function createCheckoutSession(

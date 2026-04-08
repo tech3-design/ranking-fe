@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { createCheckoutSession, getSubscriptionStatus } from "@/lib/api/payments";
+import {
+  POST_CHECKOUT_REDIRECT_KEY,
+  safeInternalReturnPath,
+} from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
-import { Check, Zap, ArrowLeft, Crown, Rocket } from "lucide-react";
+import { Check, Clock, Zap, ArrowLeft, Crown, Rocket } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import Link from "next/link";
 
@@ -18,13 +22,15 @@ interface PlanConfig {
   icon: typeof Zap;
   popular?: boolean;
   features: string[];
+  /** Shown below live features — not included in checkout yet */
+  comingSoonFeatures?: string[];
 }
 
 const PLANS: PlanConfig[] = [
   {
     id: "starter",
     label: "Starter",
-    price: 20,
+    price: 19,
     period: "/month",
     description: "Perfect for solo brands getting started with GEO.",
     icon: Zap,
@@ -36,11 +42,17 @@ const PLANS: PlanConfig[] = [
       "Recommendations & verify",
       "PDF report exports",
     ],
+    comingSoonFeatures: [
+      "Weekly AI visibility email digest",
+      "Deeper Shopify & WordPress sync",
+      "Custom branding on shared reports",
+      "Team invites (view-only)",
+    ],
   },
   {
     id: "pro",
     label: "Pro",
-    price: 50,
+    price: 49,
     period: "/month",
     description: "For growing teams tracking multiple brands.",
     icon: Crown,
@@ -54,16 +66,22 @@ const PLANS: PlanConfig[] = [
       "Score history & trends",
       "Brand visibility tracking",
     ],
+    comingSoonFeatures: [
+      "REST API & webhooks for scores",
+      "Slack & Microsoft Teams alerts",
+      "Side-by-side run comparison",
+      "CSV export for prompt history",
+    ],
   },
   {
     id: "business",
-    label: "Business",
-    price: 60,
+    label: "Max",
+    price: 59,
     period: "/month",
     description: "Full power for agencies and serious operators.",
     icon: Rocket,
     features: [
-      "4 projects",
+      "6 projects",
       "Up to 200 prompts",
       "All AI engines including Claude",
       "Everything in Pro",
@@ -71,12 +89,20 @@ const PLANS: PlanConfig[] = [
       "Advanced competitor analysis",
       "Citation trend tracking",
     ],
+    comingSoonFeatures: [
+      "White-label client portals",
+      "SAML SSO & audit logs",
+      "Dedicated success manager & SLAs",
+      "Bulk import & multi-brand templates",
+    ],
   },
 ];
 
-export default function PricingPage() {
+function PricingPageInner() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = safeInternalReturnPath(searchParams.get("returnTo"));
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -88,16 +114,25 @@ export default function PricingPage() {
     }
     getSubscriptionStatus(session.user.email)
       .then((s) => {
-        if (s.is_active) router.replace(routes.dashboard);
+        if (s.is_active) {
+          router.replace(returnTo || routes.dashboard);
+        }
       })
       .catch(() => {});
-  }, [isPending, session, router]);
+  }, [isPending, session, router, returnTo]);
 
   async function handleSubscribe(planId: string) {
     if (!session || loadingPlan) return;
     setLoadingPlan(planId);
     setError("");
     try {
+      if (returnTo) {
+        try {
+          sessionStorage.setItem(POST_CHECKOUT_REDIRECT_KEY, returnTo);
+        } catch {
+          /* ignore */
+        }
+      }
       const { checkout_url } = await createCheckoutSession(session.user.email, planId);
       window.location.href = checkout_url;
     } catch {
@@ -119,12 +154,12 @@ export default function PricingPage() {
       <div className="w-full max-w-5xl">
         {/* Back link */}
         <Link
-          href={routes.dashboard}
+          href={returnTo || routes.dashboard}
           className="inline-flex items-center gap-1.5 text-xs font-medium mb-8 transition hover:opacity-70"
           style={{ color: "#00000060" }}
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          Back to Dashboard
+          {returnTo ? "Back to setup" : "Back to Dashboard"}
         </Link>
 
         {/* Header */}
@@ -135,6 +170,14 @@ export default function PricingPage() {
           <p className="mt-3 text-sm" style={{ color: "#00000060" }}>
             All plans include core GEO analysis. Upgrade for more projects, prompts, and AI engines.
           </p>
+          {returnTo === routes.onboardingCompanyInfo && (
+            <p
+              className="mt-4 text-sm rounded-lg px-4 py-3 max-w-lg mx-auto"
+              style={{ color: "#0A251C", backgroundColor: "#EAF5F0" }}
+            >
+              You&apos;ve finished setup — subscribe to launch your GEO analysis from the final step.
+            </p>
+          )}
         </div>
 
         {/* Error */}
@@ -203,6 +246,36 @@ export default function PricingPage() {
                       <span className="text-sm" style={{ color: "#000000CC" }}>{f}</span>
                     </div>
                   ))}
+
+                  {plan.comingSoonFeatures && plan.comingSoonFeatures.length > 0 && (
+                    <div className="pt-4 mt-1 border-t" style={{ borderColor: "#E4DED2" }}>
+                      <p
+                        className="text-[10px] font-bold uppercase tracking-wider mb-3"
+                        style={{ color: "#00000045" }}
+                      >
+                        Coming Soon
+                      </p>
+                      <div className="space-y-2.5">
+                        {plan.comingSoonFeatures.map((f) => (
+                          <div key={f} className="flex items-start gap-2.5">
+                            <div
+                              className="mt-0.5 rounded-full flex items-center justify-center shrink-0"
+                              style={{
+                                backgroundColor: "#00000008",
+                                width: 18,
+                                height: 18,
+                              }}
+                            >
+                              <Clock className="h-2.5 w-2.5" style={{ color: "#00000045" }} />
+                            </div>
+                            <span className="text-sm leading-snug" style={{ color: "#00000055" }}>
+                              {f}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Subscribe button */}
@@ -230,5 +303,22 @@ export default function PricingPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          className="flex min-h-screen items-center justify-center"
+          style={{ backgroundColor: "#F6F4F1" }}
+        >
+          <SignalorLoader size="lg" />
+        </div>
+      }
+    >
+      <PricingPageInner />
+    </Suspense>
   );
 }
