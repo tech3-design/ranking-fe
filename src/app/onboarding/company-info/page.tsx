@@ -232,6 +232,12 @@ export default function CompanyInfoPage() {
 
   async function handleLaunch() {
     if (!session || !orgId) return;
+    const promptList = prompts.map((p) => p.trim()).filter(Boolean);
+    if (promptList.length < 1) {
+      setError("Add at least one tracking prompt before launching.");
+      setStep("prompts");
+      return;
+    }
     setLoading(true);
     setError("");
     setStatusMsg("Checking your plan...");
@@ -245,6 +251,7 @@ export default function CompanyInfoPage() {
           email: session.user.email,
           brand_name: companyName.trim(),
           org_id: orgId,
+          prompts: promptList,
         });
         setStatusMsg("");
         setLoading(false);
@@ -260,6 +267,8 @@ export default function CompanyInfoPage() {
         email: session.user.email,
         brand_name: companyName.trim(),
         org_id: orgId,
+        verify_org_workspace: true,
+        prompts: promptList,
       });
       try {
         sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);

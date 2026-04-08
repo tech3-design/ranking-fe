@@ -7,6 +7,9 @@ export interface StartAnalysisPayload {
   brand_name?: string;
   country?: string;
   org_id?: number;
+  /** Backend enforces org ownership, URL match, brand, and non-empty prompts (onboarding / post-checkout). */
+  verify_org_workspace?: boolean;
+  prompts?: string[];
 }
 
 export interface StartAnalysisResponse {
