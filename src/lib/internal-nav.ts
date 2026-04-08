@@ -30,7 +30,22 @@ export type PendingAnalysisAfterPaymentV1 = {
   org_id: number;
 };
 
-export function readPendingAnalysisAfterPayment(): PendingAnalysisAfterPaymentV1 | null {
+/** Includes prompts for backend verify_org_workspace after checkout. */
+export type PendingAnalysisAfterPaymentV2 = {
+  v: 2;
+  url: string;
+  run_type: "single_page" | "full_site";
+  email: string;
+  brand_name: string;
+  org_id: number;
+  prompts: string[];
+};
+
+export type PendingAnalysisAfterPayment =
+  | PendingAnalysisAfterPaymentV1
+  | PendingAnalysisAfterPaymentV2;
+
+export function readPendingAnalysisAfterPayment(): PendingAnalysisAfterPayment | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = sessionStorage.getItem(PENDING_ANALYSIS_AFTER_PAYMENT_KEY);
@@ -38,7 +53,6 @@ export function readPendingAnalysisAfterPayment(): PendingAnalysisAfterPaymentV1
     const o = JSON.parse(raw) as unknown;
     if (!o || typeof o !== "object") return null;
     const rec = o as Record<string, unknown>;
-    if (rec.v !== 1) return null;
     const url = typeof rec.url === "string" ? rec.url.trim() : "";
     const email = typeof rec.email === "string" ? rec.email.trim() : "";
     const brand_name =
@@ -47,7 +61,19 @@ export function readPendingAnalysisAfterPayment(): PendingAnalysisAfterPaymentV1
     const run_type =
       rec.run_type === "full_site" ? "full_site" : "single_page";
     if (!url || !email || !brand_name || !Number.isFinite(org_id)) return null;
-    return { v: 1, url, run_type, email, brand_name, org_id };
+
+    if (rec.v === 2) {
+      const promptsRaw = rec.prompts;
+      const prompts = Array.isArray(promptsRaw)
+        ? promptsRaw.filter((p): p is string => typeof p === "string").map((p) => p.trim()).filter(Boolean)
+        : [];
+      if (prompts.length < 1) return null;
+      return { v: 2, url, run_type, email, brand_name, org_id, prompts };
+    }
+    if (rec.v === 1) {
+      return { v: 1, url, run_type, email, brand_name, org_id };
+    }
+    return null;
   } catch {
     return null;
   }
@@ -63,13 +89,13 @@ export function clearPendingAnalysisAfterPayment(): void {
 }
 
 export function storePendingAnalysisAfterPayment(
-  payload: Omit<PendingAnalysisAfterPaymentV1, "v">,
+  payload: Omit<PendingAnalysisAfterPaymentV2, "v">,
 ): void {
   if (typeof window === "undefined") return;
   try {
     sessionStorage.setItem(
       PENDING_ANALYSIS_AFTER_PAYMENT_KEY,
-      JSON.stringify({ v: 1, ...payload }),
+      JSON.stringify({ v: 2, ...payload }),
     );
   } catch {
     /* ignore */
