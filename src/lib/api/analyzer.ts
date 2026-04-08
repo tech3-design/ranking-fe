@@ -370,7 +370,7 @@ export async function toggleSchedule(payload: {
 
 export interface AutoFixResult {
   recommendation_id: number;
-  status: "success" | "partial" | "failed";
+  status: "success" | "partial" | "failed" | "verified" | "manual";
   message: string;
   fix_type: string;
 }
@@ -445,7 +445,7 @@ export async function verifyFix(
   const { data } = await apiClient.post<AutoFixResult>(
     `/api/analyzer/runs/s/${slug}/auto-fix/verify/`,
     { recommendation_id: recommendationId },
-    { timeout: 10_000 },
+    { timeout: 45_000 },
   );
   return data;
 }
