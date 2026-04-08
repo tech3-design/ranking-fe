@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { getSubscriptionStatus, type SubscriptionStatus } from "@/lib/api/payments";
 import Link from "next/link";
-import { CreditCard, CheckCircle2, XCircle, Zap, Crown, Rocket } from "lucide-react";
+import { CreditCard, CheckCircle2, FileDown, XCircle, Zap, Crown, Rocket } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { config } from "@/lib/config";
 
 const PLAN_ICONS: Record<string, typeof Zap> = {
   starter: Zap,
@@ -80,6 +81,25 @@ export default function BillingSettingsPage() {
               )}
             </div>
           </div>
+
+          {/* Latest invoice (Dodo PDF after successful charge) */}
+          {sub?.is_active && sub.invoice_available === true && email && (
+            <div className="bg-card rounded-2xl p-6 border border-border">
+              <p className="text-sm font-semibold text-foreground mb-1">Invoices</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Download the PDF receipt for your latest successful payment.
+              </p>
+              <a
+                href={`${config.apiBaseUrl}/api/payments/invoice/?email=${encodeURIComponent(email)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold border border-border bg-background text-foreground transition hover:bg-muted"
+              >
+                <FileDown className="w-4 h-4" />
+                Download latest invoice
+              </a>
+            </div>
+          )}
 
           {/* Plan details */}
           <div className="bg-card rounded-2xl p-6 border border-border">

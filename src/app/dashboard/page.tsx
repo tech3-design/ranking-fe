@@ -1,11 +1,10 @@
 "use client";
 
 import { Suspense, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { getOrganizations } from "@/lib/api/organizations";
 import { getRunList } from "@/lib/api/analyzer";
-import { getSubscriptionStatus } from "@/lib/api/payments";
 import { routes } from "@/lib/config";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 
@@ -26,15 +25,14 @@ export default function DashboardPage() {
 /**
  * This page is just a router:
  * - No session → /sign-in
- * - No subscription → /pricing
- * - No org → /onboarding/company-info (brand → platform → connect → analyze)
+ * - No org → /onboarding/company-info
  * - Has org + runs → /dashboard/[slug]
  * - Has org, no runs → /onboarding/company-info
+ * Pricing is gated only when the user clicks Launch on onboarding (not here).
  */
 function DashboardRedirect() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (isPending) return;
@@ -42,14 +40,8 @@ function DashboardRedirect() {
 
     const email = session.user.email;
 
-    getSubscriptionStatus(email)
-      .then((sub) => {
-        if (!sub.is_active) { router.replace("/pricing"); return; }
-        return getOrganizations(email);
-      })
+    getOrganizations(email)
       .then(async (orgs) => {
-        if (!orgs) return;
-
         if (orgs.length === 0) {
           router.replace(routes.onboardingCompanyInfo);
           return;
@@ -72,7 +64,7 @@ function DashboardRedirect() {
       .catch(() => {
         router.replace(routes.onboardingCompanyInfo);
       });
-  }, [isPending, session, router, searchParams]);
+  }, [isPending, session, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">

@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { fireConfetti, fireSmallConfetti } from "@/lib/confetti";
+import { routes } from "@/lib/config";
 import {
   getRunBySlug,
   getScoreHistory,
@@ -39,7 +41,13 @@ export function useRun() {
   return useContext(RunContext);
 }
 
+function isAxios404(err: unknown): boolean {
+  if (!err || typeof err !== "object" || !("response" in err)) return false;
+  return (err as { response?: { status?: number } }).response?.status === 404;
+}
+
 export function RunProvider({ slug, children }: { slug: string; children: React.ReactNode }) {
+  const router = useRouter();
   const [run, setRun] = useState<AnalysisRunDetail | null>(null);
   const [scoreHistory, setScoreHistory] = useState<ScoreHistoryPoint[]>([]);
   const [fixResults, setFixResults] = useState<FixResultMap>({});
@@ -68,13 +76,12 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
         setScoreHistory(history);
       }
     } catch (err: unknown) {
-      const isAxios = err && typeof err === "object" && "response" in err;
-      const status = isAxios ? (err as { response?: { status?: number } }).response?.status : 0;
-      if (status === 404) {
-        setError("Not Found (404)");
-      } else {
-        setError(err instanceof Error ? err.message : "Failed to load analysis");
+      if (isAxios404(err)) {
+        setRun(null);
+        router.replace(routes.dashboard);
+        return;
       }
+      setError(err instanceof Error ? err.message : "Failed to load analysis");
     } finally {
       setLoading(false);
     }
@@ -140,7 +147,12 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
           for (const r of fixStatuses) fMap[r.recommendation_id] = { status: r.status, message: r.message };
           setFixResults(fMap);
         }
-      } catch { /* ignore */ }
+      } catch (e) {
+        if (isAxios404(e)) {
+          clearInterval(interval);
+          router.replace(routes.dashboard);
+        }
+      }
     }, 2500);
     return () => clearInterval(interval);
   }, [run?.status, slug]);

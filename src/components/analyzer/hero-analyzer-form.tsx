@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { startAnalysis } from "@/lib/api/analyzer";
 import { routes } from "@/lib/config";
-import { ArrowRight, ArrowLeft, Globe, MapPin, Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, Globe, MapPin, Sparkles } from "lucide-react";
+import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { RotatingGeoFact } from "@/components/ui/rotating-geo-fact";
 
 const COUNTRY_OPTIONS = [
   "United States",
@@ -74,7 +76,7 @@ export function HeroAnalyzerForm() {
   return (
     <div className="w-full max-w-xl mt-8">
       <div className="rounded-2xl bg-card/80 backdrop-blur-xl border border-border p-1.5 shadow-lg overflow-hidden">
-        <div className="relative" style={{ minHeight: 64 }}>
+        <div className="relative min-h-[64px] data-[loading=1]:min-h-[168px]" data-loading={step === 2 ? 1 : 0}>
           <AnimatePresence mode="wait" custom={dir}>
             {/* STEP 0: URL Input */}
             {step === 0 && (
@@ -152,7 +154,7 @@ export function HeroAnalyzerForm() {
               </motion.div>
             )}
 
-            {/* STEP 2: Analyzing */}
+            {/* STEP 2: Analyzing — coral rings + GEO/SEO facts (same family as dashboard overlay) */}
             {step === 2 && (
               <motion.div
                 key="loading"
@@ -162,10 +164,10 @@ export function HeroAnalyzerForm() {
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="flex items-center justify-center gap-3 px-4 py-3"
+                className="flex flex-col items-center justify-center gap-3 px-4 py-4 w-full"
               >
-                <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                <span className="text-sm font-medium text-foreground">Analyzing {url.replace(/^https?:\/\//, "")}...</span>
+                <SignalorLoader size="sm" />
+                <RotatingGeoFact intervalMs={4500} size="xs" className="min-h-9 w-full max-w-md" />
               </motion.div>
             )}
           </AnimatePresence>
