@@ -69,14 +69,14 @@ type CircleVisual =
   | "idle"
   | "user_done"
   | "loading"
-  /** Muted check: step reached in the scan sequence — not “passed” until the server responds */
+  /** Muted check: step reached in the scan sequence — not "passed" until the server responds */
   | "pending_queue"
   | "scan_warn"
   | "scan_fail"
   /** Only after the API returns verified */
   | "server_ok";
 
-/** Minimum time for the step sweep + “waiting on live page” before showing the API result */
+/** Minimum time for the step sweep + "waiting on live page" before showing the API result */
 const VERIFY_UI_TOTAL_MS = 3000;
 
 const STEP_USER_STORAGE = "signalor_rec_step_user_v1";
@@ -257,9 +257,9 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
   const [previewData, setPreviewData] = useState<FixPreview | null>(null);
   const [previewingId, setPreviewingId] = useState<number | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  /** User-marked “I did this on my site” per recommendation step number */
+  /** User-marked "I did this on my site" per recommendation step number */
   const [userStepsByRec, setUserStepsByRec] = useState<Record<number, Set<number>>>({});
-  /** Sequential “scanning” animation during verify */
+  /** Sequential "scanning" animation during verify */
   const [verifySweep, setVerifySweep] = useState<{ recId: number; index: number } | null>(null);
 
   useEffect(() => {
@@ -579,11 +579,11 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                     </div>
                   </div>
 
-                  {/* Right side: actions + chevron */}
+                  {/* Right side: auto-fix button + status + chevron */}
                   <div className="flex items-center gap-2 shrink-0">
                     {isFixing ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
-                        <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Generating..." : "Verifying..."}
+                        <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Applying..." : "Checking..."}
                       </span>
                     ) : fixResult ? (
                       isVerified ? (
@@ -595,10 +595,21 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                           Manual
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[10px] font-medium text-red-500">
-                          <XCircle className="h-3 w-3" /> Not verified
-                        </span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
+                          className="inline-flex items-center gap-1 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[10px] font-medium text-red-500 hover:bg-red-500/20 transition"
+                        >
+                          <RefreshCw className="h-3 w-3" /> Retry
+                        </button>
                       )
+                    ) : rec.can_auto_fix && slug && email ? (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
+                        disabled={isFixing}
+                        className="inline-flex items-center gap-1.5 bg-foreground text-background px-3 py-1.5 text-[11px] font-semibold transition hover:opacity-88 disabled:opacity-50"
+                      >
+                        <Zap className="h-3 w-3" /> Auto Fix
+                      </button>
                     ) : null}
 
                     {isExpanded
@@ -631,113 +642,13 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                         </div>
                       )}
 
-                      {/* Step-by-step guide (always show steps; synthetic steps if API omitted them) */}
-                      <div className="space-y-3 mb-4">
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Step-by-Step Guide</p>
-                          <p className="text-[11px] text-muted-foreground leading-snug">
-                            Tap each circle when you finish that step on your site (your progress).{" "}
-                            <span className="font-medium text-foreground">Verify changes</span> runs a live page scan —
-                            grey checks mean “still checking,” not success. Green only appears when the live page passes.
-                          </p>
+                      {/* What Auto Fix does */}
+                      {rec.can_auto_fix && (
+                        <div className="flex items-center gap-2 bg-muted/50 border border-border px-3 py-2 mb-4 text-xs text-muted-foreground">
+                          <Zap className="w-3 h-3 shrink-0" />
+                          <span>Click <span className="font-semibold text-foreground">Auto Fix</span> to apply this automatically via your connected store.</span>
                         </div>
-                        {displaySteps.map((step, stepIndex) => {
-                          const cState = circleStateForStep(
-                            rec.id,
-                            stepIndex,
-                            displaySteps.length,
-                            step.n,
-                            isVerified,
-                            verifyFailedWhileIdle,
-                            verifySweep,
-                            isFixing,
-                            userDone,
-                          );
-                          return (
-                            <div
-                              key={`${rec.id}-${step.n}`}
-                              className={`rounded-lg border p-3 transition-all ${
-                                cState === "server_ok"
-                                  ? "border-emerald-500/25 bg-emerald-500/5"
-                                  : cState === "pending_queue" || cState === "loading"
-                                    ? "border-border bg-muted/25"
-                                  : cState === "scan_fail"
-                                    ? "border-red-500/30 bg-red-500/5"
-                                    : cState === "scan_warn"
-                                      ? "border-amber-500/25 bg-amber-500/5"
-                                      : cState === "user_done"
-                                        ? "border-sky-500/20 bg-sky-500/5"
-                                        : "border-border bg-accent/30"
-                              }`}
-                            >
-                              <div className="flex items-start gap-3">
-                                <StepStatusCircle
-                                  state={cState}
-                                  stepNum={step.n}
-                                  disableUserToggle={isVerified || isFixing}
-                                  onToggleUser={() => toggleUserStep(rec.id, step.n)}
-                                />
-
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                                    <span className="text-xs font-semibold text-foreground">
-                                      Step {step.n}: {step.title}
-                                    </span>
-                                    {step.xp > 0 ? (
-                                      <span className="text-[9px] font-bold text-amber-400/80">+{step.xp} XP</span>
-                                    ) : null}
-                                  </div>
-                                  <p className="text-xs leading-relaxed text-muted-foreground">
-                                    {step.detail}
-                                  </p>
-
-                                  {step.code && (
-                                    <div className="relative mt-2 group">
-                                      <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto whitespace-pre-wrap">
-                                        {step.code}
-                                      </pre>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          copyCode(step.code!, `${rec.id}-${step.n}`);
-                                        }}
-                                        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition p-1 rounded bg-muted hover:bg-accent"
-                                      >
-                                        {copiedCode === `${rec.id}-${step.n}` ? (
-                                          <Check className="w-3 h-3 text-emerald-400" />
-                                        ) : (
-                                          <Copy className="w-3 h-3 text-muted-foreground" />
-                                        )}
-                                      </button>
-                                    </div>
-                                  )}
-
-                                  {/* Platform-specific instructions — show only detected platform, or both if unknown */}
-                                  {(step.shopify || step.wordpress) && (
-                                    <div className="mt-3 space-y-2">
-                                      {(!platform || platform === "shopify") && step.shopify && (
-                                        <PlatformBlock platform="shopify" info={step.shopify} copyKey={`${rec.id}-${step.n}-shopify`} copiedCode={copiedCode} onCopy={copyCode} />
-                                      )}
-                                      {(!platform || platform === "wordpress") && step.wordpress && (
-                                        <PlatformBlock platform="wordpress" info={step.wordpress} copyKey={`${rec.id}-${step.n}-wp`} copiedCode={copiedCode} onCopy={copyCode} />
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                        {(!rec.steps || rec.steps.length === 0) && (
-                          <div className="rounded-lg border border-dashed border-border/80 bg-muted/20 px-3 py-2">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                              Full instructions
-                            </p>
-                            <ActionContent action={rec.action} />
-                          </div>
-                        )}
-                      </div>
+                      )}
 
                       {/* Fix result message — hide previous failure while live verify runs so Reason appears only after the step sweep finishes */}
                       {fixResult && !(fixResult.status === "failed" && isFixing) && (
