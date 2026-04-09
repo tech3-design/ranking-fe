@@ -8,8 +8,9 @@ import { FixPreviewModal } from "./fix-preview-modal";
 import {
   Loader2, Eye, ChevronDown, ChevronRight, Copy, Check,
   AlertTriangle, ArrowUp, Minus, ShieldCheck, Clock, Zap,
-  Flame, Star, Trophy, XCircle,
+  Flame, Star, Trophy, XCircle, ShoppingBag, Globe,
 } from "lucide-react";
+import type { PlatformStepInfo } from "@/lib/api/analyzer";
 
 const PILLAR_LABELS: Record<string, string> = {
   content: "Content",
@@ -298,7 +299,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                       )
                     ) : isFixing ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
-                        <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Generating..." : "Verifying..."}
+                        <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Generating..." : "Checking page..."}
                       </span>
                     ) : null}
 
@@ -373,20 +374,30 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
 
                                     {/* Code block */}
                                     {step.code && (
-                                      <div className="relative mt-2 group">
-                                        <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto whitespace-pre-wrap">
-                                          {step.code}
-                                        </pre>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); copyCode(step.code!, `${rec.id}-${step.n}`); }}
-                                          className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition p-1 rounded bg-muted hover:bg-accent"
-                                        >
-                                          {copiedCode === `${rec.id}-${step.n}` ? (
-                                            <Check className="w-3 h-3 text-emerald-400" />
-                                          ) : (
-                                            <Copy className="w-3 h-3 text-muted-foreground" />
-                                          )}
-                                        </button>
+                                      <CodeBlock code={step.code} copyKey={`${rec.id}-${step.n}`} copiedCode={copiedCode} onCopy={copyCode} />
+                                    )}
+
+                                    {/* Platform-specific instructions */}
+                                    {(step.shopify || step.wordpress) && (
+                                      <div className="mt-3 space-y-2">
+                                        {step.shopify && (
+                                          <PlatformBlock
+                                            platform="shopify"
+                                            info={step.shopify}
+                                            copyKey={`${rec.id}-${step.n}-shopify`}
+                                            copiedCode={copiedCode}
+                                            onCopy={copyCode}
+                                          />
+                                        )}
+                                        {step.wordpress && (
+                                          <PlatformBlock
+                                            platform="wordpress"
+                                            info={step.wordpress}
+                                            copyKey={`${rec.id}-${step.n}-wp`}
+                                            copiedCode={copiedCode}
+                                            onCopy={copyCode}
+                                          />
+                                        )}
                                       </div>
                                     )}
                                   </div>
@@ -436,7 +447,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                             className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-60"
                           >
                             {isFixing && previewingId !== rec.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-                            Mark as Done
+                            Verify Fix
                           </button>
                         </div>
                       )}
@@ -524,6 +535,63 @@ function ActionContent({ action }: { action: string }) {
 
         return <p key={i} className="text-muted-foreground pl-7">{trimmed}</p>;
       })}
+    </div>
+  );
+}
+
+/* ── Reusable code block with copy ─────────────────────────────────── */
+
+function CodeBlock({ code, copyKey, copiedCode, onCopy }: {
+  code: string;
+  copyKey: string;
+  copiedCode: string | null;
+  onCopy: (code: string, key: string) => void;
+}) {
+  return (
+    <div className="relative mt-2 group">
+      <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto whitespace-pre-wrap">
+        {code}
+      </pre>
+      <button
+        onClick={(e) => { e.stopPropagation(); onCopy(code, copyKey); }}
+        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition p-1 rounded bg-muted hover:bg-accent"
+      >
+        {copiedCode === copyKey ? (
+          <Check className="w-3 h-3 text-emerald-400" />
+        ) : (
+          <Copy className="w-3 h-3 text-muted-foreground" />
+        )}
+      </button>
+    </div>
+  );
+}
+
+/* ── Platform-specific instruction block ───────────────────────────── */
+
+function PlatformBlock({ platform, info, copyKey, copiedCode, onCopy }: {
+  platform: "shopify" | "wordpress";
+  info: PlatformStepInfo;
+  copyKey: string;
+  copiedCode: string | null;
+  onCopy: (code: string, key: string) => void;
+}) {
+  const isShopify = platform === "shopify";
+  return (
+    <div className={`rounded-lg border p-3 ${isShopify ? "border-[#96bf48]/20 bg-[#96bf48]/5" : "border-[#21759b]/20 bg-[#21759b]/5"}`}>
+      <div className="flex items-center gap-1.5 mb-1.5">
+        {isShopify ? (
+          <ShoppingBag className="w-3 h-3 text-[#96bf48]" />
+        ) : (
+          <Globe className="w-3 h-3 text-[#21759b]" />
+        )}
+        <span className={`text-[10px] font-bold uppercase tracking-wider ${isShopify ? "text-[#96bf48]" : "text-[#21759b]"}`}>
+          {isShopify ? "Shopify" : "WordPress"}
+        </span>
+      </div>
+      <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{info.detail}</p>
+      {info.code && (
+        <CodeBlock code={info.code} copyKey={copyKey} copiedCode={copiedCode} onCopy={onCopy} />
+      )}
     </div>
   );
 }
