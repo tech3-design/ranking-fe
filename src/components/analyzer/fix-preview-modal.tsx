@@ -154,9 +154,9 @@ export function FixPreviewModal({ preview, onApprove, onCancel }: FixPreviewModa
                 className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary/90 transition disabled:opacity-50"
               >
                 {applying ? (
-                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Verifying...</>
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Applying...</>
                 ) : (
-                  <><ShieldCheck className="w-3.5 h-3.5" /> Verify</>
+                  <><ShieldCheck className="w-3.5 h-3.5" /> Apply Fix</>
                 )}
               </button>
             </div>
