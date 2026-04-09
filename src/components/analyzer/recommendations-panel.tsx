@@ -8,7 +8,7 @@ import { FixPreviewModal } from "./fix-preview-modal";
 import {
   Loader2, Eye, ChevronDown, ChevronRight, Copy, Check,
   AlertTriangle, ArrowUp, Minus, ShieldCheck, Clock, Zap,
-  Flame, Star, Trophy, XCircle, ShoppingBag, Globe,
+  Flame, Star, Trophy, XCircle, RefreshCw, ShoppingBag, Globe,
 } from "lucide-react";
 import type { PlatformStepInfo } from "@/lib/api/analyzer";
 
@@ -43,6 +43,202 @@ const DIFFICULTY_CONFIG: Record<string, { label: string; color: string; icon: ty
   hard: { label: "Hard", color: "text-red-400", icon: Trophy },
 };
 
+/** Shown when API has no `steps` so every card still has a guided flow + circles */
+const FALLBACK_GUIDE_STEPS: RecommendationStep[] = [
+  {
+    n: 1,
+    title: "Read the guidance",
+    detail: "Review the description and impact below so you know what to change.",
+    xp: 0,
+  },
+  {
+    n: 2,
+    title: "Apply changes in your CMS or code",
+    detail: "Update your site, then publish so the live URL reflects your work.",
+    xp: 0,
+  },
+  {
+    n: 3,
+    title: "Run the live check",
+    detail: "Tap Verify changes — we fetch your live page and confirm the fix.",
+    xp: 0,
+  },
+];
+
+type CircleVisual =
+  | "idle"
+  | "user_done"
+  | "loading"
+  /** Muted check: step reached in the scan sequence — not “passed” until the server responds */
+  | "pending_queue"
+  | "scan_warn"
+  | "scan_fail"
+  /** Only after the API returns verified */
+  | "server_ok";
+
+/** Minimum time for the step sweep + “waiting on live page” before showing the API result */
+const VERIFY_UI_TOTAL_MS = 3000;
+
+const STEP_USER_STORAGE = "signalor_rec_step_user_v1";
+
+function loadUserSteps(slug: string): Record<number, Set<number>> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(STEP_USER_STORAGE);
+    if (!raw) return {};
+    const o = JSON.parse(raw) as Record<string, Record<string, number[]>>;
+    const byRec = o[slug];
+    if (!byRec) return {};
+    const out: Record<number, Set<number>> = {};
+    for (const [k, arr] of Object.entries(byRec)) {
+      out[Number(k)] = new Set(Array.isArray(arr) ? arr : []);
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function saveUserSteps(slug: string, data: Record<number, Set<number>>) {
+  if (typeof window === "undefined") return;
+  try {
+    const serial: Record<string, number[]> = {};
+    for (const [k, v] of Object.entries(data)) {
+      serial[k] = Array.from(v);
+    }
+    const raw = localStorage.getItem(STEP_USER_STORAGE);
+    const all: Record<string, Record<string, number[]>> = raw ? JSON.parse(raw) : {};
+    all[slug] = serial;
+    localStorage.setItem(STEP_USER_STORAGE, JSON.stringify(all));
+  } catch { /* ignore */ }
+}
+
+function StepStatusCircle({
+  state,
+  stepNum,
+  onToggleUser,
+  disableUserToggle,
+}: {
+  state: CircleVisual;
+  stepNum: number;
+  onToggleUser: () => void;
+  disableUserToggle: boolean;
+}) {
+  const common =
+    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 mt-0.5";
+
+  if (state === "loading") {
+    return (
+      <div className={`${common} border-primary/40 bg-primary/10`} aria-hidden>
+        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (state === "pending_queue") {
+    return (
+      <div
+        className={`${common} border-muted-foreground/35 bg-muted/60 text-muted-foreground`}
+        title="Waiting on live page check — not verified yet"
+      >
+        <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+      </div>
+    );
+  }
+  if (state === "server_ok") {
+    return (
+      <div className={`${common} border-emerald-500 bg-emerald-500 text-white shadow-sm`} title="Verified on your live page">
+        <Check className="h-4 w-4" strokeWidth={3} />
+      </div>
+    );
+  }
+  if (state === "scan_warn") {
+    return (
+      <div
+        className={`${common} border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400`}
+        title="You may have done this step, but the live site check still failed"
+      >
+        <Check className="h-4 w-4" strokeWidth={2.5} />
+      </div>
+    );
+  }
+  if (state === "scan_fail") {
+    return (
+      <div
+        className={`${common} border-red-500 bg-red-500/15 text-red-500`}
+        title="Live page did not pass verification"
+      >
+        <XCircle className="h-4 w-4" />
+      </div>
+    );
+  }
+  if (state === "user_done") {
+    return (
+      <button
+        type="button"
+        disabled={disableUserToggle}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleUser();
+        }}
+        className={`${common} border-sky-500/70 bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20 disabled:opacity-60`}
+        title="Marked done on your side — tap to undo"
+      >
+        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      disabled={disableUserToggle}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggleUser();
+      }}
+      className={`${common} border-muted-foreground/25 bg-background text-[10px] font-bold text-muted-foreground hover:border-primary/50 hover:text-primary disabled:opacity-50`}
+      title="Tap when you finish this step on your site"
+    >
+      {stepNum}
+    </button>
+  );
+}
+
+function circleStateForStep(
+  recId: number,
+  stepIndex: number,
+  totalSteps: number,
+  stepNumber: number,
+  isServerVerified: boolean,
+  verifyFailed: boolean,
+  sweep: { recId: number; index: number } | null,
+  isFixingThis: boolean,
+  userDone: Set<number>,
+): CircleVisual {
+  if (isServerVerified) return "server_ok";
+
+  const scanning = isFixingThis && sweep && sweep.recId === recId;
+  if (scanning) {
+    // After the step-by-step sweep, keep the last circle spinning until the API returns
+    // (avoid flashing green — emerald only for server_ok after success).
+    if (sweep.index >= totalSteps) {
+      if (stepIndex === totalSteps - 1) return "loading";
+      return "pending_queue";
+    }
+    if (stepIndex < sweep.index) return "pending_queue";
+    if (stepIndex === sweep.index) return "loading";
+    if (userDone.has(stepNumber)) return "user_done";
+    return "idle";
+  }
+
+  if (verifyFailed && totalSteps > 0) {
+    if (stepIndex === totalSteps - 1) return "scan_fail";
+    return "scan_warn";
+  }
+
+  if (userDone.has(stepNumber)) return "user_done";
+  return "idle";
+}
+
 interface RecommendationsPanelProps {
   recommendations: Recommendation[];
   slug?: string;
@@ -58,49 +254,42 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
   const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>(initialFixResults ?? {});
   const [previewData, setPreviewData] = useState<FixPreview | null>(null);
   const [previewingId, setPreviewingId] = useState<number | null>(null);
-  // Track completed steps per recommendation: { recId: Set<stepN> }
-  const [completedSteps, setCompletedSteps] = useState<Record<number, Set<number>>>({});
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  /** User-marked “I did this on my site” per recommendation step number */
+  const [userStepsByRec, setUserStepsByRec] = useState<Record<number, Set<number>>>({});
+  /** Sequential “scanning” animation during verify */
+  const [verifySweep, setVerifySweep] = useState<{ recId: number; index: number } | null>(null);
 
   useEffect(() => {
     if (initialFixResults) setFixResults((prev) => ({ ...initialFixResults, ...prev }));
   }, [initialFixResults]);
 
-  // Load step completion from localStorage
+  useEffect(() => {
+    if (!slug) return;
+    setUserStepsByRec(loadUserSteps(slug));
+  }, [slug]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const saved = localStorage.getItem("signalor_step_progress");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const restored: Record<number, Set<number>> = {};
-        for (const [k, v] of Object.entries(parsed)) {
-          restored[Number(k)] = new Set(v as number[]);
-        }
-        setCompletedSteps(restored);
-      }
-    } catch { /* ignore */ }
+      localStorage.removeItem("signalor_step_progress");
+    } catch { /* legacy key */ }
   }, []);
 
-  const saveStepProgress = useCallback((updated: Record<number, Set<number>>) => {
-    if (typeof window === "undefined") return;
-    const serializable: Record<number, number[]> = {};
-    for (const [k, v] of Object.entries(updated)) {
-      serializable[Number(k)] = Array.from(v);
-    }
-    localStorage.setItem("signalor_step_progress", JSON.stringify(serializable));
-  }, []);
-
-  function toggleStep(recId: number, stepN: number) {
-    setCompletedSteps((prev) => {
-      const set = new Set(prev[recId] || []);
-      if (set.has(stepN)) set.delete(stepN);
-      else set.add(stepN);
-      const updated = { ...prev, [recId]: set };
-      saveStepProgress(updated);
-      return updated;
-    });
-  }
+  const toggleUserStep = useCallback(
+    (recId: number, stepN: number) => {
+      if (!slug) return;
+      setUserStepsByRec((prev) => {
+        const set = new Set(prev[recId] ?? []);
+        if (set.has(stepN)) set.delete(stepN);
+        else set.add(stepN);
+        const next = { ...prev, [recId]: set };
+        saveUserSteps(slug, next);
+        return next;
+      });
+    },
+    [slug],
+  );
 
   async function copyCode(code: string, key: string) {
     try {
@@ -138,17 +327,68 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
 
   async function handleVerify(recId: number) {
     if (!slug) return;
+    const rec = recommendations.find((r) => r.id === recId);
+    const stepList =
+      rec?.steps && rec.steps.length > 0 ? rec.steps : FALLBACK_GUIDE_STEPS;
+
     setFixingIds((prev) => new Set(prev).add(recId));
+    setVerifySweep(null);
+
+    const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
     try {
-      const result = await verifyFix(slug, recId);
-      setFixResults((prev) => ({ ...prev, [recId]: result }));
-      onFixResult?.(recId, result);
-    } catch {
-      const fail = { status: "failed", message: "Verification failed" };
+      const apiPromise = verifyFix(slug, recId);
+
+      const uiDone = (async () => {
+        const n = stepList.length;
+        if (n === 0) {
+          await delay(VERIFY_UI_TOTAL_MS);
+          setVerifySweep({ recId, index: 0 });
+          return;
+        }
+        const perStep = VERIFY_UI_TOTAL_MS / n;
+        for (let i = 0; i < n; i++) {
+          setVerifySweep({ recId, index: i });
+          await delay(perStep);
+        }
+        setVerifySweep({ recId, index: n });
+      })();
+
+      const [result] = await Promise.all([apiPromise, uiDone]);
+      const normalized = {
+        status: result.status,
+        message:
+          result.message ||
+          (result.status === "verified" ? "Verified." : "Verification failed."),
+      };
+      setFixResults((prev) => ({ ...prev, [recId]: normalized }));
+      onFixResult?.(recId, normalized);
+
+      if (normalized.status === "verified" || normalized.status === "success") {
+        setUserStepsByRec((prev) => {
+          const next = { ...prev };
+          delete next[recId];
+          if (slug) saveUserSteps(slug, next);
+          return next;
+        });
+      }
+    } catch (err: unknown) {
+      let msg = "Could not reach the server. Try again.";
+      if (err && typeof err === "object" && "response" in err) {
+        const data = (err as { response?: { data?: { error?: string; message?: string } } }).response?.data;
+        if (data?.message && typeof data.message === "string") msg = data.message;
+        else if (data?.error && typeof data.error === "string") msg = data.error;
+      }
+      const fail = { status: "failed", message: msg };
       setFixResults((prev) => ({ ...prev, [recId]: fail }));
       onFixResult?.(recId, fail);
     } finally {
-      setFixingIds((prev) => { const next = new Set(prev); next.delete(recId); return next; });
+      setVerifySweep(null);
+      setFixingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(recId);
+        return next;
+      });
     }
   }
 
@@ -210,10 +450,13 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
           const DiffIcon = difficulty.icon;
           const fixResult = fixResults[rec.id];
           const isFixing = fixingIds.has(rec.id);
-          const stepsComplete = completedSteps[rec.id] || new Set();
-          const totalSteps = rec.steps?.length || 0;
-          const stepsProgress = totalSteps > 0 ? (stepsComplete.size / totalSteps) * 100 : 0;
+          const displaySteps =
+            rec.steps && rec.steps.length > 0 ? rec.steps : FALLBACK_GUIDE_STEPS;
+          const totalSteps = displaySteps.length;
           const isVerified = fixResult?.status === "success" || fixResult?.status === "verified";
+          const verifyFailedWhileIdle =
+            fixResult?.status === "failed" && !isFixing;
+          const userDone = userStepsByRec[rec.id] ?? new Set<number>();
 
           return (
             <div
@@ -265,25 +508,19 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                       )}
                       {totalSteps > 0 && (
                         <span className="text-[10px] text-muted-foreground">
-                          {stepsComplete.size}/{totalSteps} steps
+                          {totalSteps} guided step{totalSteps !== 1 ? "s" : ""} · verify on live site
                         </span>
                       )}
                     </div>
-
-                    {/* Step mini progress */}
-                    {totalSteps > 0 && (
-                      <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden w-full max-w-[200px]">
-                        <div
-                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-300"
-                          style={{ width: `${stepsProgress}%` }}
-                        />
-                      </div>
-                    )}
                   </div>
 
                   {/* Right side: actions + chevron */}
                   <div className="flex items-center gap-2 shrink-0">
-                    {fixResult ? (
+                    {isFixing ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
+                        <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Generating..." : "Verifying..."}
+                      </span>
+                    ) : fixResult ? (
                       isVerified ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-medium text-emerald-500">
                           <ShieldCheck className="h-3 w-3" /> Verified
@@ -294,13 +531,9 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[10px] font-medium text-red-500">
-                          <XCircle className="h-3 w-3" /> Failed
+                          <XCircle className="h-3 w-3" /> Not verified
                         </span>
                       )
-                    ) : isFixing ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
-                        <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Generating..." : "Checking page..."}
-                      </span>
                     ) : null}
 
                     {isExpanded
@@ -333,104 +566,148 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                         </div>
                       )}
 
-                      {/* Step-by-step guide */}
-                      {rec.steps && rec.steps.length > 0 ? (
-                        <div className="space-y-3 mb-4">
+                      {/* Step-by-step guide (always show steps; synthetic steps if API omitted them) */}
+                      <div className="space-y-3 mb-4">
+                        <div className="space-y-1">
                           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Step-by-Step Guide</p>
-                          {rec.steps.map((step) => {
-                            const isDone = stepsComplete.has(step.n);
-                            return (
-                              <div
-                                key={step.n}
-                                className={`rounded-lg border p-3 transition-all ${
-                                  isDone
-                                    ? "border-emerald-500/20 bg-emerald-500/5"
-                                    : "border-border bg-accent/30"
-                                }`}
-                              >
-                                <div className="flex items-start gap-3">
-                                  {/* Step checkbox */}
-                                  <button
-                                    onClick={() => toggleStep(rec.id, step.n)}
-                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                                      isDone
-                                        ? "bg-emerald-500 border-emerald-500"
-                                        : "border-muted-foreground/30 hover:border-primary"
-                                    }`}
-                                  >
-                                    {isDone && <Check className="w-3 h-3 text-white" />}
-                                  </button>
+                          <p className="text-[11px] text-muted-foreground leading-snug">
+                            Tap each circle when you finish that step on your site (your progress).{" "}
+                            <span className="font-medium text-foreground">Verify changes</span> runs a live page scan —
+                            grey checks mean “still checking,” not success. Green only appears when the live page passes.
+                          </p>
+                        </div>
+                        {displaySteps.map((step, stepIndex) => {
+                          const cState = circleStateForStep(
+                            rec.id,
+                            stepIndex,
+                            displaySteps.length,
+                            step.n,
+                            isVerified,
+                            verifyFailedWhileIdle,
+                            verifySweep,
+                            isFixing,
+                            userDone,
+                          );
+                          return (
+                            <div
+                              key={`${rec.id}-${step.n}`}
+                              className={`rounded-lg border p-3 transition-all ${
+                                cState === "server_ok"
+                                  ? "border-emerald-500/25 bg-emerald-500/5"
+                                  : cState === "pending_queue" || cState === "loading"
+                                    ? "border-border bg-muted/25"
+                                  : cState === "scan_fail"
+                                    ? "border-red-500/30 bg-red-500/5"
+                                    : cState === "scan_warn"
+                                      ? "border-amber-500/25 bg-amber-500/5"
+                                      : cState === "user_done"
+                                        ? "border-sky-500/20 bg-sky-500/5"
+                                        : "border-border bg-accent/30"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <StepStatusCircle
+                                  state={cState}
+                                  stepNum={step.n}
+                                  disableUserToggle={isVerified || isFixing}
+                                  onToggleUser={() => toggleUserStep(rec.id, step.n)}
+                                />
 
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-0.5">
-                                      <span className={`text-xs font-semibold ${isDone ? "text-emerald-400 line-through" : "text-foreground"}`}>
-                                        Step {step.n}: {step.title}
-                                      </span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                    <span className="text-xs font-semibold text-foreground">
+                                      Step {step.n}: {step.title}
+                                    </span>
+                                    {step.xp > 0 ? (
                                       <span className="text-[9px] font-bold text-amber-400/80">+{step.xp} XP</span>
-                                    </div>
-                                    <p className={`text-xs leading-relaxed ${isDone ? "text-muted-foreground/60" : "text-muted-foreground"}`}>
-                                      {step.detail}
-                                    </p>
-
-                                    {/* Code block */}
-                                    {step.code && (
-                                      <CodeBlock code={step.code} copyKey={`${rec.id}-${step.n}`} copiedCode={copiedCode} onCopy={copyCode} />
-                                    )}
-
-                                    {/* Platform-specific instructions */}
-                                    {(step.shopify || step.wordpress) && (
-                                      <div className="mt-3 space-y-2">
-                                        {step.shopify && (
-                                          <PlatformBlock
-                                            platform="shopify"
-                                            info={step.shopify}
-                                            copyKey={`${rec.id}-${step.n}-shopify`}
-                                            copiedCode={copiedCode}
-                                            onCopy={copyCode}
-                                          />
-                                        )}
-                                        {step.wordpress && (
-                                          <PlatformBlock
-                                            platform="wordpress"
-                                            info={step.wordpress}
-                                            copyKey={`${rec.id}-${step.n}-wp`}
-                                            copiedCode={copiedCode}
-                                            onCopy={copyCode}
-                                          />
-                                        )}
-                                      </div>
-                                    )}
+                                    ) : null}
                                   </div>
+                                  <p className="text-xs leading-relaxed text-muted-foreground">
+                                    {step.detail}
+                                  </p>
+
+                                  {step.code && (
+                                    <div className="relative mt-2 group">
+                                      <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto whitespace-pre-wrap">
+                                        {step.code}
+                                      </pre>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          copyCode(step.code!, `${rec.id}-${step.n}`);
+                                        }}
+                                        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition p-1 rounded bg-muted hover:bg-accent"
+                                      >
+                                        {copiedCode === `${rec.id}-${step.n}` ? (
+                                          <Check className="w-3 h-3 text-emerald-400" />
+                                        ) : (
+                                          <Copy className="w-3 h-3 text-muted-foreground" />
+                                        )}
+                                      </button>
+                                    </div>
+                                  )}
+
+                                  {/* Platform-specific instructions */}
+                                  {(step.shopify || step.wordpress) && (
+                                    <div className="mt-3 space-y-2">
+                                      {step.shopify && <PlatformBlock platform="shopify" info={step.shopify} copyKey={`${rec.id}-${step.n}-shopify`} copiedCode={copiedCode} onCopy={copyCode} />}
+                                      {step.wordpress && <PlatformBlock platform="wordpress" info={step.wordpress} copyKey={`${rec.id}-${step.n}-wp`} copiedCode={copiedCode} onCopy={copyCode} />}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        /* Fallback: plain text action */
-                        <div className="mb-4">
-                          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">How to Fix</p>
-                          <ActionContent action={rec.action} />
+                            </div>
+                          );
+                        })}
+                        {(!rec.steps || rec.steps.length === 0) && (
+                          <div className="rounded-lg border border-dashed border-border/80 bg-muted/20 px-3 py-2">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                              Full instructions
+                            </p>
+                            <ActionContent action={rec.action} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Fix result message — hide previous failure while live verify runs so Reason appears only after the step sweep finishes */}
+                      {fixResult && !(fixResult.status === "failed" && isFixing) && (
+                        <div
+                          className={`rounded-lg px-3 py-2 text-xs mb-3 ${
+                            isVerified
+                              ? "flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                              : fixResult.status === "manual"
+                                ? "flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400"
+                                : "flex gap-2 bg-red-500/10 border border-red-500/20 text-red-400"
+                          }`}
+                        >
+                          {isVerified ? (
+                            <>
+                              <ShieldCheck className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                              <span>{fixResult.message}</span>
+                            </>
+                          ) : fixResult.status === "manual" ? (
+                            <>
+                              <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                              <span>{fixResult.message}</span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-red-400/90 mb-0.5">
+                                  Reason
+                                </p>
+                                <p className="text-xs leading-snug text-red-400">{fixResult.message}</p>
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
 
-                      {/* Fix result message */}
-                      {fixResult && (
-                        <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs mb-3 ${
-                          isVerified
-                            ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                            : fixResult.status === "manual"
-                            ? "bg-amber-500/10 border border-amber-500/20 text-amber-400"
-                            : "bg-red-500/10 border border-red-500/20 text-red-400"
-                        }`}>
-                          {isVerified ? <ShieldCheck className="h-3.5 w-3.5" /> : fixResult.status === "manual" ? <AlertTriangle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
-                          {fixResult.message}
-                        </div>
-                      )}
-
-                      {/* Action buttons */}
-                      {!fixResult && (
-                        <div className="flex items-center gap-2">
+                      {/* Action buttons — verify hits backend (live page check); no manual checkboxes */}
+                      {(!fixResult || fixResult.status === "failed") && (
+                        <div className="flex flex-wrap items-center gap-2">
                           {rec.can_auto_fix && slug && email && (
                             <button
                               onClick={(e) => { e.stopPropagation(); handlePreview(rec.id); }}
@@ -446,8 +723,14 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                             disabled={isFixing || !slug}
                             className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-60"
                           >
-                            {isFixing && previewingId !== rec.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-                            Verify Fix
+                            {isFixing && previewingId !== rec.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : fixResult?.status === "failed" ? (
+                              <RefreshCw className="h-3.5 w-3.5" />
+                            ) : (
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                            )}
+                            {fixResult?.status === "failed" ? "Try again" : "Verify changes"}
                           </button>
                         </div>
                       )}
@@ -539,33 +822,6 @@ function ActionContent({ action }: { action: string }) {
   );
 }
 
-/* ── Reusable code block with copy ─────────────────────────────────── */
-
-function CodeBlock({ code, copyKey, copiedCode, onCopy }: {
-  code: string;
-  copyKey: string;
-  copiedCode: string | null;
-  onCopy: (code: string, key: string) => void;
-}) {
-  return (
-    <div className="relative mt-2 group">
-      <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto whitespace-pre-wrap">
-        {code}
-      </pre>
-      <button
-        onClick={(e) => { e.stopPropagation(); onCopy(code, copyKey); }}
-        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition p-1 rounded bg-muted hover:bg-accent"
-      >
-        {copiedCode === copyKey ? (
-          <Check className="w-3 h-3 text-emerald-400" />
-        ) : (
-          <Copy className="w-3 h-3 text-muted-foreground" />
-        )}
-      </button>
-    </div>
-  );
-}
-
 /* ── Platform-specific instruction block ───────────────────────────── */
 
 function PlatformBlock({ platform, info, copyKey, copiedCode, onCopy }: {
@@ -579,18 +835,19 @@ function PlatformBlock({ platform, info, copyKey, copiedCode, onCopy }: {
   return (
     <div className={`rounded-lg border p-3 ${isShopify ? "border-[#96bf48]/20 bg-[#96bf48]/5" : "border-[#21759b]/20 bg-[#21759b]/5"}`}>
       <div className="flex items-center gap-1.5 mb-1.5">
-        {isShopify ? (
-          <ShoppingBag className="w-3 h-3 text-[#96bf48]" />
-        ) : (
-          <Globe className="w-3 h-3 text-[#21759b]" />
-        )}
+        {isShopify ? <ShoppingBag className="w-3 h-3 text-[#96bf48]" /> : <Globe className="w-3 h-3 text-[#21759b]" />}
         <span className={`text-[10px] font-bold uppercase tracking-wider ${isShopify ? "text-[#96bf48]" : "text-[#21759b]"}`}>
           {isShopify ? "Shopify" : "WordPress"}
         </span>
       </div>
       <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{info.detail}</p>
       {info.code && (
-        <CodeBlock code={info.code} copyKey={copyKey} copiedCode={copiedCode} onCopy={onCopy} />
+        <div className="relative mt-2 group">
+          <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto whitespace-pre-wrap">{info.code}</pre>
+          <button onClick={(e) => { e.stopPropagation(); onCopy(info.code!, copyKey); }} className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition p-1 rounded bg-muted hover:bg-accent">
+            {copiedCode === copyKey ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-muted-foreground" />}
+          </button>
+        </div>
       )}
     </div>
   );
