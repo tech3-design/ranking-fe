@@ -6,7 +6,6 @@ import { useSession } from "@/lib/auth-client";
 import { getOrganizations } from "@/lib/api/organizations";
 import { routes } from "@/lib/config";
 import { UrlInputForm } from "@/components/analyzer/url-input-form";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function NewProjectPage() {
   const { data: session, isPending } = useSession();
@@ -53,7 +52,6 @@ export default function NewProjectPage() {
               Analyze a URL for AI visibility and optimization.
             </p>
           </div>
-          <ThemeToggle />
         </header>
 
         <div className="flex flex-1 items-center justify-center py-4 md:py-12">

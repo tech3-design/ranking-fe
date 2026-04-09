@@ -52,12 +52,19 @@ export interface Competitor {
   page_score: PageScore | null;
 }
 
+export interface PlatformStepInfo {
+  detail: string;
+  code?: string;
+}
+
 export interface RecommendationStep {
   n: number;
   title: string;
   detail: string;
   code?: string;
   xp: number;
+  shopify?: PlatformStepInfo;
+  wordpress?: PlatformStepInfo;
 }
 
 export interface Recommendation {

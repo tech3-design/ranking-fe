@@ -9,7 +9,6 @@ import { getOrganizations, type Organization } from "@/lib/api/organizations";
 import { getRunList } from "@/lib/api/analyzer";
 import { useOrgStore } from "@/lib/stores/org-store";
 import { routes } from "@/lib/config";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { RunProvider, useRun } from "./_components/run-context";
 import { AnalysisOverlay } from "./_components/analysis-overlay";
@@ -260,12 +259,6 @@ export default function DashboardSlugLayout({
             );
           })}
         </nav>
-
-        {/* Theme toggle */}
-        <div className="flex items-center justify-between px-3 py-2 mb-2 rounded-xl bg-accent/80 border border-border/50 shadow-sm">
-          <span className="text-xs text-muted-foreground">Theme</span>
-          <ThemeToggle />
-        </div>
 
         {/* User — expandable upward */}
         <div className="relative mb-4" ref={menuRef}>
