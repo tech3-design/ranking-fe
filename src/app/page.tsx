@@ -99,15 +99,15 @@ const LANDING_PLANS = [
 ];
 
 const COUNTRY_OPTIONS = [
-  { name: "United States", flag: "🇺🇸" },
-  { name: "Canada", flag: "🇨🇦" },
-  { name: "United Kingdom", flag: "🇬🇧" },
-  { name: "Australia", flag: "🇦🇺" },
-  { name: "India", flag: "🇮🇳" },
-  { name: "Germany", flag: "🇩🇪" },
-  { name: "France", flag: "🇫🇷" },
-  { name: "Singapore", flag: "🇸🇬" },
-  { name: "United Arab Emirates", flag: "🇦🇪" },
+  { name: "United States", code: "US" },
+  { name: "Canada", code: "CA" },
+  { name: "United Kingdom", code: "GB" },
+  { name: "Australia", code: "AU" },
+  { name: "India", code: "IN" },
+  { name: "Germany", code: "DE" },
+  { name: "France", code: "FR" },
+  { name: "Singapore", code: "SG" },
+  { name: "United Arab Emirates", code: "AE" },
 ];
 
 // --- Analyzer Form Component ---
@@ -178,8 +178,8 @@ export function HeroAnalyzerForm() {
                     value={option.name}
                     className="cursor-pointer"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{option.flag}</span>
+                    <div className="flex items-center gap-2.5">
+                      <img src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`} alt={option.code} width={20} height={15} className="rounded-sm" />
                       <span className="text-sm font-medium">{option.name}</span>
                     </div>
                   </SelectItem>

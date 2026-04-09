@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Recommendation, RecommendationStep, FixPreview } from "@/lib/api/analyzer";
-import { previewFix, verifyFix } from "@/lib/api/analyzer";
+import { previewFix, verifyFix, applyAutoFix, approveFix } from "@/lib/api/analyzer";
 import { FixPreviewModal } from "./fix-preview-modal";
 import {
   Loader2, Eye, ChevronDown, ChevronRight, Copy, Check,
@@ -244,11 +244,13 @@ interface RecommendationsPanelProps {
   slug?: string;
   email?: string;
   orgId?: number;
+  /** "shopify" | "wordpress" | undefined — detected from run URL or integration */
+  platform?: "shopify" | "wordpress";
   initialFixResults?: Record<number, { status: string; message: string }>;
   onFixResult?: (recId: number, result: { status: string; message: string }) => void;
 }
 
-export function RecommendationsPanel({ recommendations, slug, email, orgId, initialFixResults, onFixResult }: RecommendationsPanelProps) {
+export function RecommendationsPanel({ recommendations, slug, email, orgId, platform, initialFixResults, onFixResult }: RecommendationsPanelProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [fixingIds, setFixingIds] = useState<Set<number>>(new Set());
   const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>(initialFixResults ?? {});
@@ -392,15 +394,78 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
     }
   }
 
+  async function handleAutoFix(recId: number) {
+    if (!slug || !email) return;
+    setFixingIds((prev) => new Set(prev).add(recId));
+    setPreviewingId(recId);
+    try {
+      // Step 1: Apply fix via Shopify app / WordPress plugin
+      const results = await applyAutoFix(slug, [recId], email, orgId);
+      const result = results?.[0];
+      if (!result || result.status === "failed") {
+        const fail = { status: "failed", message: result?.message || "Auto-fix failed. Check your store connection." };
+        setFixResults((prev) => ({ ...prev, [recId]: fail }));
+        onFixResult?.(recId, fail);
+        return;
+      }
+
+      // Step 2: Verify the fix was applied on live page
+      try {
+        const verify = await verifyFix(slug, recId);
+        const normalized = { status: verify.status, message: verify.message || result.message };
+        setFixResults((prev) => ({ ...prev, [recId]: normalized }));
+        onFixResult?.(recId, normalized);
+      } catch {
+        // Fix applied but verify failed — still mark as success from plugin
+        const partial = { status: result.status, message: `${result.message} (verification pending — changes may take a moment to appear)` };
+        setFixResults((prev) => ({ ...prev, [recId]: partial }));
+        onFixResult?.(recId, partial);
+      }
+    } catch (err: unknown) {
+      let msg = "Auto-fix failed. Make sure your store is connected.";
+      if (err && typeof err === "object" && "response" in err) {
+        const data = (err as { response?: { data?: { error?: string; message?: string } } }).response?.data;
+        if (data?.message) msg = data.message;
+        else if (data?.error) msg = data.error;
+      }
+      const fail = { status: "failed", message: msg };
+      setFixResults((prev) => ({ ...prev, [recId]: fail }));
+      onFixResult?.(recId, fail);
+    } finally {
+      setFixingIds((prev) => { const next = new Set(prev); next.delete(recId); return next; });
+      setPreviewingId(null);
+    }
+  }
+
+  async function handleModalApplyFix() {
+    if (!previewData || !slug || !email) return;
+    const recId = previewData.recommendation_id;
+    setFixingIds((prev) => new Set(prev).add(recId));
+    try {
+      // Apply the previewed content via plugin
+      const result = await approveFix(slug, recId, previewData.full_content || previewData.preview, previewData.fix_type);
+      const normalized = { status: result.status, message: result.message || "Fix applied." };
+      setFixResults((prev) => ({ ...prev, [recId]: normalized }));
+      onFixResult?.(recId, normalized);
+    } catch (err: unknown) {
+      let msg = "Failed to apply fix.";
+      if (err && typeof err === "object" && "response" in err) {
+        const data = (err as { response?: { data?: { error?: string; message?: string } } }).response?.data;
+        if (data?.message) msg = data.message;
+        else if (data?.error) msg = data.error;
+      }
+      const fail = { status: "failed", message: msg };
+      setFixResults((prev) => ({ ...prev, [recId]: fail }));
+      onFixResult?.(recId, fail);
+    } finally {
+      setFixingIds((prev) => { const next = new Set(prev); next.delete(recId); return next; });
+    }
+    handleModalClose();
+  }
+
   function handleModalClose() {
     setPreviewData(null);
     setPreviewingId(null);
-  }
-
-  async function handleModalVerify() {
-    if (!previewData || !slug) return;
-    await handleVerify(previewData.recommendation_id);
-    handleModalClose();
   }
 
   if (!recommendations.length) return null;
@@ -648,11 +713,15 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                                     </div>
                                   )}
 
-                                  {/* Platform-specific instructions */}
+                                  {/* Platform-specific instructions — show only detected platform, or both if unknown */}
                                   {(step.shopify || step.wordpress) && (
                                     <div className="mt-3 space-y-2">
-                                      {step.shopify && <PlatformBlock platform="shopify" info={step.shopify} copyKey={`${rec.id}-${step.n}-shopify`} copiedCode={copiedCode} onCopy={copyCode} />}
-                                      {step.wordpress && <PlatformBlock platform="wordpress" info={step.wordpress} copyKey={`${rec.id}-${step.n}-wp`} copiedCode={copiedCode} onCopy={copyCode} />}
+                                      {(!platform || platform === "shopify") && step.shopify && (
+                                        <PlatformBlock platform="shopify" info={step.shopify} copyKey={`${rec.id}-${step.n}-shopify`} copiedCode={copiedCode} onCopy={copyCode} />
+                                      )}
+                                      {(!platform || platform === "wordpress") && step.wordpress && (
+                                        <PlatformBlock platform="wordpress" info={step.wordpress} copyKey={`${rec.id}-${step.n}-wp`} copiedCode={copiedCode} onCopy={copyCode} />
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -718,20 +787,35 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
                               Preview
                             </button>
                           )}
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
-                            disabled={isFixing || !slug}
-                            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-60"
-                          >
-                            {isFixing && previewingId !== rec.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : fixResult?.status === "failed" ? (
-                              <RefreshCw className="h-3.5 w-3.5" />
-                            ) : (
-                              <ShieldCheck className="h-3.5 w-3.5" />
-                            )}
-                            {fixResult?.status === "failed" ? "Try again" : "Verify changes"}
-                          </button>
+                          {rec.can_auto_fix && slug && email ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
+                              disabled={isFixing || !slug}
+                              className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition hover:opacity-88 disabled:opacity-60"
+                            >
+                              {isFixing && previewingId === rec.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : fixResult?.status === "failed" ? (
+                                <RefreshCw className="h-3.5 w-3.5" />
+                              ) : (
+                                <Zap className="h-3.5 w-3.5" />
+                              )}
+                              {fixResult?.status === "failed" ? "Retry Fix" : "Auto Fix"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
+                              disabled={isFixing || !slug}
+                              className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition hover:opacity-88 disabled:opacity-60"
+                            >
+                              {isFixing && previewingId !== rec.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <ShieldCheck className="h-3.5 w-3.5" />
+                              )}
+                              Verify
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -749,7 +833,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, init
           <FixPreviewModal
             key="fix-preview"
             preview={previewData}
-            onApprove={handleModalVerify}
+            onApprove={handleModalApplyFix}
             onCancel={handleModalClose}
           />
         )}

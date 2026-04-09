@@ -1,18 +1,40 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { useRun } from "../_components/run-context";
 import { RecommendationsPanel } from "@/components/analyzer/recommendations-panel";
+import { getIntegrationStatus } from "@/lib/api/integrations";
 import { AlertCircle } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
+
+function detectPlatform(url?: string, integrations?: { provider: string; is_active: boolean }[]): "shopify" | "wordpress" | undefined {
+  // Check integrations first (most reliable)
+  if (integrations) {
+    if (integrations.some((i) => i.provider === "shopify" && i.is_active)) return "shopify";
+    if (integrations.some((i) => i.provider === "wordpress" && i.is_active)) return "wordpress";
+  }
+  // Fallback to URL detection
+  if (url?.includes(".myshopify.com")) return "shopify";
+  return undefined;
+}
 
 export default function RecommendationsPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: session } = useSession();
   const { run, loading, error, fixResults, setFixResult } = useRun();
+  const [platform, setPlatform] = useState<"shopify" | "wordpress" | undefined>();
 
   const email = session?.user?.email ?? "";
+
+  // Detect platform from integrations
+  useEffect(() => {
+    if (!email) return;
+    getIntegrationStatus(email)
+      .then((integrations) => setPlatform(detectPlatform(run?.url, integrations)))
+      .catch(() => setPlatform(detectPlatform(run?.url)));
+  }, [email, run?.url]);
 
   return (
     <div className="px-6 py-6 space-y-6">
@@ -40,6 +62,7 @@ export default function RecommendationsPage() {
           recommendations={run.recommendations}
           slug={slug}
           email={email}
+          platform={platform}
           initialFixResults={fixResults}
           onFixResult={setFixResult}
         />
