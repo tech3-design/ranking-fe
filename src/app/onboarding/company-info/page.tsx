@@ -151,16 +151,18 @@ export default function CompanyInfoPage() {
 
   async function handleLaunch() {
     if (!session || !orgId) return;
+    const promptList = prompts.map((p) => p.trim()).filter(Boolean);
+    if (promptList.length < 1) { setError("Add at least one tracking prompt."); setStep("prompts"); return; }
     setLoading(true); setError(""); setStatusMsg("Checking plan...");
     try {
       const sub = await getSubscriptionStatus(session.user.email);
       if (!sub.is_active) {
-        storePendingAnalysisAfterPayment({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId });
+        storePendingAnalysisAfterPayment({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId, prompts: promptList });
         setStatusMsg(""); setLoading(false);
         router.push(`/pricing?returnTo=${encodeURIComponent(routes.onboardingCompanyInfo)}`); return;
       }
       setStatusMsg("Starting analysis...");
-      const a = await startAnalysis({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId });
+      const a = await startAnalysis({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId, verify_org_workspace: true, prompts: promptList });
       try { sessionStorage.removeItem(ONBOARDING_DRAFT_KEY); } catch { /**/ }
       router.push(routes.dashboardProject(a.slug));
     } catch (err) { setError(fmtErr(err)); setStatusMsg(""); setLoading(false); }

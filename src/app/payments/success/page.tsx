@@ -85,6 +85,12 @@ export default function PaymentSuccessPage() {
               email: pending.email,
               brand_name: pending.brand_name,
               org_id: pending.org_id,
+              ...(pending.v === 2
+                ? {
+                    verify_org_workspace: true,
+                    prompts: pending.prompts,
+                  }
+                : {}),
             });
             if (cancelled) return;
             clearPendingAnalysisAfterPayment();
