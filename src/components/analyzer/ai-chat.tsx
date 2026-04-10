@@ -14,9 +14,10 @@ interface AiChatProps {
   brandName?: string;
   open: boolean;
   onClose: () => void;
+  initialMessage?: string;
 }
 
-export function AiChat({ slug, brandName, open, onClose }: AiChatProps) {
+export function AiChat({ slug, brandName, open, onClose, initialMessage }: AiChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -35,6 +36,34 @@ export function AiChat({ slug, brandName, open, onClose }: AiChatProps) {
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
+
+  // Auto-send initial message when chat opens with a pre-filled question
+  const sentInitial = useRef<string | null>(null);
+  useEffect(() => {
+    if (open && initialMessage && initialMessage !== sentInitial.current) {
+      sentInitial.current = initialMessage;
+      // Simulate sending the message
+      const userMsg: Message = { role: "user", content: initialMessage };
+      setMessages((prev) => [...prev, userMsg]);
+      setLoading(true);
+      fetch(`${config.apiBaseUrl}/api/analyzer/runs/s/${slug}/chat/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: initialMessage,
+          history: messages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
+        }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          setMessages((prev) => [...prev, { role: "assistant", content: data.reply || data.response || data.message || "I can help with that!" }]);
+        })
+        .catch(() => {
+          setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn't process that. Try again." }]);
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [open, initialMessage, slug]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();

@@ -76,6 +76,18 @@ export default function DashboardSlugLayout({
   const router = useRouter();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatInitialMessage, setChatInitialMessage] = useState<string | undefined>();
+
+  // Listen for "open-ai-chat" events from child components
+  useEffect(() => {
+    function handleOpenChat(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.message) setChatInitialMessage(detail.message);
+      setChatOpen(true);
+    }
+    window.addEventListener("open-ai-chat", handleOpenChat);
+    return () => window.removeEventListener("open-ai-chat", handleOpenChat);
+  }, []);
   const [isPro, setIsPro] = useState(false);
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
   const [switchingOrg, setSwitchingOrg] = useState(false);
@@ -342,7 +354,8 @@ export default function DashboardSlugLayout({
         slug={slug}
         brandName={activeOrg?.name || organizations[0]?.name}
         open={chatOpen}
-        onClose={() => setChatOpen(false)}
+        onClose={() => { setChatOpen(false); setChatInitialMessage(undefined); }}
+        initialMessage={chatInitialMessage}
       />
 
       {/* Chat toggle button — fixed bottom right */}
