@@ -34,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="light">
       <body
+        suppressHydrationWarning
         className={`signalor-body ${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased`}
       >
         {children}

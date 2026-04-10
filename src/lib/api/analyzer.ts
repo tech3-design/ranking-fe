@@ -380,6 +380,7 @@ export interface AutoFixResult {
   status: "success" | "partial" | "failed" | "verified" | "manual";
   message: string;
   fix_type: string;
+  generated_content?: string | null;
 }
 
 export async function applyAutoFix(

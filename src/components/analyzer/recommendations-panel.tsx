@@ -409,7 +409,19 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
         return;
       }
 
-      // Step 2: Verify the fix was applied on live page
+      // Manual fixes — show walkthrough, user will click Verify after doing it
+      if (result.status === "manual") {
+        const manual = {
+          status: "manual",
+          message: result.message || "Follow the instructions below, then click Verify.",
+          generated_content: result.generated_content || null,
+        };
+        setFixResults((prev) => ({ ...prev, [recId]: manual }));
+        onFixResult?.(recId, manual);
+        return;
+      }
+
+      // Step 2: Auto-fix applied — verify on live page
       try {
         const verify = await verifyFix(slug, recId);
         const normalized = { status: verify.status, message: verify.message || result.message };
@@ -591,9 +603,13 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                           <ShieldCheck className="h-3 w-3" /> Verified
                         </span>
                       ) : fixResult.status === "manual" ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 text-[10px] font-medium text-amber-400">
-                          Manual
-                        </span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
+                          disabled={isFixing}
+                          className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 text-[10px] font-medium text-amber-400 hover:bg-amber-500/20 transition"
+                        >
+                          <ShieldCheck className="h-3 w-3" /> Verify
+                        </button>
                       ) : (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
@@ -642,11 +658,63 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                         </div>
                       )}
 
-                      {/* What Auto Fix does */}
+                      {/* Auto-fixable: short hint */}
                       {rec.can_auto_fix && (
                         <div className="flex items-center gap-2 bg-muted/50 border border-border px-3 py-2 mb-4 text-xs text-muted-foreground">
                           <Zap className="w-3 h-3 shrink-0" />
                           <span>Click <span className="font-semibold text-foreground">Auto Fix</span> to apply this automatically via your connected store.</span>
+                        </div>
+                      )}
+
+                      {/* Manual: step-by-step walkthrough */}
+                      {!rec.can_auto_fix && rec.steps && rec.steps.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-[11px] font-semibold text-foreground uppercase tracking-wide mb-2">How to Fix</p>
+                          <div className="space-y-2">
+                            {rec.steps.map((step: RecommendationStep, idx: number) => {
+                              const platformStep = platform === "shopify" ? step.shopify : platform === "wordpress" ? step.wordpress : null;
+                              const stepTitle = step.title;
+                              const stepDesc = platformStep?.detail || step.detail;
+                              const stepCode = platformStep?.code || step.code;
+                              return (
+                                <div key={idx} className="bg-muted/50 border border-border p-3">
+                                  <div className="flex items-start gap-2.5">
+                                    <span className="w-5 h-5 bg-foreground text-background text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                      {idx + 1}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-[13px] font-medium text-foreground">{stepTitle}</p>
+                                      {stepDesc && <p className="text-[12px] text-muted-foreground mt-0.5 leading-relaxed">{stepDesc}</p>}
+                                      {stepCode && (
+                                        <div className="mt-2 relative group">
+                                          <pre className="bg-card border border-border p-2.5 text-[11px] font-mono text-foreground overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">{stepCode}</pre>
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); copyCode(stepCode, `${rec.id}-${idx}`); }}
+                                            className="absolute top-1.5 right-1.5 bg-card border border-border p-1.5 text-muted-foreground hover:text-foreground transition opacity-0 group-hover:opacity-100"
+                                          >
+                                            {copiedCode === `${rec.id}-${idx}` ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Manual: no steps data — show generic guidance */}
+                      {!rec.can_auto_fix && (!rec.steps || rec.steps.length === 0) && (
+                        <div className="mb-4 bg-muted/50 border border-border p-3">
+                          <p className="text-[11px] font-semibold text-foreground uppercase tracking-wide mb-2">How to Fix</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Click <span className="font-semibold text-foreground">Verify</span> after you&apos;ve made the changes. Our system will re-crawl your page to confirm the fix is live.
+                          </p>
+                          {rec.action && (
+                            <p className="text-xs text-muted-foreground leading-relaxed mt-2">{rec.action}</p>
+                          )}
                         </div>
                       )}
 
@@ -668,8 +736,38 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                             </>
                           ) : fixResult.status === "manual" ? (
                             <>
-                              <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                              <span>{fixResult.message}</span>
+                              <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-1" />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-500/90 mb-1.5">Manual Fix Required</p>
+                                <div className="text-xs leading-relaxed text-amber-300/90 whitespace-pre-line">
+                                  {fixResult.message.split("\n").map((line: string, i: number) => {
+                                    // Section headers (WHERE TO PASTE, STEPS, etc.)
+                                    if (/^(WHERE TO PASTE|STEPS|HOMEPAGE TITLE|META DESCRIPTION|GENERATED SCHEMA|CONTENT TO ADD|FAQ CONTENT|How to|Tip:)/i.test(line.trim())) {
+                                      return <p key={i} className="font-semibold text-amber-200 mt-2 mb-0.5">{line}</p>;
+                                    }
+                                    // Copy-ready content blocks (indented or code-like)
+                                    if (line.trim().startsWith("<script") || line.trim().startsWith("{") || line.trim().startsWith("}") || line.trim().startsWith('"@')) {
+                                      return <code key={i} className="block bg-black/20 px-2 py-0.5 font-mono text-[11px] text-amber-100 rounded">{line}</code>;
+                                    }
+                                    // Numbered steps
+                                    if (/^\d+\./.test(line.trim())) {
+                                      return <p key={i} className="ml-2">{line}</p>;
+                                    }
+                                    return <p key={i}>{line}</p>;
+                                  })}
+                                </div>
+                                {Boolean((fixResult as Record<string, unknown>).generated_content) && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigator.clipboard.writeText(String((fixResult as Record<string, unknown>).generated_content));
+                                    }}
+                                    className="mt-2 flex items-center gap-1.5 rounded bg-amber-500/20 px-3 py-1.5 text-[11px] font-medium text-amber-200 hover:bg-amber-500/30 transition"
+                                  >
+                                    <Copy className="h-3 w-3" /> Copy Generated Content
+                                  </button>
+                                )}
+                              </div>
                             </>
                           ) : (
                             <>
@@ -685,35 +783,38 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                         </div>
                       )}
 
-                      {/* Action buttons — verify hits backend (live page check); no manual checkboxes */}
-                      {(!fixResult || fixResult.status === "failed") && (
+                      {/* Action buttons */}
+                      {(!fixResult || fixResult.status === "failed" || fixResult.status === "manual") && (
                         <div className="flex flex-wrap items-center gap-2">
-                          {rec.can_auto_fix && slug && email && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handlePreview(rec.id); }}
-                              disabled={isFixing}
-                              className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-xs font-medium text-foreground transition hover:bg-accent disabled:opacity-60"
-                            >
-                              {isFixing && previewingId === rec.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
-                              Preview
-                            </button>
+                          {/* Auto Fix — only for auto-fixable items that haven't returned manual */}
+                          {rec.can_auto_fix && slug && email && fixResult?.status !== "manual" && (
+                            <>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handlePreview(rec.id); }}
+                                disabled={isFixing}
+                                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-xs font-medium text-foreground transition hover:bg-accent disabled:opacity-60"
+                              >
+                                {isFixing && previewingId === rec.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
+                                Preview
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
+                                disabled={isFixing || !slug}
+                                className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition hover:opacity-88 disabled:opacity-60"
+                              >
+                                {isFixing && previewingId === rec.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : fixResult?.status === "failed" ? (
+                                  <RefreshCw className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Zap className="h-3.5 w-3.5" />
+                                )}
+                                {fixResult?.status === "failed" ? "Retry Fix" : "Auto Fix"}
+                              </button>
+                            </>
                           )}
-                          {rec.can_auto_fix && slug && email ? (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
-                              disabled={isFixing || !slug}
-                              className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition hover:opacity-88 disabled:opacity-60"
-                            >
-                              {isFixing && previewingId === rec.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : fixResult?.status === "failed" ? (
-                                <RefreshCw className="h-3.5 w-3.5" />
-                              ) : (
-                                <Zap className="h-3.5 w-3.5" />
-                              )}
-                              {fixResult?.status === "failed" ? "Retry Fix" : "Auto Fix"}
-                            </button>
-                          ) : (
+                          {/* Verify — shown for manual results OR non-auto-fixable items */}
+                          {(fixResult?.status === "manual" || !rec.can_auto_fix) && (
                             <button
                               onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
                               disabled={isFixing || !slug}
