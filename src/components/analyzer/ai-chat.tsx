@@ -4,6 +4,100 @@ import { useState, useRef, useEffect } from "react";
 import { MessageSquare, Send, Loader2, X, Sparkles, ChevronLeft } from "lucide-react";
 import { config } from "@/lib/config";
 
+/** Parse AI reply into formatted React elements — handles **bold**, headings, lists, numbered steps */
+function formatAiReply(text: string) {
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+  let listItems: string[] = [];
+  let orderedItems: string[] = [];
+
+  function flushList() {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="space-y-0.5 ml-3">
+          {listItems.map((item, i) => (
+            <li key={i} className="flex items-start gap-1.5">
+              <span className="text-primary mt-0.5">•</span>
+              <span>{renderInline(item)}</span>
+            </li>
+          ))}
+        </ul>
+      );
+      listItems = [];
+    }
+    if (orderedItems.length > 0) {
+      elements.push(
+        <ol key={`ol-${elements.length}`} className="space-y-1 ml-1">
+          {orderedItems.map((item, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="w-4 h-4 bg-foreground/10 text-foreground text-[10px] font-bold flex items-center justify-center shrink-0 rounded mt-0.5">{i + 1}</span>
+              <span>{renderInline(item)}</span>
+            </li>
+          ))}
+        </ol>
+      );
+      orderedItems = [];
+    }
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) { flushList(); elements.push(<div key={elements.length} className="h-1" />); continue; }
+
+    // Headings
+    if (trimmed.startsWith("### ")) { flushList(); elements.push(<p key={elements.length} className="font-semibold text-foreground mt-1">{renderInline(trimmed.slice(4))}</p>); continue; }
+    if (trimmed.startsWith("## ")) { flushList(); elements.push(<p key={elements.length} className="font-semibold text-foreground mt-1">{renderInline(trimmed.slice(3))}</p>); continue; }
+    if (trimmed.startsWith("# ")) { flushList(); elements.push(<p key={elements.length} className="font-bold text-foreground mt-1">{renderInline(trimmed.slice(2))}</p>); continue; }
+
+    // Bullet lists
+    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) { listItems.push(trimmed.slice(2)); continue; }
+
+    // Numbered lists
+    const numMatch = trimmed.match(/^(\d+)[.)]\s+(.*)/);
+    if (numMatch) { orderedItems.push(numMatch[2]); continue; }
+
+    // Regular paragraph
+    flushList();
+    elements.push(<p key={elements.length}>{renderInline(trimmed)}</p>);
+  }
+  flushList();
+  return elements;
+}
+
+/** Render inline markdown: **bold**, *italic*, `code` */
+function renderInline(text: string): React.ReactNode {
+  // Split by **bold**, *italic*, `code` patterns
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+
+  while (remaining.length > 0) {
+    // Bold: **text**
+    const boldMatch = remaining.match(/^([\s\S]*?)\*\*(.+?)\*\*([\s\S]*)/);
+    if (boldMatch) {
+      if (boldMatch[1]) parts.push(<span key={key++}>{boldMatch[1]}</span>);
+      parts.push(<strong key={key++} className="font-semibold text-foreground">{boldMatch[2]}</strong>);
+      remaining = boldMatch[3];
+      continue;
+    }
+
+    // Inline code: `text`
+    const codeMatch = remaining.match(/^([\s\S]*?)`(.+?)`([\s\S]*)/);
+    if (codeMatch) {
+      if (codeMatch[1]) parts.push(<span key={key++}>{codeMatch[1]}</span>);
+      parts.push(<code key={key++} className="bg-foreground/5 px-1 py-0.5 rounded text-[11px] font-mono">{codeMatch[2]}</code>);
+      remaining = codeMatch[3];
+      continue;
+    }
+
+    // No more matches — push the rest
+    parts.push(<span key={key++}>{remaining}</span>);
+    break;
+  }
+
+  return parts.length === 1 ? parts[0] : <>{parts}</>;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -129,9 +223,13 @@ export function AiChat({ slug, brandName, open, onClose, initialMessage }: AiCha
                   : "bg-muted/60 text-foreground border border-border/50 rounded-bl-md"
               }`}
             >
-              {msg.content.split("\n").map((line, j) => (
-                <p key={j} className={j > 0 ? "mt-1.5" : ""}>{line}</p>
-              ))}
+              {msg.role === "user" ? (
+                <p>{msg.content}</p>
+              ) : (
+                <div className="chat-reply space-y-1.5">
+                  {formatAiReply(msg.content)}
+                </div>
+              )}
             </div>
           </div>
         ))}
