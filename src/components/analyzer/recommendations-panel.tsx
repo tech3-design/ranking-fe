@@ -8,7 +8,7 @@ import { FixPreviewModal } from "./fix-preview-modal";
 import {
   Loader2, Eye, ChevronDown, ChevronRight, Copy, Check,
   AlertTriangle, ArrowUp, Minus, ShieldCheck, Clock, Zap,
-  Flame, Star, Trophy, XCircle, RefreshCw, ShoppingBag, Globe,
+  Flame, Star, Trophy, XCircle, RefreshCw, ShoppingBag, Globe, MessageSquare,
 } from "lucide-react";
 import type { PlatformStepInfo } from "@/lib/api/analyzer";
 
@@ -813,20 +813,34 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                               </button>
                             </>
                           )}
-                          {/* Verify — shown for manual results OR non-auto-fixable items */}
+                          {/* Verify + Ask in Chat — shown for manual results OR non-auto-fixable items */}
                           {(fixResult?.status === "manual" || !rec.can_auto_fix) && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
-                              disabled={isFixing || !slug}
-                              className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition hover:opacity-88 disabled:opacity-60"
-                            >
-                              {isFixing && previewingId !== rec.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <ShieldCheck className="h-3.5 w-3.5" />
-                              )}
-                              Verify
-                            </button>
+                            <>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
+                                disabled={isFixing || !slug}
+                                className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition hover:opacity-88 disabled:opacity-60"
+                              >
+                                {isFixing && previewingId !== rec.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <ShieldCheck className="h-3.5 w-3.5" />
+                                )}
+                                Verify
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.dispatchEvent(new CustomEvent("open-ai-chat", {
+                                    detail: { message: `Help me fix: "${rec.title}". ${rec.description?.slice(0, 150) || ""}. Give me step-by-step instructions for Shopify.` },
+                                  }));
+                                }}
+                                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-xs font-medium text-foreground transition hover:bg-accent"
+                              >
+                                <MessageSquare className="h-3.5 w-3.5" />
+                                Ask in Chat
+                              </button>
+                            </>
                           )}
                         </div>
                       )}
