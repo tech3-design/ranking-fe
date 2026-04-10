@@ -622,7 +622,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                       <button
                         onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
                         disabled={isFixing}
-                        className="inline-flex items-center gap-1.5 bg-foreground text-background px-3 py-1.5 text-[11px] font-semibold transition hover:opacity-88 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 bg-primary text-white px-3 py-1.5 text-[11px] font-semibold transition hover:opacity-88 disabled:opacity-50"
                       >
                         <Zap className="h-3 w-3" /> Auto Fix
                       </button>
@@ -679,7 +679,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                               return (
                                 <div key={idx} className="bg-muted/50 border border-border p-3">
                                   <div className="flex items-start gap-2.5">
-                                    <span className="w-5 h-5 bg-foreground text-background text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                    <span className="w-5 h-5 bg-primary text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                                       {idx + 1}
                                     </span>
                                     <div className="flex-1 min-w-0">

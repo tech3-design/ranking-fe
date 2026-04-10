@@ -294,7 +294,7 @@ export default function CompanyInfoPage() {
                 <Input placeholder="Acme Inc." value={companyName} onChange={(e) => setCompanyName(e.target.value)} required autoFocus className="h-11 text-[14px] bg-white border-border" />
               </div>
               {error && <p className="text-[13px] text-destructive">{error}</p>}
-              <button type="submit" disabled={!companyName.trim()} className="w-full h-11 bg-foreground text-background text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
+              <button type="submit" disabled={!companyName.trim()} className="w-full h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
                 Continue <ArrowRight className="inline ml-1.5 w-4 h-4" />
               </button>
             </form>
@@ -359,7 +359,7 @@ export default function CompanyInfoPage() {
                 <button type="button" onClick={() => { setStep("platform"); setError(""); }} className="flex-1 h-11 border border-border text-[14px] font-medium text-foreground bg-white transition hover:bg-muted">
                   <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
                 </button>
-                <button type="submit" disabled={loading || !shopDomain.trim()} className="flex-[2] h-11 bg-foreground text-background text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
+                <button type="submit" disabled={loading || !shopDomain.trim()} className="flex-[2] h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
                   {loading ? <><Loader2 className="inline mr-1.5 w-4 h-4 animate-spin" /> Setting up...</> : <>Continue <ArrowRight className="inline ml-1.5 w-4 h-4" /></>}
                 </button>
               </div>
@@ -384,7 +384,7 @@ export default function CompanyInfoPage() {
                 <button type="button" onClick={() => { setStep("platform"); setError(""); }} className="flex-1 h-11 border border-border text-[14px] font-medium text-foreground bg-white transition hover:bg-muted">
                   <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
                 </button>
-                <button type="submit" disabled={loading || !wpSiteUrl.trim()} className="flex-[2] h-11 bg-foreground text-background text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
+                <button type="submit" disabled={loading || !wpSiteUrl.trim()} className="flex-[2] h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
                   {loading ? <><Loader2 className="inline mr-1.5 w-4 h-4 animate-spin" /> Setting up...</> : <>Continue <ArrowRight className="inline ml-1.5 w-4 h-4" /></>}
                 </button>
               </div>
@@ -433,7 +433,7 @@ export default function CompanyInfoPage() {
                 type="button"
                 onClick={handleShopifyInstall}
                 disabled={loading}
-                className="w-full h-11 bg-foreground text-background text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40 flex items-center justify-center gap-2"
+                className="w-full h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting to Shopify...</>
@@ -470,7 +470,7 @@ export default function CompanyInfoPage() {
               {/* Step 1: Download */}
               <div className="bg-white p-4" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="w-6 h-6 bg-foreground text-background text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-6 h-6 bg-primary text-white text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
                   <p className="text-[13px] font-medium text-foreground">Download the plugin</p>
                 </div>
                 <a href={signalorWpPlugin.zipPath} download onClick={() => setTimeout(() => setWpStep(2), 500)} className="flex items-center justify-center gap-2 w-full bg-muted py-2.5 text-[13px] font-medium text-foreground transition hover:bg-foreground/5">
@@ -482,7 +482,7 @@ export default function CompanyInfoPage() {
               {wpStep >= 2 && (
                 <div className="bg-white p-4" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="w-6 h-6 bg-foreground text-background text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
+                    <span className="w-6 h-6 bg-primary text-white text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
                     <p className="text-[13px] font-medium text-foreground">Upload & activate in WordPress</p>
                   </div>
                   <a
@@ -500,7 +500,7 @@ export default function CompanyInfoPage() {
               {wpStep >= 3 && (
                 <div className="bg-white p-4" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="w-6 h-6 bg-foreground text-background text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
+                    <span className="w-6 h-6 bg-primary text-white text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
                     <p className="text-[13px] font-medium text-foreground">Paste the API key</p>
                   </div>
                   <Input type="text" placeholder="API key from Settings > Signalor GEO" value={wpApiKey} onChange={(e) => setWpApiKey(e.target.value)} className="h-10 text-[13px] font-mono bg-white" />
@@ -516,7 +516,7 @@ export default function CompanyInfoPage() {
                 <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
               </button>
               {wpStep >= 3 && wpApiKey.trim() ? (
-                <button type="button" onClick={handleWordPressConnect} disabled={loading} className="flex-[2] h-11 bg-foreground text-background text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
+                <button type="button" onClick={handleWordPressConnect} disabled={loading} className="flex-[2] h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
                   {loading ? <><Loader2 className="inline mr-1.5 w-4 h-4 animate-spin" /> Connecting...</> : <>Connect <ArrowRight className="inline ml-1.5 w-4 h-4" /></>}
                 </button>
               ) : (
@@ -577,7 +577,7 @@ export default function CompanyInfoPage() {
               <button type="button" onClick={() => setStep("install")} className="flex-1 h-11 border border-border text-[14px] font-medium text-foreground bg-white transition hover:bg-muted">
                 <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
               </button>
-              <button onClick={() => setStep("analytics")} disabled={loadingPrompts || prompts.length === 0} className="flex-[2] h-11 bg-foreground text-background text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
+              <button onClick={() => setStep("analytics")} disabled={loadingPrompts || prompts.length === 0} className="flex-[2] h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
                 Continue <ArrowRight className="inline ml-1.5 w-4 h-4" />
               </button>
             </div>
@@ -627,7 +627,7 @@ export default function CompanyInfoPage() {
                   // For now, skip to launch
                   setStep("launch");
                 }}
-                className="w-full h-11 bg-foreground text-background text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 flex items-center justify-center gap-2"
+                className="w-full h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 flex items-center justify-center gap-2"
               >
                 <ExternalLink className="w-4 h-4" /> Connect Google Analytics
               </button>
@@ -677,7 +677,7 @@ export default function CompanyInfoPage() {
             {error && <p className="text-[13px] text-destructive mb-3 text-center">{error}</p>}
             {statusMsg && <p className="flex items-center justify-center gap-2 text-[13px] text-muted-foreground mb-3"><Loader2 className="h-3.5 w-3.5 animate-spin" />{statusMsg}</p>}
 
-            <button onClick={handleLaunch} disabled={loading} className="w-full h-12 bg-foreground text-background text-[15px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
+            <button onClick={handleLaunch} disabled={loading} className="w-full h-12 bg-primary text-white text-[15px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
               {loading ? <><Loader2 className="inline mr-2 w-4 h-4 animate-spin" /> Analyzing...</> : <><Rocket className="inline mr-2 w-4 h-4" /> Launch Analysis</>}
             </button>
 

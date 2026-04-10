@@ -325,7 +325,7 @@ export default function DashboardSlugLayout({
           <div className="mt-3 p-3 border border-border bg-background">
             <p className="text-[13px] font-semibold text-foreground mb-0.5">Boost Your AI Visibility</p>
             <p className="text-[11px] text-muted-foreground mb-2.5">Elevate Your Site&apos;s Authority</p>
-            <Link href="/pricing" className="block w-full bg-foreground text-background text-[12px] font-semibold py-2 transition hover:opacity-88 text-center">
+            <Link href="/pricing" className="block w-full bg-primary text-white text-[12px] font-semibold py-2 transition hover:opacity-88 text-center">
               Get Signalor Pro
             </Link>
           </div>
