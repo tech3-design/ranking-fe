@@ -129,7 +129,11 @@ export default function AnalyzerResultsPage() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Competitors
         </h2>
-        <CompetitorTable competitors={result.competitors} yourScore={result.composite_score} />
+        <CompetitorTable
+          competitors={result.competitors}
+          yourScore={result.composite_score}
+          locked
+        />
       </section>
     </main>
   );
