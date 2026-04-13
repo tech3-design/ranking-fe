@@ -59,10 +59,10 @@ const LANDING_PLANS = [
     popular: true,
     description: "For growing teams tracking multiple brands.",
     features: [
+      "Everything in Starter",
       "3 projects",
       "Up to 75 prompts",
       "ChatGPT, Gemini & Perplexity",
-      "Everything in Starter",
       "Scheduled re-analysis",
       "Score history & trends",
       "Brand visibility tracking",
@@ -81,10 +81,10 @@ const LANDING_PLANS = [
     popular: false,
     description: "Full power for agencies and serious operators.",
     features: [
+      "Everything in Pro",
       "6 projects",
       "Up to 200 prompts",
       "All AI engines including Claude",
-      "Everything in Pro",
       "Priority support",
       "Advanced competitor analysis",
       "Citation trend tracking",
