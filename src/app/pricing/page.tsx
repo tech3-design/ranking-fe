@@ -14,7 +14,7 @@ import {
   safeInternalReturnPath,
 } from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
-import { Check, Clock, Zap, ArrowLeft } from "lucide-react";
+import { Check, Clock, Zap, Crown, Rocket, ArrowLeft } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import Link from "next/link";
 
@@ -37,9 +37,8 @@ const PLANS: PlanConfig[] = [
     label: "Starter",
     price: 19.99,
     period: "/month",
-    description: "Everything you need to start improving GEO and AI visibility.",
+    description: "Perfect for solo brands getting started with GEO.",
     icon: Zap,
-    popular: true,
     features: [
       "1 project",
       "Up to 25 prompts",
@@ -48,10 +47,41 @@ const PLANS: PlanConfig[] = [
       "Recommendations & verify",
       "PDF report exports",
     ],
-    comingSoonFeatures: [
-      "Higher tiers with more projects & engines",
-      "Weekly AI visibility email digest",
-      "Deeper Shopify & WordPress sync",
+  },
+  {
+    id: "pro",
+    label: "Pro",
+    price: 49.99,
+    period: "/month",
+    description: "For growing teams tracking multiple brands.",
+    icon: Crown,
+    popular: true,
+    features: [
+      "3 projects",
+      "Up to 75 prompts",
+      "ChatGPT, Gemini & Perplexity",
+      "Everything in Starter",
+      "Shopify & WordPress integration",
+      "Scheduled re-analysis",
+      "Score history & trends",
+      "Brand visibility tracking",
+    ],
+  },
+  {
+    id: "business",
+    label: "Max",
+    price: 59.99,
+    period: "/month",
+    description: "Full power for agencies and serious operators.",
+    icon: Rocket,
+    features: [
+      "4 projects",
+      "Up to 200 prompts",
+      "All AI engines including Claude",
+      "Everything in Pro",
+      "Priority support",
+      "Advanced competitor analysis",
+      "Citation trend tracking",
     ],
   },
 ];
@@ -135,7 +165,7 @@ function PricingPageInner() {
             Choose your plan
           </h1>
           <p className="mt-3 text-sm" style={{ color: "#00000060" }}>
-            One plan today — full core GEO analysis. More tiers may return later.
+            All plans include core GEO analysis. Upgrade for more projects, prompts, and AI engines.
           </p>
           {returnTo === routes.onboardingCompanyInfo && (
             <p
@@ -175,7 +205,7 @@ function PricingPageInner() {
         )}
 
         {/* Plans grid */}
-        <div className="grid grid-cols-1 gap-5 max-w-md mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isLoading = loadingPlan === plan.id;
