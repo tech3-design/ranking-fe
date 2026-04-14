@@ -75,7 +75,7 @@ const PLANS: PlanConfig[] = [
     description: "Full power for agencies and serious operators.",
     icon: Rocket,
     features: [
-      "4 projects",
+      "6 projects",
       "Up to 200 prompts",
       "All AI engines including Claude",
       "Everything in Pro",
