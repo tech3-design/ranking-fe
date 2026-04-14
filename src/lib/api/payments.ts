@@ -19,6 +19,25 @@ export interface PlanLimits {
   max_projects: number;
   max_prompts: number;
   engines: string[];
+  features?: string[];
+}
+
+export interface UsageData {
+  plan: string;
+  limits: {
+    max_projects: number;
+    max_prompts: number;
+    engines: string[];
+  };
+  usage: {
+    projects: number;
+    prompts: number;
+    runs_this_month: number;
+  };
+  at_limit: {
+    projects: boolean;
+    prompts: boolean;
+  };
 }
 
 export interface SubscriptionStatus {
@@ -57,6 +76,13 @@ export async function createCheckoutSession(
       raw === "live" || raw === "test" ? raw : undefined;
     throw new CheckoutSessionError(msg, dodoMode);
   }
+}
+
+export async function getUsage(email: string): Promise<UsageData> {
+  const { data } = await apiClient.get<UsageData>("/api/payments/usage/", {
+    params: { email },
+  });
+  return data;
 }
 
 export async function getSubscriptionStatus(
