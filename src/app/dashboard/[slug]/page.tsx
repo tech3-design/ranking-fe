@@ -21,6 +21,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { RotatingGeoFact } from "@/components/ui/rotating-geo-fact";
 import { CommandPalette } from "@/components/ui/command-palette";
 
 /* ── coral is theme-constant; everything else uses Tailwind classes ── */
@@ -345,16 +346,11 @@ export default function SignalorDashboard() {
   // Loading
   if (loading) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <SignalorLoader size="lg" label="Loading analysis..." />
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-4">
+        <SignalorLoader size="lg" />
+        <RotatingGeoFact intervalMs={4500} className="max-w-lg" />
       </div>
     );
-  }
-
-  // If run not found (404 after deletion), redirect to /dashboard to find next valid run
-  if (error && !run && (error.includes("404") || error.includes("Not Found") || error.includes("not found"))) {
-    router.replace("/dashboard");
-    return null;
   }
 
   if ((error || reanalyzeError) && !run) {

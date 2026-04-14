@@ -7,6 +7,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import {
   Play,
   CheckCircle2,
+  Clock,
   TrendingUp,
   Brain,
   BarChart3,
@@ -28,16 +29,85 @@ import {
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
+/** Homepage #pricing — same tiers as /pricing (checkout). */
+const LANDING_PLANS = [
+  {
+    id: "starter",
+    label: "Starter",
+    price: 19,
+    popular: false,
+    description: "Perfect for solo brands getting started with GEO.",
+    features: [
+      "1 project",
+      "Up to 25 prompts",
+      "ChatGPT & Perplexity engines",
+      "GEO analysis & scoring",
+      "Recommendations & verify",
+      "PDF report exports",
+    ],
+    comingSoon: [
+      "Weekly AI visibility email digest",
+      "Deeper Shopify & WordPress sync",
+      "Custom branding on shared reports",
+      "Team invites (view-only)",
+    ],
+  },
+  {
+    id: "pro",
+    label: "Pro",
+    price: 49,
+    popular: true,
+    description: "For growing teams tracking multiple brands.",
+    features: [
+      "Everything in Starter",
+      "3 projects",
+      "Up to 75 prompts",
+      "ChatGPT, Gemini & Perplexity",
+      "Scheduled re-analysis",
+      "Score history & trends",
+      "Brand visibility tracking",
+    ],
+    comingSoon: [
+      "REST API & webhooks for scores",
+      "Slack & Microsoft Teams alerts",
+      "Side-by-side run comparison",
+      "CSV export for prompt history",
+    ],
+  },
+  {
+    id: "business",
+    label: "Max",
+    price: 59,
+    popular: false,
+    description: "Full power for agencies and serious operators.",
+    features: [
+      "Everything in Pro",
+      "6 projects",
+      "Up to 200 prompts",
+      "All AI engines including Claude",
+      "Priority support",
+      "Advanced competitor analysis",
+      "Citation trend tracking",
+    ],
+    comingSoon: [
+      "White-label client portals",
+      "SAML SSO & audit logs",
+      "Dedicated success manager & SLAs",
+      "Bulk import & multi-brand templates",
+    ],
+  },
+];
+
 const COUNTRY_OPTIONS = [
-  { name: "United States", flag: "🇺🇸" },
-  { name: "Canada", flag: "🇨🇦" },
-  { name: "United Kingdom", flag: "🇬🇧" },
-  { name: "Australia", flag: "🇦🇺" },
-  { name: "India", flag: "🇮🇳" },
-  { name: "Germany", flag: "🇩🇪" },
-  { name: "France", flag: "🇫🇷" },
-  { name: "Singapore", flag: "🇸🇬" },
-  { name: "United Arab Emirates", flag: "🇦🇪" },
+  { name: "United States", code: "US" },
+  { name: "Canada", code: "CA" },
+  { name: "United Kingdom", code: "GB" },
+  { name: "Australia", code: "AU" },
+  { name: "India", code: "IN" },
+  { name: "Germany", code: "DE" },
+  { name: "France", code: "FR" },
+  { name: "Singapore", code: "SG" },
+  { name: "United Arab Emirates", code: "AE" },
 ];
 
 // --- Analyzer Form Component ---
@@ -108,8 +178,8 @@ export function HeroAnalyzerForm() {
                     value={option.name}
                     className="cursor-pointer"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{option.flag}</span>
+                    <div className="flex items-center gap-2.5">
+                      <img src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`} alt={option.code} width={20} height={15} className="rounded-sm" />
                       <span className="text-sm font-medium">{option.name}</span>
                     </div>
                   </SelectItem>
@@ -610,18 +680,23 @@ export default function Home() {
             Pricing //
           </span>
           <h2 className="mt-4 font-sans text-4xl tracking-tight text-foreground md:text-5xl">
-            One Plan. Everything Included. <br />{" "}
-            <span className="text-muted-foreground">No Surprises.</span>
+            Three plans. <span className="text-muted-foreground">Scale as you grow.</span>
           </h2>
+          <p className="mt-4 mx-auto max-w-2xl text-sm text-muted-foreground">
+            Same GEO analysis on every tier—upgrade for more projects, prompts, and AI engines. Prices in GBP, billed monthly.
+          </p>
         </div>
 
         {/* Billing Toggle */}
         <div className="flex justify-center mb-12">
           <div className="inline-flex items-center rounded-full border border-border bg-card p-1 shadow-sm">
-            <button className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm">
+            <button type="button" className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm">
               Monthly
             </button>
-            <button className="relative rounded-full px-6 py-2.5 text-sm font-medium text-muted-foreground cursor-not-allowed opacity-70">
+            <button
+              type="button"
+              className="relative rounded-full px-6 py-2.5 text-sm font-medium text-muted-foreground cursor-not-allowed opacity-70"
+            >
               Annual
               <span className="absolute -top-3 -right-2 rounded-full bg-amber-100 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-600">
                 Coming Soon
@@ -630,50 +705,109 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-md">
-          {/* Pro Monthly Plan */}
-          <div className="rounded-[2.5rem] bg-[#0A251C] p-10 text-white shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
-            <div className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary">
-              Pro Plan
-            </div>
-            <div className="mt-6 flex items-baseline gap-1">
-              <span className="font-sans text-6xl tracking-tight">£20</span>
-              <span className="text-white/60 text-lg font-medium">
-                {" "}
-                / month
-              </span>
-            </div>
-            <p className="mt-4 text-sm text-white/60 border-b border-white/10 pb-8">
-              Full access to every Signalor feature. Analyze unlimited sites,
-              track your GEO score over time, and implement fixes with
-              confidence.
-            </p>
-            <Link
-              href="/sign-up"
-              className="mt-8 block w-full rounded-full bg-primary py-4 text-center text-sm font-bold text-[#0A251C] hover:bg-primary/90 transition-colors"
-            >
-              Start 
-            </Link>
-            <ul className="mt-8 space-y-4">
-              {[
-                "Unlimited website analyses",
-                "Full GEO audit with AI citability scoring",
-                "Prioritized, plain-English recommendations",
-                "Platform visibility across Google AI, Reddit & Medium",
-                "One-click JSON-LD schema generator",
-                "Score history & progress tracking",
-                "Priority email support",
-              ].map((feature) => (
-                <li
-                  key={feature}
-                  className="flex items-center gap-3 text-sm text-white/80"
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-3 md:items-stretch">
+          {LANDING_PLANS.map((plan) => {
+            const isDark = plan.popular === true;
+            return (
+              <div
+                key={plan.id}
+                className={`relative flex flex-col rounded-[2rem] p-8 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl md:p-9 ${
+                  isDark
+                    ? "bg-[#0A251C] text-white ring-2 ring-primary"
+                    : "border border-border bg-card text-foreground"
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0A251C]">
+                    Most popular
+                  </div>
+                )}
+                <div
+                  className={`inline-block w-fit rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+                    isDark ? "bg-white/10 text-primary" : "bg-primary/10 text-primary"
+                  }`}
                 >
-                  <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </div>
+                  {plan.label}
+                </div>
+                <div className="mt-5 flex items-baseline gap-1">
+                  <span className={`font-sans text-5xl tracking-tight ${isDark ? "" : "text-foreground"}`}>
+                    £{plan.price}
+                  </span>
+                  <span
+                    className={`text-lg font-medium ${
+                      isDark ? "text-white/60" : "text-muted-foreground"
+                    }`}
+                  >
+                    / month
+                  </span>
+                </div>
+                <p
+                  className={`mt-3 text-sm leading-relaxed border-b pb-6 ${
+                    isDark ? "text-white/65 border-white/10" : "text-muted-foreground border-border"
+                  }`}
+                >
+                  {plan.description}
+                </p>
+                <Link
+                  href="/pricing"
+                  className={`mt-6 block w-full rounded-full py-3.5 text-center text-sm font-bold transition-colors ${
+                    isDark
+                      ? "bg-primary text-[#0A251C] hover:bg-primary/90"
+                      : "bg-foreground text-background hover:opacity-90"
+                  }`}
+                >
+                  Get {plan.label}
+                </Link>
+                <ul className="mt-6 flex flex-1 flex-col gap-3">
+                  {plan.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className={`flex items-start gap-2.5 text-sm ${
+                        isDark ? "text-white/85" : "text-foreground/85"
+                      }`}
+                    >
+                      <CheckCircle2
+                        className={`mt-0.5 h-4 w-4 shrink-0 ${
+                          isDark ? "text-primary" : "text-primary"
+                        }`}
+                      />
+                      {feature}
+                    </li>
+                  ))}
+                  {"comingSoon" in plan &&
+                    Array.isArray(plan.comingSoon) &&
+                    plan.comingSoon.length > 0 && (
+                      <li className="list-none pt-4 mt-1 border-t border-dashed border-border/60 dark:border-white/15">
+                        <p
+                          className={`text-[10px] font-bold uppercase tracking-wider mb-3 ${
+                            isDark ? "text-white/40" : "text-muted-foreground"
+                          }`}
+                        >
+                          Coming Soon
+                        </p>
+                        <ul className="flex flex-col gap-2.5">
+                          {plan.comingSoon.map((line) => (
+                            <li
+                              key={line}
+                              className={`flex items-start gap-2.5 text-sm ${
+                                isDark ? "text-white/50" : "text-muted-foreground"
+                              }`}
+                            >
+                              <Clock
+                                className={`mt-0.5 h-4 w-4 shrink-0 ${
+                                  isDark ? "text-white/35" : "text-muted-foreground/70"
+                                }`}
+                              />
+                              {line}
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    )}
+                </ul>
+              </div>
+            );
+          })}
         </div>
 
         {/* Bottom CTA Banner */}

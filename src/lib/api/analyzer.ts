@@ -7,6 +7,9 @@ export interface StartAnalysisPayload {
   brand_name?: string;
   country?: string;
   org_id?: number;
+  /** Backend enforces org ownership, URL match, brand, and non-empty prompts (onboarding / post-checkout). */
+  verify_org_workspace?: boolean;
+  prompts?: string[];
 }
 
 export interface StartAnalysisResponse {
@@ -52,6 +55,21 @@ export interface Competitor {
   page_score: PageScore | null;
 }
 
+export interface PlatformStepInfo {
+  detail: string;
+  code?: string;
+}
+
+export interface RecommendationStep {
+  n: number;
+  title: string;
+  detail: string;
+  code?: string;
+  xp: number;
+  shopify?: PlatformStepInfo;
+  wordpress?: PlatformStepInfo;
+}
+
 export interface Recommendation {
   id: number;
   pillar: string;
@@ -62,6 +80,10 @@ export interface Recommendation {
   impact_estimate: string;
   category: string;
   can_auto_fix: boolean;
+  steps: RecommendationStep[];
+  xp_reward: number;
+  difficulty: string;
+  estimated_minutes: number;
 }
 
 export interface AIProbe {
@@ -355,9 +377,10 @@ export async function toggleSchedule(payload: {
 
 export interface AutoFixResult {
   recommendation_id: number;
-  status: "success" | "partial" | "failed";
+  status: "success" | "partial" | "failed" | "verified" | "manual";
   message: string;
   fix_type: string;
+  generated_content?: string | null;
 }
 
 export async function applyAutoFix(
@@ -384,7 +407,7 @@ export async function getAutoFixStatus(slug: string): Promise<AutoFixResult[]> {
 // ── Preview + Approve Fix Flow ───────────────────────────────────────────
 
 export interface FixPreview {
-  status: "preview" | "error";
+  status: "preview" | "error" | "manual";
   fix_type: string;
   recommendation_id: number;
   recommendation_title: string;
@@ -419,6 +442,18 @@ export async function approveFix(
     `/api/analyzer/runs/s/${slug}/auto-fix/approve/`,
     { recommendation_id: recommendationId, content, fix_type: fixType },
     { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function verifyFix(
+  slug: string,
+  recommendationId: number,
+): Promise<AutoFixResult> {
+  const { data } = await apiClient.post<AutoFixResult>(
+    `/api/analyzer/runs/s/${slug}/auto-fix/verify/`,
+    { recommendation_id: recommendationId },
+    { timeout: 45_000 },
   );
   return data;
 }

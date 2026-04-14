@@ -9,7 +9,6 @@ import { getOrganizations, type Organization } from "@/lib/api/organizations";
 import { getRunList } from "@/lib/api/analyzer";
 import { useOrgStore } from "@/lib/stores/org-store";
 import { routes } from "@/lib/config";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { RunProvider, useRun } from "./_components/run-context";
 import { AnalysisOverlay } from "./_components/analysis-overlay";
@@ -77,6 +76,18 @@ export default function DashboardSlugLayout({
   const router = useRouter();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatInitialMessage, setChatInitialMessage] = useState<string | undefined>();
+
+  // Listen for "open-ai-chat" events from child components
+  useEffect(() => {
+    function handleOpenChat(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.message) setChatInitialMessage(detail.message);
+      setChatOpen(true);
+    }
+    window.addEventListener("open-ai-chat", handleOpenChat);
+    return () => window.removeEventListener("open-ai-chat", handleOpenChat);
+  }, []);
   const [isPro, setIsPro] = useState(false);
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
   const [switchingOrg, setSwitchingOrg] = useState(false);
@@ -162,25 +173,25 @@ export default function DashboardSlugLayout({
     <AnalysisGate>
     <div className="flex h-screen w-full bg-transparent font-sans text-foreground overflow-hidden">
       {/* ═══ LEFT SIDEBAR ═══ */}
-      <aside className="w-[220px] flex-shrink-0 flex flex-col h-full bg-card/95 backdrop-blur-md border-r border-border/80 shadow-[4px_0_32px_-12px_rgba(0,0,0,0.08)] dark:shadow-[4px_0_40px_-16px_rgba(0,0,0,0.45)] px-4 py-5">
+      <aside className="w-[220px] flex-shrink-0 flex flex-col h-full bg-card border-r border-border px-3 py-4">
         {/* Logo */}
-        <div className="flex items-center gap-2.5  mb-6">
+        <div className="flex items-center gap-2.5 px-2 mb-5">
           <LogoComp />
         </div>
 
         {/* Org Switcher */}
         {organizations.length > 0 && (
-          <div className="relative mb-4" ref={orgRef}>
+          <div className="relative mb-5" ref={orgRef}>
             <button
               onClick={() => setOrgDropdownOpen(!orgDropdownOpen)}
               disabled={switchingOrg}
-              className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl border border-border/80 bg-background/80 hover:bg-accent hover:border-primary/20 hover:shadow-sm transition-all duration-200 text-left disabled:opacity-60"
+              className="flex items-center gap-2.5 w-full px-2.5 py-2 border border-border bg-background hover:bg-accent transition text-left disabled:opacity-60"
             >
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Building2 className="w-3.5 h-3.5 text-primary" />
+              <div className="w-7 h-7 bg-foreground/[0.04] flex items-center justify-center shrink-0">
+                <Building2 className="w-3.5 h-3.5 text-foreground/70" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-foreground truncate">
+                <p className="text-[13px] font-semibold text-foreground truncate tracking-[-0.01em]">
                   {switchingOrg ? "Switching..." : (activeOrg?.name || organizations[0]?.name || "Select org")}
                 </p>
                 <p className="text-[10px] text-muted-foreground truncate">
@@ -195,7 +206,7 @@ export default function DashboardSlugLayout({
             </button>
 
             {orgDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1 rounded-xl bg-card/98 backdrop-blur-md border border-border/80 shadow-xl shadow-primary/5 z-50 py-1 max-h-48 overflow-y-auto animate-enter">
+              <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-border shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
                 {organizations.map((org) => {
                   const isActive = org.id === activeOrg?.id;
                   return (
@@ -203,17 +214,17 @@ export default function DashboardSlugLayout({
                       key={org.id}
                       onClick={() => handleSwitchOrg(org)}
                       className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors ${
-                        isActive ? "bg-primary/8" : "hover:bg-accent"
+                        isActive ? "bg-accent" : "hover:bg-accent"
                       }`}
                     >
-                      <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                        <Building2 className="w-3 h-3 text-primary" />
+                      <div className="w-6 h-6 bg-foreground/[0.04] flex items-center justify-center shrink-0">
+                        <Building2 className="w-3 h-3 text-foreground/70" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{org.name}</p>
+                        <p className="text-[13px] font-medium text-foreground truncate">{org.name}</p>
                         <p className="text-[10px] text-muted-foreground truncate">{org.url || "No URL"}</p>
                       </div>
-                      {isActive && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
+                      {isActive && <Check className="w-3.5 h-3.5 text-foreground shrink-0" />}
                     </button>
                   );
                 })}
@@ -226,7 +237,7 @@ export default function DashboardSlugLayout({
         {isSettingsPage && (
           <Link
             href={basePath}
-            className="flex items-center gap-2 px-3 py-2 mb-3 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+            className="flex items-center gap-2 px-2 py-2 mb-3 text-[13px] font-medium text-muted-foreground hover:text-foreground transition"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to Dashboard
@@ -234,14 +245,18 @@ export default function DashboardSlugLayout({
         )}
 
         {/* Section label */}
-        {isSettingsPage && (
-          <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        {isSettingsPage ? (
+          <p className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             Settings
+          </p>
+        ) : (
+          <p className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            Navigation
           </p>
         )}
 
         {/* Nav */}
-        <nav className="flex flex-col gap-1 mb-auto">
+        <nav className="flex flex-col gap-0.5 mb-auto">
           {navItems.map((item) => {
             const active = isActive(item.path);
             const Icon = item.icon;
@@ -249,34 +264,28 @@ export default function DashboardSlugLayout({
               <Link
                 key={item.label}
                 href={basePath + item.path}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${active
-                    ? "bg-primary/10 text-primary shadow-sm shadow-primary/10 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[60%] before:w-0.5 before:rounded-full before:bg-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/80 motion-safe:hover:translate-x-0.5"
+                className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition ${active
+                    ? "text-foreground bg-accent border-l-2 border-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
                   }`}
               >
-                <Icon className="w-[18px] h-[18px]" />
+                <Icon className="w-4 h-4" />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        {/* Theme toggle */}
-        <div className="flex items-center justify-between px-3 py-2 mb-2 rounded-xl bg-accent/80 border border-border/50 shadow-sm">
-          <span className="text-xs text-muted-foreground">Theme</span>
-          <ThemeToggle />
-        </div>
-
         {/* User — expandable upward */}
-        <div className="relative mb-4" ref={menuRef}>
+        <div className="relative mt-auto pt-4 border-t border-border" ref={menuRef}>
           {/* Popover — expands upward */}
           {userMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-1 rounded-xl bg-card p-3 shadow-lg z-50 border border-border">
+            <div className="absolute bottom-full left-0 right-0 mb-1 bg-card p-2.5 shadow-lg z-50 border border-border">
               {/* Profile info */}
-              <div className="flex items-center gap-3 px-1 pb-3 mb-2 border-b border-border">
-                <UserAvatar src={userImage} initials={userInitials} size={40} />
+              <div className="flex items-center gap-3 px-1 pb-2.5 mb-2 border-b border-border">
+                <UserAvatar src={userImage} initials={userInitials} size={36} />
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{userName}</p>
+                  <p className="text-[13px] font-semibold text-foreground truncate">{userName}</p>
                   <p className="text-[11px] text-muted-foreground truncate">{userEmail}</p>
                 </div>
               </div>
@@ -286,9 +295,9 @@ export default function DashboardSlugLayout({
                 <Link
                   href={basePath + "/settings/profile"}
                   onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                  className="flex items-center gap-2.5 px-2 py-1.5 text-[13px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-3.5 h-3.5" />
                   Settings
                 </Link>
               </div>
@@ -298,26 +307,25 @@ export default function DashboardSlugLayout({
           {/* Trigger button */}
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="flex items-center gap-2.5 px-2 py-2.5 w-full rounded-xl transition-colors hover:bg-accent"
+            className="flex items-center gap-2.5 px-2 py-2 w-full transition hover:bg-accent"
           >
-            <UserAvatar src={userImage} initials={userInitials} size={36} />
+            <UserAvatar src={userImage} initials={userInitials} size={30} />
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-sm font-semibold text-foreground truncate">{userName}</p>
+              <p className="text-[13px] font-medium text-foreground truncate">{userName}</p>
             </div>
             {userMenuOpen
-              ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
-              : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+              ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             }
           </button>
         </div>
 
-        {/* CTA Card — hidden for Pro users */}
+        {/* CTA — hidden for Pro users */}
         {!isPro && (
-          <div className="relative overflow-hidden bg-gradient-to-br from-primary/12 via-primary/6 to-transparent border border-primary/20 rounded-2xl p-4 mb-4 shadow-sm shadow-primary/10 transition-shadow duration-200 hover:shadow-md hover:shadow-primary/15">
-            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/15 blur-2xl pointer-events-none" aria-hidden />
-            <p className="text-sm font-bold leading-snug text-foreground mb-1 relative">Boost Your<br />AI Visibility</p>
-            <p className="text-[11px] text-muted-foreground mb-3 relative">Elevate Your Site&apos;s Authority</p>
-            <Link href="/pricing" className="relative block w-full bg-primary hover:bg-primary/92 text-white text-xs font-semibold py-2.5 rounded-xl transition-all duration-200 text-center shadow-md shadow-primary/25 hover:shadow-lg motion-safe:hover:-translate-y-px">
+          <div className="mt-3 p-3 border border-border bg-background">
+            <p className="text-[13px] font-semibold text-foreground mb-0.5">Boost Your AI Visibility</p>
+            <p className="text-[11px] text-muted-foreground mb-2.5">Elevate Your Site&apos;s Authority</p>
+            <Link href="/pricing" className="block w-full bg-primary text-white text-[12px] font-semibold py-2 transition hover:opacity-88 text-center">
               Get Signalor Pro
             </Link>
           </div>
@@ -346,7 +354,8 @@ export default function DashboardSlugLayout({
         slug={slug}
         brandName={activeOrg?.name || organizations[0]?.name}
         open={chatOpen}
-        onClose={() => setChatOpen(false)}
+        onClose={() => { setChatOpen(false); setChatInitialMessage(undefined); }}
+        initialMessage={chatInitialMessage}
       />
 
       {/* Chat toggle button — fixed bottom right */}

@@ -1,47 +1,32 @@
 import { apiClient } from "./client";
 
+export interface PlanLimits {
+  label: string;
+  price_gbp: number;
+  max_projects: number;
+  max_prompts: number;
+  engines: string[];
+}
+
 export interface SubscriptionStatus {
   is_active: boolean;
   status: string;
   current_period_end: string | null;
   currency: string;
-}
-
-const BYPASS_STATUS: SubscriptionStatus = {
-  is_active: true,
-  status: "dev_bypass",
-  current_period_end: null,
-  currency: "usd",
-};
-
-function isPaymentGateBypassed(): boolean {
-  if (
-    process.env.NEXT_PUBLIC_FORCE_PAYMENT_GATE === "true" ||
-    process.env.NEXT_PUBLIC_FORCE_PAYMENT_GATE === "1"
-  ) {
-    return false;
-  }
-  if (
-    process.env.NEXT_PUBLIC_SKIP_PAYMENT_GATE === "true" ||
-    process.env.NEXT_PUBLIC_SKIP_PAYMENT_GATE === "1"
-  ) {
-    return true;
-  }
-  if (typeof window !== "undefined") {
-    const host = window.location.hostname;
-    if (host === "localhost" || host === "127.0.0.1") {
-      return true;
-    }
-  }
-  return false;
+  plan: string;
+  plan_label: string;
+  limits: PlanLimits;
+  /** True when backend has a Dodo payment_id and PDF can be downloaded */
+  invoice_available?: boolean;
 }
 
 export async function createCheckoutSession(
   email: string,
+  plan: string = "starter",
 ): Promise<{ checkout_url: string }> {
   const { data } = await apiClient.post<{ checkout_url: string }>(
     "/api/payments/create-checkout/",
-    { email },
+    { email, plan },
   );
   return data;
 }
@@ -49,9 +34,6 @@ export async function createCheckoutSession(
 export async function getSubscriptionStatus(
   email: string,
 ): Promise<SubscriptionStatus> {
-  if (isPaymentGateBypassed()) {
-    return BYPASS_STATUS;
-  }
   const { data } = await apiClient.get<SubscriptionStatus>(
     "/api/payments/status/",
     { params: { email } },

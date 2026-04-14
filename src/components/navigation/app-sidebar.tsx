@@ -12,7 +12,6 @@ import {
   LogOut,
 } from "lucide-react";
 import { Sidebar, SidebarBody } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { routes } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { getRunBySlug } from "@/lib/api/analyzer";
@@ -180,16 +179,6 @@ export function AppSidebar() {
             ) : null}
           </button>
 
-          {open ? (
-            <div className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 p-2">
-              <span className="text-xs text-muted-foreground">Theme</span>
-              <ThemeToggle />
-            </div>
-          ) : (
-            <div className="mx-auto flex size-10 items-center justify-center rounded-lg border border-border/50 bg-background/40">
-              <ThemeToggle />
-            </div>
-          )}
         </div>
       </SidebarBody>
     </Sidebar>
