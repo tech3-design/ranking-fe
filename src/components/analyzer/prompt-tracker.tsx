@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import {
   Loader2, CheckCircle2, XCircle, Plus, RefreshCw,
   ChevronDown, ChevronRight, Eye, TrendingUp, TrendingDown, Minus,
-  MessageSquare, BarChart3, Target,
+  MessageSquare, BarChart3, Target, Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { addPromptTrack, recheckPrompt } from "@/lib/api/analyzer";
 import type { PromptTrack, PromptResult, Engine, Sentiment } from "@/lib/api/analyzer";
+import { useSession } from "@/lib/auth-client";
+import { getSubscriptionStatus } from "@/lib/api/payments";
 
 const ENGINES: Array<{ key: Engine; label: string; color: string }> = [
   { key: "google", label: "Google", color: "#ea4335" },
@@ -39,12 +42,43 @@ interface PromptTrackerProps {
 }
 
 export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrackerProps) {
+  const { data: session } = useSession();
+  const [planEngines, setPlanEngines] = useState<Engine[] | null>(null);
   const [text, setText] = useState("");
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [rechecking, setRechecking] = useState<Record<number, boolean>>({});
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [viewingResponse, setViewingResponse] = useState<PromptResult | null>(null);
+
+  useEffect(() => {
+    const email = session?.user?.email;
+    if (!email) {
+      setPlanEngines(null);
+      return;
+    }
+    getSubscriptionStatus(email)
+      .then((s) => setPlanEngines((s.limits.engines as Engine[]) ?? null))
+      .catch(() => setPlanEngines(null));
+  }, [session?.user?.email]);
+
+  const enginesForUi = useMemo(() => {
+    const keys =
+      planEngines && planEngines.length > 0
+        ? planEngines
+        : null;
+    if (!keys) {
+      return ENGINES;
+    }
+    const allowed = new Set(keys);
+    return ENGINES.filter((e) => allowed.has(e.key));
+  }, [planEngines]);
+
+  const showProEngineUpsell = useMemo(() => {
+    if (!planEngines?.length) return false;
+    const s = new Set(planEngines);
+    return !s.has("chatgpt") || !s.has("perplexity");
+  }, [planEngines]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -108,6 +142,18 @@ export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrac
       </form>
       {addError && <p className="text-xs text-destructive">{addError}</p>}
 
+      {showProEngineUpsell && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3 text-xs text-foreground">
+          <Lock className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <span className="text-muted-foreground">
+            ChatGPT &amp; Perplexity prompt checks are on <strong className="text-foreground">Pro</strong> and above. Your plan only runs the engines included in your subscription.
+          </span>
+          <Link href="/pricing" className="ml-auto font-semibold text-primary underline-offset-2 hover:underline">
+            Upgrade
+          </Link>
+        </div>
+      )}
+
       {/* Prompt Cards */}
       {tracks.length === 0 ? (
         <div className="text-center py-12">
@@ -160,7 +206,7 @@ export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrac
 
                   {/* Engine dots */}
                   <div className="flex items-center gap-1.5 shrink-0">
-                    {ENGINES.map((eng) => {
+                    {enginesForUi.map((eng) => {
                       const results = track.results.filter((r) => r.engine === eng.key);
                       const mentioned = results.some((r) => r.brand_mentioned);
                       const hasData = results.length > 0;
@@ -238,7 +284,7 @@ export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrac
                       <div>
                         <p className="text-xs font-semibold text-muted-foreground mb-3">Platform Breakdown</p>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {ENGINES.map((eng) => {
+                          {enginesForUi.map((eng) => {
                             const results = allResults.filter((r) => r.engine === eng.key);
                             if (results.length === 0) return null;
                             const mentionCount = results.filter((r) => r.brand_mentioned).length;

@@ -37,7 +37,7 @@ const PLANS: PlanConfig[] = [
     features: [
       "1 project",
       "Up to 25 prompts",
-      "ChatGPT & Perplexity engines",
+      "Gemini & Google prompt visibility",
       "GEO analysis & scoring",
       "Recommendations & verify",
       "PDF report exports",
@@ -61,7 +61,7 @@ const PLANS: PlanConfig[] = [
       "Everything in Starter",
       "3 projects",
       "Up to 75 prompts",
-      "ChatGPT, Gemini & Perplexity",
+      "ChatGPT, Gemini, Perplexity & Google",
       "Scheduled re-analysis",
       "Score history & trends",
       "Brand visibility tracking",

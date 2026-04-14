@@ -105,7 +105,7 @@ export default function VisibilityPage() {
         <>
           {brandVis && (
             <BrandVisibilityTab
-              brandName={run.brand_name}
+              brandName={run.display_brand_name?.trim() || run.brand_name}
               visibility={brandVis}
             />
           )}

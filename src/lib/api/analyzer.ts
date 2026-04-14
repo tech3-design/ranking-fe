@@ -125,6 +125,16 @@ export interface BrandVisibility {
   medium_details: Record<string, unknown>;
   web_mentions_score: number;
   web_mentions_details: Record<string, unknown>;
+  /** Instagram/Facebook public scrape + derived scores (optional on older runs) */
+  social_presence_details?: Record<string, unknown>;
+  /** LLM synthesis: how AI may reflect the brand from visibility signals */
+  ai_brand_facts?: {
+    facts?: string[];
+    summary?: string;
+    caveat?: string;
+    method?: string;
+    error?: string;
+  };
   overall_score: number;
 }
 
@@ -133,6 +143,8 @@ export interface AnalysisRunDetail {
   slug: string;
   url: string;
   brand_name: string;
+  /** URL-resolved label (matches backend visibility_brand_label) */
+  display_brand_name?: string;
   country: string;
   email: string;
   run_type: string;

@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import type { PromptTrack, Engine, Sentiment } from "@/lib/api/analyzer";
+import { useSession } from "@/lib/auth-client";
+import { getSubscriptionStatus } from "@/lib/api/payments";
 
 const ENGINE_LABELS: Record<Engine, string> = {
   google: "Google",
@@ -16,12 +19,36 @@ const SENTIMENT_CLASS: Record<Sentiment, string> = {
   negative: "bg-red-500/20 text-red-400 border border-red-500/30",
 };
 
+/** LLM engines only (Google SERP is tracked elsewhere). */
+const LLM_ENGINES: Engine[] = ["chatgpt", "claude", "gemini", "perplexity"];
+
 interface SentimentBreakdownProps {
   tracks: PromptTrack[];
 }
 
 export function SentimentBreakdown({ tracks }: SentimentBreakdownProps) {
-  const allEngines: Engine[] = ["chatgpt", "claude", "gemini", "perplexity"];
+  const { data: session } = useSession();
+  const [planEngines, setPlanEngines] = useState<Engine[] | null>(null);
+
+  useEffect(() => {
+    const email = session?.user?.email;
+    if (!email) {
+      setPlanEngines(null);
+      return;
+    }
+    getSubscriptionStatus(email)
+      .then((s) => setPlanEngines((s.limits.engines as Engine[]) ?? null))
+      .catch(() => setPlanEngines(null));
+  }, [session?.user?.email]);
+
+  const allEngines = useMemo(() => {
+    if (!planEngines?.length) {
+      return LLM_ENGINES;
+    }
+    const allowed = new Set(planEngines);
+    return LLM_ENGINES.filter((e) => allowed.has(e));
+  }, [planEngines]);
+
   const sentiments: Sentiment[] = ["positive", "neutral", "negative"];
 
   // Aggregate per engine
@@ -44,7 +71,7 @@ export function SentimentBreakdown({ tracks }: SentimentBreakdownProps) {
   }
 
   const hasData = allEngines.some((e) =>
-    sentiments.some((s) => stats[e][s] > 0),
+    sentiments.some((sent) => stats[e][sent] > 0),
   );
 
   if (!hasData) {

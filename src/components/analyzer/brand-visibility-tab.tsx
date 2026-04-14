@@ -8,7 +8,7 @@ import { WebMentionsPanel } from "@/components/visibility/web-mentions-panel";
 import {
   Globe, MessageSquare, HelpCircle, BookOpen, Rocket,
   Star, BarChart3, Linkedin, Youtube, Twitter,
-  Search, CheckCircle2, XCircle, ExternalLink,
+  Search, CheckCircle2, XCircle, ExternalLink, Sparkles,
 } from "lucide-react";
 
 interface BrandVisibilityTabProps {
@@ -39,6 +39,11 @@ const PLATFORM_CONFIG: Array<{
 
 export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTabProps) {
   const overall = Math.round(visibility.overall_score ?? 0);
+  const aiFacts = visibility.ai_brand_facts;
+  const perceptionFacts = aiFacts?.facts?.filter(Boolean) ?? [];
+  const perceptionSummary = aiFacts?.summary?.trim() ?? "";
+  const perceptionCaveat = aiFacts?.caveat?.trim() ?? "";
+  const perceptionError = aiFacts?.error;
 
   // Extract platform data from the checks
   const checks = (visibility as unknown as Record<string, unknown>)?.checks as Record<string, unknown> | undefined;
@@ -80,10 +85,38 @@ export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTab
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{overall}/100</p>
-              <p className="text-xs text-muted-foreground">AI Visibility Score</p>
+              <p className="text-xs text-muted-foreground">Brand visibility score</p>
             </div>
           </div>
         </div>
+
+        {(perceptionFacts.length > 0 || perceptionSummary || perceptionCaveat || perceptionError) && (
+          <div className="mt-5 rounded-xl border border-border bg-muted/20 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-4 w-4 text-primary shrink-0" />
+              <p className="text-sm font-semibold text-foreground">What AI is likely to reflect</p>
+            </div>
+            <p className="text-[11px] text-muted-foreground mb-3">
+              Short, signal-grounded notes on how chat models may describe this brand from the same visibility data we analyzed—not live web browsing.
+            </p>
+            {perceptionFacts.length > 0 && (
+              <ul className="list-disc pl-5 space-y-1.5 text-sm text-foreground">
+                {perceptionFacts.map((f, i) => (
+                  <li key={i}>{f}</li>
+                ))}
+              </ul>
+            )}
+            {perceptionSummary && (
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{perceptionSummary}</p>
+            )}
+            {perceptionCaveat && (
+              <p className="mt-2 text-[11px] text-muted-foreground italic">{perceptionCaveat}</p>
+            )}
+            {perceptionError && !perceptionFacts.length && !perceptionSummary && (
+              <p className="text-xs text-amber-700 dark:text-amber-300">{perceptionError}</p>
+            )}
+          </div>
+        )}
 
         {/* Summary stats */}
         <div className="grid grid-cols-3 gap-3 mt-5">
