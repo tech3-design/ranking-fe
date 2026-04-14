@@ -29,14 +29,14 @@ import {
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
-/** Homepage #pricing — same tiers as /pricing (checkout). */
+/** Homepage #pricing — matches /pricing (single Starter checkout). */
 const LANDING_PLANS = [
   {
     id: "starter",
     label: "Starter",
-    price: 19,
-    popular: false,
-    description: "Perfect for solo brands getting started with GEO.",
+    price: 19.99,
+    popular: true,
+    description: "Everything you need to start improving GEO and AI visibility.",
     features: [
       "1 project",
       "Up to 25 prompts",
@@ -46,54 +46,9 @@ const LANDING_PLANS = [
       "PDF report exports",
     ],
     comingSoon: [
+      "Higher tiers with more projects & engines",
       "Weekly AI visibility email digest",
       "Deeper Shopify & WordPress sync",
-      "Custom branding on shared reports",
-      "Team invites (view-only)",
-    ],
-  },
-  {
-    id: "pro",
-    label: "Pro",
-    price: 49,
-    popular: true,
-    description: "For growing teams tracking multiple brands.",
-    features: [
-      "Everything in Starter",
-      "3 projects",
-      "Up to 75 prompts",
-      "ChatGPT, Gemini, Perplexity & Google",
-      "Scheduled re-analysis",
-      "Score history & trends",
-      "Brand visibility tracking",
-    ],
-    comingSoon: [
-      "REST API & webhooks for scores",
-      "Slack & Microsoft Teams alerts",
-      "Side-by-side run comparison",
-      "CSV export for prompt history",
-    ],
-  },
-  {
-    id: "business",
-    label: "Max",
-    price: 59,
-    popular: false,
-    description: "Full power for agencies and serious operators.",
-    features: [
-      "Everything in Pro",
-      "6 projects",
-      "Up to 200 prompts",
-      "All AI engines including Claude",
-      "Priority support",
-      "Advanced competitor analysis",
-      "Citation trend tracking",
-    ],
-    comingSoon: [
-      "White-label client portals",
-      "SAML SSO & audit logs",
-      "Dedicated success manager & SLAs",
-      "Bulk import & multi-brand templates",
     ],
   },
 ];
@@ -680,10 +635,10 @@ export default function Home() {
             Pricing //
           </span>
           <h2 className="mt-4 font-sans text-4xl tracking-tight text-foreground md:text-5xl">
-            Three plans. <span className="text-muted-foreground">Scale as you grow.</span>
+            Simple pricing. <span className="text-muted-foreground">Start with Starter.</span>
           </h2>
           <p className="mt-4 mx-auto max-w-2xl text-sm text-muted-foreground">
-            Same GEO analysis on every tier—upgrade for more projects, prompts, and AI engines. Prices in GBP, billed monthly.
+            One plan for now — full core GEO analysis. Prices in GBP, billed monthly.
           </p>
         </div>
 
@@ -705,9 +660,13 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-3 md:items-stretch">
+        <div className="mx-auto grid max-w-lg grid-cols-1 gap-6 md:items-stretch">
           {LANDING_PLANS.map((plan) => {
             const isDark = plan.popular === true;
+            const priceLabel =
+              Math.round(plan.price) === plan.price
+                ? `${plan.price}`
+                : plan.price.toFixed(2);
             return (
               <div
                 key={plan.id}
@@ -731,7 +690,7 @@ export default function Home() {
                 </div>
                 <div className="mt-5 flex items-baseline gap-1">
                   <span className={`font-sans text-5xl tracking-tight ${isDark ? "" : "text-foreground"}`}>
-                    £{plan.price}
+                    £{priceLabel}
                   </span>
                   <span
                     className={`text-lg font-medium ${

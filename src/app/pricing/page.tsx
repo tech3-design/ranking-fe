@@ -3,13 +3,18 @@
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import { createCheckoutSession, getSubscriptionStatus } from "@/lib/api/payments";
+import {
+  CheckoutSessionError,
+  createCheckoutSession,
+  getSubscriptionStatus,
+  type DodoMode,
+} from "@/lib/api/payments";
 import {
   POST_CHECKOUT_REDIRECT_KEY,
   safeInternalReturnPath,
 } from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
-import { Check, Clock, Zap, ArrowLeft, Crown, Rocket } from "lucide-react";
+import { Check, Clock, Zap, ArrowLeft } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import Link from "next/link";
 
@@ -30,10 +35,11 @@ const PLANS: PlanConfig[] = [
   {
     id: "starter",
     label: "Starter",
-    price: 19,
+    price: 19.99,
     period: "/month",
-    description: "Perfect for solo brands getting started with GEO.",
+    description: "Everything you need to start improving GEO and AI visibility.",
     icon: Zap,
+    popular: true,
     features: [
       "1 project",
       "Up to 25 prompts",
@@ -43,57 +49,9 @@ const PLANS: PlanConfig[] = [
       "PDF report exports",
     ],
     comingSoonFeatures: [
+      "Higher tiers with more projects & engines",
       "Weekly AI visibility email digest",
       "Deeper Shopify & WordPress sync",
-      "Custom branding on shared reports",
-      "Team invites (view-only)",
-    ],
-  },
-  {
-    id: "pro",
-    label: "Pro",
-    price: 49,
-    period: "/month",
-    description: "For growing teams tracking multiple brands.",
-    icon: Crown,
-    popular: true,
-    features: [
-      "Everything in Starter",
-      "3 projects",
-      "Up to 75 prompts",
-      "ChatGPT, Gemini, Perplexity & Google",
-      "Scheduled re-analysis",
-      "Score history & trends",
-      "Brand visibility tracking",
-    ],
-    comingSoonFeatures: [
-      "REST API & webhooks for scores",
-      "Slack & Microsoft Teams alerts",
-      "Side-by-side run comparison",
-      "CSV export for prompt history",
-    ],
-  },
-  {
-    id: "business",
-    label: "Max",
-    price: 59,
-    period: "/month",
-    description: "Full power for agencies and serious operators.",
-    icon: Rocket,
-    features: [
-      "Everything in Pro",
-      "6 projects",
-      "Up to 200 prompts",
-      "All AI engines including Claude",
-      "Priority support",
-      "Advanced competitor analysis",
-      "Citation trend tracking",
-    ],
-    comingSoonFeatures: [
-      "White-label client portals",
-      "SAML SSO & audit logs",
-      "Dedicated success manager & SLAs",
-      "Bulk import & multi-brand templates",
     ],
   },
 ];
@@ -105,6 +63,8 @@ function PricingPageInner() {
   const returnTo = safeInternalReturnPath(searchParams.get("returnTo"));
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState("");
+  /** Set when checkout fails so we can show mode-specific setup hints */
+  const [checkoutDodoMode, setCheckoutDodoMode] = useState<DodoMode | null>(null);
 
   useEffect(() => {
     if (isPending) return;
@@ -125,6 +85,7 @@ function PricingPageInner() {
     if (!session || loadingPlan) return;
     setLoadingPlan(planId);
     setError("");
+    setCheckoutDodoMode(null);
     try {
       if (returnTo) {
         try {
@@ -135,8 +96,14 @@ function PricingPageInner() {
       }
       const { checkout_url } = await createCheckoutSession(session.user.email, planId);
       window.location.href = checkout_url;
-    } catch {
-      setError("Failed to start checkout. Please try again.");
+    } catch (e) {
+      if (e instanceof CheckoutSessionError) {
+        setError(e.message);
+        setCheckoutDodoMode(e.dodoMode ?? null);
+      } else {
+        setError(e instanceof Error ? e.message : "Failed to start checkout. Please try again.");
+        setCheckoutDodoMode(null);
+      }
       setLoadingPlan(null);
     }
   }
@@ -168,7 +135,7 @@ function PricingPageInner() {
             Choose your plan
           </h1>
           <p className="mt-3 text-sm" style={{ color: "#00000060" }}>
-            All plans include core GEO analysis. Upgrade for more projects, prompts, and AI engines.
+            One plan today — full core GEO analysis. More tiers may return later.
           </p>
           {returnTo === routes.onboardingCompanyInfo && (
             <p
@@ -182,16 +149,40 @@ function PricingPageInner() {
 
         {/* Error */}
         {error && (
-          <p className="mb-6 text-sm rounded-lg px-4 py-3 text-center max-w-md mx-auto" style={{ color: "#F95C4B", backgroundColor: "#F95C4B10" }}>
-            {error}
-          </p>
+          <div className="mb-6 max-w-md mx-auto space-y-2">
+            <p
+              className="text-sm rounded-lg px-4 py-3 text-center"
+              style={{ color: "#F95C4B", backgroundColor: "#F95C4B10" }}
+            >
+              {error}
+            </p>
+            {checkoutDodoMode === "test" && (
+              <p className="text-xs leading-relaxed text-center px-2" style={{ color: "#00000070" }}>
+                Test mode: in <code className="text-[11px]">ranking-be/.env</code> use{" "}
+                <code className="text-[11px]">DODO_LIVE_MODE=false</code>, a secret key from the Dodo
+                dashboard <strong>Test</strong> tab, and a product id created in Test (live product ids
+                will not work).
+              </p>
+            )}
+            {checkoutDodoMode === "live" && (
+              <p className="text-xs leading-relaxed text-center px-2" style={{ color: "#00000070" }}>
+                Live mode: use <code className="text-[11px]">DODO_LIVE_MODE=true</code>, a{" "}
+                <strong>Live</strong> secret key, and a Live product id in{" "}
+                <code className="text-[11px]">DODO_PRODUCT_ID_STARTER</code>.
+              </p>
+            )}
+          </div>
         )}
 
         {/* Plans grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-5 max-w-md mx-auto w-full">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isLoading = loadingPlan === plan.id;
+            const priceLabel =
+              Math.round(plan.price) === plan.price
+                ? `${plan.price}`
+                : plan.price.toFixed(2);
 
             return (
               <div
@@ -221,7 +212,7 @@ function PricingPageInner() {
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-bold" style={{ color: "#000000" }}>
-                      {"\u00A3"}{plan.price}
+                      {"\u00A3"}{priceLabel}
                     </span>
                     <span className="text-sm" style={{ color: "#00000050" }}>{plan.period}</span>
                   </div>

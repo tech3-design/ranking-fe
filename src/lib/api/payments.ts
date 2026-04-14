@@ -1,5 +1,18 @@
 import { apiClient } from "./client";
 
+/** Backend `dodo_mode` when checkout fails (no secrets). */
+export type DodoMode = "live" | "test";
+
+export class CheckoutSessionError extends Error {
+  readonly dodoMode?: DodoMode;
+
+  constructor(message: string, dodoMode?: DodoMode) {
+    super(message);
+    this.name = "CheckoutSessionError";
+    this.dodoMode = dodoMode;
+  }
+}
+
 export interface PlanLimits {
   label: string;
   price_gbp: number;
@@ -24,11 +37,26 @@ export async function createCheckoutSession(
   email: string,
   plan: string = "starter",
 ): Promise<{ checkout_url: string }> {
-  const { data } = await apiClient.post<{ checkout_url: string }>(
-    "/api/payments/create-checkout/",
-    { email, plan },
-  );
-  return data;
+  try {
+    const { data } = await apiClient.post<{ checkout_url: string; error?: string }>(
+      "/api/payments/create-checkout/",
+      { email, plan },
+    );
+    return data;
+  } catch (err: unknown) {
+    const ax = err as {
+      response?: { data?: { error?: string; dodo_mode?: string } };
+      message?: string;
+    };
+    const msg =
+      ax.response?.data?.error ||
+      ax.message ||
+      "Failed to start checkout. Please try again.";
+    const raw = ax.response?.data?.dodo_mode;
+    const dodoMode: DodoMode | undefined =
+      raw === "live" || raw === "test" ? raw : undefined;
+    throw new CheckoutSessionError(msg, dodoMode);
+  }
 }
 
 export async function getSubscriptionStatus(

@@ -13,6 +13,7 @@ import {
   safeInternalReturnPath,
 } from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
+import Link from "next/link";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 /** Read and remove post-checkout redirect (same as before, exported for reuse). */
@@ -28,7 +29,7 @@ function consumePostCheckoutPath(): string {
 }
 
 export default function PaymentSuccessPage() {
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
   const [message, setMessage] = useState("Confirming your payment...");
   const [showSuccessIcon, setShowSuccessIcon] = useState(false);
@@ -133,6 +134,32 @@ export default function PaymentSuccessPage() {
       clearInterval(poll);
     };
   }, [session, router]);
+
+  if (isPending) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="mt-4 text-sm text-neutral-400">Loading your session…</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center max-w-md mx-auto">
+        <p className="text-sm text-neutral-300">
+          If you completed payment, sign in with the <strong>same email</strong> you used at
+          checkout so we can confirm your subscription and continue.
+        </p>
+        <Link
+          href={routes.signIn}
+          className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+        >
+          Sign in
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
