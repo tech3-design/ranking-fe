@@ -67,7 +67,7 @@ export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTab
       <div className="rounded-2xl bg-card p-6 border border-border">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Brand Visibility</h2>
+            <h2 className="text-lg font-semibold text-foreground">Brand Presence</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               How <span className="text-foreground font-medium">{brandName}</span> appears across the web
             </p>
@@ -85,7 +85,7 @@ export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTab
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{overall}/100</p>
-              <p className="text-xs text-muted-foreground">Brand visibility score</p>
+              <p className="text-xs text-muted-foreground">Brand presence score</p>
             </div>
           </div>
         </div>

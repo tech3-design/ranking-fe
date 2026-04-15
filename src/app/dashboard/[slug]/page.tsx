@@ -26,7 +26,6 @@ import { CommandPalette } from "@/components/ui/command-palette";
 import {
   SocialBrandReachCard,
   type SocialPresenceDetails,
-  type AiBrandFactsBlock,
 } from "@/components/analyzer/social-brand-reach-card";
 
 /* ── coral is theme-constant; everything else uses Tailwind classes ── */
@@ -630,7 +629,7 @@ export default function SignalorDashboard() {
                 "Your brand"
               }
               details={brandVis?.social_presence_details as SocialPresenceDetails | undefined}
-              aiBrandFacts={brandVis?.ai_brand_facts as AiBrandFactsBlock | undefined}
+              brandVisibility={brandVis}
               coral={CORAL}
             />
           </div>
