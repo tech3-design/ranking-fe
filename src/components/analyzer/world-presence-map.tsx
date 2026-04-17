@@ -8,7 +8,7 @@ interface TopoJson {
   type: "Topology";
   transform?: { scale: [number, number]; translate: [number, number] };
   objects: Record<string, { type: string; geometries: TopoGeometry[] }>;
-  arcs: number[][];
+  arcs: [number, number][][];
 }
 
 interface TopoGeometry {
@@ -19,7 +19,7 @@ interface TopoGeometry {
 
 function decodeArcs(topo: TopoJson): [number, number][][] {
   const { transform, arcs } = topo;
-  if (!transform) return arcs as unknown as [number, number][][];
+  if (!transform) return arcs;
   const [sx, sy] = transform.scale;
   const [tx, ty] = transform.translate;
   return arcs.map((arc) => {
