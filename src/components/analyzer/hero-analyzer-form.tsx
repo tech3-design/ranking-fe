@@ -182,7 +182,7 @@ export function HeroAnalyzerForm() {
             className="h-1 rounded-full transition-all duration-300"
             style={{
               width: step === s ? 24 : 8,
-              backgroundColor: step >= s ? "#FF4F18" : "var(--border)",
+              backgroundColor: step >= s ? "#E04D00" : "var(--border)",
             }}
           />
         ))}

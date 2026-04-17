@@ -108,7 +108,7 @@ export function SignalorLoader({ size = "md", label }: SignalorLoaderProps) {
       <div style={{ width: px, height: px }}>
         <svg ref={svgRef} viewBox="0 0 1080 1080" width={px} height={px}>
           {RINGS.map((d, i) => (
-            <path key={i} data-ring={i} d={d} fill="#FF4F18" />
+            <path key={i} data-ring={i} d={d} fill="#E04D00" />
           ))}
         </svg>
       </div>
