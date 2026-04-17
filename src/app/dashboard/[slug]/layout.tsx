@@ -30,6 +30,7 @@ import {
   ChevronsUpDown,
   Check,
   Loader2,
+  LogOut,
   type LucideIcon,
 } from "lucide-react";
 import LogoComp from "@/components/LogoComp";
@@ -71,15 +72,9 @@ const SETTINGS_NAV = [
 function AnalysisGate({ children }: { children: React.ReactNode }) {
   const { run, loading } = useRun();
   const isRunning = !!run && run.status !== "complete" && run.status !== "failed";
-
-  if (!loading && isRunning) {
-    return <AnalysisOverlay />;
-  }
-
+  if (!loading && isRunning) return <AnalysisOverlay />;
   return <>{children}</>;
-  
 }
-
 
 export default function DashboardSlugLayout({
   children,
@@ -89,13 +84,12 @@ export default function DashboardSlugLayout({
   const { slug } = useParams<{ slug: string }>();
   const pathname = usePathname();
   const { data: session } = useSession();
-
   const router = useRouter();
+
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInitialMessage, setChatInitialMessage] = useState<string | undefined>();
 
-  // Listen for "open-ai-chat" events from child components
   useEffect(() => {
     function handleOpenChat(e: Event) {
       const detail = (e as CustomEvent).detail;
@@ -105,6 +99,7 @@ export default function DashboardSlugLayout({
     window.addEventListener("open-ai-chat", handleOpenChat);
     return () => window.removeEventListener("open-ai-chat", handleOpenChat);
   }, []);
+
   const [isPro, setIsPro] = useState(false);
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
   const [switchingOrg, setSwitchingOrg] = useState(false);
@@ -119,39 +114,27 @@ export default function DashboardSlugLayout({
 
   const basePath = `/dashboard/${slug}`;
 
-  // Close menu on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false);
-      }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setUserMenuOpen(false);
     }
     if (userMenuOpen) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [userMenuOpen]);
 
-  // Check subscription
   useEffect(() => {
     if (!userEmail) return;
-    getSubscriptionStatus(userEmail)
-      .then((s) => setIsPro(s.is_active))
-      .catch(() => { });
+    getSubscriptionStatus(userEmail).then((s) => setIsPro(s.is_active)).catch(() => {});
   }, [userEmail]);
 
-  // Load orgs
   useEffect(() => {
     if (!userEmail) return;
-    getOrganizations(userEmail)
-      .then((orgs) => setOrganizations(orgs))
-      .catch(() => {});
+    getOrganizations(userEmail).then((orgs) => setOrganizations(orgs)).catch(() => {});
   }, [userEmail, setOrganizations]);
 
-  // Close org dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (orgRef.current && !orgRef.current.contains(e.target as Node)) {
-        setOrgDropdownOpen(false);
-      }
+      if (orgRef.current && !orgRef.current.contains(e.target as Node)) setOrgDropdownOpen(false);
     }
     if (orgDropdownOpen) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -165,11 +148,8 @@ export default function DashboardSlugLayout({
     try {
       const runs = await getRunList(userEmail, org.id);
       const latestRun = runs.find((r) => r.status !== "failed") ?? runs[0];
-      if (latestRun) {
-        router.push(routes.dashboardProject(latestRun.slug));
-      } else {
-        router.push(routes.dashboard);
-      }
+      if (latestRun) router.push(routes.dashboardProject(latestRun.slug));
+      else router.push(routes.dashboard);
     } catch {
       router.push(routes.dashboard);
     } finally {
@@ -191,63 +171,62 @@ export default function DashboardSlugLayout({
   const promptsOverviewPath = `${basePath}/prompts`;
   const isPromptsOverview = pathname === promptsOverviewPath;
 
+  const orgName = activeOrg?.name || organizations[0]?.name || "My Workspace";
+
   return (
     <RunProvider slug={slug}>
     <AnalysisGate>
-    <div className="flex h-screen w-full bg-transparent font-sans text-foreground overflow-hidden">
+    <div className="flex h-screen w-full bg-[#F2F3F5] font-sans text-foreground overflow-hidden">
+
       {/* ═══ LEFT SIDEBAR ═══ */}
-      <aside className="w-[220px] flex-shrink-0 flex flex-col h-full bg-card border-r border-border px-3 py-4">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 px-2 mb-5">
+      <aside className="w-[230px] shrink-0 flex flex-col h-full bg-white shadow-[1px_0_0_0_#E5E7EB]">
+
+        {/* Logo + brand */}
+        <div className="flex items-center justify-between px-5 py-5 border-b border-[#F0F0F0]">
           <LogoComp />
         </div>
 
-        {/* Org Switcher */}
+        {/* Org block */}
         {organizations.length > 0 && (
-          <div className="relative mb-5" ref={orgRef}>
+          <div className="relative px-4 pt-4 pb-2" ref={orgRef}>
             <button
               onClick={() => setOrgDropdownOpen(!orgDropdownOpen)}
               disabled={switchingOrg}
-              className="flex items-center gap-2.5 w-full px-2.5 py-2 border border-border bg-background hover:bg-accent transition text-left disabled:opacity-60"
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-[#F8F8F8] hover:bg-[#F0F0F0] transition text-left disabled:opacity-60 border border-[#EBEBEB]"
             >
-              <div className="w-7 h-7 bg-foreground/[0.04] flex items-center justify-center shrink-0">
-                <Building2 className="w-3.5 h-3.5 text-foreground/70" />
+              <div className="w-7 h-7 rounded-lg bg-[#F95C4B]/10 flex items-center justify-center shrink-0">
+                <Building2 className="w-3.5 h-3.5 text-[#F95C4B]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-foreground truncate tracking-[-0.01em]">
-                  {switchingOrg ? "Switching..." : (activeOrg?.name || organizations[0]?.name || "Select org")}
+                <p className="text-[12px] font-semibold text-gray-800 truncate">
+                  {switchingOrg ? "Switching…" : orgName}
                 </p>
-                <p className="text-[10px] text-muted-foreground truncate">
-                  {activeOrg?.url || organizations[0]?.url || ""}
-                </p>
+                <p className="text-[10px] text-gray-400 truncate">{isPro ? "Pro Plan" : "Free Plan"}</p>
               </div>
-              {switchingOrg ? (
-                <Loader2 className="w-3.5 h-3.5 text-muted-foreground animate-spin shrink-0" />
-              ) : (
-                <ChevronsUpDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              )}
+              {switchingOrg
+                ? <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin shrink-0" />
+                : <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />}
             </button>
 
             {orgDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-border shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
+              <div className="absolute left-4 right-4 top-full mt-1 bg-white rounded-xl border border-[#EBEBEB] shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
                 {organizations.map((org) => {
-                  const isActive = org.id === activeOrg?.id;
+                  const active = org.id === activeOrg?.id;
                   return (
                     <button
                       key={org.id}
                       onClick={() => handleSwitchOrg(org)}
-                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors ${
-                        isActive ? "bg-accent" : "hover:bg-accent"
-                      }`}
+                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors rounded-lg mx-1 ${active ? "bg-[#F95C4B]/08" : "hover:bg-[#F8F8F8]"}`}
+                      style={{ width: "calc(100% - 8px)" }}
                     >
-                      <div className="w-6 h-6 bg-foreground/[0.04] flex items-center justify-center shrink-0">
-                        <Building2 className="w-3 h-3 text-foreground/70" />
+                      <div className="w-6 h-6 rounded-md bg-[#F95C4B]/10 flex items-center justify-center shrink-0">
+                        <Building2 className="w-3 h-3 text-[#F95C4B]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-medium text-foreground truncate">{org.name}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{org.url || "No URL"}</p>
+                        <p className="text-[12px] font-medium text-gray-800 truncate">{org.name}</p>
+                        <p className="text-[10px] text-gray-400 truncate">{org.url || "No URL"}</p>
                       </div>
-                      {isActive && <Check className="w-3.5 h-3.5 text-foreground shrink-0" />}
+                      {active && <Check className="w-3.5 h-3.5 text-[#F95C4B] shrink-0" />}
                     </button>
                   );
                 })}
@@ -256,160 +235,171 @@ export default function DashboardSlugLayout({
           </div>
         )}
 
-        {/* Back to Dashboard (when in settings) */}
+        {/* Back to Dashboard in settings */}
         {isSettingsPage && (
-          <Link
-            href={basePath}
-            className="flex items-center gap-2 px-2 py-2 mb-3 text-[13px] font-medium text-muted-foreground hover:text-foreground transition"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Dashboard
-          </Link>
-        )}
-
-        {/* Section label */}
-        {isSettingsPage ? (
-          <p className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-            Settings
-          </p>
-        ) : (
-          <p className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-            Navigation
-          </p>
-        )}
-
-        {/* Nav */}
-        <nav className="flex flex-col gap-0.5 mb-auto">
-          {isSettingsPage
-            ? SETTINGS_NAV.map((item) => {
-                const active = isActive(item.path);
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.label}
-                    href={basePath + item.path}
-                    className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition ${active
-                        ? "text-foreground bg-accent border-l-2 border-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-                      }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {item.label}
-                  </Link>
-                );
-              })
-            : MAIN_NAV.map((item) => {
-                const Icon = item.icon;
-                if (item.children && item.children.length > 0) {
-                  const groupActive = isActive(item.path);
-                  return (
-                    <div key={item.label} className="flex flex-col gap-0.5">
-                      <Link
-                        href={promptsOverviewPath}
-                        className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-semibold tracking-[-0.01em] transition rounded-md ${
-                          isPromptsOverview
-                            ? "text-foreground bg-accent border-l-2 border-foreground"
-                            : groupActive
-                              ? "text-foreground hover:bg-accent/60"
-                              : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-                        }`}
-                      >
-                        <Icon className="w-4 h-4 shrink-0" />
-                        {item.label}
-                      </Link>
-                      <div className="flex flex-col gap-0.5 ml-2 pl-3 border-l border-border/70 mt-1">
-                        {item.children.map((sub) => {
-                          const subActive = isPromptSubActive(sub.path);
-                          return (
-                            <Link
-                              key={sub.path}
-                              href={basePath + sub.path}
-                              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium tracking-[-0.01em] transition rounded-md ${
-                                subActive
-                                  ? "text-foreground bg-accent border-l-2 border-foreground -ml-px pl-[9px]"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-                              }`}
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-full ${subActive ? "bg-primary" : "bg-muted-foreground/40"}`} />
-                              {sub.label}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                }
-                const active = isActive(item.path);
-                return (
-                  <Link
-                    key={item.label}
-                    href={basePath + item.path}
-                    className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition ${active
-                        ? "text-foreground bg-accent border-l-2 border-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-                      }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-        </nav>
-
-        {/* User — expandable upward */}
-        <div className="relative mt-auto pt-4 border-t border-border" ref={menuRef}>
-          {/* Popover — expands upward */}
-          {userMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-1 bg-card p-2.5 shadow-lg z-50 border border-border">
-              {/* Profile info */}
-              <div className="flex items-center gap-3 px-1 pb-2.5 mb-2 border-b border-border">
-                <UserAvatar src={userImage} initials={userInitials} size={36} />
-                <div className="min-w-0">
-                  <p className="text-[13px] font-semibold text-foreground truncate">{userName}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{userEmail}</p>
-                </div>
-              </div>
-
-              {/* Menu items */}
-              <div className="flex flex-col gap-0.5">
-                <Link
-                  href={basePath + "/settings/profile"}
-                  onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-2.5 px-2 py-1.5 text-[13px] text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                >
-                  <Settings className="w-3.5 h-3.5" />
-                  Settings
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Trigger button */}
-          <button
-            onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="flex items-center gap-2.5 px-2 py-2 w-full transition hover:bg-accent"
-          >
-            <UserAvatar src={userImage} initials={userInitials} size={30} />
-            <div className="flex-1 min-w-0 text-left">
-              <p className="text-[13px] font-medium text-foreground truncate">{userName}</p>
-            </div>
-            {userMenuOpen
-              ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            }
-          </button>
-        </div>
-
-        {/* CTA — hidden for Pro users */}
-        {!isPro && (
-          <div className="mt-3 p-3 border border-border bg-background">
-            <p className="text-[13px] font-semibold text-foreground mb-0.5">Boost Your AI Visibility</p>
-            <p className="text-[11px] text-muted-foreground mb-2.5">Elevate Your Site&apos;s Authority</p>
-            <Link href="/pricing" className="block w-full bg-primary text-white text-[12px] font-semibold py-2 transition hover:opacity-88 text-center">
-              Get Signalor Pro
+          <div className="px-4 pt-2">
+            <Link
+              href={basePath}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium text-gray-500 hover:text-gray-800 hover:bg-[#F5F5F5] transition"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Back to Dashboard
             </Link>
           </div>
         )}
+
+        {/* Nav */}
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
+          {/* Section label */}
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 px-1">
+            {isSettingsPage ? "Settings" : "Main Menu"}
+          </p>
+
+          <nav className="flex flex-col gap-0.5">
+            {isSettingsPage
+              ? SETTINGS_NAV.map((item) => {
+                  const active = isActive(item.path);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.label}
+                      href={basePath + item.path}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
+                        active
+                          ? "bg-[#F95C4B] text-white shadow-sm shadow-[#F95C4B]/20"
+                          : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      {item.label}
+                    </Link>
+                  );
+                })
+              : MAIN_NAV.map((item) => {
+                  const Icon = item.icon;
+
+                  if (item.children && item.children.length > 0) {
+                    const groupActive = isActive(item.path);
+                    return (
+                      <div key={item.label} className="flex flex-col gap-0.5">
+                        <Link
+                          href={promptsOverviewPath}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
+                            isPromptsOverview
+                              ? "bg-[#F95C4B] text-white shadow-sm shadow-[#F95C4B]/20"
+                              : groupActive
+                              ? "text-gray-800 bg-[#F5F5F5]"
+                              : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
+                          }`}
+                        >
+<Icon className="w-4 h-4 shrink-0" />
+                          {item.label}
+                        </Link>
+                        <div className="flex flex-col gap-0.5 ml-4 pl-3 border-l-2 border-[#F0F0F0] mt-0.5 mb-1">
+                          {item.children.map((sub) => {
+                            const subActive = isPromptSubActive(sub.path);
+                            return (
+                              <Link
+                                key={sub.path}
+                                href={basePath + sub.path}
+                                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
+                                  subActive
+                                    ? "bg-[#F95C4B]/10 text-[#F95C4B]"
+                                    : "text-gray-400 hover:text-gray-700 hover:bg-[#F5F5F5]"
+                                }`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${subActive ? "bg-[#F95C4B]" : "bg-gray-300"}`} />
+                                {sub.label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  const active = isActive(item.path);
+                  return (
+                    <Link
+                      key={item.label}
+                      href={basePath + item.path}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
+                        active
+                          ? "bg-[#F95C4B] text-white shadow-sm shadow-[#F95C4B]/20"
+                          : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+          </nav>
+
+          {/* Account section */}
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-5 mb-2 px-1">Account</p>
+          <nav className="flex flex-col gap-0.5">
+            <Link
+              href={basePath + "/settings/profile"}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
+                isActive("/settings/profile")
+                  ? "bg-[#F95C4B] text-white"
+                  : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
+              }`}
+            >
+              <Settings className="w-4 h-4 shrink-0" />
+              Settings
+            </Link>
+            {!isPro && (
+              <Link
+                href="/pricing"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800 transition-all"
+              >
+                <CreditCard className="w-4 h-4 shrink-0" />
+                Upgrade Plan
+              </Link>
+            )}
+          </nav>
+        </div>
+
+        {/* User profile at bottom */}
+        <div className="border-t border-[#F0F0F0] px-4 py-3" ref={menuRef}>
+          {userMenuOpen && (
+            <div className="absolute bottom-[72px] left-4 right-4 mb-1 bg-white rounded-xl shadow-lg border border-[#EBEBEB] p-2 z-50">
+              <div className="flex items-center gap-2.5 px-2 py-2 mb-1 border-b border-[#F5F5F5]">
+                <UserAvatar src={userImage} initials={userInitials} size={32} />
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold text-gray-800 truncate">{userName}</p>
+                  <p className="text-[10px] text-gray-400 truncate">{userEmail}</p>
+                </div>
+              </div>
+              <Link
+                href={basePath + "/settings/profile"}
+                onClick={() => setUserMenuOpen(false)}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-[12px] text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800 transition-colors"
+              >
+                <Settings className="w-3.5 h-3.5" /> Settings
+              </Link>
+              <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-[12px] text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800 transition-colors w-full text-left">
+                <LogOut className="w-3.5 h-3.5" /> Sign out
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            className="flex items-center gap-2.5 w-full rounded-xl px-2 py-2 hover:bg-[#F5F5F5] transition"
+          >
+            <UserAvatar src={userImage} initials={userInitials} size={32} />
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-[12px] font-semibold text-gray-800 truncate">{userName}</p>
+              <p className="text-[10px] text-gray-400 truncate">{isPro ? "Pro Plan" : "Free Plan"}</p>
+            </div>
+            {userMenuOpen
+              ? <ChevronUp className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+              : <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />}
+          </button>
+        </div>
       </aside>
 
       {/* ═══ CENTER CONTENT ═══ */}
@@ -418,18 +408,17 @@ export default function DashboardSlugLayout({
           {children}
         </div>
 
-        {/* Footer — always at bottom */}
-        <footer className="shrink-0 px-6 py-4 flex items-center justify-between text-[11px] text-muted-foreground border-t border-border">
-          <p>Copyright &copy; 2026 Signalor Ltd.</p>
+        {/* Footer */}
+        <footer className="shrink-0 px-6 py-3 flex items-center justify-between text-[11px] text-gray-400 border-t border-[#E8E8E8] bg-white">
+          <p>© {new Date().getFullYear()} Signalor Ltd.</p>
           <div className="flex items-center gap-4">
-            <a href="/privacy-policy" className="hover:text-foreground transition">Privacy Policy</a>
-            <a href="/terms-and-conditions" className="hover:text-foreground transition">Terms & conditions</a>
-            <a href="#" className="hover:text-foreground transition">Contact</a>
+            <a href="/privacy-policy" className="hover:text-gray-600 transition">Privacy Policy</a>
+            <a href="/terms-and-conditions" className="hover:text-gray-600 transition">Terms</a>
           </div>
         </footer>
       </main>
 
-      {/* ═══ RIGHT: AI CHAT ═══ */}
+      {/* ═══ AI CHAT ═══ */}
       <AiChat
         slug={slug}
         brandName={activeOrg?.name || organizations[0]?.name}
@@ -438,11 +427,11 @@ export default function DashboardSlugLayout({
         initialMessage={chatInitialMessage}
       />
 
-      {/* Chat toggle button — fixed bottom right */}
+      {/* Chat toggle */}
       {!chatOpen && (
         <button
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-white shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-[#F95C4B] px-4 py-3 text-white shadow-lg shadow-[#F95C4B]/25 hover:shadow-xl hover:scale-105 transition-all"
         >
           <Sparkles className="w-4 h-4" />
           <span className="text-xs font-semibold">AI Assistant</span>

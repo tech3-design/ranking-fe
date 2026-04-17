@@ -406,67 +406,67 @@ export default function SignalorDashboard() {
 
   return (
     <>
-      {/* ── Sticky Top Bar (compact) ── */}
-      <header className="sticky top-0 z-20 px-6 py-2.5 flex items-center justify-end gap-3 bg-background border-b border-border">
-        <button
-          onClick={() => setPaletteOpen(true)}
-          className="flex items-center gap-2 bg-card rounded-xl py-2 pl-3 pr-3 text-sm border border-border text-muted-foreground hover:bg-accent transition w-52"
-        >
-          <Search className="w-4 h-4 shrink-0" />
-          <span className="flex-1 text-left text-xs">Search...</span>
-          <kbd className="text-[10px] font-mono bg-accent border border-border rounded px-1.5 py-0.5">⌘K</kbd>
-        </button>
-        <button
-          onClick={handleReanalyze}
-          disabled={reanalyzing || isRunning}
-          className="flex items-center gap-1.5 bg-card rounded-xl px-4 py-2 text-xs font-medium transition disabled:opacity-50 hover:opacity-80 border border-border text-foreground"
-        >
-          <RefreshCw className="w-3.5 h-3.5" /> Re-analyze
-        </button>
-        <button
-          onClick={handleDownloadPDF}
-          disabled={!run || isRunning}
-          className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-medium text-white transition disabled:opacity-50 hover:opacity-90"
-          style={{ backgroundColor: CORAL }}
-        >
-          <Download className="w-3.5 h-3.5" /> Download PDF
-        </button>
+      {/* ── Top Bar ── */}
+      <header className="sticky top-0 z-20 px-6 py-3 flex items-center justify-between gap-3 bg-white border-b border-[#EBEBEB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        {/* Left: title + subtitle */}
+        <div>
+          <h1 className="text-[17px] font-bold text-gray-800 leading-tight">Dashboard</h1>
+          <p className="text-[11px] text-gray-400 leading-tight">
+            {greeting}, <span className="font-medium" style={{ color: CORAL }}>{session?.user?.name?.split(" ")[0] || "there"}</span> — track your GEO score and AI visibility
+          </p>
+        </div>
+
+        {/* Right: search + actions */}
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="flex items-center gap-2 bg-[#F5F5F5] rounded-xl py-2 pl-3 pr-3 text-sm border border-[#E8E8E8] text-gray-400 hover:bg-[#EEEEEE] transition w-44"
+          >
+            <Search className="w-3.5 h-3.5 shrink-0" />
+            <span className="flex-1 text-left text-[12px]">Search…</span>
+            <kbd className="text-[10px] font-mono bg-white border border-[#E0E0E0] rounded px-1.5 py-0.5 text-gray-400">⌘K</kbd>
+          </button>
+          <button
+            onClick={handleReanalyze}
+            disabled={reanalyzing || isRunning}
+            className="flex items-center gap-1.5 bg-[#F5F5F5] rounded-xl px-3.5 py-2 text-[12px] font-medium transition disabled:opacity-50 hover:bg-[#EEEEEE] border border-[#E8E8E8] text-gray-600"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Re-analyze
+          </button>
+          <button
+            onClick={handleDownloadPDF}
+            disabled={!run || isRunning}
+            className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-semibold text-white transition disabled:opacity-50 hover:opacity-90 shadow-sm"
+            style={{ backgroundColor: CORAL }}
+          >
+            <Download className="w-3.5 h-3.5" /> Export PDF
+          </button>
+        </div>
       </header>
 
-      {/* ── Greeting + URL (scrollable) ── */}
-      <div className="px-6 pt-5 pb-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-none text-foreground">
-          {greeting}, <span style={{ color: CORAL }}>{session?.user?.name?.split(" ")[0] || "there"}</span>
-          <span style={{ color: CORAL }}>.</span>
-        </h1>
-        <p className="text-sm mt-1.5 text-muted-foreground">
-          Stay on top of your GEO score, monitor visibility, and track progress.
-        </p>
-
-        {/* URL bar */}
-        {run?.url && (
-          <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 bg-card mt-4 border border-border">
-            <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: `${CORAL}15` }}>
-              <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
-            </div>
-            <span className="text-xs font-medium truncate text-muted-foreground">{run.url}</span>
-            {run.brand_name && (
-              <span className="ml-auto text-[10px] font-semibold rounded-md px-2 py-0.5 shrink-0" style={{ backgroundColor: `${CORAL}10`, color: CORAL }}>
-                {run.brand_name}
-              </span>
-            )}
+      {/* ── URL bar ── */}
+      {run?.url && (
+        <div className="mx-6 mt-4 flex items-center gap-2 rounded-xl px-4 py-2.5 bg-white border border-[#EBEBEB] shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: `${CORAL}15` }}>
+            <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
           </div>
-        )}
-      </div>
+          <span className="text-[12px] font-medium truncate text-gray-500">{run.url}</span>
+          {run.brand_name && (
+            <span className="ml-auto text-[11px] font-semibold rounded-lg px-2.5 py-0.5 shrink-0" style={{ backgroundColor: `${CORAL}10`, color: CORAL }}>
+              {run.brand_name}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Dashboard content */}
       {run && !isRunning && (
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 pt-4">
           {/* ── ROW 1 ── */}
           <div className="grid grid-cols-12 gap-4 mb-4">
-            {/* GEO Score Card — special coral gradient, kept as-is */}
+            {/* GEO Score Card */}
             <div className="col-span-4 rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(145deg, ${CORAL} 0%, #FF7A6B 50%, #FF9080 100%)`, border: "none" }}>
               {/* Decorative circles */}
               <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.12)" }} />
@@ -516,7 +516,7 @@ export default function SignalorDashboard() {
             </div>
 
             {/* GEO Score History */}
-            <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
+            <div className="col-span-4 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-foreground">GEO Score History</p>
                 {/* Range dropdown */}
@@ -591,7 +591,7 @@ export default function SignalorDashboard() {
             </div>
 
             {/* Pillar Breakdown — horizontal bars */}
-            <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
+            <div className="col-span-4 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-foreground">Pillar Breakdown</p>
                 <button className="text-muted-foreground"><MoreHorizontal className="w-4 h-4" /></button>
@@ -638,7 +638,7 @@ export default function SignalorDashboard() {
           {/* ── ROW 2 ── */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             {/* Top Issues */}
-            <div className="col-span-5 bg-card rounded-2xl p-5 border border-border">
+            <div className="col-span-5 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-foreground">Top Issues</p>
                 <Link
@@ -654,7 +654,7 @@ export default function SignalorDashboard() {
                   <Link
                     key={i}
                     href={`/dashboard/${slug}/recommendations`}
-                    className="rounded-xl p-4 transition hover:shadow-sm group bg-background border border-border"
+                    className="rounded-xl p-4 transition hover:shadow-sm group bg-[#FAFAFA] border border-[#EBEBEB]"
                   >
                     <div className="flex items-start gap-2 mb-1.5">
                       <span
@@ -672,7 +672,7 @@ export default function SignalorDashboard() {
             </div>
 
             {/* Visibility by Platform */}
-            <div className="col-span-4 bg-card rounded-2xl p-6 border border-border">
+            <div className="col-span-4 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
               <p className="text-sm font-semibold mb-5 text-foreground">Visibility by Platform</p>
               {visibilityBars.length > 0 ? (
                 <div className="flex items-end gap-5 px-2" style={{ height: 180 }}>
@@ -742,7 +742,7 @@ export default function SignalorDashboard() {
             </div>
 
             {/* AI Engine Probes — pie chart */}
-            <div className="col-span-3 bg-card rounded-2xl p-5 border border-border flex flex-col">
+            <div className="col-span-3 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)] flex flex-col">
               <p className="text-sm font-semibold text-foreground mb-3">AI Engine Probes</p>
               {sentiment ? (() => {
                 const mentionPct = sentiment.aiMentioned / sentiment.aiTotal;
@@ -799,7 +799,7 @@ export default function SignalorDashboard() {
           {(prediction.gain > 0 || sentiment) && (
             <div className="grid grid-cols-12 gap-4 mb-4">
               {/* 7-Day Prediction */}
-              <div className="col-span-7 bg-card rounded-2xl p-6 border border-border">
+              <div className="col-span-7 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
                 <div className="flex items-center justify-between mb-5">
                   <div>
                     <p className="text-sm font-semibold text-foreground">7-Day Score Prediction</p>
@@ -879,7 +879,7 @@ export default function SignalorDashboard() {
               </div>
 
               {/* Sentiment Analysis — -10 to +10 scale */}
-              <div className="col-span-5 bg-card rounded-2xl p-6 border border-border">
+              <div className="col-span-5 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
                 <p className="text-sm font-semibold mb-1 text-foreground">Sentiment Analysis</p>
                 <p className="text-xs mb-5 text-muted-foreground">What people say about your brand online</p>
 
@@ -964,7 +964,7 @@ export default function SignalorDashboard() {
           )}
 
           {/* ── ROW 3: Recommendations ── */}
-          <div className="bg-card rounded-2xl p-5 border border-border">
+          <div className="bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <p className="text-lg font-semibold text-foreground">Recommendations</p>
