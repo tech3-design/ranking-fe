@@ -19,7 +19,7 @@ interface TopoGeometry {
 
 function decodeArcs(topo: TopoJson): [number, number][][] {
   const { transform, arcs } = topo;
-  if (!transform) return arcs as [number, number][][];
+  if (!transform) return arcs as unknown as [number, number][][];
   const [sx, sy] = transform.scale;
   const [tx, ty] = transform.translate;
   return arcs.map((arc) => {
