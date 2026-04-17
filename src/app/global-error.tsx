@@ -34,7 +34,7 @@ export default function GlobalError({
           <button
             type="button"
             onClick={() => reset()}
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#E04D00] px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-92"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#FF4F18] px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-92"
           >
             <RefreshCw className="size-4" />
             Try again
