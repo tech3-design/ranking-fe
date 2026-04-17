@@ -467,53 +467,105 @@ export default function SignalorDashboard() {
           {/* ── ROW 1 ── */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             {/* GEO Score Card */}
-            <div className="col-span-4 rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(145deg, ${CORAL} 0%, #FF7A6B 50%, #FF9080 100%)`, border: "none" }}>
-              {/* Decorative circles */}
-              <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.12)" }} />
-              <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.08)" }} />
-              <div className="flex items-start gap-6 relative z-10">
-                <div className="flex flex-col items-center shrink-0">
-                  <p className="text-xs font-semibold mb-3 text-white/70">GEO Score</p>
-                  <div className="relative w-28 h-28">
-                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="7" />
-                      <circle
-                        cx="50" cy="50" r="40" fill="none"
-                        stroke="#FFFFFF" strokeWidth="7" strokeLinecap="round"
-                        strokeDasharray={`${compositeScore * 2.51} ${100 * 2.51}`}
-                      />
+            {(() => {
+              const toRad = (d: number) => (d * Math.PI) / 180;
+              const cx = 110, cy = 100, r = 86, sw = 15;
+              const N = 11;
+              const totalSpan = 240; // degrees the gauge spans
+              const slotDeg = totalSpan / N;   // ~21.8° per slot
+              const activeDeg = slotDeg - 4;   // active arc per segment
+              const startAngle = 210;          // bottom-left start
+              const fillN = Math.round((compositeScore / 100) * N);
+              const percentileLabel =
+                compositeScore >= 80 ? "10%" :
+                compositeScore >= 60 ? "25%" :
+                compositeScore >= 40 ? "40%" : "60%";
+
+              const segments = Array.from({ length: N }, (_, i) => {
+                const sDeg = startAngle - i * slotDeg;
+                const eDeg = sDeg - activeDeg;
+                const sx = (cx + r * Math.cos(toRad(sDeg))).toFixed(2);
+                const sy = (cy - r * Math.sin(toRad(sDeg))).toFixed(2);
+                const ex = (cx + r * Math.cos(toRad(eDeg))).toFixed(2);
+                const ey = (cy - r * Math.sin(toRad(eDeg))).toFixed(2);
+                return (
+                  <path key={i}
+                    d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${ex} ${ey}`}
+                    fill="none"
+                    stroke={i < fillN ? CORAL : "#EBEBEB"}
+                    strokeWidth={sw}
+                    strokeLinecap="round"
+                  />
+                );
+              });
+
+              return (
+                <div className="col-span-4 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_6px_rgba(0,0,0,0.06)]">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-[14px] font-bold text-gray-800">GEO Score</p>
+                    <button className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-[#F5F5F5] transition">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Top badge */}
+                  <div className="flex items-center gap-2 mt-3 rounded-xl px-3 py-2" style={{ backgroundColor: `${CORAL}0D` }}>
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 20 20" fill={CORAL}>
+                      <path d="M2 6l3 3L10 2l5 7 3-3-2 8H4L2 6z"/>
                     </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold text-white">{Math.round(compositeScore)}</span>
-                      {scoreChange !== null && (
-                        <span className="text-[11px] font-semibold text-white/80">
-                          {scoreChange >= 0 ? "+" : ""}{scoreChange} pts
+                    <p className="text-[12px] font-medium text-gray-600">
+                      You&apos;re in the <span className="font-bold" style={{ color: CORAL }}>top {percentileLabel}</span> of sites analyzed
+                    </p>
+                  </div>
+
+                  {/* Gauge */}
+                  <div className="relative -mx-1 mt-1">
+                    <svg viewBox="0 0 220 158" className="w-full">
+                      {segments}
+                      <text x="110" y="128" textAnchor="middle" fontFamily="inherit" fontWeight="800" fontSize="33" fill="#1F2937">
+                        {Math.round(compositeScore)}%
+                      </text>
+                      <text x="110" y="147" textAnchor="middle" fontFamily="inherit" fontWeight="500" fontSize="11" fill="#9CA3AF" letterSpacing="0.5">
+                        GEO Score
+                      </text>
+                    </svg>
+                    {scoreChange !== null && (
+                      <div className="absolute top-2 right-3 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+                        style={{ backgroundColor: scoreChange >= 0 ? "#22c55e15" : `${CORAL}15`, color: scoreChange >= 0 ? "#22c55e" : CORAL }}>
+                        {scoreChange >= 0 ? "↑" : "↓"} {Math.abs(scoreChange)} pts
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom stats */}
+                  <div className="grid grid-cols-2 gap-2 -mt-1">
+                    <Link href={`/dashboard/${slug}/recommendations`}
+                      className="rounded-xl p-3 hover:bg-[#FAFAFA] transition border border-[#F0F0F0]">
+                      <p className="text-[10px] font-semibold text-gray-400 mb-1">Recommendations</p>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[22px] font-black text-gray-800 leading-none">{recommendations.length}</span>
+                        {criticalCount > 0 && (
+                          <span className="rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white" style={{ backgroundColor: CORAL }}>
+                            {criticalCount} critical
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                    <Link href={`/dashboard/${slug}/recommendations`}
+                      className="rounded-xl p-3 hover:bg-[#FAFAFA] transition border border-[#F0F0F0]">
+                      <p className="text-[10px] font-semibold text-gray-400 mb-1">Priority Issues</p>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[22px] font-black text-gray-800 leading-none">{criticalCount + highCount}</span>
+                        <span className="rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white bg-gray-800">
+                          {highCount} high
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    </Link>
                   </div>
                 </div>
-
-                <div className="flex flex-col gap-3 flex-1 pt-1">
-                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:brightness-110" style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                    <p className="text-xs mb-1 text-white/60">Recommendations</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-white">{recommendations.length}</span>
-                      {criticalCount > 0 && (
-                        <span className="text-xs text-white/70">{criticalCount} critical</span>
-                      )}
-                    </div>
-                  </Link>
-                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:brightness-110" style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                    <p className="text-xs mb-1 text-white/60">Priority Issues</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-white">{criticalCount + highCount}</span>
-                      <span className="text-xs text-white/60">{criticalCount} critical / {highCount} high</span>
-                    </div>
-                  </Link>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* GEO Score History */}
             <div className="col-span-4 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
