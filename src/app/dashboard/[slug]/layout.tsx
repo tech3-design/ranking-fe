@@ -194,8 +194,8 @@ export default function DashboardSlugLayout({
               disabled={switchingOrg}
               className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-[#F8F8F8] hover:bg-[#F0F0F0] transition text-left disabled:opacity-60 border border-[#EBEBEB]"
             >
-              <div className="w-7 h-7 rounded-lg bg-[#F95C4B]/10 flex items-center justify-center shrink-0">
-                <Building2 className="w-3.5 h-3.5 text-[#F95C4B]" />
+              <div className="w-7 h-7 rounded-lg bg-[#E04D00]/10 flex items-center justify-center shrink-0">
+                <Building2 className="w-3.5 h-3.5 text-[#E04D00]" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[12px] font-semibold text-gray-800 truncate">
@@ -216,17 +216,17 @@ export default function DashboardSlugLayout({
                     <button
                       key={org.id}
                       onClick={() => handleSwitchOrg(org)}
-                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors rounded-lg mx-1 ${active ? "bg-[#F95C4B]/08" : "hover:bg-[#F8F8F8]"}`}
+                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors rounded-lg mx-1 ${active ? "bg-[#E04D00]/08" : "hover:bg-[#F8F8F8]"}`}
                       style={{ width: "calc(100% - 8px)" }}
                     >
-                      <div className="w-6 h-6 rounded-md bg-[#F95C4B]/10 flex items-center justify-center shrink-0">
-                        <Building2 className="w-3 h-3 text-[#F95C4B]" />
+                      <div className="w-6 h-6 rounded-md bg-[#E04D00]/10 flex items-center justify-center shrink-0">
+                        <Building2 className="w-3 h-3 text-[#E04D00]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[12px] font-medium text-gray-800 truncate">{org.name}</p>
                         <p className="text-[10px] text-gray-400 truncate">{org.url || "No URL"}</p>
                       </div>
-                      {active && <Check className="w-3.5 h-3.5 text-[#F95C4B] shrink-0" />}
+                      {active && <Check className="w-3.5 h-3.5 text-[#E04D00] shrink-0" />}
                     </button>
                   );
                 })}
@@ -268,7 +268,7 @@ export default function DashboardSlugLayout({
                       href={basePath + item.path}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
                         active
-                          ? "bg-[#F95C4B] text-white shadow-sm shadow-[#F95C4B]/20"
+                          ? "bg-[#E04D00] text-white shadow-sm shadow-[#E04D00]/20"
                           : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
                       }`}
                     >
@@ -288,7 +288,7 @@ export default function DashboardSlugLayout({
                           href={promptsOverviewPath}
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
                             isPromptsOverview
-                              ? "bg-[#F95C4B] text-white shadow-sm shadow-[#F95C4B]/20"
+                              ? "bg-[#E04D00] text-white shadow-sm shadow-[#E04D00]/20"
                               : groupActive
                               ? "text-gray-800 bg-[#F5F5F5]"
                               : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
@@ -306,11 +306,11 @@ export default function DashboardSlugLayout({
                                 href={basePath + sub.path}
                                 className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
                                   subActive
-                                    ? "bg-[#F95C4B]/10 text-[#F95C4B]"
+                                    ? "bg-[#E04D00]/10 text-[#E04D00]"
                                     : "text-gray-400 hover:text-gray-700 hover:bg-[#F5F5F5]"
                                 }`}
                               >
-                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${subActive ? "bg-[#F95C4B]" : "bg-gray-300"}`} />
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${subActive ? "bg-[#E04D00]" : "bg-gray-300"}`} />
                                 {sub.label}
                               </Link>
                             );
@@ -327,7 +327,7 @@ export default function DashboardSlugLayout({
                       href={basePath + item.path}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
                         active
-                          ? "bg-[#F95C4B] text-white shadow-sm shadow-[#F95C4B]/20"
+                          ? "bg-[#E04D00] text-white shadow-sm shadow-[#E04D00]/20"
                           : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
                       }`}
                     >
@@ -345,7 +345,7 @@ export default function DashboardSlugLayout({
               href={basePath + "/settings/profile"}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
                 isActive("/settings/profile")
-                  ? "bg-[#F95C4B] text-white"
+                  ? "bg-[#E04D00] text-white"
                   : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
               }`}
             >
@@ -433,7 +433,7 @@ export default function DashboardSlugLayout({
       {!chatOpen && (
         <button
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-[#F95C4B] px-4 py-3 text-white shadow-lg shadow-[#F95C4B]/25 hover:shadow-xl hover:scale-105 transition-all"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-[#E04D00] px-4 py-3 text-white shadow-lg shadow-[#E04D00]/25 hover:shadow-xl hover:scale-105 transition-all"
         >
           <Sparkles className="w-4 h-4" />
           <span className="text-xs font-semibold">AI Assistant</span>

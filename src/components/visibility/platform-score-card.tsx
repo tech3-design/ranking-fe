@@ -3,8 +3,8 @@
 function getScoreColor(score: number): { text: string; bg: string; border: string } {
   if (score >= 70) return { text: "#22c55e", bg: "#22c55e15", border: "#22c55e30" };
   if (score >= 50) return { text: "#D97706", bg: "#D9770615", border: "#D9770630" };
-  if (score >= 30) return { text: "#F95C4B", bg: "#F95C4B15", border: "#F95C4B30" };
-  return { text: "#F95C4B", bg: "#F95C4B15", border: "#F95C4B30" };
+  if (score >= 30) return { text: "#E04D00", bg: "#E04D0015", border: "#E04D0030" };
+  return { text: "#E04D00", bg: "#E04D0015", border: "#E04D0030" };
 }
 
 interface PlatformScoreCardProps {
