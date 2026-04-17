@@ -14,7 +14,7 @@ import {
   Search,
   ChevronDown,
   Filter,
-  MoreHorizontal,
+  BarChart3,
   Download,
   RefreshCw,
   Loader2,
@@ -315,38 +315,6 @@ export default function SignalorDashboard() {
     return scoreHistory.filter((pt) => new Date(pt.date) >= cutoff);
   }, [scoreHistory, historyRange]);
 
-  const historyPath = useMemo(() => {
-    if (filteredHistory.length === 0) return null;
-    const recent = filteredHistory.slice(-12);
-    const w = 300;
-    const h = 100;
-
-    if (recent.length === 1) {
-      // Single point — show as a dot with a flat line
-      const y = h - (recent[0].composite_score / 100) * h;
-      const d = new Date(recent[0].date);
-      return {
-        line: `M 0 ${y.toFixed(1)} L ${w} ${y.toFixed(1)}`,
-        area: `M 0 ${y.toFixed(1)} L ${w} ${y.toFixed(1)} L ${w} ${h} L 0 ${h} Z`,
-        labels: [d.toLocaleDateString("en-US", { month: "short", day: "numeric" })],
-        points: [{ x: w / 2, y, score: recent[0].composite_score }],
-      };
-    }
-
-    const points = recent.map((pt, i) => {
-      const x = (i / (recent.length - 1)) * w;
-      const y = h - (pt.composite_score / 100) * h;
-      return { x, y, score: pt.composite_score };
-    });
-    const line = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
-    const area = `${line} L ${w} ${h} L 0 ${h} Z`;
-    const labels = recent.map((pt) => {
-      const d = new Date(pt.date);
-      return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    });
-    return { line, area, labels, points };
-  }, [filteredHistory]);
-
   // Loading
   if (loading) {
     return (
@@ -404,230 +372,301 @@ export default function SignalorDashboard() {
     );
   }
 
+  /* score colour helper */
+  function scoreColor(s: number) {
+    if (s >= 70) return "#22c55e";
+    if (s >= 40) return "#D97706";
+    return CORAL;
+  }
+  function scoreBg(s: number) {
+    if (s >= 70) return "#22c55e15";
+    if (s >= 40) return "#D9770615";
+    return `${CORAL}15`;
+  }
+
+  const aiMentionPct = sentiment ? Math.round((sentiment.aiMentioned / Math.max(sentiment.aiTotal, 1)) * 100) : null;
+
   return (
     <>
-      {/* ── Top Bar ── */}
+      {/* ══ STICKY HEADER ══ */}
       <header className="sticky top-0 z-20 px-6 py-3 flex items-center justify-between gap-3 bg-white border-b border-[#EBEBEB] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-        {/* Left: title + subtitle */}
         <div>
-          <h1 className="text-[17px] font-bold text-gray-800 leading-tight">Dashboard</h1>
-          <p className="text-[11px] text-gray-400 leading-tight">
-            {greeting}, <span className="font-medium" style={{ color: CORAL }}>{session?.user?.name?.split(" ")[0] || "there"}</span> — track your GEO score and AI visibility
+          <h1 className="text-[16px] font-bold text-gray-800 leading-tight">Overview</h1>
+          <p className="text-[11px] text-gray-400">
+            {greeting}, <span className="font-semibold" style={{ color: CORAL }}>{session?.user?.name?.split(" ")[0] || "there"}</span>
+            {run?.url && <> · <span className="font-medium text-gray-500 truncate max-w-[260px] inline-block align-bottom">{run.url}</span></>}
           </p>
         </div>
-
-        {/* Right: search + actions */}
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setPaletteOpen(true)}
-            className="flex items-center gap-2 bg-[#F5F5F5] rounded-xl py-2 pl-3 pr-3 text-sm border border-[#E8E8E8] text-gray-400 hover:bg-[#EEEEEE] transition w-44"
-          >
+        <div className="flex items-center gap-2">
+          <button onClick={() => setPaletteOpen(true)} className="flex items-center gap-2 bg-[#F5F5F5] rounded-xl py-[7px] pl-3 pr-2.5 border border-[#E8E8E8] text-gray-400 hover:bg-[#EEEEEE] transition w-40">
             <Search className="w-3.5 h-3.5 shrink-0" />
-            <span className="flex-1 text-left text-[12px]">Search…</span>
+            <span className="flex-1 text-left text-[11px]">Search…</span>
             <kbd className="text-[10px] font-mono bg-white border border-[#E0E0E0] rounded px-1.5 py-0.5 text-gray-400">⌘K</kbd>
           </button>
-          <button
-            onClick={handleReanalyze}
-            disabled={reanalyzing || isRunning}
-            className="flex items-center gap-1.5 bg-[#F5F5F5] rounded-xl px-3.5 py-2 text-[12px] font-medium transition disabled:opacity-50 hover:bg-[#EEEEEE] border border-[#E8E8E8] text-gray-600"
-          >
+          <button onClick={handleReanalyze} disabled={reanalyzing || isRunning}
+            className="flex items-center gap-1.5 bg-[#F5F5F5] rounded-xl px-3.5 py-[7px] text-[12px] font-medium transition disabled:opacity-50 hover:bg-[#EEEEEE] border border-[#E8E8E8] text-gray-600">
             <RefreshCw className="w-3.5 h-3.5" /> Re-analyze
           </button>
-          <button
-            onClick={handleDownloadPDF}
-            disabled={!run || isRunning}
-            className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-semibold text-white transition disabled:opacity-50 hover:opacity-90 shadow-sm"
-            style={{ backgroundColor: CORAL }}
-          >
+          <button onClick={handleDownloadPDF} disabled={!run || isRunning}
+            className="flex items-center gap-1.5 rounded-xl px-4 py-[7px] text-[12px] font-semibold text-white transition disabled:opacity-50 hover:opacity-90 shadow-sm"
+            style={{ backgroundColor: CORAL }}>
             <Download className="w-3.5 h-3.5" /> Export PDF
           </button>
         </div>
       </header>
 
-      {/* ── URL bar ── */}
-      {run?.url && (
-        <div className="mx-6 mt-4 flex items-center gap-2 rounded-xl px-4 py-2.5 bg-white border border-[#EBEBEB] shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-          <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: `${CORAL}15` }}>
-            <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-          </div>
-          <span className="text-[12px] font-medium truncate text-gray-500">{run.url}</span>
-          {run.brand_name && (
-            <span className="ml-auto text-[11px] font-semibold rounded-lg px-2.5 py-0.5 shrink-0" style={{ backgroundColor: `${CORAL}10`, color: CORAL }}>
-              {run.brand_name}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Dashboard content */}
       {run && !isRunning && (
-        <div className="px-6 pb-6 pt-4">
-          {/* ── ROW 1 ── */}
-          <div className="grid grid-cols-12 gap-4 mb-4">
-            {/* GEO Score Card */}
-            <div className="col-span-4 rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(145deg, ${CORAL} 0%, #FF7A6B 50%, #FF9080 100%)`, border: "none" }}>
-              {/* Decorative circles */}
-              <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.12)" }} />
-              <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.08)" }} />
-              <div className="flex items-start gap-6 relative z-10">
-                <div className="flex flex-col items-center shrink-0">
-                  <p className="text-xs font-semibold mb-3 text-white/70">GEO Score</p>
-                  <div className="relative w-28 h-28">
-                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="7" />
-                      <circle
-                        cx="50" cy="50" r="40" fill="none"
-                        stroke="#FFFFFF" strokeWidth="7" strokeLinecap="round"
-                        strokeDasharray={`${compositeScore * 2.51} ${100 * 2.51}`}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold text-white">{Math.round(compositeScore)}</span>
-                      {scoreChange !== null && (
-                        <span className="text-[11px] font-semibold text-white/80">
-                          {scoreChange >= 0 ? "+" : ""}{scoreChange} pts
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+        <div className="px-6 pt-5 pb-8 space-y-4">
 
-                <div className="flex flex-col gap-3 flex-1 pt-1">
-                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:brightness-110" style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                    <p className="text-xs mb-1 text-white/60">Recommendations</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-white">{recommendations.length}</span>
-                      {criticalCount > 0 && (
-                        <span className="text-xs text-white/70">{criticalCount} critical</span>
-                      )}
-                    </div>
-                  </Link>
-                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:brightness-110" style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                    <p className="text-xs mb-1 text-white/60">Priority Issues</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-white">{criticalCount + highCount}</span>
-                      <span className="text-xs text-white/60">{criticalCount} critical / {highCount} high</span>
-                    </div>
-                  </Link>
-                </div>
+          {/* ══ ROW A: HERO CARDS ══ */}
+          <div className="grid grid-cols-12 gap-4">
+
+            {/* ── GEO Score Gauge Card ── */}
+            <div className="col-span-4 bg-white rounded-3xl p-6 border border-[#EBEBEB] shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+              {/* Top badge */}
+              <div className="flex items-center gap-2 mb-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold" style={{ backgroundColor: `${CORAL}12`, color: CORAL }}>
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                  GEO Score Overview
+                </span>
+              </div>
+
+              {/* Gauge SVG */}
+              <div className="relative">
+                <svg viewBox="0 0 200 115" className="w-full">
+                  {(() => {
+                    const cx = 100, cy = 105, r = 78, sw = 14;
+                    const N = 10;
+                    const fillN = Math.round((compositeScore / 100) * N);
+                    const toRad = (d: number) => (d * Math.PI) / 180;
+                    const segSpan = 16, totalSpan = 18;
+                    return Array.from({ length: N }, (_, i) => {
+                      const startDeg = 180 - i * totalSpan;
+                      const endDeg = startDeg - segSpan;
+                      const sx = cx + r * Math.cos(toRad(startDeg));
+                      const sy = cy - r * Math.sin(toRad(startDeg));
+                      const ex = cx + r * Math.cos(toRad(endDeg));
+                      const ey = cy - r * Math.sin(toRad(endDeg));
+                      const color = i < fillN ? CORAL : "#F0F0F0";
+                      return (
+                        <path key={i}
+                          d={`M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${r} ${r} 0 0 0 ${ex.toFixed(1)} ${ey.toFixed(1)}`}
+                          fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" />
+                      );
+                    });
+                  })()}
+                  {/* Center score */}
+                  <text x="100" y="100" textAnchor="middle" fontWeight="800" fontSize="28" fill="#1F2937">{Math.round(compositeScore)}</text>
+                  <text x="100" y="112" textAnchor="middle" fontWeight="500" fontSize="10" fill="#9CA3AF">out of 100</text>
+                </svg>
+                {scoreChange !== null && (
+                  <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold"
+                    style={{ backgroundColor: scoreChange >= 0 ? "#22c55e15" : `${CORAL}15`, color: scoreChange >= 0 ? "#22c55e" : CORAL }}>
+                    {scoreChange >= 0 ? "↑" : "↓"} {Math.abs(scoreChange)} pts
+                  </div>
+                )}
+              </div>
+
+              {/* Two stat rows */}
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <Link href={`/dashboard/${slug}/recommendations`}
+                  className="rounded-2xl p-3.5 hover:brightness-95 transition"
+                  style={{ backgroundColor: `${CORAL}0A`, border: `1px solid ${CORAL}20` }}>
+                  <p className="text-[10px] font-semibold text-gray-400 mb-1">Recommendations</p>
+                  <div className="flex items-end gap-1.5">
+                    <span className="text-[22px] font-black leading-none" style={{ color: CORAL }}>{recommendations.length}</span>
+                    {criticalCount > 0 && (
+                      <span className="text-[10px] font-bold rounded-full px-1.5 py-0.5 mb-0.5" style={{ backgroundColor: CORAL, color: "white" }}>
+                        {criticalCount}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+                <Link href={`/dashboard/${slug}/recommendations`}
+                  className="rounded-2xl p-3.5 bg-[#F9F9F9] hover:bg-[#F3F3F3] transition border border-[#EBEBEB]">
+                  <p className="text-[10px] font-semibold text-gray-400 mb-1">Priority Issues</p>
+                  <div className="flex items-end gap-1.5">
+                    <span className="text-[22px] font-black leading-none text-gray-800">{criticalCount + highCount}</span>
+                    <span className="text-[10px] text-gray-400 mb-0.5">{highCount} high</span>
+                  </div>
+                </Link>
               </div>
             </div>
 
-            {/* GEO Score History */}
-            <div className="col-span-4 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-semibold text-foreground">GEO Score History</p>
-                {/* Range dropdown */}
+            {/* ── Performance Index (Score History) ── */}
+            <div className="col-span-5 bg-white rounded-3xl p-6 border border-[#EBEBEB] shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-[13px] font-bold text-gray-800">Performance Index</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Your GEO score over time</p>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[28px] font-black text-gray-800 leading-none">{Math.round(compositeScore)}</span>
+                  <span className="text-[13px] text-gray-400 font-medium">/ 100</span>
+                </div>
+              </div>
+
+              {/* Bar chart */}
+              <div className="relative h-[120px]">
+                {filteredHistory.length > 0 ? (() => {
+                  const bars = filteredHistory.slice(-12);
+                  const maxScore = Math.max(...bars.map(b => b.composite_score), 1);
+                  const latestIdx = bars.length - 1;
+                  return (
+                    <div className="flex items-end gap-1.5 h-full px-1">
+                      {bars.map((b, i) => {
+                        const pct = (b.composite_score / maxScore) * 100;
+                        const isLatest = i === latestIdx;
+                        return (
+                          <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                            {isLatest && (
+                              <div className="rounded-full text-white text-[9px] font-bold px-1.5 py-0.5 whitespace-nowrap mb-1"
+                                style={{ backgroundColor: CORAL }}>
+                                {new Date(b.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                              </div>
+                            )}
+                            <div className="w-full rounded-t-lg transition-all duration-500"
+                              style={{
+                                height: `${Math.max(pct, 8)}%`,
+                                backgroundColor: isLatest ? CORAL : "#F0F0F0",
+                                borderRadius: "6px 6px 3px 3px",
+                              }} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })() : (
+                  <div className="flex flex-col items-center justify-center h-full gap-2">
+                    <BarChart3 className="w-8 h-8 text-gray-200" />
+                    <p className="text-[12px] text-gray-400">Run another analysis to see history</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Range picker */}
+              <div className="flex items-center justify-between mt-3">
                 <div className="relative">
-                  <button
-                    onClick={() => setHistoryDropdownOpen(!historyDropdownOpen)}
-                    className="flex items-center gap-1 text-[11px] rounded-lg px-2.5 py-1 transition hover:opacity-80 text-muted-foreground border border-border"
-                  >
+                  <button onClick={() => setHistoryDropdownOpen(!historyDropdownOpen)}
+                    className="flex items-center gap-1 text-[11px] rounded-lg px-2.5 py-1.5 bg-[#F5F5F5] hover:bg-[#EEEEEE] transition text-gray-500 border border-[#E8E8E8]">
                     {{ "7d": "7 days", "1m": "1 month", "3m": "3 months", "all": "All time" }[historyRange]}
                     <ChevronDown className="w-3 h-3" />
                   </button>
                   {historyDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-1 rounded-xl bg-card shadow-lg py-1 z-50 min-w-[110px] border border-border">
+                    <div className="absolute left-0 bottom-full mb-1 rounded-xl bg-white shadow-xl py-1 z-50 min-w-[110px] border border-[#EBEBEB]">
                       {([["7d", "7 days"], ["1m", "1 month"], ["3m", "3 months"], ["all", "All time"]] as const).map(([key, label]) => (
-                        <button
-                          key={key}
-                          onClick={() => { setHistoryRange(key); setHistoryDropdownOpen(false); }}
-                          className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${historyRange === key ? "font-semibold" : "font-normal text-muted-foreground"}`}
-                          style={{
-                            color: historyRange === key ? CORAL : undefined,
-                            backgroundColor: historyRange === key ? `${CORAL}08` : "transparent",
-                          }}
-                        >
+                        <button key={key} onClick={() => { setHistoryRange(key); setHistoryDropdownOpen(false); }}
+                          className="w-full text-left px-3 py-1.5 text-[12px] transition-colors hover:bg-[#F5F5F5]"
+                          style={{ color: historyRange === key ? CORAL : "#6B7280", fontWeight: historyRange === key ? 600 : 400 }}>
                           {label}
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
-              </div>
-              <div className="h-[120px] relative">
-                {historyPath ? (
-                  <svg viewBox="0 0 300 100" className="w-full h-full" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stopColor={CORAL} stopOpacity="0.2" />
-                        <stop offset="100%" stopColor={CORAL} stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                    {/* Grid lines */}
-                    <line x1="0" y1="50" x2="300" y2="50" stroke="currentColor" strokeOpacity="0.06" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                    <line x1="0" y1="25" x2="300" y2="25" stroke="currentColor" strokeOpacity="0.04" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                    <line x1="0" y1="75" x2="300" y2="75" stroke="currentColor" strokeOpacity="0.04" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                    {/* Area fill */}
-                    <path d={historyPath.area} fill="url(#areaGrad)" />
-                    {/* Line */}
-                    <path d={historyPath.line} fill="none" stroke={CORAL} strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
-                    {/* Data points */}
-                    {historyPath.points?.map((pt, i) => (
-                      <g key={i}>
-                        <circle cx={pt.x} cy={pt.y} r="6" fill={CORAL} fillOpacity="0.15" vectorEffect="non-scaling-stroke" />
-                        <circle cx={pt.x} cy={pt.y} r="3" fill={CORAL} vectorEffect="non-scaling-stroke" />
-                      </g>
-                    ))}
-                  </svg>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-xs text-muted-foreground">No analysis history yet</p>
-                  </div>
-                )}
-                {historyPath && (
-                  <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-[9px] font-medium text-muted-foreground">
-                    <span>100</span><span>50</span><span>0</span>
-                  </div>
+                {scoreChange !== null && (
+                  <span className="text-[11px] font-bold rounded-full px-2.5 py-1"
+                    style={{ backgroundColor: scoreChange >= 0 ? "#22c55e12" : `${CORAL}12`, color: scoreChange >= 0 ? "#22c55e" : CORAL }}>
+                    {scoreChange >= 0 ? "↑ +" : "↓ "}{scoreChange} pts vs last
+                  </span>
                 )}
               </div>
-              {historyPath && (
-                <div className="flex justify-between text-[10px] mt-2 px-1 text-muted-foreground">
-                  {historyPath.labels.map((l, i) => <span key={i}>{l}</span>)}
-                </div>
-              )}
             </div>
 
-            {/* Pillar Breakdown — horizontal bars */}
-            <div className="col-span-4 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-semibold text-foreground">Pillar Breakdown</p>
-                <button className="text-muted-foreground"><MoreHorizontal className="w-4 h-4" /></button>
-              </div>
-              <div className="flex flex-col gap-3">
-                {breakdownRows.length > 0 ? breakdownRows.map((row) => (
-                  <div key={row.label}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">{row.label}</span>
-                      <span className="font-semibold text-foreground">{Math.round(row.score)}/100</span>
+            {/* ── Dark AI Mention Rate Card ── */}
+            <div className="col-span-3 rounded-3xl p-6 flex flex-col" style={{ backgroundColor: "#141414" }}>
+              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-1">AI Mention Rate</p>
+              <p className="text-[11px] text-white/30 mb-5">Brand cited by AI engines</p>
+
+              {/* Donut */}
+              <div className="flex-1 flex items-center justify-center">
+                {sentiment ? (() => {
+                  const pct = sentiment.aiMentioned / Math.max(sentiment.aiTotal, 1);
+                  const r = 42, c = 2 * Math.PI * r;
+                  return (
+                    <div className="relative w-36 h-36">
+                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                        <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="14" />
+                        <circle cx="50" cy="50" r={r} fill="none" stroke={CORAL} strokeWidth="14"
+                          strokeLinecap="round" strokeDasharray={`${pct * c} ${c}`} />
+                        {/* Dots on track */}
+                        {Array.from({ length: 12 }, (_, i) => {
+                          const angle = (i / 12) * 2 * Math.PI - Math.PI / 2;
+                          const dx = 50 + r * Math.cos(angle);
+                          const dy = 50 + r * Math.sin(angle);
+                          return <circle key={i} cx={dx.toFixed(1)} cy={dy.toFixed(1)} r="1.5" fill="rgba(255,255,255,0.15)" />;
+                        })}
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-[26px] font-black text-white leading-none">{Math.round(pct * 100)}%</span>
+                        <span className="text-[10px] text-white/40 mt-0.5">Mentioned</span>
+                      </div>
                     </div>
-                    <div className="h-2 rounded-full overflow-hidden bg-muted">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, row.score)}%`, backgroundColor: CORAL }} />
+                  );
+                })() : (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-24 h-24 rounded-full border-8 border-white/10 flex items-center justify-center">
+                      <span className="text-[20px] font-black text-white/30">—</span>
                     </div>
                   </div>
-                )) : (
-                  <p className="text-xs text-center py-6 text-muted-foreground">No pillar data yet</p>
                 )}
               </div>
-              {breakdownRows.length > 0 && (
-                <div className="flex justify-between text-[9px] mt-3 text-muted-foreground">
-                  <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+
+              {/* Stats */}
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="rounded-xl px-3 py-2.5" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
+                  <p className="text-[20px] font-black text-white leading-none">{sentiment?.aiMentioned ?? "—"}</p>
+                  <p className="text-[10px] text-white/30 mt-0.5">Mentioned</p>
                 </div>
-              )}
+                <div className="rounded-xl px-3 py-2.5" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
+                  <p className="text-[20px] font-black text-white leading-none">{sentiment ? sentiment.aiTotal - sentiment.aiMentioned : "—"}</p>
+                  <p className="text-[10px] text-white/30 mt-0.5">Missed</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-12 gap-4 mb-4">
+          {/* ══ ROW B: PILLAR BREAKDOWN ══ */}
+          <div className="grid grid-cols-12 gap-4">
+            {/* Pillar Breakdown */}
+            <div className="col-span-12 bg-white rounded-3xl p-6 border border-[#EBEBEB] shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className="text-[13px] font-bold text-gray-800">Pillar Breakdown</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Score per GEO dimension</p>
+                </div>
+                <Link href={`/dashboard/${slug}/recommendations`} className="text-[11px] font-semibold transition hover:opacity-70" style={{ color: CORAL }}>
+                  See Details →
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                {breakdownRows.length > 0 ? breakdownRows.map((row) => {
+                  const color = scoreColor(row.score);
+                  const bg = scoreBg(row.score);
+                  return (
+                    <div key={row.label}>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-[12px] font-semibold text-gray-700">{row.label}</span>
+                        <span className="text-[11px] font-bold rounded-lg px-2 py-0.5" style={{ color, backgroundColor: bg }}>
+                          {Math.round(row.score)}/100
+                        </span>
+                      </div>
+                      <div className="h-2.5 rounded-full overflow-hidden bg-[#F0F0F0]">
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${Math.min(100, row.score)}%`, backgroundColor: color }} />
+                      </div>
+                    </div>
+                  );
+                }) : <p className="col-span-4 text-[12px] text-center py-4 text-gray-400">No pillar data yet</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* ══ ROW C: BRAND PRESENCE ══ */}
+          <div className="grid grid-cols-12 gap-4">
             <SocialBrandReachCard
               slug={slug}
-              brandName={
-                run.display_brand_name?.trim() ||
-                run.brand_name ||
-                normalizeUrl(run.url).split("/")[0] ||
-                "Your brand"
-              }
+              brandName={run.display_brand_name?.trim() || run.brand_name || normalizeUrl(run.url).split("/")[0] || "Your brand"}
               brandUrl={run.url ?? ""}
               details={brandVis?.social_presence_details as SocialPresenceDetails | undefined}
               brandVisibility={brandVis}
@@ -635,425 +674,342 @@ export default function SignalorDashboard() {
             />
           </div>
 
-          {/* ── ROW 2 ── */}
-          <div className="grid grid-cols-12 gap-4 mb-4">
+          {/* ══ ROW D: TOP ISSUES · VISIBILITY · AI PROBES ══ */}
+          <div className="grid grid-cols-12 gap-4">
             {/* Top Issues */}
-            <div className="col-span-5 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-semibold text-foreground">Top Issues</p>
-                <Link
-                  href={`/dashboard/${slug}/recommendations`}
-                  className="flex items-center gap-1.5 text-xs rounded-lg px-3 py-1.5 transition hover:opacity-80"
-                  style={{ color: CORAL, border: `1px solid ${CORAL}30` }}
-                >
+            <div className="col-span-5 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_6px_rgba(0,0,0,0.06)]">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className="text-[13px] font-bold text-gray-800">Top Issues</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">Highest impact fixes</p>
+                </div>
+                <Link href={`/dashboard/${slug}/recommendations`}
+                  className="text-[11px] font-semibold rounded-xl px-3 py-1.5 transition hover:opacity-80"
+                  style={{ color: CORAL, backgroundColor: `${CORAL}10` }}>
                   View All ({recommendations.length})
                 </Link>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-2">
                 {topIssues.length > 0 ? topIssues.map((rec, i) => (
-                  <Link
-                    key={i}
-                    href={`/dashboard/${slug}/recommendations`}
-                    className="rounded-xl p-4 transition hover:shadow-sm group bg-[#FAFAFA] border border-[#EBEBEB]"
-                  >
-                    <div className="flex items-start gap-2 mb-1.5">
-                      <span
-                        className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                        style={{ backgroundColor: rec.priority === "critical" ? CORAL : "#D97706" }}
-                      />
-                      <p className="text-sm font-semibold line-clamp-2 group-hover:underline text-foreground">{rec.title}</p>
+                  <Link key={i} href={`/dashboard/${slug}/recommendations`}
+                    className="group flex items-start gap-3 rounded-xl p-3.5 bg-[#FAFAFA] border border-[#F0F0F0] hover:border-[#E0E0E0] hover:bg-white transition">
+                    <div className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center text-white text-[10px] font-bold mt-0.5"
+                      style={{ backgroundColor: rec.priority === "critical" ? CORAL : "#D97706" }}>
+                      {i + 1}
                     </div>
-                    <p className="text-xs line-clamp-2 pl-3.5 text-muted-foreground">{rec.impact_estimate || `${rec.priority} priority`}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-semibold text-gray-800 group-hover:text-gray-900 line-clamp-1">{rec.title}</p>
+                      <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">{rec.impact_estimate || `${rec.priority} priority`}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-lg shrink-0 capitalize ${STATUS_STYLES[rec.priority] || "bg-gray-100 text-gray-500"}`}>
+                      {rec.priority}
+                    </span>
                   </Link>
                 )) : (
-                  <p className="col-span-2 text-xs text-center py-6 text-muted-foreground">No critical issues found</p>
+                  <div className="flex items-center justify-center py-8 text-gray-400 text-[12px]">No critical issues — great work!</div>
                 )}
               </div>
             </div>
 
             {/* Visibility by Platform */}
-            <div className="col-span-4 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-              <p className="text-sm font-semibold mb-5 text-foreground">Visibility by Platform</p>
+            <div className="col-span-4 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_6px_rgba(0,0,0,0.06)]">
+              <div className="mb-5">
+                <p className="text-[13px] font-bold text-gray-800">Visibility by Platform</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">Brand presence scores</p>
+              </div>
               {visibilityBars.length > 0 ? (
-                <div className="flex items-end gap-5 px-2" style={{ height: 180 }}>
-                  {/* Y-axis labels */}
-                  <div className="flex flex-col justify-between h-full pb-7 shrink-0">
-                    {[100, 75, 50, 25, 0].map((v) => (
-                      <span key={v} className="text-[10px] font-medium w-6 text-right text-muted-foreground">{v}</span>
-                    ))}
-                  </div>
-
-                  {/* Chart area */}
-                  <div className="flex-1 flex flex-col h-full">
-                    {/* Grid + bars */}
-                    <div className="relative flex-1">
-                      {/* Horizontal grid */}
-                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                        {[0, 1, 2, 3, 4].map((i) => (
-                          <div key={i} className="w-full border-b border-border" />
-                        ))}
-                      </div>
-
-                      {/* Bars row */}
-                      <div className="relative z-10 flex items-end h-full gap-3 px-2">
-                        {visibilityBars.map((bar) => {
-                          const pct = Math.max(bar.value, 3);
-                          return (
-                            <div key={bar.label} className="flex-1 flex flex-col items-center h-full justify-end">
-                              <span className="text-[11px] font-bold mb-1 text-foreground">{bar.value}</span>
-                              <div
-                                className="w-full rounded-t-xl relative overflow-hidden"
-                                style={{
-                                  height: `${pct}%`,
-                                  backgroundColor: bar.color,
-                                  maxWidth: 56,
-                                }}
-                              >
-                                {/* Subtle shine overlay */}
-                                <div
-                                  className="absolute inset-0 rounded-t-xl"
-                                  style={{
-                                    background: "linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 60%)",
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* X-axis labels with icons */}
-                    <div className="flex gap-3 px-2 pt-2.5 border-t border-border">
-                      {visibilityBars.map((bar) => (
-                        <div key={bar.label} className="flex-1 flex flex-col items-center gap-1">
-                          <span className="text-[11px] font-semibold text-foreground/70">{bar.label}</span>
+                <div className="flex flex-col gap-3">
+                  {visibilityBars.map((bar) => {
+                    const color = scoreColor(bar.value);
+                    return (
+                      <div key={bar.label} className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 w-20 shrink-0">
                           {bar.icon}
+                          <span className="text-[11px] font-semibold text-gray-600">{bar.label}</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                        <div className="flex-1 h-3 rounded-full bg-[#F0F0F0] overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700"
+                            style={{ width: `${Math.max(bar.value, 2)}%`, backgroundColor: color }} />
+                        </div>
+                        <span className="text-[12px] font-bold w-8 text-right shrink-0" style={{ color }}>{bar.value}</span>
+                      </div>
+                    );
+                  })}
+                  <Link href={`/dashboard/${slug}/visibility`}
+                    className="mt-2 text-[11px] font-semibold transition hover:opacity-70" style={{ color: CORAL }}>
+                    See full visibility report →
+                  </Link>
                 </div>
               ) : (
-                <div className="flex items-center justify-center" style={{ height: 180 }}>
-                  <p className="text-xs text-muted-foreground">No visibility data yet</p>
-                </div>
+                <div className="flex items-center justify-center h-40 text-gray-400 text-[12px]">No visibility data yet</div>
               )}
             </div>
 
-            {/* AI Engine Probes — pie chart */}
-            <div className="col-span-3 bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)] flex flex-col">
-              <p className="text-sm font-semibold text-foreground mb-3">AI Engine Probes</p>
+            {/* AI Engine Probes */}
+            <div className="col-span-3 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_6px_rgba(0,0,0,0.06)] flex flex-col">
+              <div className="mb-4">
+                <p className="text-[13px] font-bold text-gray-800">AI Engine Probes</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">Brand mention rate</p>
+              </div>
               {sentiment ? (() => {
-                const mentionPct = sentiment.aiMentioned / sentiment.aiTotal;
+                const mentionPct = sentiment.aiMentioned / Math.max(sentiment.aiTotal, 1);
                 const missPct = 1 - mentionPct;
-                // SVG pie: two arcs
-                const r = 40;
-                const c = 251.3; // 2 * PI * 40
+                const r = 38; const c = 2 * Math.PI * r;
                 return (
-                  <div className="flex flex-col items-center flex-1 justify-center">
-                    {/* Pie */}
-                    <div className="relative w-28 h-28">
+                  <div className="flex flex-col items-center flex-1 justify-center gap-4">
+                    <div className="relative w-32 h-32">
                       <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                        {/* Mentioned slice */}
-                        <circle cx="50" cy="50" r={r} fill="none"
-                          stroke={CORAL} strokeWidth="20"
-                          strokeDasharray={`${mentionPct * c} ${c}`}
-                        />
-                        {/* Not mentioned slice */}
-                        <circle cx="50" cy="50" r={r} fill="none"
-                          stroke="var(--border)" strokeWidth="20"
-                          strokeDasharray={`${missPct * c} ${c}`}
-                          strokeDashoffset={`${-mentionPct * c}`}
-                        />
+                        <circle cx="50" cy="50" r={r} fill="none" stroke="#F0F0F0" strokeWidth="12" />
+                        <circle cx="50" cy="50" r={r} fill="none" stroke={CORAL} strokeWidth="12" strokeLinecap="round"
+                          strokeDasharray={`${mentionPct * c} ${c}`} />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="w-14 h-14 rounded-full bg-card flex items-center justify-center">
-                          <span className="text-lg font-bold text-foreground">{Math.round(mentionPct * 100)}%</span>
+                        <span className="text-[22px] font-bold text-gray-800">{Math.round(mentionPct * 100)}%</span>
+                        <span className="text-[10px] text-gray-400">Mentioned</span>
+                      </div>
+                    </div>
+                    <div className="w-full space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CORAL }} />
+                          <span className="text-[11px] text-gray-500">Mentioned</span>
                         </div>
+                        <span className="text-[12px] font-bold text-gray-800">{sentiment.aiMentioned}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#E5E7EB]" />
+                          <span className="text-[11px] text-gray-500">Not mentioned</span>
+                        </div>
+                        <span className="text-[12px] font-bold text-gray-800">{sentiment.aiTotal - sentiment.aiMentioned}</span>
+                      </div>
+                      <div className="h-2 rounded-full overflow-hidden bg-[#F0F0F0] mt-1">
+                        <div className="h-full rounded-full" style={{ width: `${mentionPct * 100}%`, backgroundColor: CORAL }} />
                       </div>
                     </div>
-
-                    {/* Legend */}
-                    <div className="flex items-center gap-4 mt-3">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CORAL }} />
-                        <span className="text-[10px] text-muted-foreground">Mentioned <span className="font-bold text-foreground">{Math.round(mentionPct * 100)}%</span></span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-border" />
-                        <span className="text-[10px] text-muted-foreground">Missed <span className="font-bold text-foreground">{Math.round(missPct * 100)}%</span></span>
-                      </div>
-                    </div>
+                    {missPct > 0 && (
+                      <p className="text-[10px] text-gray-400 text-center leading-snug">
+                        {Math.round(missPct * 100)}% of AI responses didn't mention your brand
+                      </p>
+                    )}
                   </div>
                 );
               })() : (
-                <div className="flex-1 flex items-center justify-center">
-                  <p className="text-xs text-muted-foreground">No probe data</p>
+                <div className="flex-1 flex flex-col items-center justify-center gap-2 text-gray-400">
+                  <div className="w-12 h-12 rounded-full bg-[#F5F5F5] flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 text-gray-300" style={{ animation: "none" }} />
+                  </div>
+                  <p className="text-[12px]">No probe data yet</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* ── ROW 2.5: Prediction & Sentiment ── */}
+          {/* ══ ROW E: PREDICTION + SENTIMENT ══ */}
           {(prediction.gain > 0 || sentiment) && (
-            <div className="grid grid-cols-12 gap-4 mb-4">
+            <div className="grid grid-cols-12 gap-4">
               {/* 7-Day Prediction */}
-              <div className="col-span-7 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-                <div className="flex items-center justify-between mb-5">
+              <div className="col-span-7 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_6px_rgba(0,0,0,0.06)]">
+                <div className="flex items-start justify-between mb-4">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">7-Day Score Prediction</p>
-                    <p className="text-xs mt-0.5 text-muted-foreground">Projected improvement if you act on recommendations</p>
+                    <p className="text-[13px] font-bold text-gray-800">7-Day Score Prediction</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">If you act on all recommendations</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-foreground">{Math.round(compositeScore)}</span>
-                    <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
+                  <div className="flex items-center gap-2 bg-[#F8F8F8] rounded-xl px-3 py-2 border border-[#EBEBEB]">
+                    <span className="text-[18px] font-bold text-gray-600">{Math.round(compositeScore)}</span>
+                    <svg width="18" height="10" viewBox="0 0 20 12" fill="none">
                       <path d="M2 10L10 2L18 2" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M13 2H18V7" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    <span className="text-2xl font-bold" style={{ color: CORAL }}>{prediction.projected}</span>
+                    <span className="text-[18px] font-bold" style={{ color: CORAL }}>{prediction.projected}</span>
+                    {prediction.gain > 0 && (
+                      <span className="text-[11px] font-semibold rounded-lg px-2 py-0.5" style={{ backgroundColor: `${CORAL}12`, color: CORAL }}>
+                        +{prediction.gain} pts
+                      </span>
+                    )}
                   </div>
                 </div>
-
-                {/* Chart */}
-                <div className="relative" style={{ height: 140 }}>
+                <div className="relative h-[120px]">
                   <svg viewBox="0 0 350 100" className="w-full h-full" preserveAspectRatio="none">
                     <defs>
-                      <linearGradient id="predGrad" x1="0" x2="0" y1="0" y2="1">
+                      <linearGradient id="predGrad2" x1="0" x2="0" y1="0" y2="1">
                         <stop offset="0%" stopColor={CORAL} stopOpacity="0.15" />
                         <stop offset="100%" stopColor={CORAL} stopOpacity="0" />
                       </linearGradient>
                     </defs>
-                    {/* Current score line (dashed) */}
-                    <line x1="0" y1={100 - compositeScore} x2="350" y2={100 - compositeScore} stroke="var(--border)" strokeWidth="1" strokeDasharray="4 4" />
-                    {/* Prediction area */}
-                    <path
-                      d={`M 0 ${100 - compositeScore} ${prediction.days.map((d, i) => `L ${((i + 1) / 7) * 350} ${100 - d.score}`).join(" ")} L 350 100 L 0 100 Z`}
-                      fill="url(#predGrad)"
-                    />
-                    {/* Prediction line */}
-                    <path
-                      d={`M 0 ${100 - compositeScore} ${prediction.days.map((d, i) => `L ${((i + 1) / 7) * 350} ${100 - d.score}`).join(" ")}`}
-                      fill="none" stroke={CORAL} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke"
-                    />
-                    {/* Endpoint dot */}
-                    <circle cx="350" cy={100 - prediction.projected} r="4" fill={CORAL} />
-                    {/* Start dot */}
-                    <circle cx="0" cy={100 - compositeScore} r="3" fill="var(--border)" />
+                    {[25, 50, 75].map((y) => (
+                      <line key={y} x1="0" y1={y} x2="350" y2={y} stroke="#F0F0F0" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                    ))}
+                    <line x1="0" y1={100 - compositeScore} x2="350" y2={100 - compositeScore} stroke="#DDDDDD" strokeWidth="1" strokeDasharray="5 4" />
+                    <path d={`M 0 ${100 - compositeScore} ${prediction.days.map((d, i) => `L ${((i + 1) / 7) * 350} ${100 - d.score}`).join(" ")} L 350 100 L 0 100 Z`} fill="url(#predGrad2)" />
+                    <path d={`M 0 ${100 - compositeScore} ${prediction.days.map((d, i) => `L ${((i + 1) / 7) * 350} ${100 - d.score}`).join(" ")}`}
+                      fill="none" stroke={CORAL} strokeWidth="2.5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                    <circle cx="350" cy={100 - prediction.projected} r="5" fill="white" stroke={CORAL} strokeWidth="2" />
+                    <circle cx="0" cy={100 - compositeScore} r="4" fill="white" stroke="#D0D0D0" strokeWidth="2" />
                   </svg>
-                  {/* Y labels */}
-                  <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-[9px] font-medium text-muted-foreground">
-                    <span>100</span><span>50</span><span>0</span>
-                  </div>
                 </div>
-                {/* Day labels */}
-                <div className="flex justify-between mt-2 px-1">
-                  <span className="text-[10px] font-medium text-muted-foreground">Today</span>
-                  {prediction.days.map((d, i) => (
-                    <span key={i} className="text-[10px] font-medium text-muted-foreground">{d.day}</span>
-                  ))}
+                <div className="flex justify-between mt-2 px-0.5">
+                  <span className="text-[10px] text-gray-400 font-medium">Today</span>
+                  {prediction.days.map((d, i) => <span key={i} className="text-[10px] text-gray-400">{d.day}</span>)}
                 </div>
-
-                {/* Pillar impact breakdown */}
                 {Object.keys(prediction.pillarImpacts).length > 0 && (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {Object.entries(prediction.pillarImpacts)
-                      .sort(([, a], [, b]) => b - a)
-                      .slice(0, 4)
-                      .map(([pillar, impact]) => (
-                        <div
-                          key={pillar}
-                          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5"
-                          style={{ backgroundColor: `${CORAL}08`, border: `1px solid ${CORAL}15` }}
-                        >
-                          <span className="text-[10px] font-semibold capitalize text-muted-foreground">
-                            {pillar.replace("_", " ")}
-                          </span>
-                          <span className="text-[10px] font-bold" style={{ color: CORAL }}>
-                            +{Math.round(impact)}
-                          </span>
-                        </div>
-                      ))}
+                    {Object.entries(prediction.pillarImpacts).sort(([, a], [, b]) => b - a).slice(0, 4).map(([pillar, impact]) => (
+                      <div key={pillar} className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 border"
+                        style={{ backgroundColor: `${CORAL}06`, borderColor: `${CORAL}18` }}>
+                        <span className="text-[10px] font-semibold text-gray-500 capitalize">{pillar.replace("_", " ")}</span>
+                        <span className="text-[10px] font-bold" style={{ color: CORAL }}>+{Math.round(impact)}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
 
-              {/* Sentiment Analysis — -10 to +10 scale */}
-              <div className="col-span-5 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-                <p className="text-sm font-semibold mb-1 text-foreground">Sentiment Analysis</p>
-                <p className="text-xs mb-5 text-muted-foreground">What people say about your brand online</p>
-
+              {/* Sentiment */}
+              <div className="col-span-5 bg-white rounded-2xl p-6 border border-[#EBEBEB] shadow-[0_1px_6px_rgba(0,0,0,0.06)]">
+                <p className="text-[13px] font-bold text-gray-800">Sentiment Analysis</p>
+                <p className="text-[11px] text-gray-400 mt-0.5 mb-5">What people say about your brand</p>
                 {sentiment ? (
                   <div className="space-y-5">
-                    {/* Score gauge -10 to +10 */}
                     <div className="flex items-center gap-5">
-                      <div className="text-center shrink-0">
-                        <p
-                          className="text-4xl font-bold"
-                          style={{ color: sentiment.score > 0 ? "#22c55e" : sentiment.score < 0 ? CORAL : "var(--muted-foreground)" }}
-                        >
+                      <div className="text-center shrink-0 w-16">
+                        <p className="text-[38px] font-black leading-none"
+                          style={{ color: sentiment.score > 0 ? "#22c55e" : sentiment.score < 0 ? CORAL : "#9CA3AF" }}>
                           {sentiment.score > 0 ? "+" : ""}{sentiment.score}
                         </p>
-                        <p className="text-[10px] text-muted-foreground mt-1">
+                        <p className="text-[10px] text-gray-400 mt-1">
                           {sentiment.score >= 5 ? "Very Positive" : sentiment.score >= 1 ? "Positive" : sentiment.score === 0 ? "Neutral" : sentiment.score >= -4 ? "Negative" : "Very Negative"}
                         </p>
                       </div>
-
-                      {/* Scale bar */}
                       <div className="flex-1">
-                        <div className="relative h-3 rounded-full bg-muted">
-                          {/* Gradient: red → yellow → green */}
-                          <div className="absolute inset-0 rounded-full" style={{ background: "linear-gradient(to right, #F95C4B, #D97706, #22c55e)" }} />
-                          {/* Line indicator */}
-                          <div
-                            className="absolute -top-2 flex flex-col items-center"
-                            style={{ left: `${((sentiment.score + 10) / 20) * 100}%`, transform: "translateX(-50%)" }}
-                          >
-                            {/* Score label */}
-                            <span className="text-[9px] font-bold text-foreground bg-card border border-border rounded px-1 mb-0.5 shadow-sm">
-                              {sentiment.score > 0 ? "+" : ""}{sentiment.score}
-                            </span>
-                            {/* Vertical line */}
-                            <div className="w-0.5 h-7 bg-foreground rounded-full shadow-sm" />
-                          </div>
+                        <div className="relative h-3 rounded-full overflow-hidden" style={{ background: "linear-gradient(to right, #F95C4B, #D97706, #22c55e)" }}>
+                          <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-md border-2 border-gray-200"
+                            style={{ left: `calc(${((sentiment.score + 10) / 20) * 100}% - 8px)` }} />
                         </div>
-                        <div className="flex justify-between text-[9px] text-muted-foreground mt-4">
-                          <span>-10</span><span>0</span><span>+10</span>
+                        <div className="flex justify-between text-[10px] text-gray-400 mt-2">
+                          <span>Very Negative</span><span>Neutral</span><span>Very Positive</span>
                         </div>
                       </div>
                     </div>
-
-                    {/* Breakdown stats */}
-                    <div className="grid grid-cols-4 gap-3">
-                      <div className="rounded-xl p-3 bg-[#22c55e]/10 border border-[#22c55e]/20 text-center">
-                        <p className="text-lg font-bold text-[#22c55e]">{sentiment.positive}</p>
-                        <p className="text-[9px] text-muted-foreground">Positive</p>
-                      </div>
-                      <div className="rounded-xl p-3 bg-background border border-border text-center">
-                        <p className="text-lg font-bold text-muted-foreground">{sentiment.neutral}</p>
-                        <p className="text-[9px] text-muted-foreground">Neutral</p>
-                      </div>
-                      <div className="rounded-xl p-3 bg-primary/10 border border-primary/20 text-center">
-                        <p className="text-lg font-bold text-primary">{sentiment.negative}</p>
-                        <p className="text-[9px] text-muted-foreground">Negative</p>
-                      </div>
-                      <div className="rounded-xl p-3 bg-background border border-border text-center">
-                        <p className="text-lg font-bold text-foreground">{sentiment.aiMentioned}/{sentiment.aiTotal}</p>
-                        <p className="text-[9px] text-muted-foreground">AI Mentions</p>
-                      </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: "Positive", val: sentiment.positive, color: "#22c55e", bg: "#22c55e0F" },
+                        { label: "Neutral", val: sentiment.neutral, color: "#9CA3AF", bg: "#F5F5F5" },
+                        { label: "Negative", val: sentiment.negative, color: CORAL, bg: `${CORAL}0F` },
+                      ].map((s) => (
+                        <div key={s.label} className="rounded-xl p-3.5 text-center border" style={{ backgroundColor: s.bg, borderColor: `${s.color}20` }}>
+                          <p className="text-[20px] font-bold" style={{ color: s.color }}>{s.val}</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">{s.label}</p>
+                        </div>
+                      ))}
                     </div>
-
-                    {/* Stacked bar */}
                     {sentiment.totalMentions > 0 && (
-                      <div>
-                        <div className="flex h-2.5 rounded-full overflow-hidden">
-                          {sentiment.positive > 0 && <div className="h-full" style={{ width: `${(sentiment.positive / sentiment.totalMentions) * 100}%`, backgroundColor: "#22c55e" }} />}
-                          {sentiment.neutral > 0 && <div className="h-full" style={{ width: `${(sentiment.neutral / sentiment.totalMentions) * 100}%`, backgroundColor: "var(--border)" }} />}
-                          {sentiment.negative > 0 && <div className="h-full" style={{ width: `${(sentiment.negative / sentiment.totalMentions) * 100}%`, backgroundColor: CORAL }} />}
-                        </div>
+                      <div className="flex h-2.5 rounded-full overflow-hidden gap-0.5">
+                        {sentiment.positive > 0 && <div className="h-full rounded-full" style={{ width: `${(sentiment.positive / sentiment.totalMentions) * 100}%`, backgroundColor: "#22c55e" }} />}
+                        {sentiment.neutral > 0 && <div className="h-full rounded-full" style={{ width: `${(sentiment.neutral / sentiment.totalMentions) * 100}%`, backgroundColor: "#E5E7EB" }} />}
+                        {sentiment.negative > 0 && <div className="h-full rounded-full" style={{ width: `${(sentiment.negative / sentiment.totalMentions) * 100}%`, backgroundColor: CORAL }} />}
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center py-10">
-                    <p className="text-xs text-muted-foreground">No sentiment data available yet</p>
-                  </div>
+                  <div className="flex items-center justify-center h-32 text-gray-400 text-[12px]">No sentiment data yet</div>
                 )}
               </div>
             </div>
           )}
 
-          {/* ── ROW 3: Recommendations ── */}
-          <div className="bg-white rounded-2xl p-5 border border-[#EBEBEB] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <p className="text-lg font-semibold text-foreground">Recommendations</p>
-                <Link
-                  href={`/dashboard/${slug}/recommendations`}
-                  className="text-[11px] font-medium transition hover:opacity-80"
-                  style={{ color: CORAL }}
-                >
-                  View all &rarr;
+          {/* ══ ROW F: RECOMMENDATIONS TABLE ══ */}
+          <div className="bg-white rounded-2xl border border-[#EBEBEB] shadow-[0_1px_6px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0F0F0]">
+              <div className="flex items-center gap-4">
+                <div>
+                  <p className="text-[13px] font-bold text-gray-800">Recommendations</p>
+                  <p className="text-[11px] text-gray-400">Ordered by impact · showing top 10</p>
+                </div>
+                <Link href={`/dashboard/${slug}/recommendations`} className="text-[11px] font-semibold transition hover:opacity-70" style={{ color: CORAL }}>
+                  View all {recommendations.length} →
                 </Link>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-[#F5F5F5] rounded-xl p-1">
                 {FILTER_TABS.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveFilter(tab)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      activeFilter === tab
-                        ? "text-white"
-                        : "bg-background text-muted-foreground"
-                    }`}
-                    style={activeFilter === tab ? { backgroundColor: CORAL } : undefined}
-                  >
+                  <button key={tab} onClick={() => setActiveFilter(tab)}
+                    className="px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all"
+                    style={activeFilter === tab
+                      ? { backgroundColor: CORAL, color: "white", boxShadow: `0 2px 6px ${CORAL}40` }
+                      : { color: "#9CA3AF" }}>
                     {tab}
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Search inside table */}
+            <div className="px-6 py-3 border-b border-[#F8F8F8]">
+              <div className="flex items-center gap-2 bg-[#FAFAFA] rounded-xl px-3.5 py-2 border border-[#F0F0F0]">
+                <Search className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search recommendations…"
+                  className="flex-1 text-[12px] text-gray-600 bg-transparent outline-none placeholder:text-gray-300"
+                />
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
-                    <th className="pb-3 px-2">Recommendation <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
-                    <th className="pb-3 px-2">Pillar <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
-                    <th className="pb-3 px-2">Category</th>
-                    <th className="pb-3 px-2">Priority <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
-                    <th className="pb-3 px-2">Impact <ChevronDown className="w-3 h-3 inline ml-0.5" /></th>
+                  <tr className="bg-[#FAFAFA] border-b border-[#F0F0F0]">
+                    {["Recommendation", "Pillar", "Category", "Priority", "Impact"].map((h) => (
+                      <th key={h} className="py-2.5 px-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">{h}</th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-[#F8F8F8]">
                   {filteredRecs.length > 0 ? filteredRecs.map((rec) => (
-                    <tr key={rec.id} onClick={() => router.push(`/dashboard/${slug}/recommendations`)} className="transition-colors hover:opacity-80 cursor-pointer border-b border-border">
-                      <td className="py-3.5 px-2">
+                    <tr key={rec.id} onClick={() => router.push(`/dashboard/${slug}/recommendations`)}
+                      className="hover:bg-[#FAFAFA] cursor-pointer transition-colors group">
+                      <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div
-                            className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-white text-[10px] font-bold"
-                            style={{ backgroundColor: PRIORITY_COLORS[rec.priority] || "var(--border)" }}
-                          >
+                          <div className="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-white text-[10px] font-bold"
+                            style={{ backgroundColor: PRIORITY_COLORS[rec.priority] || "#E5E7EB" }}>
                             {rec.title.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold truncate text-foreground">{rec.title}</p>
-                            <p className="text-[11px] truncate max-w-[260px] text-muted-foreground">{rec.description}</p>
+                            <p className="text-[12px] font-semibold text-gray-800 truncate group-hover:text-gray-900">{rec.title}</p>
+                            <p className="text-[11px] text-gray-400 truncate max-w-[240px]">{rec.description}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 px-2">
-                        <p className="text-sm font-medium text-foreground">{PILLAR_LABELS[rec.pillar] || rec.pillar}</p>
+                      <td className="py-3.5 px-4">
+                        <p className="text-[12px] font-medium text-gray-700">{PILLAR_LABELS[rec.pillar] || rec.pillar}</p>
                         {pageScore && (() => {
                           const scoreKey = `${rec.pillar}_score` as keyof typeof pageScore;
-                          const score = typeof pageScore[scoreKey] === "number" ? Math.round(pageScore[scoreKey] as number) : null;
-                          if (score == null) return null;
-                          const color = score >= 70 ? "text-[#22c55e] bg-[#22c55e]/10" : score >= 40 ? "text-[#D97706] bg-[#D97706]/10" : "text-primary bg-primary/10";
-                          return <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${color}`}>{score}/100</span>;
+                          const s = typeof pageScore[scoreKey] === "number" ? Math.round(pageScore[scoreKey] as number) : null;
+                          if (s == null) return null;
+                          return <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ color: scoreColor(s), backgroundColor: scoreBg(s) }}>{s}/100</span>;
                         })()}
                       </td>
-                      <td className="py-3.5 px-2 text-xs text-muted-foreground">{rec.category || "General"}</td>
-                      <td className="py-3.5 px-2">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md capitalize ${STATUS_STYLES[rec.priority] || "bg-gray-100 text-gray-600"}`}>
+                      <td className="py-3.5 px-4 text-[12px] text-gray-400">{rec.category || "General"}</td>
+                      <td className="py-3.5 px-4">
+                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg capitalize ${STATUS_STYLES[rec.priority] || "bg-gray-100 text-gray-500"}`}>
                           {rec.priority}
                         </span>
                       </td>
-                      <td className="py-3.5 px-2 text-xs text-muted-foreground">{rec.impact_estimate || "—"}</td>
+                      <td className="py-3.5 px-4 text-[12px] text-gray-400 max-w-[160px] truncate">{rec.impact_estimate || "—"}</td>
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
-                        No recommendations found
-                      </td>
+                      <td colSpan={5} className="py-12 text-center text-[13px] text-gray-400">No recommendations found</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
           </div>
+
         </div>
       )}
-
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>
