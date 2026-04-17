@@ -183,7 +183,7 @@ function PricingPageInner() {
           <div className="mb-6 max-w-md mx-auto space-y-2">
             <p
               className="text-sm rounded-lg px-4 py-3 text-center"
-              style={{ color: "#E04D00", backgroundColor: "#E04D0010" }}
+              style={{ color: "#FF4F18", backgroundColor: "#FF4F1810" }}
             >
               {error}
             </p>
@@ -220,13 +220,13 @@ function PricingPageInner() {
                 key={plan.id}
                 className="relative rounded-2xl bg-white p-6 flex flex-col"
                 style={{
-                  border: plan.popular ? "2px solid #E04D00" : "1px solid #E4DED2",
+                  border: plan.popular ? "2px solid #FF4F18" : "1px solid #E4DED2",
                 }}
               >
                 {plan.popular && (
                   <div
                     className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
-                    style={{ backgroundColor: "#E04D00" }}
+                    style={{ backgroundColor: "#FF4F18" }}
                   >
                     Most Popular
                   </div>
@@ -236,7 +236,7 @@ function PricingPageInner() {
                 <div className="mb-5">
                   <div
                     className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold mb-3"
-                    style={{ backgroundColor: "#E04D0015", color: "#E04D00" }}
+                    style={{ backgroundColor: "#FF4F1815", color: "#FF4F18" }}
                   >
                     <Icon className="w-3.5 h-3.5" />
                     {plan.label}
@@ -261,9 +261,9 @@ function PricingPageInner() {
                     <div key={f} className="flex items-center gap-2.5">
                       <div
                         className="w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: "#E04D0015", width: 18, height: 18 }}
+                        style={{ backgroundColor: "#FF4F1815", width: 18, height: 18 }}
                       >
-                        <Check className="h-2.5 w-2.5" style={{ color: "#E04D00" }} />
+                        <Check className="h-2.5 w-2.5" style={{ color: "#FF4F18" }} />
                       </div>
                       <span className="text-sm" style={{ color: "#000000CC" }}>{f}</span>
                     </div>
@@ -306,7 +306,7 @@ function PricingPageInner() {
                   disabled={!!loadingPlan}
                   className="flex w-full items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
                   style={{
-                    backgroundColor: plan.popular ? "#E04D00" : "#000000",
+                    backgroundColor: plan.popular ? "#FF4F18" : "#000000",
                   }}
                 >
                   {isLoading ? (
