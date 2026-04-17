@@ -6,9 +6,9 @@ import { GoogleDetailsPanel } from "@/components/visibility/google-details-panel
 import { RedditDetailsPanel } from "@/components/visibility/reddit-details-panel";
 import { WebMentionsPanel } from "@/components/visibility/web-mentions-panel";
 import {
-  Globe, MessageSquare, HelpCircle, BookOpen, Rocket,
-  Star, BarChart3, Linkedin, Youtube, Twitter,
-  Search, CheckCircle2, XCircle, ExternalLink, Sparkles,
+  MessageSquare, HelpCircle, BookOpen,
+  Linkedin, Youtube, Twitter,
+  Search, CheckCircle2, XCircle, ExternalLink,
 } from "lucide-react";
 
 interface BrandVisibilityTabProps {
@@ -26,25 +26,12 @@ const PLATFORM_CONFIG: Array<{
   { key: "Reddit", label: "Reddit", color: "#ff4500", icon: <MessageSquare className="w-4 h-4" /> },
   { key: "Quora", label: "Quora", color: "#b92b27", icon: <HelpCircle className="w-4 h-4" /> },
   { key: "Wikipedia", label: "Wikipedia", color: "#636466", icon: <BookOpen className="w-4 h-4" /> },
-  { key: "Product Hunt", label: "Product Hunt", color: "#da552f", icon: <Rocket className="w-4 h-4" /> },
-  { key: "G2", label: "G2", color: "#ff492c", icon: <Star className="w-4 h-4" /> },
-  { key: "Trustpilot", label: "Trustpilot", color: "#00b67a", icon: <Star className="w-4 h-4" /> },
-  { key: "HubSpot", label: "HubSpot", color: "#ff7a59", icon: <BarChart3 className="w-4 h-4" /> },
   { key: "LinkedIn", label: "LinkedIn", color: "#0a66c2", icon: <Linkedin className="w-4 h-4" /> },
   { key: "YouTube", label: "YouTube", color: "#ff0000", icon: <Youtube className="w-4 h-4" /> },
   { key: "X (Twitter)", label: "X (Twitter)", color: "#1da1f2", icon: <Twitter className="w-4 h-4" /> },
-  { key: "Dev.to", label: "Dev.to", color: "#0a0a0a", icon: <Globe className="w-4 h-4" /> },
-  { key: "Stack Overflow", label: "Stack Overflow", color: "#f48024", icon: <Globe className="w-4 h-4" /> },
 ];
 
 export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTabProps) {
-  const overall = Math.round(visibility.overall_score ?? 0);
-  const aiFacts = visibility.ai_brand_facts;
-  const perceptionFacts = aiFacts?.facts?.filter(Boolean) ?? [];
-  const perceptionSummary = aiFacts?.summary?.trim() ?? "";
-  const perceptionCaveat = aiFacts?.caveat?.trim() ?? "";
-  const perceptionError = aiFacts?.error;
-
   // Extract platform data from the checks
   const checks = (visibility as unknown as Record<string, unknown>)?.checks as Record<string, unknown> | undefined;
   const platformPresence = (checks?.platform_presence ?? {}) as Record<string, { found: boolean; mentions: number; top_urls?: string[] }>;
@@ -60,79 +47,48 @@ export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTab
 
   const foundCount = platformsFound.length + (googleData.found ? 1 : 0);
   const totalChecked = PLATFORM_CONFIG.length;
+  const overall = Math.round(visibility.overall_score ?? 0);
+  const googleScore = Math.round(visibility.google_score ?? 0);
+  const redditScore = Math.round(visibility.reddit_score ?? 0);
+  const webScore = Math.round(visibility.web_mentions_score ?? 0);
+  const marketCoverage = Math.round((foundCount / Math.max(totalChecked, 1)) * 100);
+
+  function scoreColor(s: number) {
+    if (s >= 70) return "#22c55e";
+    if (s >= 40) return "#D97706";
+    return "#F95C4B";
+  }
 
   return (
     <div className="space-y-4">
-      {/* Header + Overall Score */}
-      <div className="rounded-2xl bg-card p-6 border border-border">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Brand Presence</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              How <span className="text-foreground font-medium">{brandName}</span> appears across the web
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative h-20 w-20 shrink-0">
-              <svg viewBox="0 0 36 36" className="h-20 w-20 -rotate-90">
-                <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="2.5" />
-                <circle cx="18" cy="18" r="15" fill="none" stroke="#F95C4B" strokeWidth="2.5" strokeLinecap="round"
-                  strokeDasharray={`${2 * Math.PI * 15}`}
-                  strokeDashoffset={`${2 * Math.PI * 15 * (1 - overall / 100)}`}
-                />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-foreground">{overall}</span>
+      {/* Score summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {[
+          { label: "Overall Score",    value: overall,        suffix: "/100" },
+          { label: "Market Coverage",  value: marketCoverage, suffix: "%" },
+          { label: "Google",           value: googleScore,    suffix: "/100" },
+          { label: "Reddit",           value: redditScore,    suffix: "/100" },
+          { label: "Web Mentions",     value: webScore,       suffix: "/100" },
+        ].map((card) => (
+          <div key={card.label} className="rounded-2xl bg-card border border-border p-4 flex flex-col gap-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{card.label}</p>
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-2xl font-bold tabular-nums" style={{ color: scoreColor(card.value) }}>
+                {card.value}
+              </span>
+              <span className="text-xs text-muted-foreground">{card.suffix}</span>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{overall}/100</p>
-              <p className="text-xs text-muted-foreground">Brand presence score</p>
+            <div className="h-1 rounded-full bg-muted mt-1 overflow-hidden">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.min(100, card.suffix === "%" ? card.value : card.value)}%`,
+                  backgroundColor: scoreColor(card.value),
+                }}
+              />
             </div>
           </div>
-        </div>
-
-        {(perceptionFacts.length > 0 || perceptionSummary || perceptionCaveat || perceptionError) && (
-          <div className="mt-5 rounded-xl border border-border bg-muted/20 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-primary shrink-0" />
-              <p className="text-sm font-semibold text-foreground">What AI is likely to reflect</p>
-            </div>
-            <p className="text-[11px] text-muted-foreground mb-3">
-              Short, signal-grounded notes on how chat models may describe this brand from the same visibility data we analyzed—not live web browsing.
-            </p>
-            {perceptionFacts.length > 0 && (
-              <ul className="list-disc pl-5 space-y-1.5 text-sm text-foreground">
-                {perceptionFacts.map((f, i) => (
-                  <li key={i}>{f}</li>
-                ))}
-              </ul>
-            )}
-            {perceptionSummary && (
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{perceptionSummary}</p>
-            )}
-            {perceptionCaveat && (
-              <p className="mt-2 text-[11px] text-muted-foreground italic">{perceptionCaveat}</p>
-            )}
-            {perceptionError && !perceptionFacts.length && !perceptionSummary && (
-              <p className="text-xs text-amber-700 dark:text-amber-300">{perceptionError}</p>
-            )}
-          </div>
-        )}
-
-        {/* Summary stats */}
-        <div className="grid grid-cols-3 gap-3 mt-5">
-          <div className="rounded-xl bg-muted/30 p-3 text-center">
-            <p className="text-xl font-bold text-foreground">{foundCount}</p>
-            <p className="text-[10px] text-muted-foreground">Platforms Found</p>
-          </div>
-          <div className="rounded-xl bg-muted/30 p-3 text-center">
-            <p className="text-xl font-bold text-foreground">{totalChecked - foundCount}</p>
-            <p className="text-[10px] text-muted-foreground">Not Found</p>
-          </div>
-          <div className="rounded-xl bg-muted/30 p-3 text-center">
-            <p className="text-xl font-bold text-foreground">{Math.round((foundCount / Math.max(totalChecked, 1)) * 100)}%</p>
-            <p className="text-[10px] text-muted-foreground">Coverage</p>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Mentions by Platform */}

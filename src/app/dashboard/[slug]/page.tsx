@@ -628,6 +628,7 @@ export default function SignalorDashboard() {
                 normalizeUrl(run.url).split("/")[0] ||
                 "Your brand"
               }
+              brandUrl={run.url ?? ""}
               details={brandVis?.social_presence_details as SocialPresenceDetails | undefined}
               brandVisibility={brandVis}
               coral={CORAL}

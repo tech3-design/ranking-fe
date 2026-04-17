@@ -82,7 +82,10 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                 <PaletteItem icon={LayoutDashboard} label="Overview" desc="Dashboard overview" onSelect={() => go(base)} />
                 <PaletteItem icon={ListChecks} label="Recommendations" desc="GEO improvement actions" onSelect={() => go(`${base}/recommendations`)} />
                 <PaletteItem icon={Eye} label="Visibility" desc="Brand visibility across AI" onSelect={() => go(`${base}/visibility`)} />
-                <PaletteItem icon={MessageSquare} label="Prompts" desc="Track AI prompt responses" onSelect={() => go(`${base}/prompts`)} />
+                <PaletteItem icon={MessageSquare} label="Prompts" desc="Quick snapshot & walkthrough" onSelect={() => go(`${base}/prompts`)} />
+                <PaletteItem icon={MessageSquare} label="Prompts — Actions" desc="Add, recheck, and do the work" onSelect={() => go(`${base}/prompts/actions`)} />
+                <PaletteItem icon={MessageSquare} label="Prompts — Recommendations" desc="Rank prompts better + ideas" onSelect={() => go(`${base}/prompts/recommendations`)} />
+                <PaletteItem icon={MessageSquare} label="Prompts — History" desc="Track all engines and results" onSelect={() => go(`${base}/prompts/history`)} />
                 <PaletteItem icon={BarChart3} label="Analytics" desc="Google Analytics integration" onSelect={() => go(`${base}/analytics`)} />
               </Command.Group>
 

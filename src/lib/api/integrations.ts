@@ -42,6 +42,11 @@ export interface GADataSnapshot {
     sessions: number;
     organic_sessions: number;
   }>;
+  countries: Array<{
+    country: string;
+    country_id: string;  // ISO alpha-2 e.g. "IN", "US"
+    sessions: number;
+  }>;
   sync_status: "pending" | "syncing" | "complete" | "failed";
   error_message: string;
   created_at: string;

@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { BrandVisibility } from "@/lib/api/analyzer";
+import { WorldPresenceMap, type GACountryEntry } from "@/components/analyzer/world-presence-map";
+import { getGAData, getIntegrationStatus } from "@/lib/api/integrations";
 
 export interface SocialPlatformSnapshot {
   url: string | null;
@@ -98,11 +101,31 @@ function formatFollowers(n: number): string {
   return n.toString();
 }
 
+/* ── Detect brand's home region from its URL TLD ───────────────── */
+function detectHomeRegion(url: string): string | null {
+  try {
+    const host = new URL(url.startsWith("http") ? url : `https://${url}`).hostname.toLowerCase();
+    if (/\.in$|\.co\.in$/.test(host))                                                    return "as";
+    if (/\.cn$|\.jp$|\.kr$|\.tw$|\.hk$/.test(host))                                     return "as";
+    if (/\.au$|\.com\.au$|\.nz$/.test(host))                                             return "au";
+    if (/\.uk$|\.co\.uk$|\.de$|\.fr$|\.it$|\.es$|\.nl$|\.se$|\.no$|\.dk$|\.fi$|\.pl$|\.eu$/.test(host)) return "eu";
+    if (/\.ca$/.test(host))                                                               return "na";
+    if (/\.br$|\.com\.br$|\.ar$|\.mx$|\.cl$|\.co$/.test(host))                          return "sa";
+    if (/\.za$|\.ng$|\.ke$|\.eg$/.test(host))                                            return "af";
+    if (/\.ae$|\.sa$|\.qa$|\.kw$|\.bh$|\.om$|\.il$|\.tr$/.test(host))                  return "me";
+    if (/\.sg$|\.my$|\.th$|\.ph$|\.id$|\.vn$/.test(host))                               return "sea";
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /* ── Component ─────────────────────────────────────────────────── */
 
 interface SocialBrandReachCardProps {
   slug: string;
   brandName: string;
+  brandUrl?: string;
   details: SocialPresenceDetails | null | undefined;
   aiBrandFacts?: AiBrandFactsBlock | null;
   platformPresence?: Record<string, PlatformPresenceItem> | null;
@@ -110,20 +133,39 @@ interface SocialBrandReachCardProps {
   coral: string;
 }
 
+const GEO_WEIGHTS: Record<string, number[]> = {
+  "Google":         [0.28, 0.06, 0.24, 0.05, 0.05, 0.22, 0.06, 0.04],
+  "Reddit":         [0.58, 0.05, 0.26, 0.01, 0.01, 0.06, 0.02, 0.01],
+  "LinkedIn":       [0.30, 0.05, 0.35, 0.02, 0.06, 0.16, 0.03, 0.03],
+  "YouTube":        [0.24, 0.10, 0.20, 0.05, 0.06, 0.24, 0.07, 0.04],
+  "Instagram":      [0.24, 0.14, 0.20, 0.05, 0.06, 0.22, 0.06, 0.03],
+  "X (Twitter)":    [0.34, 0.06, 0.25, 0.02, 0.04, 0.20, 0.06, 0.03],
+  "Quora":          [0.24, 0.05, 0.14, 0.02, 0.04, 0.42, 0.07, 0.02],
+  "Stack Overflow": [0.34, 0.05, 0.30, 0.01, 0.02, 0.18, 0.06, 0.04],
+  "Wikipedia":      [0.24, 0.08, 0.30, 0.05, 0.06, 0.18, 0.05, 0.04],
+  "Trustpilot":     [0.28, 0.02, 0.46, 0.01, 0.02, 0.12, 0.03, 0.06],
+  "G2":             [0.58, 0.04, 0.25, 0.01, 0.02, 0.07, 0.02, 0.01],
+  "Medium":         [0.36, 0.06, 0.26, 0.02, 0.03, 0.18, 0.06, 0.03],
+};
+
+const REGION_IDS = ["na", "sa", "eu", "af", "me", "as", "sea", "au"];
+const REGION_LABELS: Record<string, string> = {
+  na: "N. America", sa: "L. America", eu: "Europe",
+  af: "Africa",     me: "Mid. East",  as: "Asia",
+  sea: "SE Asia",   au: "Oceania",
+};
+
 export function SocialBrandReachCard({
-  slug, brandName, details, brandVisibility, coral,
+  slug, brandName, brandUrl = "", details, brandVisibility, coral,
 }: SocialBrandReachCardProps) {
   const sp = details && typeof details === "object" ? details : null;
   const presence = sp?.brand_presence_score ?? 0;
-  const capture = sp?.market_capture_score ?? 0;
+  const capture  = sp?.market_capture_score  ?? 0;
   const topError = sp?.error;
 
-  /* ── Build line graph data ── */
-  const graphW = 500;
-  const graphH = 100;
-  const padX = 10;
-  const padTop = 16;
-  const padBot = 0;
+  /* ── Line graph ── */
+  const graphW = 500; const graphH = 100;
+  const padX = 10; const padTop = 16; const padBot = 0;
   const plotH = graphH - padTop - padBot;
 
   const emptyBv: BrandVisibility = {
@@ -139,9 +181,7 @@ export function SocialBrandReachCard({
     const y = padTop + plotH - (val / 100) * plotH;
     return { ...dim, val, x, y };
   });
-
   const hasGraphData = points.some((p) => p.val > 0);
-
   const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
   const areaPath = `${linePath} L ${points[points.length - 1].x.toFixed(1)} ${graphH} L ${points[0].x.toFixed(1)} ${graphH} Z`;
 
@@ -153,60 +193,119 @@ export function SocialBrandReachCard({
       url: data?.url ?? null,
       followers: data?.followers ?? null,
       error: data?.error ?? null,
-      source: data?.source ?? "none",
       hasProfile: Boolean(data?.url),
     };
   });
+  const foundCount = platforms.filter((p) => p.hasProfile).length;
+
+  /* ── Region scores ── */
+  const checks = (bv as unknown as Record<string, unknown>)?.checks as Record<string, unknown> | undefined;
+  const platformPresence = (checks?.platform_presence ?? {}) as Record<string, { found: boolean; mentions: number }>;
+
+  const homeRegion = detectHomeRegion(brandUrl);
+  const rawRegionScores: Record<string, number> = Object.fromEntries(REGION_IDS.map((id) => [id, 0]));
+
+  const socialInputs: Array<{ key: string; value: number }> = [
+    sp?.instagram && { key: "Instagram",   value: Math.max(40, Math.min(100, (sp.instagram.followers ?? 0) / 1000)) },
+    sp?.facebook  && { key: "Facebook",    value: Math.max(40, Math.min(100, (sp.facebook.followers  ?? 0) / 1000)) },
+    sp?.youtube   && { key: "YouTube",     value: Math.max(40, Math.min(100, (sp.youtube.followers   ?? 0) / 1000)) },
+    sp?.twitter   && { key: "X (Twitter)", value: Math.max(40, Math.min(100, (sp.twitter.followers   ?? 0) / 1000)) },
+    sp?.linkedin  && { key: "LinkedIn",    value: Math.max(40, Math.min(100, (sp.linkedin.followers  ?? 0) / 1000)) },
+  ].filter(Boolean) as Array<{ key: string; value: number }>;
+
+  const scoreInputs: Array<{ key: string; value: number }> = [
+    { key: "Google", value: Math.round(bv.google_score ?? 0) },
+    { key: "Reddit", value: Math.round(bv.reddit_score ?? 0) },
+    { key: "Medium", value: Math.round(bv.medium_score ?? 0) },
+    ...socialInputs,
+    ...Object.entries(platformPresence)
+      .filter(([, d]) => d.found && d.mentions > 0)
+      .map(([key, d]) => ({ key, value: Math.min(100, d.mentions * 2) })),
+  ];
+
+  for (const { key, value } of scoreInputs) {
+    const weights = GEO_WEIGHTS[key];
+    if (!weights || value === 0) continue;
+    REGION_IDS.forEach((id, i) => { rawRegionScores[id] += value * weights[i]; });
+  }
+
+  if (homeRegion) {
+    const currentMax = Math.max(...Object.values(rawRegionScores), 1);
+    rawRegionScores[homeRegion] = Math.max(rawRegionScores[homeRegion], currentMax * 0.90);
+    REGION_IDS.forEach((id) => {
+      if (id !== homeRegion) rawRegionScores[id] = Math.min(rawRegionScores[id], currentMax * 0.55);
+    });
+  }
+
+  const maxRaw = Math.max(...Object.values(rawRegionScores), 1);
+  const realRegionScores: Record<string, number> = Object.fromEntries(
+    Object.entries(rawRegionScores).map(([id, v]) => [id, Math.round((v / maxRaw) * 100)])
+  );
+
+  const regionData = REGION_IDS.map((id) => ({ id, label: REGION_LABELS[id], score: realRegionScores[id] }));
+
+  /* ── GA country data ── */
+  const [gaCountries, setGaCountries] = useState<GACountryEntry[] | null>(null);
+  useEffect(() => {
+    const email = typeof window !== "undefined"
+      ? (document.cookie.match(/user_email=([^;]+)/)?.[1] ?? "") : "";
+    if (!email) return;
+    getIntegrationStatus(email)
+      .then((integrations) => {
+        const gaActive = integrations.some((i) => i.provider === "google_analytics" && i.is_active);
+        if (!gaActive) return;
+        return getGAData(email, brandUrl || undefined);
+      })
+      .then((data) => {
+        if (data && Array.isArray(data.countries) && data.countries.length > 0) {
+          setGaCountries(data.countries);
+        }
+      })
+      .catch(() => {});
+  }, [brandUrl]);
 
   return (
-    <div className="col-span-12 rounded-2xl border border-border bg-card p-5 md:p-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-foreground">Brand Presence</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Online footprint of <span className="font-medium text-foreground">{brandName}</span>
-            {" · "}
-            <Link href={`/dashboard/${slug}/visibility`} className="underline-offset-2 hover:underline" style={{ color: coral }}>
-              Full visibility
-            </Link>
-          </p>
-        </div>
-        <div className="flex shrink-0 gap-8 text-right lg:pl-4">
-          <div>
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Brand presence</p>
-            <p className="text-2xl font-bold tabular-nums text-foreground">{Math.round(presence)}</p>
-            <p className="text-[10px] text-muted-foreground">/100</p>
-          </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Market capture</p>
-            <p className="text-2xl font-bold tabular-nums text-foreground">{Math.round(capture)}</p>
-            <p className="text-[10px] text-muted-foreground">/100</p>
-          </div>
-        </div>
-      </div>
+    <div className="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4">
 
-      {/* ── Presence Line Graph ── */}
-      {hasGraphData ? (
-        <div className="mt-4">
-          <div className="relative w-full" style={{ maxHeight: "140px" }}>
+      {/* ── Card 1: Brand Presence Line Graph ── */}
+      <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">Brand Presence</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Online footprint of <span className="font-medium text-foreground">{brandName}</span>
+              {" · "}
+              <Link href={`/dashboard/${slug}/visibility`} className="underline-offset-2 hover:underline" style={{ color: coral }}>
+                Full visibility
+              </Link>
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-6 text-right">
+            <div>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Brand Presence</p>
+              <p className="text-2xl font-bold tabular-nums text-foreground leading-none mt-0.5">{Math.round(presence)}</p>
+              <p className="text-[9px] text-muted-foreground">/100</p>
+            </div>
+            <div>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Market Capture</p>
+              <p className="text-2xl font-bold tabular-nums text-foreground leading-none mt-0.5">{Math.round(capture)}</p>
+              <p className="text-[9px] text-muted-foreground">/100</p>
+            </div>
+          </div>
+        </div>
+
+        {hasGraphData ? (
+          <div className="mt-4 relative w-full" style={{ maxHeight: "130px" }}>
             <svg
               viewBox={`0 0 ${graphW} ${graphH + 18}`}
               className="w-full h-full"
               preserveAspectRatio="xMidYMid meet"
-              style={{ overflow: "visible", maxHeight: "140px" }}
+              style={{ overflow: "visible", maxHeight: "130px" }}
             >
-              {/* Grid lines */}
               {[0, 50, 100].map((v) => {
                 const y = padTop + plotH - (v / 100) * plotH;
-                return (
-                  <g key={v}>
-                    <line x1={padX} y1={y} x2={graphW - padX} y2={y} stroke="var(--border)" strokeWidth="0.4" strokeDasharray="3,4" opacity="0.5" />
-                  </g>
-                );
+                return <line key={v} x1={padX} y1={y} x2={graphW - padX} y2={y} stroke="var(--border)" strokeWidth="0.4" strokeDasharray="3,4" opacity="0.5" />;
               })}
-
-              {/* Area fill */}
               <defs>
                 <linearGradient id="presenceGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={coral} stopOpacity="0.25" />
@@ -214,21 +313,13 @@ export function SocialBrandReachCard({
                 </linearGradient>
               </defs>
               <path d={areaPath} fill="url(#presenceGrad)" />
-
-              {/* Line */}
               <path d={linePath} fill="none" stroke={coral} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-
-              {/* Data points */}
               {points.map((p) => (
                 <g key={p.key}>
                   <circle cx={p.x} cy={p.y} r="3" fill="var(--card)" stroke={coral} strokeWidth="1.5" />
-                  <text x={p.x} y={p.y - 7} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="var(--foreground)">
-                    {p.val}
-                  </text>
+                  <text x={p.x} y={p.y - 7} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="var(--foreground)">{p.val}</text>
                 </g>
               ))}
-
-              {/* X-axis labels */}
               {points.map((p) => (
                 <text key={`l-${p.key}`} x={p.x} y={graphH + 12} textAnchor="middle" fontSize="7.5" fontWeight="500" fill="var(--muted-foreground)">
                   {p.shortLabel}
@@ -236,66 +327,103 @@ export function SocialBrandReachCard({
               ))}
             </svg>
           </div>
+        ) : (
+          <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/10 p-4">
+            <p className="text-xs text-muted-foreground">No presence data yet. Run a new analysis to generate the presence graph.</p>
+          </div>
+        )}
+
+        <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
+          {platforms.map((plat) => {
+            const found = plat.hasProfile;
+            const hasFollowers = plat.followers != null && plat.followers > 0;
+            return (
+              <div key={plat.key} className="flex flex-col items-center gap-1 min-w-[52px] flex-1">
+                <a
+                  href={found && plat.url ? plat.url : "#"}
+                  target={found ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition ${found ? "hover:scale-110" : "opacity-30 cursor-default"}`}
+                  style={{ backgroundColor: found ? plat.bgColor : "var(--muted)" }}
+                >
+                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={found ? plat.color : "var(--muted-foreground)"}>
+                    <path d={plat.iconPath} />
+                  </svg>
+                </a>
+                <span className={`text-[10px] font-medium ${found ? "text-foreground" : "text-muted-foreground/40"}`}>{plat.label}</span>
+                {hasFollowers ? (
+                  <span className="text-[10px] font-bold tabular-nums" style={{ color: plat.color }}>{formatFollowers(plat.followers!)}</span>
+                ) : found ? (
+                  <span className="text-[9px] text-muted-foreground/50">{plat.error === "login_wall" ? "private" : "linked"}</span>
+                ) : (
+                  <span className="text-[9px] text-muted-foreground/30">-</span>
+                )}
+              </div>
+            );
+          })}
         </div>
-      ) : (
-        <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/10 p-4">
-          <p className="text-xs text-muted-foreground">
-            No presence data yet. Run a <span className="font-medium text-foreground">new analysis</span> to generate the presence graph.
+
+        {topError && (
+          <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
+            Social metrics unavailable: {topError}
           </p>
-        </div>
-      )}
-
-      {/* ── Social Platforms Row ── */}
-      <div className="mt-5 flex items-center justify-between gap-2 flex-wrap">
-        {platforms.map((plat) => {
-          const found = plat.hasProfile;
-          const hasFollowers = plat.followers != null && plat.followers > 0;
-
-          return (
-            <div key={plat.key} className="flex flex-col items-center gap-1.5 min-w-[60px] flex-1">
-              <a
-                href={found && plat.url ? plat.url : "#"}
-                target={found ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                className={`w-9 h-9 rounded-xl flex items-center justify-center transition ${
-                  found ? "hover:scale-110" : "opacity-30 cursor-default"
-                }`}
-                style={{ backgroundColor: found ? plat.bgColor : "var(--muted)" }}
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill={found ? plat.color : "var(--muted-foreground)"}>
-                  <path d={plat.iconPath} />
-                </svg>
-              </a>
-              <span className={`text-[10px] font-medium ${found ? "text-foreground" : "text-muted-foreground/40"}`}>
-                {plat.label}
-              </span>
-              {hasFollowers ? (
-                <span className="text-[10px] font-bold tabular-nums" style={{ color: plat.color }}>
-                  {formatFollowers(plat.followers!)}
-                </span>
-              ) : found ? (
-                <span className="text-[9px] text-muted-foreground/50">
-                  {plat.error === "login_wall" ? "private" : "linked"}
-                </span>
-              ) : (
-                <span className="text-[9px] text-muted-foreground/30">-</span>
-              )}
-            </div>
-          );
-        })}
+        )}
+        <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+          {typeof sp?.interpretation === "string" && sp.interpretation
+            ? sp.interpretation
+            : "Social links discovered from the brand's website. Follower counts are best-effort from public pages."}
+        </p>
       </div>
 
-      {topError && (
-        <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
-          Social metrics unavailable: {topError}
-        </p>
-      )}
+      {/* ── Card 2: World Presence Map ── */}
+      <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-start justify-between gap-2 mb-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">World Presence</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Geographic reach of <span className="font-medium text-foreground">{brandName}</span>
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground shrink-0 flex-wrap justify-end">
+            {gaCountries && gaCountries.length > 0 && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold border"
+                style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
+              >
+                ✦ GA Live Data
+              </span>
+            )}
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: coral }} />
+              Active
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-muted-foreground/20" />
+              No signal
+            </span>
+          </div>
+        </div>
 
-      <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">
-        {typeof sp?.interpretation === "string" && sp.interpretation
-          ? sp.interpretation
-          : "Social links discovered from the brand's website. Follower counts are best-effort from public pages."}
-      </p>
+        <WorldPresenceMap coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} />
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {regionData.filter((r) => r.score > 0).sort((a, b) => b.score - a.score).map((r) => (
+            <span
+              key={r.id}
+              className="inline-flex items-center gap-1 text-[10px] rounded-full px-2 py-0.5 border"
+              style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: coral }} />
+              {r.label}
+            </span>
+          ))}
+          {regionData.every((r) => r.score === 0) && (
+            <p className="text-[10px] text-muted-foreground">No geographic signals yet — run a visibility check.</p>
+          )}
+        </div>
+
+      </div>
+
     </div>
   );
 }
