@@ -152,11 +152,12 @@ function PricingPageInner() {
         {/* Back link */}
         <Link
           href={returnTo || routes.dashboard}
-          className="inline-flex items-center gap-1.5 text-xs font-medium mb-8 transition hover:opacity-70"
-          style={{ color: "#00000060" }}
+          className="group inline-flex items-center gap-2 mb-8 text-[12px] font-semibold text-gray-400 hover:text-gray-700 transition-all"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          {returnTo ? "Back to setup" : "Back to Dashboard"}
+          <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-black/[0.05] group-hover:bg-black/[0.09] transition-colors">
+            <ArrowLeft className="w-3 h-3" />
+          </span>
+          {returnTo ? "Setup" : "Dashboard"}
         </Link>
 
         {/* Header */}
