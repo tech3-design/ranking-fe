@@ -23,6 +23,10 @@ import {
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { RotatingGeoFact } from "@/components/ui/rotating-geo-fact";
 import { CommandPalette } from "@/components/ui/command-palette";
+import {
+  SocialBrandReachCard,
+  type SocialPresenceDetails,
+} from "@/components/analyzer/social-brand-reach-card";
 
 /* ── coral is theme-constant; everything else uses Tailwind classes ── */
 const CORAL = "#F95C4B";
@@ -613,6 +617,22 @@ export default function SignalorDashboard() {
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="grid grid-cols-12 gap-4 mb-4">
+            <SocialBrandReachCard
+              slug={slug}
+              brandName={
+                run.display_brand_name?.trim() ||
+                run.brand_name ||
+                normalizeUrl(run.url).split("/")[0] ||
+                "Your brand"
+              }
+              brandUrl={run.url ?? ""}
+              details={brandVis?.social_presence_details as SocialPresenceDetails | undefined}
+              brandVisibility={brandVis}
+              coral={CORAL}
+            />
           </div>
 
           {/* ── ROW 2 ── */}

@@ -14,6 +14,7 @@ import type { CitationTrendPoint, Engine } from "@/lib/api/analyzer";
 
 const ENGINE_COLORS: Record<Engine, string> = {
   google: "#ea4335",
+  bing: "#00809d",
   chatgpt: "#4ade80",
   claude: "#fb923c",
   gemini: "#60a5fa",
@@ -22,6 +23,7 @@ const ENGINE_COLORS: Record<Engine, string> = {
 
 const ENGINE_LABELS: Record<Engine, string> = {
   google: "Google",
+  bing: "Bing",
   chatgpt: "ChatGPT",
   claude: "Claude",
   gemini: "Gemini",

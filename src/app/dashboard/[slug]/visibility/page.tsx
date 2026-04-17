@@ -67,7 +67,7 @@ export default function VisibilityPage() {
     <div className="px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">Brand Visibility</h2>
+          <h2 className="text-2xl font-semibold text-foreground">Brand Presence</h2>
           <p className="text-xs mt-1 text-muted-foreground">
             How AI engines and platforms see your brand
           </p>
@@ -105,7 +105,7 @@ export default function VisibilityPage() {
         <>
           {brandVis && (
             <BrandVisibilityTab
-              brandName={run.brand_name}
+              brandName={run.display_brand_name?.trim() || run.brand_name}
               visibility={brandVis}
             />
           )}

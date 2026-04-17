@@ -8,10 +8,10 @@ import {
   type PromptTrack,
 } from "@/lib/api/analyzer";
 import { PromptTracker } from "@/components/analyzer/prompt-tracker";
-import { Loader2, AlertCircle, RefreshCw, Sparkles } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw, Zap } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 
-export default function PromptsOverviewPage() {
+export default function PromptsActionsPage() {
   const { slug } = useParams<{ slug: string }>();
   const [tracks, setTracks] = useState<PromptTrack[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,25 +48,22 @@ export default function PromptsOverviewPage() {
     }
   }
 
-  const totalRuns = tracks.reduce((sum, t) => sum + (t.total_runs ?? 0), 0);
-  const totalMentions = tracks.reduce((sum, t) => sum + (t.mentions ?? 0), 0);
-  const visibility = totalRuns > 0 ? Math.round((totalMentions / totalRuns) * 100) : 0;
+  const pendingCount = tracks.filter((t) => t.results.length === 0).length;
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6">
       <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-primary" />
-              </div>
-              <h1 className="text-xl font-bold text-foreground">Prompt Tracking</h1>
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+              <Zap className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-sm text-muted-foreground">
-              See how AI models and search engines respond to queries about your brand.
-              Scored with the 2026 AI Visibility Framework — Authority, Content Quality &amp; Structural signals.
-            </p>
+            <div>
+              <h1 className="text-lg font-bold text-foreground">Actions</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                What you need to do next: add or edit prompts, run rechecks, and work through scores so your data stays fresh across engines.
+              </p>
+            </div>
           </div>
 
           {tracks.length > 0 && (
@@ -87,13 +84,10 @@ export default function PromptsOverviewPage() {
         {tracks.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs text-foreground">
-              {tracks.length} prompts
+              {tracks.length} tracked
             </span>
             <span className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs text-foreground">
-              {totalRuns} runs
-            </span>
-            <span className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs text-foreground">
-              {visibility}% visibility
+              {pendingCount} pending checks
             </span>
           </div>
         )}
@@ -118,6 +112,7 @@ export default function PromptsOverviewPage() {
           tracks={tracks}
           onAdded={(track) => setTracks((prev) => [track, ...prev])}
           onRechecked={() => fetchData()}
+          expandedMode="blank"
         />
       )}
     </div>

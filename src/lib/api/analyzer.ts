@@ -125,6 +125,16 @@ export interface BrandVisibility {
   medium_details: Record<string, unknown>;
   web_mentions_score: number;
   web_mentions_details: Record<string, unknown>;
+  /** Instagram/Facebook public scrape + derived scores (optional on older runs) */
+  social_presence_details?: Record<string, unknown>;
+  /** LLM synthesis: how AI may reflect the brand from visibility signals */
+  ai_brand_facts?: {
+    facts?: string[];
+    summary?: string;
+    caveat?: string;
+    method?: string;
+    error?: string;
+  };
   overall_score: number;
 }
 
@@ -133,6 +143,8 @@ export interface AnalysisRunDetail {
   slug: string;
   url: string;
   brand_name: string;
+  /** URL-resolved label (matches backend visibility_brand_label) */
+  display_brand_name?: string;
   country: string;
   email: string;
   run_type: string;
@@ -203,7 +215,7 @@ export function getExportPDFUrl(runId: number): string {
 
 // ── Prompt Tracking ───────────────────────────────────────────────────────
 
-export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity" | "google";
+export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity" | "google" | "bing";
 export type Sentiment = "positive" | "neutral" | "negative";
 
 export interface PromptResult {
@@ -230,6 +242,12 @@ export interface PromptTrack {
   ranking_label: string;
   total_runs: number;
   mentions: number;
+  // 5-factor AI visibility scores (0–1)
+  factor_authority: number;
+  factor_content_quality: number;
+  factor_structural: number;
+  factor_semantic: number;
+  factor_third_party: number;
 }
 
 export interface ShareOfVoiceItem {
