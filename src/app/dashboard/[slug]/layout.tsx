@@ -240,10 +240,12 @@ export default function DashboardSlugLayout({
           <div className="px-4 pt-2">
             <Link
               href={basePath}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium text-gray-500 hover:text-gray-800 hover:bg-[#F5F5F5] transition"
+              className="group flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] font-semibold text-gray-400 hover:text-gray-700 transition-all"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Back to Dashboard
+              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#F2F3F5] group-hover:bg-[#EBEBEB] transition-colors">
+                <ArrowLeft className="w-3 h-3" />
+              </span>
+              <span className="tracking-wide">Dashboard</span>
             </Link>
           </div>
         )}
