@@ -215,7 +215,7 @@ export function getExportPDFUrl(runId: number): string {
 
 // ── Prompt Tracking ───────────────────────────────────────────────────────
 
-export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity" | "google";
+export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity" | "google" | "bing";
 export type Sentiment = "positive" | "neutral" | "negative";
 
 export interface PromptResult {
@@ -242,6 +242,12 @@ export interface PromptTrack {
   ranking_label: string;
   total_runs: number;
   mentions: number;
+  // 5-factor AI visibility scores (0–1)
+  factor_authority: number;
+  factor_content_quality: number;
+  factor_structural: number;
+  factor_semantic: number;
+  factor_third_party: number;
 }
 
 export interface ShareOfVoiceItem {

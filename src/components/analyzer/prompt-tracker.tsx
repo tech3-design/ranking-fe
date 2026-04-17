@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   Loader2, CheckCircle2, XCircle, Plus, RefreshCw,
-  ChevronDown, ChevronRight, Eye, TrendingUp, TrendingDown, Minus,
-  MessageSquare, BarChart3, Target, Lock,
+  ChevronDown, ChevronRight, Eye, TrendingUp, Search,
+  MessageSquare, BarChart3, Target, Lock, Zap, Activity,
+  Globe, Bot, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,34 +15,108 @@ import type { PromptTrack, PromptResult, Engine, Sentiment } from "@/lib/api/ana
 import { useSession } from "@/lib/auth-client";
 import { getSubscriptionStatus } from "@/lib/api/payments";
 
-const ENGINES: Array<{ key: Engine; label: string; color: string }> = [
-  { key: "google", label: "Google", color: "#ea4335" },
-  { key: "chatgpt", label: "ChatGPT", color: "#10a37f" },
-  { key: "claude", label: "Claude", color: "#d97706" },
-  { key: "gemini", label: "Gemini", color: "#4285f4" },
-  { key: "perplexity", label: "Perplexity", color: "#7c3aed" },
+// ── Engine config ─────────────────────────────────────────────────────────────
+const ENGINES: Array<{ key: Engine; label: string; color: string; type: "ai" | "search" }> = [
+  { key: "google",     label: "Google",     color: "#ea4335", type: "search" },
+  { key: "bing",       label: "Bing",       color: "#00809d", type: "search" },
+  { key: "chatgpt",    label: "ChatGPT",    color: "#10a37f", type: "ai" },
+  { key: "claude",     label: "Claude",     color: "#d97706", type: "ai" },
+  { key: "gemini",     label: "Gemini",     color: "#4285f4", type: "ai" },
+  { key: "perplexity", label: "Perplexity", color: "#7c3aed", type: "ai" },
 ];
 
-const SENTIMENT_COLORS: Record<Sentiment, string> = {
-  positive: "bg-green-500/15 text-green-400 border-green-500/30",
-  neutral: "bg-muted/50 text-muted-foreground border-border",
-  negative: "bg-red-500/15 text-red-400 border-red-500/30",
+// ── 5-Factor config — all in brand primary ───────────────────────────────────
+const FACTORS = [
+  {
+    key: "factor_authority"       as const,
+    label: "Authority",
+    fullLabel: "Authority & Credibility",
+    weight: "40%",
+    weightNum: 40,
+    description: "Cross-engine citation rate, domain trust signals and E-E-A-T",
+    color: "#F95C4B",   // primary
+    bg: "bg-primary/10",
+    text: "text-primary",
+  },
+  {
+    key: "factor_content_quality" as const,
+    label: "Content",
+    fullLabel: "Content Quality & Utility",
+    weight: "35%",
+    weightNum: 35,
+    description: "Positive sentiment rate, direct-answer mechanism and original data",
+    color: "#F95C4B",
+    bg: "bg-primary/10",
+    text: "text-primary",
+  },
+  {
+    key: "factor_structural"      as const,
+    label: "Structure",
+    fullLabel: "Structural Extractability",
+    weight: "25%",
+    weightNum: 25,
+    description: "Top-3 position rate, NLP-friendly formatting and schema signals",
+    color: "#F95C4B",
+    bg: "bg-primary/10",
+    text: "text-primary",
+  },
+  {
+    key: "factor_semantic"        as const,
+    label: "Semantic",
+    fullLabel: "Semantic Alignment",
+    weight: "Signal",
+    weightNum: 0,
+    description: "Prompt-to-brand relevance: mention rate × confidence",
+    color: "#171717",   // foreground (supplementary = subdued)
+    bg: "bg-muted/50",
+    text: "text-foreground/70",
+  },
+  {
+    key: "factor_third_party"     as const,
+    label: "3rd Party",
+    fullLabel: "Third-Party Validation",
+    weight: "Signal",
+    weightNum: 0,
+    description: "Google & Bing presence combined with cross-AI-model citation rate",
+    color: "#171717",
+    bg: "bg-muted/50",
+    text: "text-foreground/70",
+  },
+] as const;
+
+// ── Style helpers ─────────────────────────────────────────────────────────────
+const SENTIMENT_STYLES: Record<Sentiment, { pill: string; dot: string }> = {
+  positive: { pill: "bg-primary/10 text-primary border-primary/20",           dot: "bg-primary" },
+  neutral:  { pill: "bg-muted/50 text-muted-foreground border-border",        dot: "bg-muted-foreground/40" },
+  negative: { pill: "bg-foreground/8 text-foreground/60 border-foreground/15", dot: "bg-foreground/30" },
 };
 
-const RANKING_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  Strong: { bg: "bg-green-500/10", text: "text-green-400", border: "border-green-500/30" },
-  Moderate: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/30" },
-  Weak: { bg: "bg-red-500/10", text: "text-red-400", border: "border-red-500/30" },
+const LABEL_STYLES: Record<string, { ring: string; text: string; bg: string; glow: string }> = {
+  Strong:   { ring: "ring-primary/50",           text: "text-primary",            bg: "bg-primary/10",         glow: "shadow-primary/20" },
+  Moderate: { ring: "ring-foreground/20",         text: "text-foreground/70",      bg: "bg-foreground/5",       glow: "shadow-foreground/10" },
+  Weak:     { ring: "ring-foreground/10",         text: "text-muted-foreground",   bg: "bg-muted/50",           glow: "" },
 };
 
+type FilterLabel = "All" | "Strong" | "Moderate" | "Weak";
+type SortKey = "score" | "visibility" | "created";
+
+// ── Props ─────────────────────────────────────────────────────────────────────
 interface PromptTrackerProps {
   slug: string;
   tracks: PromptTrack[];
   onAdded: (track: PromptTrack) => void;
   onRechecked: (trackId: number) => void;
+  expandedMode?: "full" | "blank";
 }
 
-export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrackerProps) {
+// ── Main component ────────────────────────────────────────────────────────────
+export function PromptTracker({
+  slug,
+  tracks,
+  onAdded,
+  onRechecked,
+  expandedMode = "full",
+}: PromptTrackerProps) {
   const { data: session } = useSession();
   const [planEngines, setPlanEngines] = useState<Engine[] | null>(null);
   const [text, setText] = useState("");
@@ -50,35 +125,58 @@ export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrac
   const [rechecking, setRechecking] = useState<Record<number, boolean>>({});
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [viewingResponse, setViewingResponse] = useState<PromptResult | null>(null);
+  const [search, setSearch] = useState("");
+  const [filterLabel, setFilterLabel] = useState<FilterLabel>("All");
+  const [sortKey, setSortKey] = useState<SortKey>("score");
 
   useEffect(() => {
     const email = session?.user?.email;
-    if (!email) {
-      setPlanEngines(null);
-      return;
-    }
+    if (!email) { setPlanEngines(null); return; }
     getSubscriptionStatus(email)
       .then((s) => setPlanEngines((s.limits.engines as Engine[]) ?? null))
       .catch(() => setPlanEngines(null));
   }, [session?.user?.email]);
 
   const enginesForUi = useMemo(() => {
-    const keys =
-      planEngines && planEngines.length > 0
-        ? planEngines
-        : null;
-    if (!keys) {
-      return ENGINES;
-    }
-    const allowed = new Set(keys);
+    if (!planEngines?.length) return ENGINES;
+    const allowed = new Set(planEngines);
     return ENGINES.filter((e) => allowed.has(e.key));
   }, [planEngines]);
 
-  const showProEngineUpsell = useMemo(() => {
+  const showUpsell = useMemo(() => {
     if (!planEngines?.length) return false;
     const s = new Set(planEngines);
-    return !s.has("chatgpt") || !s.has("perplexity");
+    return !s.has("chatgpt") || !s.has("perplexity") || !s.has("claude");
   }, [planEngines]);
+
+  // ── Aggregate stats ──────────────────────────────────────────────────────
+  const stats = useMemo(() => {
+    const total = tracks.length;
+    if (total === 0) return { avgScore: 0, visibility: 0, strong: 0, weak: 0, totalRuns: 0, mentions: 0 };
+    const avgScore = Math.round(tracks.reduce((s, t) => s + (t.score ?? 0), 0) / total * 100);
+    const totalRuns = tracks.reduce((s, t) => s + (t.total_runs ?? 0), 0);
+    const mentions  = tracks.reduce((s, t) => s + (t.mentions ?? 0), 0);
+    const visibility = totalRuns > 0 ? Math.round((mentions / totalRuns) * 100) : 0;
+    const strong = tracks.filter((t) => t.ranking_label === "Strong").length;
+    const weak   = tracks.filter((t) => t.ranking_label === "Weak").length;
+    return { avgScore, visibility, strong, weak, totalRuns, mentions };
+  }, [tracks]);
+
+  // ── Filtered + sorted tracks ─────────────────────────────────────────────
+  const visibleTracks = useMemo(() => {
+    let list = [...tracks];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((t) => t.prompt_text.toLowerCase().includes(q));
+    }
+    if (filterLabel !== "All") {
+      list = list.filter((t) => t.ranking_label === filterLabel);
+    }
+    if (sortKey === "score") list.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+    else if (sortKey === "visibility") list.sort((a, b) => (b.visibility_pct ?? 0) - (a.visibility_pct ?? 0));
+    else list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return list;
+  }, [tracks, search, filterLabel, sortKey]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -98,389 +196,632 @@ export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrac
   }
 
   async function handleRecheck(trackId: number) {
-    setRechecking((prev) => ({ ...prev, [trackId]: true }));
+    setRechecking((p) => ({ ...p, [trackId]: true }));
     try {
       await recheckPrompt(slug, trackId);
       onRechecked(trackId);
     } catch { /* ignore */ }
-    finally { setRechecking((prev) => ({ ...prev, [trackId]: false })); }
+    finally { setRechecking((p) => ({ ...p, [trackId]: false })); }
   }
 
-  // Aggregate stats
-  const totalPrompts = tracks.length;
-  const avgScore = totalPrompts > 0 ? Math.round(tracks.reduce((s, t) => s + (t.score ?? 0), 0) / totalPrompts * 100) : 0;
-  const strongCount = tracks.filter((t) => t.ranking_label === "Strong").length;
-  const totalMentions = tracks.reduce((s, t) => s + (t.mentions ?? 0), 0);
-  const totalRuns = tracks.reduce((s, t) => s + (t.total_runs ?? 0), 0);
-  const overallVisibility = totalRuns > 0 ? Math.round((totalMentions / totalRuns) * 100) : 0;
-
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      {totalPrompts > 0 && (
+
+      {/* ── Top summary strip ───────────────────────────────────────────── */}
+      {tracks.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <SummaryCard icon={<Target className="w-4 h-4" />} label="Avg Score" value={`${avgScore}`} sub="/100" color="text-primary" />
-          <SummaryCard icon={<BarChart3 className="w-4 h-4" />} label="Visibility" value={`${overallVisibility}%`} sub={`${totalMentions}/${totalRuns} mentions`} color="text-green-400" />
-          <SummaryCard icon={<TrendingUp className="w-4 h-4" />} label="Strong Prompts" value={`${strongCount}`} sub={`of ${totalPrompts}`} color="text-amber-400" />
-          <SummaryCard icon={<MessageSquare className="w-4 h-4" />} label="Total Prompts" value={`${totalPrompts}`} sub={`${totalRuns} total runs`} color="text-blue-400" />
+          <StatCard
+            icon={<Target className="w-4 h-4" />}
+            label="Avg AI Score"
+            value={`${stats.avgScore}`}
+            sub="/100"
+            color="text-primary"
+            accent="from-primary/15 to-primary/5"
+          />
+          <StatCard
+            icon={<BarChart3 className="w-4 h-4" />}
+            label="Brand Visibility"
+            value={`${stats.visibility}%`}
+            sub={`${stats.mentions} mentions`}
+            color="text-primary"
+            accent="from-primary/10 to-primary/3"
+          />
+          <StatCard
+            icon={<TrendingUp className="w-4 h-4" />}
+            label="Strong Prompts"
+            value={`${stats.strong}`}
+            sub={`of ${tracks.length}`}
+            color="text-foreground"
+            accent="from-muted/80 to-muted/20"
+          />
+          <StatCard
+            icon={<Activity className="w-4 h-4" />}
+            label="Total Runs"
+            value={`${stats.totalRuns}`}
+            sub={`${tracks.length} prompts`}
+            color="text-foreground"
+            accent="from-muted/80 to-muted/20"
+          />
         </div>
       )}
 
-      {/* Add Prompt */}
-      <form onSubmit={handleAdd} className="flex gap-2">
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Add a custom prompt... e.g. What are the best GEO tools?"
-          className="flex-1 text-sm"
-          disabled={adding}
-        />
-        <Button type="submit" size="sm" disabled={adding || !text.trim()}>
-          {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Add
-        </Button>
-      </form>
-      {addError && <p className="text-xs text-destructive">{addError}</p>}
 
-      {showProEngineUpsell && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3 text-xs text-foreground">
+      {/* ── Add prompt form ──────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-border/60 bg-card p-4">
+        <p className="text-xs font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Plus className="w-3.5 h-3.5 text-primary" /> Add Custom Prompt
+        </p>
+        <form onSubmit={handleAdd} className="flex gap-2">
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="e.g. What are the best GEO tools for e-commerce in 2026?"
+            className="flex-1 text-sm bg-background"
+            disabled={adding}
+          />
+          <Button type="submit" disabled={adding || !text.trim()} className="shrink-0">
+            {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            {adding ? "Checking..." : "Track"}
+          </Button>
+        </form>
+        {addError && <p className="text-xs text-destructive mt-2">{addError}</p>}
+      </div>
+
+      {/* ── Upsell banner ────────────────────────────────────────────────── */}
+      {showUpsell && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs">
           <Lock className="h-3.5 w-3.5 shrink-0 text-primary" />
           <span className="text-muted-foreground">
-            ChatGPT &amp; Perplexity prompt checks are on <strong className="text-foreground">Pro</strong> and above. Your plan only runs the engines included in your subscription.
+            <strong className="text-foreground">ChatGPT, Claude &amp; Perplexity</strong> are on Pro / Max plans.
+            Google &amp; Bing are included on all plans.
           </span>
-          <Link href="/pricing" className="ml-auto font-semibold text-primary underline-offset-2 hover:underline">
-            Upgrade
+          <Link href="/pricing" className="ml-auto font-semibold text-primary hover:underline underline-offset-2">
+            Upgrade →
           </Link>
         </div>
       )}
 
-      {/* Prompt Cards */}
-      {tracks.length === 0 ? (
-        <div className="text-center py-12">
-          <MessageSquare className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">No prompts tracked yet. Add one above or run an analysis to auto-generate prompts.</p>
+      {/* ── Filter / Sort bar ────────────────────────────────────────────── */}
+      {tracks.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search prompts…"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
+            />
+          </div>
+          {/* Label filter */}
+          <div className="flex items-center gap-1">
+            {(["All", "Strong", "Moderate", "Weak"] as FilterLabel[]).map((l) => (
+              <button
+                key={l}
+                onClick={() => setFilterLabel(l)}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition ${
+                  filterLabel === l
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card border border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+          {/* Sort */}
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+            className="px-2.5 py-1 text-[11px] rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+          >
+            <option value="score">Sort: Score</option>
+            <option value="visibility">Sort: Visibility</option>
+            <option value="created">Sort: Newest</option>
+          </select>
+          <span className="text-[11px] text-muted-foreground ml-auto">{visibleTracks.length} of {tracks.length}</span>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {tracks.map((track) => {
-            const isExpanded = expandedId === track.id;
+      )}
+
+      {/* ── Empty state ──────────────────────────────────────────────────── */}
+      {tracks.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border/60 bg-card/50 py-16 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+            <MessageSquare className="w-6 h-6 text-muted-foreground/40" />
+          </div>
+          <p className="text-sm font-medium text-foreground mb-1">No prompts tracked yet</p>
+          <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+            Add a custom prompt above, or run a full analysis to auto-generate prompts for your brand.
+          </p>
+        </div>
+      )}
+
+      {/* ── Prompt cards ─────────────────────────────────────────────────── */}
+      {visibleTracks.length > 0 && (
+        <div className="space-y-2.5">
+          {visibleTracks.map((track) => {
+            const isExpanded  = expandedId === track.id;
             const isRechecking = rechecking[track.id];
-            const style = RANKING_STYLES[track.ranking_label ?? "Weak"] ?? RANKING_STYLES.Weak;
-            const hasResults = track.results.length > 0;
+            const hasResults  = track.results.length > 0;
+            const label       = track.ranking_label ?? "Weak";
+            const ls          = LABEL_STYLES[label] ?? LABEL_STYLES.Weak;
+            const score       = Math.round((track.score ?? 0) * 100);
 
             return (
-              <div key={track.id} className="rounded-xl border border-border/60 bg-card overflow-hidden">
-                {/* Prompt Header Row */}
+              <div
+                key={track.id}
+                className={`rounded-2xl border bg-card overflow-hidden transition-all ${
+                  isExpanded
+                    ? "border-primary/20 shadow-lg"
+                    : "border-border/50 hover:border-border hover:shadow-sm"
+                }`}
+                style={{ boxShadow: isExpanded ? "0 4px 20px rgba(249,92,75,0.08)" : undefined }}
+              >
+                {/* ── Card header ─────────────────────────────────────── */}
                 <div
-                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/20 transition"
+                  className={`flex items-center gap-3 px-4 py-4 cursor-pointer select-none transition-colors ${isExpanded ? "bg-primary/3" : "hover:bg-muted/20"}`}
                   onClick={() => setExpandedId(isExpanded ? null : track.id)}
                 >
-                  {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
+                  {/* Chevron */}
+                  <span className={`shrink-0 transition-colors ${isExpanded ? "text-primary/60" : "text-muted-foreground/30"}`}>
+                    {isExpanded
+                      ? <ChevronDown className="w-4 h-4" />
+                      : <ChevronRight className="w-4 h-4" />}
+                  </span>
 
-                  {/* Score circle */}
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${style.bg} ${style.border} border shrink-0`}>
-                    <span className={`text-sm font-bold tabular-nums ${style.text}`}>
-                      {hasResults ? Math.round((track.score ?? 0) * 100) : "—"}
+                  {/* Score ring — larger, cleaner */}
+                  <div className={`relative w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl ring-2 ${ls.ring} ${ls.bg}`}
+                    style={{ boxShadow: label === "Strong" ? "0 0 12px rgba(249,92,75,0.15)" : undefined }}>
+                    <span className={`text-sm font-black tabular-nums ${ls.text}`}>
+                      {hasResults ? score : "—"}
                     </span>
                   </div>
 
-                  {/* Prompt text */}
+                  {/* Prompt info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground truncate">{track.prompt_text}</p>
-                    <div className="flex items-center gap-3 mt-0.5">
+                    <p className="text-sm font-semibold text-foreground leading-snug line-clamp-1 tracking-tight">
+                      {track.prompt_text}
+                    </p>
+
+                    {/* Status row */}
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       {hasResults && (
                         <>
-                          <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${style.bg} ${style.text} ${style.border}`}>
-                            {track.ranking_label ?? "Weak"}
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${ls.bg} ${ls.text} border-current/20`}>
+                            {label}
                           </span>
-                          <span className="text-[10px] text-muted-foreground">{track.visibility_pct ?? 0}% visibility</span>
+                          <span className="text-[11px] text-muted-foreground/80 tabular-nums">
+                            {track.visibility_pct ?? 0}% visible
+                          </span>
                           {(track.avg_position ?? 0) > 0 && (
-                            <span className="text-[10px] text-muted-foreground">Avg pos: #{track.avg_position}</span>
+                            <span className="text-[11px] text-muted-foreground/80">
+                              #{track.avg_position} avg pos
+                            </span>
                           )}
-                          <span className="text-[10px] text-muted-foreground">{track.total_runs ?? 0} runs</span>
+                          <span className="text-[11px] text-muted-foreground/50">
+                            {track.total_runs ?? 0} runs
+                          </span>
                         </>
                       )}
-                      {track.is_custom && <span className="text-[10px] text-muted-foreground border border-border rounded px-1">custom</span>}
+                      {!hasResults && (
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                          <Loader2 className="w-3 h-3 animate-spin text-primary/60" /> Checking engines…
+                        </span>
+                      )}
+                      {track.is_custom && (
+                        <span className="text-[10px] text-muted-foreground/50 border border-border/50 rounded-full px-1.5 py-0.5">
+                          custom
+                        </span>
+                      )}
                     </div>
+
+                    {/* Mini factor bars */}
+                    {hasResults && (
+                      <div className="flex gap-2.5 mt-2.5 items-center">
+                        {FACTORS.slice(0, 3).map((f) => {
+                          const val = Math.round(((track[f.key] as number) ?? 0) * 100);
+                          return (
+                            <div key={f.key} title={`${f.fullLabel}: ${val}/100`} className="flex flex-col gap-0.5">
+                              <div className="w-14 h-1 bg-muted/50 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary/70 rounded-full transition-all" style={{ width: `${val}%` }} />
+                              </div>
+                              <span className="text-[8px] text-muted-foreground/50 tabular-nums">{f.label} {val}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Engine dots */}
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Engine status dots — use engine brand colors as identifiers */}
+                  <div className="hidden sm:flex items-center gap-1.5 shrink-0">
                     {enginesForUi.map((eng) => {
-                      const results = track.results.filter((r) => r.engine === eng.key);
-                      const mentioned = results.some((r) => r.brand_mentioned);
-                      const hasData = results.length > 0;
+                      const res = track.results.filter((r) => r.engine === eng.key);
+                      const hit = res.some((r) => r.brand_mentioned);
+                      const has = res.length > 0;
                       return (
                         <div
                           key={eng.key}
-                          title={`${eng.label}: ${!hasData ? "No data" : mentioned ? "Mentioned" : "Not mentioned"}`}
-                          className={`w-2.5 h-2.5 rounded-full ${
-                            !hasData ? "bg-muted/50" : mentioned ? "bg-green-400" : "bg-red-400/60"
-                          }`}
+                          title={`${eng.label}: ${!has ? "No data" : hit ? "Mentioned" : "Not mentioned"}`}
+                          className="w-2.5 h-2.5 rounded-full transition-all"
+                          style={{
+                            backgroundColor: has && hit ? eng.color : has ? `${eng.color}25` : "#d4d4d425",
+                            boxShadow: has && hit ? `0 0 6px ${eng.color}50` : undefined,
+                          }}
                         />
                       );
                     })}
                   </div>
 
-                  {/* Recheck button */}
+                  {/* Recheck */}
                   <button
                     type="button"
                     title="Re-check now"
                     disabled={isRechecking}
                     onClick={(e) => { e.stopPropagation(); handleRecheck(track.id); }}
-                    className="rounded-lg p-1.5 text-muted-foreground/50 transition hover:bg-muted/40 hover:text-primary disabled:opacity-30 shrink-0"
+                    className="rounded-xl p-2 text-muted-foreground/30 hover:bg-primary/8 hover:text-primary transition-all disabled:opacity-30 shrink-0"
                   >
                     <RefreshCw className={`h-3.5 w-3.5 ${isRechecking ? "animate-spin" : ""}`} />
                   </button>
                 </div>
 
-                {/* Expanded Detail Panel — Peec.ai style */}
-                {isExpanded && hasResults && (() => {
-                  // Compute per-prompt analytics
-                  const allResults = track.results;
-                  const mentionedResults = allResults.filter((r) => r.brand_mentioned);
-                  const notMentioned = allResults.filter((r) => !r.brand_mentioned);
-                  const positions = mentionedResults.filter((r) => r.rank_position > 0).map((r) => r.rank_position);
-                  const avgPos = positions.length > 0 ? (positions.reduce((a, b) => a + b, 0) / positions.length) : 0;
-                  const bestPos = positions.length > 0 ? Math.min(...positions) : 0;
-                  const posCount = allResults.filter((r) => r.sentiment === "positive").length;
-                  const neuCount = allResults.filter((r) => r.sentiment === "neutral").length;
-                  const negCount = allResults.filter((r) => r.sentiment === "negative").length;
-                  const sentimentTotal = posCount + neuCount + negCount;
-
-                  // Google result (if exists)
-                  const googleResult = allResults.find((r) => r.engine === "google");
-
-                  return (
-                    <div className="border-t border-border/60 px-4 py-4 space-y-5 bg-muted/5">
-
-                      {/* Row 1: Key Metrics */}
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                        <MetricCard label="Visibility" value={`${track.visibility_pct ?? 0}%`} sub={`${mentionedResults.length}/${allResults.length} mentions`} color={mentionedResults.length > 0 ? "text-green-400" : "text-red-400"} />
-                        <MetricCard label="Best Position" value={bestPos > 0 ? `#${bestPos}` : "—"} sub={avgPos > 0 ? `avg #${avgPos.toFixed(1)}` : "not ranked"} color={bestPos === 1 ? "text-green-400" : bestPos > 0 ? "text-amber-400" : "text-muted-foreground"} />
-                        <MetricCard label="Sentiment" value={posCount > negCount ? "Positive" : negCount > posCount ? "Negative" : "Neutral"} sub={`+${posCount} / ${neuCount} / -${negCount}`} color={posCount > negCount ? "text-green-400" : negCount > posCount ? "text-red-400" : "text-muted-foreground"} />
-                        <MetricCard label="Engines Cited" value={`${new Set(mentionedResults.map((r) => r.engine)).size}`} sub={`of ${new Set(allResults.map((r) => r.engine)).size} checked`} color="text-blue-400" />
-                        <MetricCard label="Google Rank" value={googleResult?.rank_position ? `#${googleResult.rank_position}` : "—"} sub={googleResult?.brand_mentioned ? "Found in search" : "Not in results"} color={googleResult?.brand_mentioned ? "text-green-400" : "text-muted-foreground"} />
-                      </div>
-
-                      {/* Row 2: Sentiment Breakdown Bar */}
-                      {sentimentTotal > 0 && (
-                        <div>
-                          <p className="text-xs font-semibold text-muted-foreground mb-2">Sentiment Analysis</p>
-                          <div className="flex h-3 rounded-full overflow-hidden bg-muted/30">
-                            {posCount > 0 && <div className="bg-green-400 transition-all" style={{ width: `${(posCount / sentimentTotal) * 100}%` }} />}
-                            {neuCount > 0 && <div className="bg-muted-foreground/30 transition-all" style={{ width: `${(neuCount / sentimentTotal) * 100}%` }} />}
-                            {negCount > 0 && <div className="bg-red-400 transition-all" style={{ width: `${(negCount / sentimentTotal) * 100}%` }} />}
-                          </div>
-                          <div className="flex justify-between mt-1.5 text-[10px]">
-                            <span className="text-green-400">Positive {posCount} ({Math.round((posCount / sentimentTotal) * 100)}%)</span>
-                            <span className="text-muted-foreground">Neutral {neuCount} ({Math.round((neuCount / sentimentTotal) * 100)}%)</span>
-                            <span className="text-red-400">Negative {negCount} ({Math.round((negCount / sentimentTotal) * 100)}%)</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Row 3: Engine Breakdown Cards */}
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground mb-3">Platform Breakdown</p>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {enginesForUi.map((eng) => {
-                            const results = allResults.filter((r) => r.engine === eng.key);
-                            if (results.length === 0) return null;
-                            const mentionCount = results.filter((r) => r.brand_mentioned).length;
-                            const mentionPct = Math.round((mentionCount / results.length) * 100);
-                            const latestResult = [...results].sort((a, b) => new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime())[0];
-                            const engPositions = results.filter((r) => r.rank_position > 0).map((r) => r.rank_position);
-                            const engAvgPos = engPositions.length > 0 ? Math.round(engPositions.reduce((a, b) => a + b, 0) / engPositions.length) : 0;
-                            const engBestPos = engPositions.length > 0 ? Math.min(...engPositions) : 0;
-                            const engPos = results.filter((r) => r.sentiment === "positive").length;
-                            const engNeg = results.filter((r) => r.sentiment === "negative").length;
-
-                            return (
-                              <div key={eng.key} className="rounded-xl border border-border/60 bg-card p-3 space-y-2.5">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: eng.color }} />
-                                    <span className="text-xs font-semibold text-foreground">{eng.label}</span>
-                                  </div>
-                                  {mentionCount > 0 ? (
-                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
-                                  ) : (
-                                    <XCircle className="w-4 h-4 text-muted-foreground/40" />
-                                  )}
-                                </div>
-
-                                {/* Visibility bar */}
-                                <div>
-                                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                                    <span>Visibility</span>
-                                    <span className="font-medium text-foreground">{mentionPct}%</span>
-                                  </div>
-                                  <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
-                                    <div className="h-full rounded-full transition-all" style={{ width: `${mentionPct}%`, backgroundColor: eng.color }} />
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Best Pos</span>
-                                    <span className="text-foreground font-medium">{engBestPos > 0 ? `#${engBestPos}` : "—"}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Avg Pos</span>
-                                    <span className="text-foreground font-medium">{engAvgPos > 0 ? `#${engAvgPos}` : "—"}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Sentiment</span>
-                                    {latestResult?.brand_mentioned ? (
-                                      <span className={`rounded border px-1 py-0.5 capitalize ${SENTIMENT_COLORS[latestResult.sentiment as Sentiment]}`}>
-                                        {latestResult.sentiment}
-                                      </span>
-                                    ) : (
-                                      <span className="text-muted-foreground">—</span>
-                                    )}
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Runs</span>
-                                    <span className="text-foreground">{results.length}</span>
-                                  </div>
-                                </div>
-
-                                {/* Mini sentiment bar */}
-                                {mentionCount > 0 && (
-                                  <div className="flex h-1 rounded-full overflow-hidden bg-muted/30">
-                                    {engPos > 0 && <div className="bg-green-400" style={{ width: `${(engPos / results.length) * 100}%` }} />}
-                                    {engNeg > 0 && <div className="bg-red-400" style={{ width: `${(engNeg / results.length) * 100}%` }} />}
-                                  </div>
-                                )}
-
-                                {/* View response */}
-                                {latestResult?.response_text && (
-                                  <button
-                                    onClick={() => setViewingResponse(latestResult)}
-                                    className="w-full flex items-center justify-center gap-1 rounded-lg bg-muted/50 px-2 py-1.5 text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition"
-                                  >
-                                    <Eye className="w-3 h-3" /> View AI Response
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Row 4: Brand Mentions Context */}
-                      {mentionedResults.length > 0 && (
-                        <div>
-                          <p className="text-xs font-semibold text-muted-foreground mb-2">Brand Mention Context</p>
-                          <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                            {mentionedResults.map((result) => {
-                              const eng = ENGINES.find((e) => e.key === result.engine);
-                              // Extract the sentence containing the brand
-                              const snippet = result.response_text?.slice(0, 200) || "";
-                              return (
-                                <div
-                                  key={result.id}
-                                  className="rounded-lg px-3 py-2 bg-card border border-border/40 cursor-pointer hover:bg-muted/20 transition"
-                                  onClick={() => result.response_text && setViewingResponse(result)}
-                                >
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: eng?.color ?? "#666" }} />
-                                    <span className="text-[11px] font-medium text-foreground">{eng?.label}</span>
-                                    <span className={`rounded border px-1 py-0.5 text-[9px] capitalize ${SENTIMENT_COLORS[result.sentiment as Sentiment]}`}>{result.sentiment}</span>
-                                    {result.rank_position > 0 && <span className="text-[10px] font-bold text-foreground">#{result.rank_position}</span>}
-                                    <span className="text-[9px] text-muted-foreground/50 ml-auto">{new Date(result.checked_at).toLocaleDateString()}</span>
-                                  </div>
-                                  <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">&ldquo;{snippet}...&rdquo;</p>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Row 5: Not Mentioned — which engines missed */}
-                      {notMentioned.length > 0 && (
-                        <div>
-                          <p className="text-xs font-semibold text-muted-foreground mb-2">Not Mentioned In</p>
-                          <div className="flex flex-wrap gap-2">
-                            {[...new Set(notMentioned.map((r) => r.engine))].map((engine) => {
-                              const eng = ENGINES.find((e) => e.key === engine);
-                              const count = notMentioned.filter((r) => r.engine === engine).length;
-                              return (
-                                <span key={engine} className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/20 px-2.5 py-1 text-[10px] text-muted-foreground">
-                                  <div className="w-2 h-2 rounded-full opacity-40" style={{ backgroundColor: eng?.color ?? "#666" }} />
-                                  {eng?.label ?? engine} ({count}x)
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Row 6: Full Result History */}
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground mb-2">All Results ({allResults.length})</p>
-                        <div className="space-y-1 max-h-40 overflow-y-auto">
-                          {[...allResults]
-                            .sort((a, b) => new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime())
-                            .map((result) => {
-                              const eng = ENGINES.find((e) => e.key === result.engine);
-                              return (
-                                <div
-                                  key={result.id}
-                                  className="flex items-center gap-3 rounded-lg px-3 py-1.5 bg-card border border-border/30 text-[11px] hover:bg-muted/20 cursor-pointer transition"
-                                  onClick={() => result.response_text && setViewingResponse(result)}
-                                >
-                                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: eng?.color ?? "#666" }} />
-                                  <span className="text-muted-foreground w-16 shrink-0">{eng?.label ?? result.engine}</span>
-                                  {result.brand_mentioned ? <CheckCircle2 className="w-3 h-3 text-green-400 shrink-0" /> : <XCircle className="w-3 h-3 text-muted-foreground/40 shrink-0" />}
-                                  {result.brand_mentioned && (
-                                    <>
-                                      <span className={`rounded border px-1 py-0.5 text-[9px] capitalize ${SENTIMENT_COLORS[result.sentiment as Sentiment]}`}>{result.sentiment}</span>
-                                      {result.rank_position > 0 && <span className="text-foreground font-medium">#{result.rank_position}</span>}
-                                    </>
-                                  )}
-                                  <span className="text-muted-foreground/40 ml-auto text-[9px]">{new Date(result.checked_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                                </div>
-                              );
-                            })}
-                        </div>
+                {/* ── Expanded panel ───────────────────────────────────── */}
+                {isExpanded && hasResults && (
+                  expandedMode === "blank" ? (
+                    <div className="border-t border-border/60 bg-muted/5 px-4 py-8">
+                      <div className="rounded-2xl border border-dashed border-border/60 bg-card/50 py-10 text-center">
+                        <p className="text-sm font-medium text-foreground">Actions panel coming soon</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          This collapsible area is intentionally blank for action implementation.
+                        </p>
                       </div>
                     </div>
-                  );
-                })()}
+                  ) : (() => {
+                    const allResults      = track.results;
+                    const mentioned       = allResults.filter((r) => r.brand_mentioned);
+                    const notMentioned    = allResults.filter((r) => !r.brand_mentioned);
+                    const positions       = mentioned.filter((r) => r.rank_position > 0).map((r) => r.rank_position);
+                    const bestPos         = positions.length > 0 ? Math.min(...positions) : 0;
+                    const avgPos          = positions.length > 0 ? positions.reduce((a, b) => a + b, 0) / positions.length : 0;
+                    const posCount        = allResults.filter((r) => r.sentiment === "positive").length;
+                    const neuCount        = allResults.filter((r) => r.sentiment === "neutral").length;
+                    const negCount        = allResults.filter((r) => r.sentiment === "negative").length;
+                    const sentTotal       = posCount + neuCount + negCount;
+                    const searchResults   = allResults.filter((r) => r.engine === "google" || r.engine === "bing");
+                    const searchMentioned = searchResults.filter((r) => r.brand_mentioned).length;
+
+                    return (
+                      <div className="border-t border-border/60 bg-muted/5">
+                        <div className="p-4 space-y-4">
+
+                          {/* ── Metric cards ──────────────────────────── */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {/* Visibility */}
+                            <div className="rounded-2xl border border-primary/20 bg-linear-to-br from-primary/8 to-primary/3 p-4 flex flex-col gap-1.5 relative overflow-hidden"
+                              style={{ boxShadow: "0 2px 12px rgba(249,92,75,0.08)" }}>
+                              <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-primary/5" />
+                              <div className="flex items-center justify-between relative">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-primary/50">Visibility</span>
+                                <div className="w-6 h-6 rounded-lg bg-primary/15 flex items-center justify-center">
+                                  <BarChart3 className="w-3 h-3 text-primary" />
+                                </div>
+                              </div>
+                              <p className="text-4xl font-black tabular-nums text-primary leading-none relative">
+                                {track.visibility_pct ?? 0}<span className="text-lg">%</span>
+                              </p>
+                              <p className="text-[10px] text-primary/50 relative">
+                                {mentioned.length} of {allResults.length} cited
+                              </p>
+                              <div className="h-1 bg-primary/15 rounded-full overflow-hidden relative mt-1">
+                                <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${track.visibility_pct ?? 0}%` }} />
+                              </div>
+                            </div>
+
+                            {/* Best Position */}
+                            <div className={`rounded-2xl border p-4 flex flex-col gap-1.5 relative overflow-hidden ${
+                              bestPos > 0 ? "border-primary/20 bg-linear-to-br from-primary/8 to-primary/3" : "border-border/40 bg-muted/15"
+                            }`} style={bestPos > 0 ? { boxShadow: "0 2px 12px rgba(249,92,75,0.08)" } : undefined}>
+                              <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-primary/5" />
+                              <div className="flex items-center justify-between relative">
+                                <span className={`text-[9px] font-bold uppercase tracking-widest ${bestPos > 0 ? "text-primary/50" : "text-muted-foreground/50"}`}>Best Rank</span>
+                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${bestPos > 0 ? "bg-primary/15" : "bg-muted/40"}`}>
+                                  <Target className={`w-3 h-3 ${bestPos > 0 ? "text-primary" : "text-muted-foreground/40"}`} />
+                                </div>
+                              </div>
+                              <p className={`text-4xl font-black tabular-nums leading-none relative ${bestPos > 0 ? "text-primary" : "text-muted-foreground/25"}`}>
+                                {bestPos > 0 ? `#${bestPos}` : "—"}
+                              </p>
+                              <p className={`text-[10px] relative ${bestPos > 0 ? "text-primary/50" : "text-muted-foreground/40"}`}>
+                                {avgPos > 0 ? `avg #${avgPos.toFixed(1)}` : "not ranked yet"}
+                              </p>
+                            </div>
+
+                            {/* Engines Citing */}
+                            <div className="rounded-2xl border border-border/40 bg-muted/15 p-4 flex flex-col gap-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Engines</span>
+                                <div className="w-6 h-6 rounded-lg bg-muted/60 flex items-center justify-center">
+                                  <Bot className="w-3 h-3 text-foreground/40" />
+                                </div>
+                              </div>
+                              <p className="text-4xl font-black tabular-nums text-foreground leading-none">
+                                {new Set(mentioned.map((r) => r.engine)).size}
+                                <span className="text-lg font-bold text-muted-foreground/30">/{new Set(allResults.map((r) => r.engine)).size}</span>
+                              </p>
+                              <p className="text-[10px] text-muted-foreground/50">mention your brand</p>
+                              <div className="flex gap-1.5 flex-wrap mt-1">
+                                {enginesForUi.map((eng) => {
+                                  const hit = allResults.filter((r) => r.engine === eng.key).some((r) => r.brand_mentioned);
+                                  const has = allResults.some((r) => r.engine === eng.key);
+                                  return (
+                                    <div key={eng.key} title={eng.label} className="w-2.5 h-2.5 rounded-full transition-all"
+                                      style={{
+                                        backgroundColor: has && hit ? eng.color : has ? `${eng.color}25` : "#d4d4d420",
+                                        boxShadow: has && hit ? `0 0 5px ${eng.color}50` : undefined,
+                                      }} />
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Search Presence */}
+                            <div className={`rounded-2xl border p-4 flex flex-col gap-1.5 relative overflow-hidden ${
+                              searchMentioned > 0 ? "border-primary/20 bg-linear-to-br from-primary/8 to-primary/3" : "border-border/40 bg-muted/15"
+                            }`} style={searchMentioned > 0 ? { boxShadow: "0 2px 12px rgba(249,92,75,0.08)" } : undefined}>
+                              <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-primary/5" />
+                              <div className="flex items-center justify-between relative">
+                                <span className={`text-[9px] font-bold uppercase tracking-widest ${searchMentioned > 0 ? "text-primary/50" : "text-muted-foreground/50"}`}>Search</span>
+                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${searchMentioned > 0 ? "bg-primary/15" : "bg-muted/40"}`}>
+                                  <Globe className={`w-3 h-3 ${searchMentioned > 0 ? "text-primary" : "text-muted-foreground/40"}`} />
+                                </div>
+                              </div>
+                              <p className={`text-4xl font-black tabular-nums leading-none relative ${searchMentioned > 0 ? "text-primary" : "text-muted-foreground/25"}`}>
+                                {searchMentioned}<span className={`text-lg font-bold ${searchMentioned > 0 ? "text-primary/40" : "text-muted-foreground/20"}`}>/{searchResults.length}</span>
+                              </p>
+                              <p className={`text-[10px] relative ${searchMentioned > 0 ? "text-primary/50" : "text-muted-foreground/40"}`}>
+                                {searchMentioned > 0 ? "Google & Bing found you" : "not in search yet"}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* ── Sentiment + Factors side-by-side ──────── */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                            {/* Sentiment card */}
+                            {sentTotal > 0 && (
+                              <div className="rounded-2xl border border-border/50 bg-card p-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+                                <div className="flex items-center justify-between mb-3">
+                                  <p className="text-xs font-bold text-foreground tracking-tight">Sentiment</p>
+                                  <span className="text-[9px] text-muted-foreground/50 bg-muted/50 px-2 py-0.5 rounded-full border border-border/30">
+                                    {sentTotal} responses
+                                  </span>
+                                </div>
+                                {/* Stacked bar */}
+                                <div className="flex h-2.5 rounded-full overflow-hidden mb-3 bg-muted/30">
+                                  {posCount > 0 && (
+                                    <div className="bg-primary transition-all" style={{ width: `${(posCount / sentTotal) * 100}%` }} />
+                                  )}
+                                  {neuCount > 0 && (
+                                    <div className="bg-muted-foreground/20 transition-all" style={{ width: `${(neuCount / sentTotal) * 100}%` }} />
+                                  )}
+                                  {negCount > 0 && (
+                                    <div className="bg-foreground/20 transition-all" style={{ width: `${(negCount / sentTotal) * 100}%` }} />
+                                  )}
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {[
+                                    { label: "Positive", count: posCount, dotClass: "bg-primary", numClass: "text-primary" },
+                                    { label: "Neutral",  count: neuCount, dotClass: "bg-muted-foreground/30", numClass: "text-muted-foreground" },
+                                    { label: "Negative", count: negCount, dotClass: "bg-foreground/25", numClass: "text-foreground/50" },
+                                  ].map((s) => (
+                                    <div key={s.label} className="rounded-xl bg-muted/30 border border-border/30 py-2.5 px-1 text-center">
+                                      <p className={`text-xl font-black tabular-nums ${s.numClass}`}>{s.count}</p>
+                                      <div className="flex items-center justify-center gap-1 mt-1">
+                                        <div className={`w-1.5 h-1.5 rounded-full ${s.dotClass}`} />
+                                        <span className="text-[9px] text-muted-foreground/60">{s.label}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* 5-Factor scores card */}
+                            <div className="rounded-2xl border border-border/50 bg-card p-4" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="text-xs font-bold text-foreground tracking-tight">Ranking Factors</p>
+                                <span className="text-[9px] font-medium text-muted-foreground/50 bg-muted/50 px-2 py-0.5 rounded-full border border-border/30">2026</span>
+                              </div>
+                              <div className="space-y-3">
+                                {FACTORS.map((f) => {
+                                  const val = Math.round(((track[f.key] as number) ?? 0) * 100);
+                                  const isCore = f.weightNum > 0;
+                                  return (
+                                    <div key={f.key} className="flex items-center gap-3">
+                                      <div className={`w-1 h-7 rounded-full shrink-0 ${isCore ? "bg-primary" : "bg-border"}`} />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-center mb-1.5">
+                                          <span className={`text-[11px] font-semibold ${isCore ? "text-foreground/90" : "text-muted-foreground/60"}`}>{f.fullLabel}</span>
+                                          <div className="flex items-center gap-2 shrink-0 ml-2">
+                                            <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${isCore ? "bg-primary/10 text-primary/70" : "bg-muted text-muted-foreground/50"}`}>
+                                              {f.weight}
+                                            </span>
+                                            <span className={`text-xs font-black tabular-nums ${isCore ? "text-primary" : "text-muted-foreground/40"}`}>{val}</span>
+                                          </div>
+                                        </div>
+                                        <div className="h-1.5 rounded-full overflow-hidden bg-muted/50">
+                                          <div className={`h-full rounded-full transition-all duration-700 ${isCore ? "bg-primary" : "bg-muted-foreground/25"}`} style={{ width: `${val}%` }} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* ── Brand mention snippets ─────────────────── */}
+                          {mentioned.length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-foreground mb-2.5 flex items-center gap-2">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                                Brand Mention Snippets
+                              </p>
+                              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                                {mentioned.map((r) => {
+                                  const eng = ENGINES.find((e) => e.key === r.engine);
+                                  return (
+                                    <div
+                                      key={r.id}
+                                      onClick={() => r.response_text && setViewingResponse(r)}
+                                      className="group relative rounded-xl bg-card border border-border/40 hover:border-border cursor-pointer transition-all overflow-hidden"
+                                    >
+                                      {/* Coloured left accent */}
+                                      <div
+                                        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
+                                        style={{ backgroundColor: eng?.color ?? "#666" }}
+                                      />
+                                      <div className="pl-4 pr-3 py-2.5">
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                          <span className="text-[11px] font-semibold text-foreground">{eng?.label}</span>
+                                          <span className={`rounded-full border px-1.5 py-0.5 text-[9px] capitalize ${SENTIMENT_STYLES[r.sentiment as Sentiment]?.pill}`}>
+                                            {r.sentiment}
+                                          </span>
+                                          {r.rank_position > 0 && (
+                                            <span className="text-[10px] font-bold text-foreground bg-muted/60 px-1.5 py-0.5 rounded-full">
+                                              #{r.rank_position}
+                                            </span>
+                                          )}
+                                          <Eye className="w-3 h-3 text-muted-foreground/20 group-hover:text-primary ml-auto transition" />
+                                        </div>
+                                        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+                                          {r.response_text?.slice(0, 200)}…
+                                        </p>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* ── Not mentioned ──────────────────────────── */}
+                          {notMentioned.length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-foreground mb-2.5 flex items-center gap-2">
+                                <XCircle className="w-3.5 h-3.5 text-muted-foreground/50" />
+                                Not Mentioned In
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {[...new Set(notMentioned.map((r) => r.engine))].map((engine) => {
+                                  const eng = ENGINES.find((e) => e.key === engine);
+                                  const cnt = notMentioned.filter((r) => r.engine === engine).length;
+                                  return (
+                                    <div
+                                      key={engine}
+                                      className="flex items-center gap-2 rounded-xl border border-border/40 bg-muted/20 px-3 py-2"
+                                    >
+                                      <div
+                                        className="w-2 h-2 rounded-full opacity-40"
+                                        style={{ backgroundColor: eng?.color ?? "#666" }}
+                                      />
+                                      <span className="text-[11px] font-medium text-muted-foreground">{eng?.label ?? engine}</span>
+                                      <span className="text-[10px] text-muted-foreground/40 bg-muted/50 px-1.5 py-0.5 rounded-full">{cnt}×</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()
+                )}
+
+                {/* Pending state (no results yet) */}
+                {isExpanded && !hasResults && (
+                  <div className="border-t border-border/60 px-4 py-8 text-center bg-muted/5">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground">Checking across AI engines and search…</p>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Response Viewer Modal */}
+      {/* No results after filter */}
+      {tracks.length > 0 && visibleTracks.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border/50 py-12 text-center">
+          <p className="text-sm text-muted-foreground">No prompts match your filter.</p>
+          <button onClick={() => { setSearch(""); setFilterLabel("All"); }} className="text-xs text-primary hover:underline mt-1">
+            Clear filters
+          </button>
+        </div>
+      )}
+
+      {/* ── Response Viewer Modal ────────────────────────────────────────── */}
       {viewingResponse && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setViewingResponse(null)}>
-          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={() => setViewingResponse(null)}
+        >
+          <div
+            className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ENGINES.find((e) => e.key === viewingResponse.engine)?.color ?? "#666" }} />
-                <span className="text-sm font-semibold text-foreground capitalize">{ENGINES.find((e) => e.key === viewingResponse.engine)?.label ?? viewingResponse.engine}</span>
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: ENGINES.find((e) => e.key === viewingResponse.engine)?.color ?? "#666" }}
+                />
+                <span className="text-sm font-semibold text-foreground">
+                  {ENGINES.find((e) => e.key === viewingResponse.engine)?.label ?? viewingResponse.engine}
+                </span>
                 {viewingResponse.brand_mentioned ? (
-                  <span className={`rounded border px-1.5 py-0.5 text-[10px] capitalize ${SENTIMENT_COLORS[viewingResponse.sentiment as Sentiment]}`}>
+                  <span className={`rounded-full border px-2 py-0.5 text-[10px] capitalize ${SENTIMENT_STYLES[viewingResponse.sentiment as Sentiment]?.pill}`}>
                     {viewingResponse.sentiment}
                   </span>
                 ) : (
-                  <span className="text-[10px] text-muted-foreground">Not mentioned</span>
+                  <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted/50 border border-border">
+                    Not mentioned
+                  </span>
                 )}
                 {viewingResponse.rank_position > 0 && (
-                  <span className="text-xs font-medium text-foreground">Position #{viewingResponse.rank_position}</span>
+                  <span className="text-xs font-bold text-foreground bg-muted/50 border border-border px-2 py-0.5 rounded-full">
+                    #{viewingResponse.rank_position}
+                  </span>
                 )}
               </div>
-              <button onClick={() => setViewingResponse(null)} className="rounded-lg p-1.5 hover:bg-accent transition">
-                <span className="text-lg leading-none text-muted-foreground">&times;</span>
+              <button
+                onClick={() => setViewingResponse(null)}
+                className="rounded-xl p-1.5 hover:bg-muted/60 transition text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-5 overflow-y-auto max-h-[60vh]">
-              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{viewingResponse.response_text || "No response captured."}</p>
+            {/* Modal body */}
+            <div className="p-5 overflow-y-auto flex-1">
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                {viewingResponse.response_text || "No response captured."}
+              </p>
+            </div>
+            <div className="px-5 py-3 border-t border-border shrink-0 flex items-center justify-between">
+              <span className="text-[11px] text-muted-foreground">
+                {new Date(viewingResponse.checked_at).toLocaleString()}
+              </span>
+              <button
+                onClick={() => setViewingResponse(null)}
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
@@ -489,26 +830,40 @@ export function PromptTracker({ slug, tracks, onAdded, onRechecked }: PromptTrac
   );
 }
 
-function SummaryCard({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string; sub: string; color: string }) {
+// ── Small helper components ───────────────────────────────────────────────────
+
+function StatCard({
+  icon, label, value, sub, color, accent,
+}: {
+  icon: React.ReactNode; label: string; value: string;
+  sub: string; color: string; accent: string;
+}) {
   return (
-    <div className="rounded-xl border border-border/60 bg-card p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <span className={color}>{icon}</span>
-        <span className="text-[11px] text-muted-foreground">{label}</span>
+    <div className={`rounded-2xl border border-border/60 bg-linear-to-br ${accent} p-5 relative overflow-hidden`}
+      style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">{label}</span>
+        <div className={`w-7 h-7 rounded-xl flex items-center justify-center bg-background/60 border border-border/40 ${color}`}>
+          {icon}
+        </div>
       </div>
-      <div className="flex items-baseline gap-1">
-        <span className={`text-xl font-bold tabular-nums ${color}`}>{value}</span>
-        <span className="text-[10px] text-muted-foreground">{sub}</span>
+      <div className="flex items-baseline gap-1.5">
+        <span className={`text-3xl font-black tabular-nums leading-none ${color}`}>{value}</span>
+        <span className="text-xs text-muted-foreground">{sub}</span>
       </div>
     </div>
   );
 }
 
-function MetricCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
+function QuickMetric({
+  label, value, sub, color,
+}: {
+  label: string; value: string; sub: string; color: string;
+}) {
   return (
-    <div className="rounded-lg border border-border/50 bg-card p-3 text-center">
-      <p className={`text-lg font-bold tabular-nums ${color}`}>{value}</p>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
+    <div className="rounded-xl border border-border/50 bg-card p-3 text-center">
+      <p className={`text-lg font-black tabular-nums ${color}`}>{value}</p>
+      <p className="text-[10px] font-medium text-muted-foreground mt-0.5">{label}</p>
       <p className="text-[9px] text-muted-foreground/60 mt-0.5">{sub}</p>
     </div>
   );

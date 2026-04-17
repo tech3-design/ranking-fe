@@ -18,10 +18,8 @@ import {
   ListChecks,
   Eye,
   MessageSquare,
-  BarChart3,
   ChevronUp,
   ChevronDown,
-  Zap,
   User,
   Settings,
   CreditCard,
@@ -32,16 +30,35 @@ import {
   ChevronsUpDown,
   Check,
   Loader2,
+  type LucideIcon,
 } from "lucide-react";
 import LogoComp from "@/components/LogoComp";
 import { AiChat } from "@/components/analyzer/ai-chat";
 import { Sparkles } from "lucide-react";
 
-const MAIN_NAV = [
+type MainNavItem =
+  | { icon: LucideIcon; label: string; path: string; children?: undefined }
+  | {
+      icon: LucideIcon;
+      label: string;
+      path: string;
+      children: { label: string; path: string }[];
+    };
+
+const MAIN_NAV: MainNavItem[] = [
   { icon: LayoutDashboard, label: "Overview", path: "" },
   { icon: ListChecks, label: "Recommendations", path: "/recommendations" },
   { icon: Eye, label: "Visibility", path: "/visibility" },
-  { icon: MessageSquare, label: "Prompts", path: "/prompts" },
+  {
+    icon: MessageSquare,
+    label: "Prompts",
+    path: "/prompts",
+    children: [
+      { label: "Actions", path: "/prompts/actions" },
+      { label: "Recommendations", path: "/prompts/recommendations" },
+      { label: "History", path: "/prompts/history" },
+    ],
+  },
 ];
 
 const SETTINGS_NAV = [
@@ -161,12 +178,18 @@ export default function DashboardSlugLayout({
   }
 
   const isSettingsPage = pathname.startsWith(basePath + "/settings");
-  const navItems = isSettingsPage ? SETTINGS_NAV : MAIN_NAV;
 
   function isActive(navPath: string) {
     if (navPath === "") return pathname === basePath;
     return pathname.startsWith(basePath + navPath);
   }
+
+  function isPromptSubActive(subPath: string) {
+    return pathname === basePath + subPath || pathname.startsWith(`${basePath + subPath}/`);
+  }
+
+  const promptsOverviewPath = `${basePath}/prompts`;
+  const isPromptsOverview = pathname === promptsOverviewPath;
 
   return (
     <RunProvider slug={slug}>
@@ -257,23 +280,80 @@ export default function DashboardSlugLayout({
 
         {/* Nav */}
         <nav className="flex flex-col gap-0.5 mb-auto">
-          {navItems.map((item) => {
-            const active = isActive(item.path);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.label}
-                href={basePath + item.path}
-                className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition ${active
-                    ? "text-foreground bg-accent border-l-2 border-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
-                  }`}
-              >
-                <Icon className="w-4 h-4" />
-                {item.label}
-              </Link>
-            );
-          })}
+          {isSettingsPage
+            ? SETTINGS_NAV.map((item) => {
+                const active = isActive(item.path);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.label}
+                    href={basePath + item.path}
+                    className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition ${active
+                        ? "text-foreground bg-accent border-l-2 border-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                      }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {item.label}
+                  </Link>
+                );
+              })
+            : MAIN_NAV.map((item) => {
+                const Icon = item.icon;
+                if (item.children && item.children.length > 0) {
+                  const groupActive = isActive(item.path);
+                  return (
+                    <div key={item.label} className="flex flex-col gap-0.5">
+                      <Link
+                        href={promptsOverviewPath}
+                        className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-semibold tracking-[-0.01em] transition rounded-md ${
+                          isPromptsOverview
+                            ? "text-foreground bg-accent border-l-2 border-foreground"
+                            : groupActive
+                              ? "text-foreground hover:bg-accent/60"
+                              : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        {item.label}
+                      </Link>
+                      <div className="flex flex-col gap-0.5 ml-2 pl-3 border-l border-border/70 mt-1">
+                        {item.children.map((sub) => {
+                          const subActive = isPromptSubActive(sub.path);
+                          return (
+                            <Link
+                              key={sub.path}
+                              href={basePath + sub.path}
+                              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium tracking-[-0.01em] transition rounded-md ${
+                                subActive
+                                  ? "text-foreground bg-accent border-l-2 border-foreground -ml-px pl-[9px]"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                              }`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${subActive ? "bg-primary" : "bg-muted-foreground/40"}`} />
+                              {sub.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+                const active = isActive(item.path);
+                return (
+                  <Link
+                    key={item.label}
+                    href={basePath + item.path}
+                    className={`flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-medium tracking-[-0.01em] transition ${active
+                        ? "text-foreground bg-accent border-l-2 border-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                      }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
         </nav>
 
         {/* User — expandable upward */}
