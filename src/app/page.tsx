@@ -5,13 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import {
-  Play,
-  CheckCircle2,
-  Clock,
   TrendingUp,
   Brain,
   BarChart3,
-  Zap,
   Globe,
   ArrowRight,
   Loader2,
@@ -28,30 +24,6 @@ import {
 } from "@/components/ui/select";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
-
-/** Homepage #pricing — matches /pricing (single Starter checkout). */
-const LANDING_PLANS = [
-  {
-    id: "starter",
-    label: "Starter",
-    price: 19.99,
-    popular: true,
-    description: "Everything you need to start improving GEO and AI visibility.",
-    features: [
-      "1 project",
-      "Up to 25 prompts",
-      "Gemini & Google prompt visibility",
-      "GEO analysis & scoring",
-      "Recommendations & verify",
-      "PDF report exports",
-    ],
-    comingSoon: [
-      "Higher tiers with more projects & engines",
-      "Weekly AI visibility email digest",
-      "Deeper Shopify & WordPress sync",
-    ],
-  },
-];
 
 const COUNTRY_OPTIONS = [
   { name: "United States", code: "US" },
@@ -214,7 +186,7 @@ export default function Home() {
               Features
             </Link>
             <Link
-              href="#pricing"
+              href="/pricing"
               className="text-sm font-medium text-muted-foreground hover:text-foreground"
             >
               Pricing
@@ -625,189 +597,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section
-        id="pricing"
-        className="mx-auto w-full max-w-7xl px-6 py-24 lg:px-12"
-      >
-        <div className="text-center mb-10">
-          <span className="text-sm font-bold uppercase tracking-wider text-primary">
-            Pricing //
-          </span>
-          <h2 className="mt-4 font-sans text-4xl tracking-tight text-foreground md:text-5xl">
-            Simple pricing. <span className="text-muted-foreground">Start with Starter.</span>
-          </h2>
-          <p className="mt-4 mx-auto max-w-2xl text-sm text-muted-foreground">
-            One plan for now — full core GEO analysis. Prices in GBP, billed monthly.
-          </p>
-        </div>
-
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex items-center rounded-full border border-border bg-card p-1 shadow-sm">
-            <button type="button" className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm">
-              Monthly
-            </button>
-            <button
-              type="button"
-              className="relative rounded-full px-6 py-2.5 text-sm font-medium text-muted-foreground cursor-not-allowed opacity-70"
-            >
-              Annual
-              <span className="absolute -top-3 -right-2 rounded-full bg-amber-100 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-600">
-                Coming Soon
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div className="mx-auto grid max-w-lg grid-cols-1 gap-6 md:items-stretch">
-          {LANDING_PLANS.map((plan) => {
-            const isDark = plan.popular === true;
-            const priceLabel =
-              Math.round(plan.price) === plan.price
-                ? `${plan.price}`
-                : plan.price.toFixed(2);
-            return (
-              <div
-                key={plan.id}
-                className={`relative flex flex-col rounded-[2rem] p-8 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl md:p-9 ${
-                  isDark
-                    ? "bg-[#0A251C] text-white ring-2 ring-primary"
-                    : "border border-border bg-card text-foreground"
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0A251C]">
-                    Most popular
-                  </div>
-                )}
-                <div
-                  className={`inline-block w-fit rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
-                    isDark ? "bg-white/10 text-primary" : "bg-primary/10 text-primary"
-                  }`}
-                >
-                  {plan.label}
-                </div>
-                <div className="mt-5 flex items-baseline gap-1">
-                  <span className={`font-sans text-5xl tracking-tight ${isDark ? "" : "text-foreground"}`}>
-                    £{priceLabel}
-                  </span>
-                  <span
-                    className={`text-lg font-medium ${
-                      isDark ? "text-white/60" : "text-muted-foreground"
-                    }`}
-                  >
-                    / month
-                  </span>
-                </div>
-                <p
-                  className={`mt-3 text-sm leading-relaxed border-b pb-6 ${
-                    isDark ? "text-white/65 border-white/10" : "text-muted-foreground border-border"
-                  }`}
-                >
-                  {plan.description}
-                </p>
-                <Link
-                  href="/pricing"
-                  className={`mt-6 block w-full rounded-full py-3.5 text-center text-sm font-bold transition-colors ${
-                    isDark
-                      ? "bg-primary text-[#0A251C] hover:bg-primary/90"
-                      : "bg-foreground text-background hover:opacity-90"
-                  }`}
-                >
-                  Get {plan.label}
-                </Link>
-                <ul className="mt-6 flex flex-1 flex-col gap-3">
-                  {plan.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className={`flex items-start gap-2.5 text-sm ${
-                        isDark ? "text-white/85" : "text-foreground/85"
-                      }`}
-                    >
-                      <CheckCircle2
-                        className={`mt-0.5 h-4 w-4 shrink-0 ${
-                          isDark ? "text-primary" : "text-primary"
-                        }`}
-                      />
-                      {feature}
-                    </li>
-                  ))}
-                  {"comingSoon" in plan &&
-                    Array.isArray(plan.comingSoon) &&
-                    plan.comingSoon.length > 0 && (
-                      <li className="list-none pt-4 mt-1 border-t border-dashed border-border/60 dark:border-white/15">
-                        <p
-                          className={`text-[10px] font-bold uppercase tracking-wider mb-3 ${
-                            isDark ? "text-white/40" : "text-muted-foreground"
-                          }`}
-                        >
-                          Coming Soon
-                        </p>
-                        <ul className="flex flex-col gap-2.5">
-                          {plan.comingSoon.map((line) => (
-                            <li
-                              key={line}
-                              className={`flex items-start gap-2.5 text-sm ${
-                                isDark ? "text-white/50" : "text-muted-foreground"
-                              }`}
-                            >
-                              <Clock
-                                className={`mt-0.5 h-4 w-4 shrink-0 ${
-                                  isDark ? "text-white/35" : "text-muted-foreground/70"
-                                }`}
-                              />
-                              {line}
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                    )}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Bottom CTA Banner */}
-        <div className="mt-20 mx-auto max-w-5xl rounded-[2.5rem] bg-[#EAF5F0] p-10 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="font-sans text-3xl text-[#0A251C] md:text-4xl max-w-md">
-              Your Competitors Are Already{" "}
-              <span className="text-[#0A251C]/60">
-                Optimizing for AI Search.
-              </span>
-            </h2>
-            <p className="mt-4 text-sm text-[#0A251C]/70 max-w-sm">
-              Run a free GEO audit today and see exactly how AI engines
-              currently perceive your brand — before someone else owns that
-              space.
-            </p>
-            <Link
-              href="/sign-up"
-              className="mt-8 inline-block rounded-full bg-primary px-8 py-3.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
-            >
-              Get Started 
-            </Link>
-          </div>
-          {/* Abstract Graphic Right side */}
-          <div className="hidden md:block relative w-64 h-48">
-            <div className="absolute top-0 right-0 w-full h-16 bg-white rounded-xl shadow-sm opacity-80 flex items-center px-4 gap-3 animate-pulse">
-              <div className="h-6 w-6 rounded-full bg-primary/20" />
-              <div className="h-2 w-1/2 rounded bg-[#0A251C]/10" />
-            </div>
-            <div className="absolute top-20 right-4 w-5/6 h-16 bg-white rounded-xl shadow-sm opacity-90 flex items-center px-4 gap-3 animate-pulse delay-75">
-              <div className="h-6 w-6 rounded-full bg-emerald-100" />
-              <div className="h-2 w-2/3 rounded bg-[#0A251C]/10" />
-            </div>
-            <div className="absolute bottom-0 right-8 w-4/6 h-16 bg-white rounded-xl shadow-sm flex items-center px-4 gap-3 animate-pulse delay-150">
-              <div className="h-6 w-6 rounded-full bg-amber-100" />
-              <div className="h-2 w-1/2 rounded bg-[#0A251C]/10" />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-border bg-background pt-20 pb-10">
         <div className="mx-auto max-w-7xl px-6 lg:px-12">
@@ -846,7 +635,7 @@ export default function Home() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="#pricing" className="hover:text-primary">
+                  <Link href="/pricing" className="hover:text-primary">
                     Pricing
                   </Link>
                 </li>
