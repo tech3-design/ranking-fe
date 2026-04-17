@@ -10,7 +10,7 @@ interface PlatformBarChartProps {
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
-  Google: "#FF4F18",
+  Google: "#E04D00",
   Reddit: "var(--foreground)",
   Medium: "#A39888",
   "Web Mentions": "#C4BAA8",
@@ -40,7 +40,7 @@ export function PlatformBarChart({ google, reddit, medium, web }: PlatformBarCha
             <div className="h-2.5 w-full rounded-full overflow-hidden bg-muted">
               <motion.div
                 className="h-full rounded-full"
-                style={{ backgroundColor: PLATFORM_COLORS[p.name] || "#FF4F18" }}
+                style={{ backgroundColor: PLATFORM_COLORS[p.name] || "#E04D00" }}
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(100, p.score)}%` }}
                 transition={{ duration: 0.8, delay: i * 0.15, type: "spring", stiffness: 50 }}

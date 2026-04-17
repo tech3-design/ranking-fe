@@ -27,7 +27,7 @@ export function AnalysisOverlay() {
         <div className="h-[3px] w-full rounded-full bg-border overflow-hidden">
           <motion.div
             className="h-full rounded-full relative"
-            style={{ backgroundColor: "#FF4F18" }}
+            style={{ backgroundColor: "#E04D00" }}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}

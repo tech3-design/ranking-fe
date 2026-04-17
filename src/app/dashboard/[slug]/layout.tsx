@@ -176,13 +176,13 @@ export default function DashboardSlugLayout({
   return (
     <RunProvider slug={slug}>
     <AnalysisGate>
-    <div className="flex h-screen w-full bg-[#F2F4F7] font-sans text-foreground overflow-hidden">
+    <div className="flex h-screen w-full bg-[#F2F3F5] font-sans text-foreground overflow-hidden">
 
       {/* ═══ LEFT SIDEBAR ═══ */}
-      <aside className="w-[230px] shrink-0 flex flex-col h-full bg-[#141517]">
+      <aside className="w-[230px] shrink-0 flex flex-col h-full bg-white shadow-[1px_0_0_0_#E5E7EB]">
 
         {/* Logo + brand */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-white/[0.07]">
+        <div className="flex items-center justify-between px-5 py-5 border-b border-[#F0F0F0]">
           <LogoComp />
         </div>
 
@@ -192,20 +192,20 @@ export default function DashboardSlugLayout({
             <button
               onClick={() => setOrgDropdownOpen(!orgDropdownOpen)}
               disabled={switchingOrg}
-              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.10] transition text-left disabled:opacity-60 border border-white/[0.08]"
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl bg-[#F8F8F8] hover:bg-[#F0F0F0] transition text-left disabled:opacity-60 border border-[#EBEBEB]"
             >
-              <div className="w-7 h-7 rounded-lg bg-[#FF4F18]/20 flex items-center justify-center shrink-0">
-                <Building2 className="w-3.5 h-3.5 text-[#FF4F18]" />
+              <div className="w-7 h-7 rounded-lg bg-[#E04D00]/10 flex items-center justify-center shrink-0">
+                <Building2 className="w-3.5 h-3.5 text-[#E04D00]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-semibold text-white/90 truncate">
+                <p className="text-[12px] font-semibold text-gray-800 truncate">
                   {switchingOrg ? "Switching…" : orgName}
                 </p>
-                <p className="text-[10px] text-white/35 truncate">{isPro ? "Pro Plan ✦" : "Free Plan"}</p>
+                <p className="text-[10px] text-gray-400 truncate">{isPro ? "Pro Plan" : "Free Plan"}</p>
               </div>
               {switchingOrg
-                ? <Loader2 className="w-3.5 h-3.5 text-white/30 animate-spin shrink-0" />
-                : <ChevronsUpDown className="w-3.5 h-3.5 text-white/25 shrink-0" />}
+                ? <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin shrink-0" />
+                : <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />}
             </button>
 
             {orgDropdownOpen && (
@@ -216,17 +216,17 @@ export default function DashboardSlugLayout({
                     <button
                       key={org.id}
                       onClick={() => handleSwitchOrg(org)}
-                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors rounded-lg mx-1 ${active ? "bg-[#FF4F18]/08" : "hover:bg-[#F8F8F8]"}`}
+                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-colors rounded-lg mx-1 ${active ? "bg-[#E04D00]/08" : "hover:bg-[#F8F8F8]"}`}
                       style={{ width: "calc(100% - 8px)" }}
                     >
-                      <div className="w-6 h-6 rounded-md bg-[#FF4F18]/10 flex items-center justify-center shrink-0">
-                        <Building2 className="w-3 h-3 text-[#FF4F18]" />
+                      <div className="w-6 h-6 rounded-md bg-[#E04D00]/10 flex items-center justify-center shrink-0">
+                        <Building2 className="w-3 h-3 text-[#E04D00]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[12px] font-medium text-gray-800 truncate">{org.name}</p>
                         <p className="text-[10px] text-gray-400 truncate">{org.url || "No URL"}</p>
                       </div>
-                      {active && <Check className="w-3.5 h-3.5 text-[#FF4F18] shrink-0" />}
+                      {active && <Check className="w-3.5 h-3.5 text-[#E04D00] shrink-0" />}
                     </button>
                   );
                 })}
@@ -240,9 +240,9 @@ export default function DashboardSlugLayout({
           <div className="px-4 pt-2">
             <Link
               href={basePath}
-              className="group flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] font-semibold text-white/35 hover:text-white/80 transition-all"
+              className="group flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] font-semibold text-gray-400 hover:text-gray-700 transition-all"
             >
-              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-white/[0.07] group-hover:bg-white/[0.12] transition-colors">
+              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#F2F3F5] group-hover:bg-[#EBEBEB] transition-colors">
                 <ArrowLeft className="w-3 h-3" />
               </span>
               <span className="tracking-wide">Dashboard</span>
@@ -253,7 +253,7 @@ export default function DashboardSlugLayout({
         {/* Nav */}
         <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
           {/* Section label */}
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/25 mb-2 px-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2 px-1">
             {isSettingsPage ? "Settings" : "Main Menu"}
           </p>
 
@@ -268,8 +268,8 @@ export default function DashboardSlugLayout({
                       href={basePath + item.path}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
                         active
-                          ? "bg-[#FF4F18] text-white shadow-sm shadow-[#FF4F18]/30"
-                          : "text-white/45 hover:bg-white/[0.07] hover:text-white/90"
+                          ? "bg-[#E04D00] text-white shadow-sm shadow-[#E04D00]/20"
+                          : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
                       }`}
                     >
                       <Icon className="w-4 h-4 shrink-0" />
@@ -288,16 +288,16 @@ export default function DashboardSlugLayout({
                           href={promptsOverviewPath}
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
                             isPromptsOverview
-                              ? "bg-[#FF4F18] text-white shadow-sm shadow-[#FF4F18]/30"
+                              ? "bg-[#E04D00] text-white shadow-sm shadow-[#E04D00]/20"
                               : groupActive
-                              ? "text-white/90 bg-white/[0.09]"
-                              : "text-white/45 hover:bg-white/[0.07] hover:text-white/90"
+                              ? "text-gray-800 bg-[#F5F5F5]"
+                              : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
                           }`}
                         >
-                          <Icon className="w-4 h-4 shrink-0" />
+<Icon className="w-4 h-4 shrink-0" />
                           {item.label}
                         </Link>
-                        <div className="flex flex-col gap-0.5 ml-4 pl-3 border-l border-white/[0.08] mt-0.5 mb-1">
+                        <div className="flex flex-col gap-0.5 ml-4 pl-3 border-l-2 border-[#F0F0F0] mt-0.5 mb-1">
                           {item.children.map((sub) => {
                             const subActive = isPromptSubActive(sub.path);
                             return (
@@ -306,11 +306,11 @@ export default function DashboardSlugLayout({
                                 href={basePath + sub.path}
                                 className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-all ${
                                   subActive
-                                    ? "text-[#FF4F18]"
-                                    : "text-white/30 hover:text-white/70 hover:bg-white/[0.05]"
+                                    ? "bg-[#E04D00]/10 text-[#E04D00]"
+                                    : "text-gray-400 hover:text-gray-700 hover:bg-[#F5F5F5]"
                                 }`}
                               >
-                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${subActive ? "bg-[#FF4F18]" : "bg-white/20"}`} />
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${subActive ? "bg-[#E04D00]" : "bg-gray-300"}`} />
                                 {sub.label}
                               </Link>
                             );
@@ -327,8 +327,8 @@ export default function DashboardSlugLayout({
                       href={basePath + item.path}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
                         active
-                          ? "bg-[#FF4F18] text-white shadow-sm shadow-[#FF4F18]/30"
-                          : "text-white/45 hover:bg-white/[0.07] hover:text-white/90"
+                          ? "bg-[#E04D00] text-white shadow-sm shadow-[#E04D00]/20"
+                          : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
                       }`}
                     >
                       <Icon className="w-4 h-4 shrink-0" />
@@ -339,14 +339,14 @@ export default function DashboardSlugLayout({
           </nav>
 
           {/* Account section */}
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/25 mt-5 mb-2 px-1">Account</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-5 mb-2 px-1">Account</p>
           <nav className="flex flex-col gap-0.5">
             <Link
               href={basePath + "/settings/profile"}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all ${
                 isActive("/settings/profile")
-                  ? "bg-[#FF4F18] text-white"
-                  : "text-white/45 hover:bg-white/[0.07] hover:text-white/90"
+                  ? "bg-[#E04D00] text-white"
+                  : "text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800"
               }`}
             >
               <Settings className="w-4 h-4 shrink-0" />
@@ -355,7 +355,7 @@ export default function DashboardSlugLayout({
             {!isPro && (
               <Link
                 href="/pricing"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-white/45 hover:bg-white/[0.07] hover:text-white/90 transition-all"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-[#F5F5F5] hover:text-gray-800 transition-all"
               >
                 <CreditCard className="w-4 h-4 shrink-0" />
                 Upgrade Plan
@@ -365,7 +365,7 @@ export default function DashboardSlugLayout({
         </div>
 
         {/* User profile at bottom */}
-        <div className="border-t border-white/[0.07] px-4 py-3" ref={menuRef}>
+        <div className="border-t border-[#F0F0F0] px-4 py-3" ref={menuRef}>
           {userMenuOpen && (
             <div className="absolute bottom-[72px] left-4 right-4 mb-1 bg-white rounded-xl shadow-lg border border-[#EBEBEB] p-2 z-50">
               <div className="flex items-center gap-2.5 px-2 py-2 mb-1 border-b border-[#F5F5F5]">
@@ -390,16 +390,16 @@ export default function DashboardSlugLayout({
 
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="flex items-center gap-2.5 w-full rounded-xl px-2 py-2 hover:bg-white/[0.07] transition"
+            className="flex items-center gap-2.5 w-full rounded-xl px-2 py-2 hover:bg-[#F5F5F5] transition"
           >
             <UserAvatar src={userImage} initials={userInitials} size={32} />
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-[12px] font-semibold text-white/90 truncate">{userName}</p>
-              <p className="text-[10px] text-white/35 truncate">{isPro ? "Pro Plan" : "Free Plan"}</p>
+              <p className="text-[12px] font-semibold text-gray-800 truncate">{userName}</p>
+              <p className="text-[10px] text-gray-400 truncate">{isPro ? "Pro Plan" : "Free Plan"}</p>
             </div>
             {userMenuOpen
-              ? <ChevronUp className="w-3.5 h-3.5 text-white/25 shrink-0" />
-              : <ChevronDown className="w-3.5 h-3.5 text-white/25 shrink-0" />}
+              ? <ChevronUp className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+              : <ChevronDown className="w-3.5 h-3.5 text-gray-400 shrink-0" />}
           </button>
         </div>
       </aside>
@@ -433,7 +433,7 @@ export default function DashboardSlugLayout({
       {!chatOpen && (
         <button
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-[#FF4F18] px-4 py-3 text-white shadow-lg shadow-[#FF4F18]/25 hover:shadow-xl hover:scale-105 transition-all"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-[#E04D00] px-4 py-3 text-white shadow-lg shadow-[#E04D00]/25 hover:shadow-xl hover:scale-105 transition-all"
         >
           <Sparkles className="w-4 h-4" />
           <span className="text-xs font-semibold">AI Assistant</span>

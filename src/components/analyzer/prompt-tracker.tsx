@@ -34,7 +34,7 @@ const FACTORS = [
     weight: "40%",
     weightNum: 40,
     description: "Cross-engine citation rate, domain trust signals and E-E-A-T",
-    color: "#FF4F18",   // primary
+    color: "#E04D00",   // primary
     bg: "bg-primary/10",
     text: "text-primary",
   },
@@ -45,7 +45,7 @@ const FACTORS = [
     weight: "35%",
     weightNum: 35,
     description: "Positive sentiment rate, direct-answer mechanism and original data",
-    color: "#FF4F18",
+    color: "#E04D00",
     bg: "bg-primary/10",
     text: "text-primary",
   },
@@ -56,7 +56,7 @@ const FACTORS = [
     weight: "25%",
     weightNum: 25,
     description: "Top-3 position rate, NLP-friendly formatting and schema signals",
-    color: "#FF4F18",
+    color: "#E04D00",
     bg: "bg-primary/10",
     text: "text-primary",
   },

@@ -29,7 +29,7 @@ import {
 } from "@/components/analyzer/social-brand-reach-card";
 
 /* ── coral is theme-constant; everything else uses Tailwind classes ── */
-const CORAL = "#FF4F18";
+const CORAL = "#E04D00";
 
 /* ── priority colors ── */
 const PRIORITY_COLORS: Record<string, string> = {
@@ -40,7 +40,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  critical: "bg-[#FF4F18]/10 text-[#FF4F18]",
+  critical: "bg-[#E04D00]/10 text-[#E04D00]",
   high: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   medium: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
   low: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
@@ -903,7 +903,7 @@ export default function SignalorDashboard() {
                       <div className="flex-1">
                         <div className="relative h-3 rounded-full bg-muted">
                           {/* Gradient: red → yellow → green */}
-                          <div className="absolute inset-0 rounded-full" style={{ background: "linear-gradient(to right, #FF4F18, #D97706, #22c55e)" }} />
+                          <div className="absolute inset-0 rounded-full" style={{ background: "linear-gradient(to right, #E04D00, #D97706, #22c55e)" }} />
                           {/* Line indicator */}
                           <div
                             className="absolute -top-2 flex flex-col items-center"

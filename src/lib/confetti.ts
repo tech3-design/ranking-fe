@@ -1,6 +1,6 @@
 import confetti from "canvas-confetti";
 
-const CORAL = "#FF4F18";
+const CORAL = "#E04D00";
 
 /**
  * Fire a celebration confetti burst — coral + gold + white.
