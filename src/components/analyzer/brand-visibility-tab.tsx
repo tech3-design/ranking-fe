@@ -56,7 +56,7 @@ export function BrandVisibilityTab({ brandName, visibility }: BrandVisibilityTab
   function scoreColor(s: number) {
     if (s >= 70) return "#22c55e";
     if (s >= 40) return "#D97706";
-    return "#F95C4B";
+    return "#E04D00";
   }
 
   return (
