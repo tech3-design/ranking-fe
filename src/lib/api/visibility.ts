@@ -49,22 +49,6 @@ export interface RedditDetails {
   error?: string;
 }
 
-export interface MediumArticle {
-  title: string;
-  url: string;
-  is_relevant: boolean;
-}
-
-export interface MediumDetails {
-  articles?: MediumArticle[];
-  total_articles?: number;
-  relevant_titles?: number;
-  sub_scores?: PlatformSubScores;
-  method?: string;
-  reasoning?: string;
-  error?: string;
-}
-
 export interface WebMention {
   url: string;
   title: string;

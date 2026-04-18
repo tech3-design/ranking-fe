@@ -276,14 +276,6 @@ export default function SignalorDashboard() {
         ),
       },
       {
-        label: "Medium", value: Math.round(brandVis.medium_score), color: "#A39888",
-        icon: (
-          <svg viewBox="0 0 24 24" className="w-4 h-4 fill-foreground">
-            <path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42zm3.04 0c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75c.66 0 1.19 2.58 1.19 5.75z"/>
-          </svg>
-        ),
-      },
-      {
         label: "Web", value: Math.round(brandVis.web_mentions_score), color: "#C4BAA8",
         icon: (
           <svg viewBox="0 0 24 24" className="w-4 h-4 text-foreground" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

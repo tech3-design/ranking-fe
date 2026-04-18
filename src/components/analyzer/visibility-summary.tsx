@@ -10,7 +10,6 @@ interface VisibilitySummaryProps {
 const PLATFORMS = [
   { key: "google_score" as const, label: "Google", color: "#3ecf8e" },
   { key: "reddit_score" as const, label: "Reddit", color: "#f97316" },
-  { key: "medium_score" as const, label: "Medium", color: "#3b82f6" },
 ];
 
 export function VisibilitySummary({ visibility, onViewDetails }: VisibilitySummaryProps) {
