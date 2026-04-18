@@ -64,27 +64,32 @@ export default function VisibilityPage() {
   const brandVis = run?.brand_visibility;
 
   return (
-    <div className="px-6 py-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="px-8 py-8 space-y-4">
+      <div className="flex items-end justify-between gap-6 flex-wrap">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground">Brand Presence</h2>
-          <p className="text-xs mt-1 text-muted-foreground">
-            How AI engines and platforms see your brand
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground mb-2">
+            Brand Presence
+          </p>
+          <h2 className="text-[28px] font-semibold tracking-tight leading-[1.1] text-foreground">
+            Visibility across the web
+          </h2>
+          <p className="text-sm mt-2 text-muted-foreground max-w-xl">
+            How AI engines, search, and social platforms see your brand.
           </p>
         </div>
         {!gaLoading && !gaIntegration && (
           <button
             onClick={handleConnectGA}
             disabled={connecting}
-            className="flex items-center gap-1.5 bg-primary text-white text-xs font-semibold px-4 py-2 rounded-xl transition hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md h-9 px-3.5 text-xs font-medium text-white transition disabled:opacity-50 hover:brightness-110 bg-[#F95C4B]"
           >
             {connecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BarChart3 className="w-3.5 h-3.5" />}
-            {connecting ? "Connecting..." : "Connect Analytics"}
+            {connecting ? "Connecting…" : "Connect Analytics"}
           </button>
         )}
         {!gaLoading && gaIntegration && (
-          <span className="flex items-center gap-1.5 text-xs font-medium text-[#22c55e] bg-[#22c55e]/10 px-3 py-1.5 rounded-full">
-            <CheckCircle2 className="w-3 h-3" /> GA Connected
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#16a34a] bg-[#16a34a]/10 border border-[#16a34a]/20 px-2.5 h-7 rounded-md">
+            <CheckCircle2 className="w-3 h-3" /> GA connected
           </span>
         )}
       </div>
@@ -120,7 +125,7 @@ export default function VisibilityPage() {
 
           {/* GA Traffic Data (if connected) */}
           {gaIntegration && !gaLoading && (
-            <div className="bg-card rounded-2xl p-6 border border-border">
+            <div className="bg-card rounded-xl p-6 border border-border/70">
               {!hasProperty ? (
                 <GAPropertySelector email={email} onPropertySelected={loadIntegrations} />
               ) : (

@@ -6,11 +6,11 @@ import {
   Loader2, CheckCircle2, XCircle, Plus, RefreshCw,
   ChevronDown, ChevronRight, Eye, TrendingUp, Search,
   MessageSquare, BarChart3, Target, Lock, Zap, Activity,
-  Globe, Bot, X,
+  Globe, Bot, X, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { addPromptTrack, recheckPrompt } from "@/lib/api/analyzer";
+import { addPromptTrack, recheckPrompt, deletePromptTrack } from "@/lib/api/analyzer";
 import type { PromptTrack, PromptResult, Engine, Sentiment } from "@/lib/api/analyzer";
 import { useSession } from "@/lib/auth-client";
 import { getSubscriptionStatus } from "@/lib/api/payments";
@@ -106,6 +106,7 @@ interface PromptTrackerProps {
   tracks: PromptTrack[];
   onAdded: (track: PromptTrack) => void;
   onRechecked: (trackId: number) => void;
+  onDeleted?: (trackId: number) => void;
   expandedMode?: "full" | "blank";
 }
 
@@ -115,6 +116,7 @@ export function PromptTracker({
   tracks,
   onAdded,
   onRechecked,
+  onDeleted,
   expandedMode = "full",
 }: PromptTrackerProps) {
   const { data: session } = useSession();
@@ -128,6 +130,24 @@ export function PromptTracker({
   const [search, setSearch] = useState("");
   const [filterLabel, setFilterLabel] = useState<FilterLabel>("All");
   const [sortKey, setSortKey] = useState<SortKey>("score");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<Record<number, boolean>>({});
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function handleDelete(trackId: number) {
+    setDeleting((r) => ({ ...r, [trackId]: true }));
+    setDeleteError(null);
+    try {
+      await deletePromptTrack(slug, trackId);
+      setConfirmDeleteId(null);
+      setExpandedId((curr) => (curr === trackId ? null : curr));
+      onDeleted?.(trackId);
+    } catch (err: unknown) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete prompt");
+    } finally {
+      setDeleting((r) => ({ ...r, [trackId]: false }));
+    }
+  }
 
   useEffect(() => {
     const email = session?.user?.email;
@@ -735,6 +755,21 @@ export function PromptTracker({
                               </div>
                             </div>
                           )}
+
+                          {/* ── Danger zone ──────────────────────────────── */}
+                          <div className="pt-4 mt-2 border-t border-border/50 flex items-center justify-between gap-3">
+                            <p className="text-[11px] text-muted-foreground">
+                              Deleting a prompt <span className="font-medium text-foreground">does not restore</span> a slot on your plan.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => { setConfirmDeleteId(track.id); setDeleteError(null); }}
+                              className="inline-flex items-center gap-1.5 rounded-lg px-3 h-8 text-xs font-medium border border-[#F95C4B]/30 text-[#F95C4B] hover:bg-[#F95C4B]/10 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Delete prompt
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -763,6 +798,90 @@ export function PromptTracker({
           </button>
         </div>
       )}
+
+      {/* ── Delete Confirmation Dialog ───────────────────────────────────── */}
+      {confirmDeleteId !== null && (() => {
+        const track = tracks.find((t) => t.id === confirmDeleteId);
+        if (!track) return null;
+        const isDeleting = !!deleting[confirmDeleteId];
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => { if (!isDeleting) { setConfirmDeleteId(null); setDeleteError(null); } }}
+          >
+            <div
+              className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-prompt-title"
+            >
+              <div className="px-6 pt-6 pb-4">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center bg-[#F95C4B]/10">
+                    <Trash2 className="w-4 h-4 text-[#F95C4B]" />
+                  </div>
+                  <div>
+                    <h2 id="delete-prompt-title" className="text-base font-semibold text-foreground">
+                      Delete this prompt?
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      This action can&apos;t be undone.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5 mb-4">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Prompt</p>
+                  <p className="text-sm text-foreground line-clamp-3">{track.prompt_text}</p>
+                </div>
+
+                <div className="rounded-lg border border-[#F95C4B]/20 bg-[#F95C4B]/5 px-3 py-2.5 flex items-start gap-2">
+                  <Lock className="w-3.5 h-3.5 text-[#F95C4B] mt-0.5 shrink-0" />
+                  <div className="text-[12px] text-foreground leading-snug">
+                    <p>
+                      <span className="font-medium">Your plan slot will not be restored.</span>
+                      {" "}
+                      Deleted prompts still count toward your <span className="font-medium">tracked prompts</span> usage to prevent bypassing limits.
+                    </p>
+                    <Link
+                      href={`/dashboard/${slug}/settings/billing`}
+                      onClick={() => { setConfirmDeleteId(null); setDeleteError(null); }}
+                      className="inline-flex items-center gap-1 mt-1.5 text-[11px] font-medium text-[#F95C4B] hover:underline"
+                    >
+                      Manage plan →
+                    </Link>
+                  </div>
+                </div>
+
+                {deleteError && (
+                  <p className="mt-3 text-[11px] text-[#F95C4B]">{deleteError}</p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 px-6 py-3 border-t border-border/60 bg-muted/20">
+                <button
+                  type="button"
+                  onClick={() => { setConfirmDeleteId(null); setDeleteError(null); }}
+                  disabled={isDeleting}
+                  className="rounded-lg px-3 h-9 text-xs font-medium border border-border/70 text-foreground hover:bg-muted/60 transition disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(confirmDeleteId)}
+                  disabled={isDeleting}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 h-9 text-xs font-medium text-white bg-[#F95C4B] hover:brightness-110 transition disabled:opacity-50"
+                >
+                  {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  {isDeleting ? "Deleting…" : "Delete prompt"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Response Viewer Modal ────────────────────────────────────────── */}
       {viewingResponse && (

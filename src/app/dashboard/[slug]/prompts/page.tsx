@@ -118,6 +118,7 @@ export default function PromptsOverviewPage() {
           tracks={tracks}
           onAdded={(track) => setTracks((prev) => [track, ...prev])}
           onRechecked={() => fetchData()}
+          onDeleted={(trackId) => setTracks((prev) => prev.filter((t) => t.id !== trackId))}
         />
       )}
     </div>
