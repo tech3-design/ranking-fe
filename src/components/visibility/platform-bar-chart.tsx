@@ -5,23 +5,20 @@ import { motion } from "framer-motion";
 interface PlatformBarChartProps {
   google: number;
   reddit: number;
-  medium: number;
   web?: number;
 }
 
 const PLATFORM_COLORS: Record<string, string> = {
   Google: "#E04D00",
   Reddit: "var(--foreground)",
-  Medium: "#A39888",
   "Web Mentions": "#C4BAA8",
 };
 
-export function PlatformBarChart({ google, reddit, medium, web }: PlatformBarChartProps) {
+export function PlatformBarChart({ google, reddit, web }: PlatformBarChartProps) {
   const platforms = [
-    { name: "Google", score: google, weight: "40%" },
-    { name: "Reddit", score: reddit, weight: "20%" },
-    { name: "Medium", score: medium, weight: "10%" },
-    { name: "Web Mentions", score: web ?? 0, weight: "30%" },
+    { name: "Google", score: google, weight: "44%" },
+    { name: "Reddit", score: reddit, weight: "22%" },
+    { name: "Web Mentions", score: web ?? 0, weight: "34%" },
   ];
 
   return (

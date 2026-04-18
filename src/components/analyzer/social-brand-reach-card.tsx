@@ -66,7 +66,7 @@ const DIMENSIONS: PresenceDimension[] = [
   },
   {
     key: "content", label: "Content Presence", shortLabel: "Content",
-    getValue: (bv) => Math.round(bv.medium_score ?? 0),
+    getValue: (bv) => Math.round(bv.web_mentions_score ?? 0),
   },
   {
     key: "web", label: "Internet Presence", shortLabel: "Internet",
@@ -145,7 +145,6 @@ const GEO_WEIGHTS: Record<string, number[]> = {
   "Wikipedia":      [0.24, 0.08, 0.30, 0.05, 0.06, 0.18, 0.05, 0.04],
   "Trustpilot":     [0.28, 0.02, 0.46, 0.01, 0.02, 0.12, 0.03, 0.06],
   "G2":             [0.58, 0.04, 0.25, 0.01, 0.02, 0.07, 0.02, 0.01],
-  "Medium":         [0.36, 0.06, 0.26, 0.02, 0.03, 0.18, 0.06, 0.03],
 };
 
 const REGION_IDS = ["na", "sa", "eu", "af", "me", "as", "sea", "au"];
@@ -170,7 +169,7 @@ export function SocialBrandReachCard({
 
   const emptyBv: BrandVisibility = {
     google_score: 0, google_details: {}, reddit_score: 0, reddit_details: {},
-    medium_score: 0, medium_details: {}, web_mentions_score: 0, web_mentions_details: {},
+    web_mentions_score: 0, web_mentions_details: {},
     overall_score: 0,
   };
   const bv = brandVisibility ?? emptyBv;
@@ -216,7 +215,6 @@ export function SocialBrandReachCard({
   const scoreInputs: Array<{ key: string; value: number }> = [
     { key: "Google", value: Math.round(bv.google_score ?? 0) },
     { key: "Reddit", value: Math.round(bv.reddit_score ?? 0) },
-    { key: "Medium", value: Math.round(bv.medium_score ?? 0) },
     ...socialInputs,
     ...Object.entries(platformPresence)
       .filter(([, d]) => d.found && d.mentions > 0)
