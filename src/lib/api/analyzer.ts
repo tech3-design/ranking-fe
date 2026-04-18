@@ -299,6 +299,10 @@ export async function recheckPrompt(slug: string, trackId: number): Promise<void
   await apiClient.post(`/api/analyzer/runs/s/${slug}/prompts/${trackId}/recheck/`);
 }
 
+export async function deletePromptTrack(slug: string, trackId: number): Promise<void> {
+  await apiClient.delete(`/api/analyzer/runs/s/${slug}/prompts/${trackId}/`);
+}
+
 export async function recheckAllPrompts(slug: string): Promise<{ count: number }> {
   const { data } = await apiClient.post<{ status: string; count: number }>(
     `/api/analyzer/runs/s/${slug}/recheck-all/`,
