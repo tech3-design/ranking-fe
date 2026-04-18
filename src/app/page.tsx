@@ -5,9 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import {
-  TrendingUp,
-  Brain,
-  BarChart3,
   Globe,
   ArrowRight,
   Loader2,
@@ -411,12 +408,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Bento Grid */}
       <section
         id="features"
-        className="mx-auto max-w-7xl px-6 py-24 lg:px-12 bg-muted/30 rounded-[3rem] my-12"
+        className="mx-auto max-w-7xl px-6 py-24 lg:px-12"
       >
-        <div className="text-center">
+        <div className="text-center mb-14">
           <span className="text-sm font-bold uppercase tracking-wider text-primary">
             Features //
           </span>
@@ -425,135 +422,154 @@ export default function Home() {
           </h2>
         </div>
 
-        <div className="mt-16 grid gap-6 md:grid-cols-3">
-          {/* Card 1 — GEO Score */}
-          <div className="flex flex-col justify-between overflow-hidden rounded-[2.5rem] bg-[#0A251C] p-8 text-white h-[450px]">
+        {/* Bento Grid */}
+        <div
+          className="grid gap-4"
+          style={{
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gridTemplateRows: "auto auto auto",
+          }}
+        >
+          {/* Card 1 — GEO Score (tall, rows 1-2) */}
+          <div
+            className="rounded-[2rem] bg-[#F5EDE0] p-7 flex flex-col justify-between overflow-hidden"
+            style={{ gridRow: "1 / 3" }}
+          >
             <div>
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
-                <BarChart3 className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="text-2xl font-semibold">
-                Your GEO Score, Tracked Over Time
-              </h3>
-              <p className="mt-3 text-sm text-white/70">
-                A single 0–100 score that measures how well AI models
-                understand, trust, and cite your website — updated continuously
-                as you make improvements.
+              <h3 className="text-xl font-semibold text-[#1a1a1a]">Track GEO Progress</h3>
+              <p className="mt-2 text-sm text-[#5a5a5a]">
+                Fast and accurate GEO scoring for your brand — tracked every time you run an audit.
               </p>
             </div>
-            {/* Mockup Score UI */}
-            <div className="mt-8 rounded-2xl bg-white/10 p-5 border border-white/20">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-white/60">GEO Score</span>
-                <span className="text-xs text-primary font-bold">↑ +5 pts</span>
-              </div>
-              <div className="flex items-end gap-1 h-16">
-                {[30, 45, 40, 55, 60, 58, 73].map((h, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 rounded-t bg-primary/60"
-                    style={{ height: `${h}%` }}
-                  />
-                ))}
-              </div>
-              <div className="flex justify-between mt-2">
-                {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"].map((m) => (
-                  <span key={m} className="text-[9px] text-white/40">
-                    {m}
-                  </span>
-                ))}
-              </div>
+            {/* Animated wave bars */}
+            <div className="mt-8 flex items-end justify-center gap-[5px] h-36 px-4">
+              {[38, 55, 70, 85, 72, 90, 65, 80, 50, 68, 45, 75, 60].map((h, i) => (
+                <div
+                  key={i}
+                  className="flex-1 rounded-full"
+                  style={{
+                    height: `${h}%`,
+                    background: `linear-gradient(to top, #E04D00, #FF8A60)`,
+                    opacity: i % 3 === 1 ? 0.55 : 1,
+                  }}
+                />
+              ))}
             </div>
           </div>
 
-          {/* Card 2 — Recommendations */}
-          <div className="flex flex-col justify-between overflow-hidden rounded-[2.5rem] bg-[#EAF5F0] p-8 text-[#0A251C] h-[450px]">
-            <div>
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A251C]/10">
-                <Brain className="h-5 w-5 text-[#0A251C]" />
-              </div>
-              <h3 className="text-2xl font-semibold">
-                Fixes That Actually Move the Needle
-              </h3>
-              <p className="mt-3 text-sm text-[#0A251C]/70">
-                Prioritized, plain-English recommendations — from adding JSON-LD
-                schema and building authoritative citations to restructuring
-                content the way AI models prefer to read it.
-              </p>
-            </div>
-            {/* Mockup Recommendations */}
-            <div className="mt-8 space-y-3">
-              <div className="rounded-xl bg-white p-3 shadow-sm flex items-center gap-3">
-                <div className="h-2 w-2 rounded-full bg-red-400 flex-shrink-0" />
-                <div className="space-y-1 w-full">
-                  <div className="h-2 w-3/4 rounded bg-slate-200" />
-                  <div className="text-[10px] text-[#0A251C]/50">
-                    Critical · JSON-LD schema missing
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl bg-white/70 p-3 shadow-sm flex items-center gap-3">
-                <div className="h-2 w-2 rounded-full bg-amber-400 flex-shrink-0" />
-                <div className="space-y-1 w-full">
-                  <div className="h-2 w-1/2 rounded bg-slate-200" />
-                  <div className="text-[10px] text-[#0A251C]/50">
-                    High · Add third-party citations
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl bg-white/50 p-3 shadow-sm flex items-center gap-3">
-                <div className="h-2 w-2 rounded-full bg-emerald-400 flex-shrink-0" />
-                <div className="space-y-1 w-full">
-                  <div className="h-2 w-2/3 rounded bg-slate-200" />
-                  <div className="text-[10px] text-[#0A251C]/50">
-                    Medium · Publish to Medium & Reddit
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3 — Platform Visibility */}
-          <div className="flex flex-col justify-between overflow-hidden rounded-[2.5rem] bg-white border border-border p-8 h-[450px]">
-            <div>
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                <TrendingUp className="h-5 w-5 text-primary" />
-              </div>
-              <h3 className="text-2xl font-semibold text-foreground">
-                See Where You Show Up — and Where You Don't
-              </h3>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Understand your brand's presence across Google AI Overviews,
-                Reddit, Medium, and the open web. Know exactly which channels to
-                invest in next.
-              </p>
-            </div>
-            {/* Mockup Bar Chart */}
-            <div className="mt-8">
-              <div className="flex items-end justify-around gap-3 h-28 px-2">
-                {[
-                  { label: "Google", val: 9 },
-                  { label: "Reddit", val: 99 },
-                  { label: "Medium", val: 15 },
-                  { label: "Web", val: 63 },
-                ].map(({ label, val }) => (
+          {/* Card 2 — Multi-Platform Analysis */}
+          <div className="rounded-[2rem] bg-[#F5EDE0] p-7 flex flex-col items-center justify-center text-center overflow-hidden">
+            {/* Avatar-like LLM logos in a cluster */}
+            <div className="flex items-center justify-center gap-2 mb-5">
+              {/* Left arrow */}
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-primary opacity-70">
+                <path d="M19 12H5M5 12L12 5M5 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div className="flex -space-x-2">
+                {["chatgpt","gemini","claude","perplexity"].map((logo, i) => (
                   <div
-                    key={label}
-                    className="flex flex-col items-center gap-1 flex-1"
+                    key={logo}
+                    className="h-10 w-10 rounded-full bg-white border-2 border-[#F5EDE0] shadow-sm flex items-center justify-center overflow-hidden"
+                    style={{ zIndex: 4 - i }}
                   >
-                    <span className="text-[10px] font-medium text-foreground">
-                      {val}
-                    </span>
-                    <div
-                      className="w-full rounded-t-lg bg-primary/80"
-                      style={{ height: `${val}%` }}
-                    />
-                    <span className="text-[9px] text-muted-foreground">
-                      {label}
-                    </span>
+                    <img src={`/logos/${logo}.svg`} alt={logo} className="h-6 w-6 object-contain" onError={(e) => { e.currentTarget.style.display="none"; }} />
                   </div>
                 ))}
               </div>
+              {/* Right arrow */}
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-primary opacity-70">
+                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-[#1a1a1a]">Multi-Platform Analysis</h3>
+            <p className="mt-1.5 text-sm text-[#5a5a5a]">Analyze visibility across ChatGPT, Gemini, Claude & Perplexity simultaneously.</p>
+          </div>
+
+          {/* Card 3 — CTA (tall, rows 1-2, orange) */}
+          <div
+            className="rounded-[2rem] bg-[#E04D00] p-7 flex flex-col justify-between overflow-hidden relative"
+            style={{ gridRow: "1 / 3" }}
+          >
+            {/* Arrow icon top-right */}
+            <div className="flex justify-end">
+              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                <ArrowRight className="h-5 w-5 text-white -rotate-45" />
+              </div>
+            </div>
+            <div className="mt-auto">
+              <h3 className="text-2xl font-bold text-white leading-snug">
+                Start free &amp; get your GEO score in 60 seconds
+              </h3>
+              <p className="mt-3 text-sm text-white/75">
+                No setup required. Signalor audits your site for AI citability and hands you a clear action plan — instantly.
+              </p>
+              <Link
+                href="/sign-up"
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-[#E04D00] hover:bg-white/90 transition-opacity"
+              >
+                Get Started Free <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 4 — Fast Audit */}
+          <div className="rounded-[2rem] bg-[#F5EDE0] p-7 flex flex-col items-center justify-center text-center overflow-hidden">
+            {/* Lightning bolt */}
+            <div className="mb-3">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
+                <path d="M13 2L4.09 12.26C3.77 12.65 4.05 13.25 4.55 13.25H11L11 22L19.91 11.74C20.23 11.35 19.95 10.75 19.45 10.75H13L13 2Z" fill="#E04D00" stroke="#E04D00" strokeWidth="0.5" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-[#1a1a1a]">Fast Iterations</h3>
+            <p className="mt-1.5 text-sm text-[#5a5a5a]">Re-run your audit any time to track improvements as you apply fixes.</p>
+          </div>
+
+          {/* Card 5 — AI Integrations (col 1-2, row 3) */}
+          <div
+            className="rounded-[2rem] bg-[#F5EDE0] p-7 overflow-hidden"
+            style={{ gridColumn: "1 / 3" }}
+          >
+            <h3 className="text-lg font-semibold text-[#1a1a1a] mb-1">Popular AI Integrations</h3>
+            <p className="text-sm text-[#5a5a5a] mb-5">Seamless connection to every major AI search engine and platform.</p>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { src: "/logos/chatgpt.svg", name: "ChatGPT" },
+                { src: "/logos/gemini.svg", name: "Gemini" },
+                { src: "/logos/claude.svg", name: "Claude" },
+                { src: "/logos/perplexity.svg", name: "Perplexity" },
+                { src: "/logos/google.svg", name: "Google AI" },
+                { src: "/logos/copilot.svg", name: "Copilot" },
+              ].map(({ src, name }) => (
+                <div
+                  key={name}
+                  className="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white py-3 px-2 shadow-sm"
+                >
+                  <img src={src} alt={name} className="h-7 w-7 object-contain" onError={(e) => { e.currentTarget.style.display="none"; }} />
+                  <span className="text-[10px] font-medium text-[#5a5a5a]">{name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Card 6 — Impressions & Growth */}
+          <div className="rounded-[2rem] bg-[#F5EDE0] p-7 flex flex-col justify-between overflow-hidden">
+            <div>
+              <h3 className="text-lg font-semibold text-[#1a1a1a]">Citation Growth</h3>
+              <p className="mt-1.5 text-sm text-[#5a5a5a]">Track how AI mentions of your brand grow over time.</p>
+            </div>
+            {/* Curved line chart mockup */}
+            <div className="mt-5">
+              <svg viewBox="0 0 200 70" className="w-full" fill="none">
+                <path
+                  d="M0 60 C30 55, 50 45, 70 40 S110 20, 140 15 S170 5, 200 2"
+                  stroke="#E04D00"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <circle cx="140" cy="15" r="4" fill="#E04D00" />
+                <circle cx="200" cy="2" r="4" fill="#E04D00" />
+              </svg>
             </div>
           </div>
         </div>
