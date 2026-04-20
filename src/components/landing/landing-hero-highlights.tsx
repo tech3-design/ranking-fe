@@ -4,11 +4,11 @@ import Image from "next/image";
 import { BarChart3, FileText, LayoutGrid, LineChart, Users } from "lucide-react";
 
 const HIGHLIGHTS = [
-  { icon: BarChart3, label: "AI visibility" },
+  { icon: BarChart3, label: "GEO audits" },
   { icon: FileText, label: "Prompt tracking" },
-  { icon: LayoutGrid, label: "Content signals" },
-  { icon: LineChart, label: "Off-site citations" },
-  { icon: Users, label: "Agent analytics" },
+  { icon: LayoutGrid, label: "Content fixes" },
+  { icon: LineChart, label: "Citation tracking" },
+  { icon: Users, label: "Competitor lens" },
 ] as const;
 
 export function LandingHeroHighlights() {
@@ -39,7 +39,7 @@ export function LandingHeroHighlights() {
           width={2000}
           height={2000}
           unoptimized
-          className="mx-auto h-auto w-full max-w-4xl select-none rounded-xl border border-black/[0.07] bg-white object-contain shadow-[0_22px_56px_-14px_rgba(15,23,42,0.18)] sm:max-w-5xl"
+          className="mx-auto h-auto w-full max-w-4xl select-none rounded-sm border border-black/[0.07] bg-white object-contain shadow-[0_22px_56px_-14px_rgba(15,23,42,0.18)] sm:max-w-5xl"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1024px"
           priority
         />

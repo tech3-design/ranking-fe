@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
 
-const FAQ_ITEMS: { question: string; answer: string }[] = [
+const DEFAULT_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "How do I get started with Signalor?",
     answer:
@@ -38,31 +37,44 @@ const FAQ_ITEMS: { question: string; answer: string }[] = [
   },
 ];
 
-export function LandingFaq() {
+type LandingFaqProps = {
+  sectionId?: string;
+  headingId?: string;
+  heading?: string;
+  description?: string;
+  items?: { question: string; answer: string }[];
+};
+
+export function LandingFaq({
+  sectionId = "faq",
+  headingId = "landing-faq-heading",
+  heading = "FAQs",
+  description = "Get answers to the most common questions about AI search and Signalor.",
+  items = DEFAULT_FAQ_ITEMS,
+}: LandingFaqProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <section
-      id="faq"
-      className="relative border-t border-black/8 bg-neutral-50 px-6 py-20 sm:py-24 lg:px-12"
-      aria-labelledby="landing-faq-heading"
+      id={sectionId}
+      className=" border-black/8 bg-neutral-50 px-6 py-20 sm:py-24 lg:px-12"
+      aria-labelledby={headingId}
     >
-      <CornerDiamonds top />
       <div className="mx-auto max-w-3xl text-center">
         <h2
-          id="landing-faq-heading"
+          id={headingId}
           className="font-sans text-4xl font-bold tracking-tight text-foreground sm:text-5xl"
         >
-          FAQs
+          {heading}
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-base font-normal leading-relaxed text-muted-foreground sm:text-lg">
-          Get answers to the most common questions about AI search and Signalor.
+          {description}
         </p>
       </div>
 
       <div className="mx-auto mt-12 max-w-3xl">
         <ul className="border-t border-black/10">
-          {FAQ_ITEMS.map((item, index) => {
+          {items.map((item, index) => {
             const isOpen = openIndex === index;
             const panelId = `faq-panel-${index}`;
             const buttonId = `faq-trigger-${index}`;

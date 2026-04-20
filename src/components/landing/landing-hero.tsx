@@ -1,7 +1,8 @@
 "use client";
 
+import { HeroAnalyzerForm } from "../analyzer/hero-analyzer-form";
 import { HeroBackgroundGrid } from "./hero-background-grid";
-import { HeroAnalyzerForm } from "./landing-hero-analyzer-form";
+
 import { LandingHeroHighlights } from "./landing-hero-highlights";
 
 export function LandingHero() {
@@ -11,15 +12,16 @@ export function LandingHero() {
       <div className="relative z-10 grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:items-center lg:gap-8 xl:gap-12">
         <div className="relative z-10 min-w-0 max-w-xl text-left lg:max-w-none">
           <h1 className="text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem] xl:text-6xl">
-            Make{" "}
+            Turn{" "}
             <span className="inline-flex items-center gap-1.5 align-middle">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-neutral-900 text-xs font-bold text-white sm:h-9 sm:w-9">
                 AI
               </span>
             </span>{" "}
-            search your{" "}
+            search into{" "}
+            <br className="hidden sm:block" />
             <span className="relative whitespace-nowrap text-[#e04a3d]">
-              next revenue channel
+              your highest-intent pipeline
               <span
                 className="absolute -bottom-1 left-0 right-0 border-b-2 border-dashed border-[#e04a3d]/50"
                 aria-hidden
@@ -28,17 +30,19 @@ export function LandingHero() {
           </h1>
 
           <p className="mt-5 max-w-lg text-base font-light leading-relaxed text-accent-foreground sm:text-lg">
-            Track and optimize visibility in generative search so AI engines cite your site —
-            not your competitor&apos;s. Audits, scores, and a clear fix list in one place.
+            Measure how AI engines describe your brand, where competitors are winning citations,
+            and exactly what to fix next. Audit, scoring, and execution-ready recommendations in one workflow.
           </p>
 
+          {/* <HeroAnalyzerForm /> */}
           <HeroAnalyzerForm />
+
 
           <p className="mt-4 flex items-center gap-2 text-xs font-medium text-neutral-500">
             <span className="inline-flex text-amber-500" aria-hidden>
               ★★★★★
             </span>
-            <span>4.8/5 from teams shipping GEO programs</span>
+            <span>4.8/5 from growth teams running weekly GEO sprints</span>
           </p>
         </div>
 
@@ -55,6 +59,8 @@ export function LandingHero() {
               />
             </div> */}
       </div>
+     
+
 
       <LandingHeroHighlights />
     </section>

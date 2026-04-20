@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -14,9 +14,16 @@ import {
   safeInternalReturnPath,
 } from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
-import { Check, Clock, Zap, Crown, Rocket, ArrowLeft } from "lucide-react";
+import { Check, Clock, Crown, Rocket, Zap } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
-import Link from "next/link";
+import { LandingFaq } from "@/components/landing/landing-faq";
+import { LandingFooter } from "@/components/landing/landing-footer";
+import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
+import { PricingHero } from "@/components/pricing/pricing-hero";
+import { PricingStatsSection } from "@/components/pricing/pricing-stats-section";
+import { PRICING_FAQ_ITEMS } from "@/lib/pricing-marketing-content";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PlanConfig {
   id: string;
@@ -27,7 +34,6 @@ interface PlanConfig {
   icon: typeof Zap;
   popular?: boolean;
   features: string[];
-  /** Shown below live features — not included in checkout yet */
   comingSoonFeatures?: string[];
 }
 
@@ -86,6 +92,16 @@ const PLANS: PlanConfig[] = [
   },
 ];
 
+function PricingPageFallback() {
+  return (
+    <LandingMarketingShell>
+      <div className="flex min-h-[50vh] items-center justify-center px-6 py-24">
+        <SignalorLoader size="lg" />
+      </div>
+    </LandingMarketingShell>
+  );
+}
+
 function PricingPageInner() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
@@ -93,15 +109,10 @@ function PricingPageInner() {
   const returnTo = safeInternalReturnPath(searchParams.get("returnTo"));
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState("");
-  /** Set when checkout fails so we can show mode-specific setup hints */
   const [checkoutDodoMode, setCheckoutDodoMode] = useState<DodoMode | null>(null);
 
   useEffect(() => {
-    if (isPending) return;
-    if (!session) {
-      router.replace(routes.signIn);
-      return;
-    }
+    if (isPending || !session) return;
     getSubscriptionStatus(session.user.email)
       .then((s) => {
         if (s.is_active) {
@@ -111,235 +122,202 @@ function PricingPageInner() {
       .catch(() => {});
   }, [isPending, session, router, returnTo]);
 
-  async function handleSubscribe(planId: string) {
-    if (!session || loadingPlan) return;
-    setLoadingPlan(planId);
-    setError("");
-    setCheckoutDodoMode(null);
-    try {
-      if (returnTo) {
-        try {
-          sessionStorage.setItem(POST_CHECKOUT_REDIRECT_KEY, returnTo);
-        } catch {
-          /* ignore */
+  const handleSubscribe = useCallback(
+    async (planId: string) => {
+      if (loadingPlan) return;
+      if (!session) {
+        router.push(`${routes.signIn}?returnTo=${encodeURIComponent("/pricing")}`);
+        return;
+      }
+      setLoadingPlan(planId);
+      setError("");
+      setCheckoutDodoMode(null);
+      try {
+        if (returnTo) {
+          try {
+            sessionStorage.setItem(POST_CHECKOUT_REDIRECT_KEY, returnTo);
+          } catch {
+            /* ignore */
+          }
         }
+        const { checkout_url } = await createCheckoutSession(session.user.email, planId);
+        window.location.href = checkout_url;
+      } catch (e) {
+        if (e instanceof CheckoutSessionError) {
+          setError(e.message);
+          setCheckoutDodoMode(e.dodoMode ?? null);
+        } else {
+          setError(e instanceof Error ? e.message : "Failed to start checkout. Please try again.");
+          setCheckoutDodoMode(null);
+        }
+        setLoadingPlan(null);
       }
-      const { checkout_url } = await createCheckoutSession(session.user.email, planId);
-      window.location.href = checkout_url;
-    } catch (e) {
-      if (e instanceof CheckoutSessionError) {
-        setError(e.message);
-        setCheckoutDodoMode(e.dodoMode ?? null);
-      } else {
-        setError(e instanceof Error ? e.message : "Failed to start checkout. Please try again.");
-        setCheckoutDodoMode(null);
-      }
-      setLoadingPlan(null);
-    }
+    },
+    [session, loadingPlan, router, returnTo],
+  );
+
+  if (isPending) {
+    return <PricingPageFallback />;
   }
 
-  if (isPending || !session) {
-    return (
-      <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "#F6F4F1" }}>
-        <SignalorLoader size="lg" />
-      </div>
-    );
-  }
+  const showBackLink = !!(returnTo || session);
+  const backHref = returnTo || routes.dashboard;
+  const backLabel = returnTo ? "Back to setup" : "Back to dashboard";
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-4 py-12" style={{ backgroundColor: "#F6F4F1" }}>
-      <div className="w-full max-w-5xl">
-        {/* Back link */}
-        <Link
-          href={returnTo || routes.dashboard}
-          className="group inline-flex items-center gap-2 mb-8 text-[12px] font-semibold text-gray-400 hover:text-gray-700 transition-all"
-        >
-          <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-black/[0.05] group-hover:bg-black/[0.09] transition-colors">
-            <ArrowLeft className="w-3 h-3" />
-          </span>
-          {returnTo ? "Setup" : "Dashboard"}
-        </Link>
+    <LandingMarketingShell>
+      <PricingHero
+        showBackLink={showBackLink}
+        backHref={backHref}
+        backLabel={backLabel}
+        onboardingBanner={returnTo === routes.onboardingCompanyInfo}
+      />
 
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold" style={{ color: "#000000" }}>
-            Choose your plan
-          </h1>
-          <p className="mt-3 text-sm" style={{ color: "#00000060" }}>
-            All plans include core GEO analysis. Upgrade for more projects, prompts, and AI engines.
-          </p>
-          {returnTo === routes.onboardingCompanyInfo && (
-            <p
-              className="mt-4 text-sm rounded-lg px-4 py-3 max-w-lg mx-auto"
-              style={{ color: "#0A251C", backgroundColor: "#EAF5F0" }}
-            >
-              You&apos;ve finished setup — subscribe to launch your GEO analysis from the final step.
-            </p>
-          )}
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="mb-6 max-w-md mx-auto space-y-2">
-            <p
-              className="text-sm rounded-lg px-4 py-3 text-center"
-              style={{ color: "#E04D00", backgroundColor: "#E04D0010" }}
-            >
-              {error}
-            </p>
-            {checkoutDodoMode === "test" && (
-              <p className="text-xs leading-relaxed text-center px-2" style={{ color: "#00000070" }}>
-                Test mode: in <code className="text-[11px]">ranking-be/.env</code> use{" "}
-                <code className="text-[11px]">DODO_LIVE_MODE=false</code>, a secret key from the Dodo
-                dashboard <strong>Test</strong> tab, and a product id created in Test (live product ids
-                will not work).
+      <section className="border-t border-border/60 px-6 py-14 lg:px-12">
+        <div className="mx-auto max-w-6xl">
+          {error ? (
+            <div className="mb-10 max-w-lg mx-auto space-y-2">
+              <p className="rounded-lg border border-destructive/25 bg-destructive/5 px-4 py-3 text-center text-sm text-destructive">
+                {error}
               </p>
-            )}
-            {checkoutDodoMode === "live" && (
-              <p className="text-xs leading-relaxed text-center px-2" style={{ color: "#00000070" }}>
-                Live mode: use <code className="text-[11px]">DODO_LIVE_MODE=true</code>, a{" "}
-                <strong>Live</strong> secret key, and a Live product id in{" "}
-                <code className="text-[11px]">DODO_PRODUCT_ID_STARTER</code>.
-              </p>
-            )}
-          </div>
-        )}
+              {checkoutDodoMode === "test" && (
+                <p className="text-center text-xs leading-relaxed text-muted-foreground px-2">
+                  Test mode: in <code className="text-[11px]">ranking-be/.env</code> use{" "}
+                  <code className="text-[11px]">DODO_LIVE_MODE=false</code>, a secret key from the Dodo
+                  dashboard <strong>Test</strong> tab, and a product id created in Test (live product ids will
+                  not work).
+                </p>
+              )}
+              {checkoutDodoMode === "live" && (
+                <p className="text-center text-xs leading-relaxed text-muted-foreground px-2">
+                  Live mode: use <code className="text-[11px]">DODO_LIVE_MODE=true</code>, a{" "}
+                  <strong>Live</strong> secret key, and a Live product id in{" "}
+                  <code className="text-[11px]">DODO_PRODUCT_ID_STARTER</code>.
+                </p>
+              )}
+            </div>
+          ) : null}
 
-        {/* Plans grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {PLANS.map((plan) => {
-            const Icon = plan.icon;
-            const isLoading = loadingPlan === plan.id;
-            const priceLabel =
-              Math.round(plan.price) === plan.price
-                ? `${plan.price}`
-                : plan.price.toFixed(2);
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-5">
+            {PLANS.map((plan) => {
+              const Icon = plan.icon;
+              const isLoading = loadingPlan === plan.id;
+              const priceLabel =
+                Math.round(plan.price) === plan.price ? `${plan.price}` : plan.price.toFixed(2);
 
-            return (
-              <div
-                key={plan.id}
-                className="relative rounded-2xl bg-white p-6 flex flex-col"
-                style={{
-                  border: plan.popular ? "2px solid #E04D00" : "1px solid #E4DED2",
-                }}
-              >
-                {plan.popular && (
-                  <div
-                    className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
-                    style={{ backgroundColor: "#E04D00" }}
-                  >
-                    Most Popular
-                  </div>
-                )}
-
-                {/* Plan header */}
-                <div className="mb-5">
-                  <div
-                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold mb-3"
-                    style={{ backgroundColor: "#E04D0015", color: "#E04D00" }}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {plan.label}
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold" style={{ color: "#000000" }}>
-                      {"\u00A3"}{priceLabel}
-                    </span>
-                    <span className="text-sm" style={{ color: "#00000050" }}>{plan.period}</span>
-                  </div>
-                  <p className="mt-2 text-xs leading-relaxed" style={{ color: "#00000060" }}>
-                    {plan.description}
-                  </p>
-                </div>
-
-                {/* Divider */}
-                <div className="w-full h-px mb-5" style={{ backgroundColor: "#E4DED2" }} />
-
-                {/* Features */}
-                <div className="space-y-3 mb-6 flex-1">
-                  {plan.features.map((f) => (
-                    <div key={f} className="flex items-center gap-2.5">
-                      <div
-                        className="w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: "#E04D0015", width: 18, height: 18 }}
-                      >
-                        <Check className="h-2.5 w-2.5" style={{ color: "#E04D00" }} />
-                      </div>
-                      <span className="text-sm" style={{ color: "#000000CC" }}>{f}</span>
-                    </div>
-                  ))}
-
-                  {plan.comingSoonFeatures && plan.comingSoonFeatures.length > 0 && (
-                    <div className="pt-4 mt-1 border-t" style={{ borderColor: "#E4DED2" }}>
-                      <p
-                        className="text-[10px] font-bold uppercase tracking-wider mb-3"
-                        style={{ color: "#00000045" }}
-                      >
-                        Coming Soon
-                      </p>
-                      <div className="space-y-2.5">
-                        {plan.comingSoonFeatures.map((f) => (
-                          <div key={f} className="flex items-start gap-2.5">
-                            <div
-                              className="mt-0.5 rounded-full flex items-center justify-center shrink-0"
-                              style={{
-                                backgroundColor: "#00000008",
-                                width: 18,
-                                height: 18,
-                              }}
-                            >
-                              <Clock className="h-2.5 w-2.5" style={{ color: "#00000045" }} />
-                            </div>
-                            <span className="text-sm leading-snug" style={{ color: "#00000055" }}>
-                              {f}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+              return (
+                <div
+                  key={plan.id}
+                  className={cn(
+                    "relative flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-shadow",
+                    plan.popular
+                      ? "border-2 border-[#e04a3d] shadow-md md:scale-[1.02] md:py-7"
+                      : "border-border hover:shadow-md",
                   )}
-                </div>
-
-                {/* Subscribe button */}
-                <button
-                  onClick={() => handleSubscribe(plan.id)}
-                  disabled={!!loadingPlan}
-                  className="flex w-full items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-                  style={{
-                    backgroundColor: plan.popular ? "#E04D00" : "#000000",
-                  }}
                 >
-                  {isLoading ? (
-                    <SignalorLoader size="sm" />
-                  ) : (
-                    <>Get {plan.label}</>
-                  )}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                  {plan.popular ? (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#e04a3d] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                      Most popular
+                    </div>
+                  ) : null}
 
-        <p className="mt-8 text-center text-[11px]" style={{ color: "#00000040" }}>
-          All prices in GBP. Secure payment. Cancel anytime.
-        </p>
-      </div>
-    </div>
+                  <div className="mb-5">
+                    <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-black/8 bg-[#e04a3d]/10 px-3 py-1.5 text-xs font-semibold text-[#e04a3d]">
+                      <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                      {plan.label}
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold tracking-tight text-foreground">
+                        {"\u00A3"}
+                        {priceLabel}
+                      </span>
+                      <span className="text-sm text-muted-foreground">{plan.period}</span>
+                    </div>
+                    <p className="mt-2 text-xs font-light leading-relaxed text-muted-foreground">
+                      {plan.description}
+                    </p>
+                  </div>
+
+                  <div className="mb-5 h-px w-full bg-border" />
+
+                  <div className="mb-6 flex flex-1 flex-col space-y-3">
+                    {plan.features.map((f) => (
+                      <div key={f} className="flex items-start gap-2.5">
+                        <span className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[#e04a3d]/12">
+                          <Check className="h-2.5 w-2.5 text-[#e04a3d]" strokeWidth={2.5} aria-hidden />
+                        </span>
+                        <span className="text-sm leading-snug text-foreground/90">{f}</span>
+                      </div>
+                    ))}
+
+                    {plan.comingSoonFeatures && plan.comingSoonFeatures.length > 0 ? (
+                      <div className="mt-1 border-t border-border pt-4">
+                        <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Coming soon
+                        </p>
+                        <div className="space-y-2.5">
+                          {plan.comingSoonFeatures.map((f) => (
+                            <div key={f} className="flex items-start gap-2.5">
+                              <span className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-muted">
+                                <Clock className="h-2.5 w-2.5 text-muted-foreground" aria-hidden />
+                              </span>
+                              <span className="text-sm leading-snug text-muted-foreground">{f}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant={plan.popular ? "default" : "secondary"}
+                    onClick={() => handleSubscribe(plan.id)}
+                    disabled={!!loadingPlan}
+                    className={cn(
+                      "h-11 w-full rounded-lg text-sm font-semibold shadow-sm",
+                      plan.popular && "text-white",
+                      !plan.popular &&
+                        "border-0 bg-neutral-900 text-white hover:bg-neutral-800 hover:text-white",
+                    )}
+                  >
+                    {isLoading ? (
+                      <SignalorLoader size="sm" />
+                    ) : session ? (
+                      <>Get {plan.label}</>
+                    ) : (
+                      <>Sign in to get {plan.label}</>
+                    )}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="mt-10 text-center text-[11px] font-medium text-muted-foreground">
+            All prices in GBP. Secure payment. Cancel anytime.
+          </p>
+        </div>
+      </section>
+
+      <PricingStatsSection />
+
+      <LandingFaq
+        sectionId="pricing-faq"
+        headingId="pricing-faq-heading"
+        heading="Pricing FAQs"
+        description="Plans, billing, and what happens after you subscribe."
+        items={[...PRICING_FAQ_ITEMS]}
+      />
+
+      <LandingFooter />
+    </LandingMarketingShell>
   );
 }
 
 export default function PricingPage() {
   return (
-    <Suspense
-      fallback={
-        <div
-          className="flex min-h-screen items-center justify-center"
-          style={{ backgroundColor: "#F6F4F1" }}
-        >
-          <SignalorLoader size="lg" />
-        </div>
-      }
-    >
+    <Suspense fallback={<PricingPageFallback />}>
       <PricingPageInner />
     </Suspense>
   );

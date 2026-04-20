@@ -8,7 +8,7 @@ import React, { useLayoutEffect, useRef, useState } from "react";
  */
 export function HeroBackgroundGrid({
   cellSize = 112,
-  line = "rgba(0, 0, 0, 0.058)",
+  line = "rgba(0, 0, 0, 0.098)",
   cornerRadius = 6,
   spotlight = true,
   fade = true,
