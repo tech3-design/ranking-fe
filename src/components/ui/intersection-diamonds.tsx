@@ -1,4 +1,4 @@
-export const DIAMOND_COLOR = "rgba(0, 0, 0, 0.098)";
+export const DIAMOND_COLOR = "rgba(0, 0, 0, 0.22)";
 export const DIAMOND_SIZE = 5;
 const HALF = DIAMOND_SIZE / 2;
 

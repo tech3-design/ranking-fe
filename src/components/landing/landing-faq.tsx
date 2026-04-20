@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
 
 const DEFAULT_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
@@ -57,9 +58,10 @@ export function LandingFaq({
   return (
     <section
       id={sectionId}
-      className=" border-black/8 bg-neutral-50 px-6 py-20 sm:py-24 lg:px-12"
+      className="relative border-t border-black/8 bg-neutral-50 px-6 py-20 sm:py-24 lg:px-12"
       aria-labelledby={headingId}
     >
+      <CornerDiamonds top />
       <div className="mx-auto max-w-3xl text-center">
         <h2
           id={headingId}
