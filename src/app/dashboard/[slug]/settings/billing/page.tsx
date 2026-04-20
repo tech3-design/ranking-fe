@@ -56,11 +56,11 @@ function UsageBar({
         <span className="text-muted-foreground font-medium">{label}</span>
         <span
           className="font-semibold"
-          style={{ color: atLimit ? "#F95C4B" : warn ? "#f59e0b" : "inherit" }}
+          style={{ color: atLimit ? "#E04D00" : warn ? "#f59e0b" : "inherit" }}
         >
           {used} / {max}
           {atLimit && (
-            <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wide text-[#F95C4B]">
+            <span className="ml-1.5 inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wide text-[#E04D00]">
               <AlertTriangle className="w-3 h-3" /> Limit reached
             </span>
           )}
@@ -71,7 +71,7 @@ function UsageBar({
           className="h-full rounded-full transition-all duration-500"
           style={{
             width: `${pct}%`,
-            backgroundColor: atLimit ? "#F95C4B" : warn ? "#f59e0b" : "#22c55e",
+            backgroundColor: atLimit ? "#E04D00" : warn ? "#f59e0b" : "#22c55e",
           }}
         />
       </div>
@@ -172,7 +172,7 @@ export default function BillingSettingsPage() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-foreground">Usage this period</p>
                 {atAnyLimit && (
-                  <span className="text-[11px] font-semibold text-[#F95C4B] flex items-center gap-1">
+                  <span className="text-[11px] font-semibold text-[#E04D00] flex items-center gap-1">
                     <AlertTriangle className="w-3.5 h-3.5" />
                     At limit — upgrade to continue
                   </span>
