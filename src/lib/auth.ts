@@ -1,11 +1,14 @@
 import { betterAuth } from "better-auth";
 import { emailOTP } from "better-auth/plugins";
 import { Pool } from "pg";
-import { sendOtpEmail } from "@/lib/services/email";
+import { sendOtpEmail } from "./services/email";
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is required (Neon Postgres connection string).");
+}
+
+const pool = new Pool({ connectionString: databaseUrl });
 
 const authSecret =
   process.env.BETTER_AUTH_SECRET ??

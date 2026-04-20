@@ -74,31 +74,33 @@ export function OtpForm() {
   }
 
   return (
-    <form onSubmit={handleVerify} className="space-y-4">
-      <div className="space-y-2">
-        <Label>Enter the 6-digit code sent to {email}</Label>
+    <form onSubmit={handleVerify} className="space-y-3">
+      <div className="space-y-1.5">
+        <Label className="text-[12px] font-medium text-foreground">
+          Code sent to <span className="font-normal text-muted-foreground">{email}</span>
+        </Label>
         <div className="flex justify-center">
           <InputOTP maxLength={OTP_LENGTH} value={otp} onChange={setOtp}>
             <InputOTPGroup>
               {Array.from({ length: OTP_LENGTH }, (_, i) => (
-                <InputOTPSlot key={i} index={i} />
+                <InputOTPSlot key={i} index={i} className="h-8 w-8 text-[13px]" />
               ))}
             </InputOTPGroup>
           </InputOTP>
         </div>
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-[12px] font-medium text-destructive">{error}</p>}
       <Button
         type="submit"
-        className="w-full"
+        className="auth-cta-btn h-9 w-full rounded-md text-[13px] font-medium text-white hover:text-white"
         disabled={loading || otp.length !== OTP_LENGTH}
       >
-        {loading ? "Verifying\u2026" : "Verify"}
+        {loading ? "Verifying…" : "Verify"}
       </Button>
       <Button
         type="button"
         variant="ghost"
-        className="w-full"
+        className="h-8 w-full rounded-md text-[12px] font-medium text-muted-foreground hover:text-foreground"
         onClick={handleResend}
       >
         Resend code

@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardFooter,
@@ -19,12 +18,28 @@ import { routes } from "@/lib/config";
 
 const STEP_CONTENT: Record<string, { title: string; description: string }> = {
   "auth-method": {
-    title: "Welcome back",
-    description: "Sign in with your email or Google account",
+    title: "Sign in",
+    description: "Work email or Google.",
   },
   "otp-verify": {
-    title: "Verify your email",
-    description: "We sent a verification code to your email",
+    title: "",
+    description: "",
+  },
+};
+
+const STEP_HERO: Record<
+  Exclude<OnboardingStep, "company-info" | "complete">,
+  { headline: string; sub: string; badge: string }
+> = {
+  "auth-method": {
+    headline: "Sign in",
+    sub: "Welcome back, use your email or Google.",
+    badge: "Sign in",
+  },
+  "otp-verify": {
+    headline: "Verify email",
+    sub: "Enter the code to finish signing in.",
+    badge: "Verify",
   },
 };
 
@@ -48,44 +63,63 @@ export default function SignInPage() {
   }, [reset, setAuthMode, isPending, session, router]);
 
   const { title, description } = STEP_CONTENT[step] ?? STEP_CONTENT["auth-method"];
+  const hero =
+    step === "otp-verify" ? STEP_HERO["otp-verify"] : STEP_HERO["auth-method"];
   const StepComponent = STEP_COMPONENTS[step];
   const isOtpStep = step === "otp-verify";
+  const showStepDetail = isOtpStep;
 
   return (
-    <Card className="border-0 bg-transparent shadow-none">
-      <CardHeader className="space-y-3 px-0 pb-4 pt-0">
-        <div className="flex items-center justify-between">
-          <span className="rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium tracking-wide text-primary">
-            Sign in
+    <div>
+      <CardHeader className="space-y-3 px-0 pb-0 pt-0">
+        {/* <div className="flex items-center justify-between gap-2">
+          <span className="rounded-md bg-[#fff4f2] px-2 py-0.5 text-[11px] font-medium text-[#b9382d]">
+            {hero.badge}
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+            Step {isOtpStep ? "2/2" : "1/2"}
+          </span>
+        </div> */}
+        <div className="space-y-1">
+          <CardTitle className="text-xl font-semibold tracking-tight text-foreground">
+          <div className="flex items-center justify-between gap-2">
+          {/* <span className="rounded-md bg-[#fff4f2] px-2 py-0.5 text-[11px] font-medium text-[#b9382d]">
+            {hero.badge}
+          </span> */}
+          <div>
+          {hero.headline}
+          </div>
+          <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
             Step {isOtpStep ? "2/2" : "1/2"}
           </span>
         </div>
-        <div className="space-y-1">
-          <CardTitle className="gradient-text text-2xl md:text-4xl font-semibold tracking-tight">
-            Get Started Now
+            {/* {hero.headline} */}
           </CardTitle>
-          <CardDescription>
-            Please log in to your account to continue.
+          <CardDescription className="text-[13px] leading-relaxed">
+            {hero.sub}
           </CardDescription>
-          <p className="pt-1 text-base font-medium text-foreground">{title}</p>
-          <CardDescription>
-            {description}
-          </CardDescription>
+          {showStepDetail && (
+            <div className="pt-2">
+              <p className="text-[13px] font-medium text-foreground">{title}</p>
+              <CardDescription className="mt-0.5 text-[12px]">{description}</CardDescription>
+            </div>
+          )}
         </div>
       </CardHeader>
-      <CardContent className=" p-5 ">
+      <CardContent className="space-y-3 px-0 pt-4">
         {StepComponent && <StepComponent />}
       </CardContent>
       <CardFooter className="justify-center px-0 pb-0 pt-5">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-center text-[12px] text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/sign-up" className="font-medium text-primary hover:text-primary/90 hover:underline">
+          <Link
+            href="/sign-up"
+            className="font-medium text-foreground underline decoration-neutral-300 underline-offset-2 hover:decoration-foreground"
+          >
             Sign up
           </Link>
         </p>
       </CardFooter>
-    </Card>
+    </div>
   );
 }

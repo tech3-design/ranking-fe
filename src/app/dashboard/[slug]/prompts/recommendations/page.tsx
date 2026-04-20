@@ -187,7 +187,7 @@ export default function PromptsRecommendationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
+      {/* <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
             <Lightbulb className="w-4 h-4 text-primary" />
@@ -198,6 +198,14 @@ export default function PromptsRecommendationsPage() {
               How to rank your prompts so AI engines mention <span className="text-foreground font-medium">{brandName || "your brand"}</span> more often — plus ideas you can drop straight into the tracker.
             </p>
           </div>
+        </div>
+      </div> */}
+       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Recommendations</h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+            How to rank your prompts so AI engines mention <span className="text-foreground font-medium">{brandName || "your brand"}</span> more often — plus ideas you can drop straight into the tracker.
+          </p>
         </div>
       </div>
 

@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import {
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createOrganization } from "@/lib/api/organizations";
@@ -13,6 +21,7 @@ import {
   getShopifyAuthUrl,
   connectWordPress,
 } from "@/lib/api/integrations";
+import { OnboardingStepper } from "@/components/auth/onboarding-stepper";
 import { config, routes, signalorWpPlugin } from "@/lib/config";
 import {
   ONBOARDING_DRAFT_KEY,
@@ -28,8 +37,81 @@ import {
 type Platform = "shopify" | "wordpress";
 type Step = "company" | "platform" | "url" | "install" | "prompts" | "analytics" | "launch";
 
-const SHOPIFY_CLIENT_ID = "8153badb6e71523e6844833ad6c23b18";
-const SHOPIFY_APP_SCOPES = "read_products,write_products,read_content,write_content,read_metaobjects,write_metaobjects,read_themes,write_themes,read_customers,read_orders";
+const STEP_ORDER: Step[] = [
+  "company",
+  "platform",
+  "url",
+  "install",
+  "prompts",
+  "analytics",
+  "launch",
+];
+
+const STEP_HERO: Record<Step, { headline: string; sub: string }> = {
+  company: {
+    headline: "Set up your workspace",
+    sub: "Tell us your brand name — we use it for your project and default prompts.",
+  },
+  platform: {
+    headline: "Choose your platform",
+    sub: "Connect your stack for auto-fixes, schema, and deeper GEO insights.",
+  },
+  url: { headline: "", sub: "" },
+  install: {
+    headline: "Connect your site",
+    sub: "Install the integration now or skip and add it later from settings.",
+  },
+  prompts: {
+    headline: "Review prompts",
+    sub: "We track these queries across AI engines for your brand.",
+  },
+  analytics: {
+    headline: "Connect Analytics",
+    sub: "Optional — link Google Analytics to see AI referral traffic.",
+  },
+  launch: {
+    headline: "Launch analysis",
+    sub: "We scan your site across six GEO pillars.",
+  },
+};
+
+/** Nested panels inside the main card (install blocks, prompts list, etc.) */
+const PANEL =
+  "rounded-xl border border-black/8 bg-white shadow-[0_2px_14px_rgba(0,0,0,0.045)]";
+
+const ERR_BOX =
+  "rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-[12px] font-medium text-destructive";
+
+const STATUS_BOX =
+  "flex items-center gap-2 rounded-md border border-black/6 bg-muted/35 px-3 py-2 text-[12px] text-muted-foreground";
+
+const STEP_CONTENT: Record<Step, { title: string; description: string }> = {
+  company: { title: "", description: "" },
+  platform: {
+    title: "Shopify or WordPress",
+    description: "Pick where your storefront or site is hosted.",
+  },
+  url: {
+    title: "Project URL",
+    description: "This becomes your primary site URL in Signalor.",
+  },
+  install: {
+    title: "Install or skip",
+    description: "OAuth or plugin unlocks auto-fixes; you can finish later.",
+  },
+  prompts: {
+    title: "Tracking prompts",
+    description: "Tap a prompt to edit, or add your own.",
+  },
+  analytics: {
+    title: "Google Analytics",
+    description: "Measure sessions referred from ChatGPT, Perplexity, and more.",
+  },
+  launch: {
+    title: "Summary",
+    description: "Confirm details, then start your first scan.",
+  },
+};
 
 function fmtErr(err: unknown): string {
   if (!axios.isAxiosError(err)) return "Something went wrong. Please try again.";
@@ -184,8 +266,6 @@ export default function CompanyInfoPage() {
         shopDomain: domain,
       }));
 
-      console.log("[Signalor] Requesting Shopify auth URL for:", domain, "orgId:", orgId);
-
       // Get OAuth URL from backend (this also creates the Integration)
       const resp = await getShopifyAuthUrl(
         email,
@@ -195,8 +275,6 @@ export default function CompanyInfoPage() {
         storePassword || undefined,
       );
 
-      console.log("[Signalor] Got auth URL:", resp.auth_url);
-
       if (!resp.auth_url) {
         setError("No auth URL returned. Check backend configuration.");
         setLoading(false); setStatusMsg("");
@@ -205,7 +283,6 @@ export default function CompanyInfoPage() {
 
       window.location.href = resp.auth_url;
     } catch (err) {
-      console.error("[Signalor] Shopify auth URL error:", err);
       setError(fmtErr(err));
       setLoading(false);
       setStatusMsg("");
@@ -264,158 +341,298 @@ export default function CompanyInfoPage() {
     } catch (err) { setError(fmtErr(err)); setStatusMsg(""); setLoading(false); }
   }
 
-  if (isPending || !session) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  const totalSteps = STEP_ORDER.length;
+  const sn = STEP_ORDER.indexOf(step) + 1;
+  const showStepDetail = step !== "company";
+  const { title: stepTitle, description: stepDescription } = STEP_CONTENT[step];
 
-  const stepOrder: Step[] = ["company", "platform", "url", "install", "prompts", "analytics", "launch"];
-  const sn = stepOrder.indexOf(step) + 1;
-  const totalSteps = stepOrder.length;
+  const hero =
+    step === "url"
+      ? platform === "shopify"
+        ? {
+            headline: "Your store URL",
+            sub: "Enter your Shopify store domain (e.g. your-store.myshopify.com).",
+          }
+        : {
+            headline: "Your website URL",
+            sub: "Enter your public WordPress site address.",
+          }
+      : step === "install"
+        ? platform === "shopify"
+          ? {
+              headline: "Install Signalor",
+              sub: "Install the app on your store for schema, meta tags, and llms.txt.",
+            }
+          : {
+              headline: "Install plugin",
+              sub: "Add Signalor GEO in WordPress, then connect with your API key.",
+            }
+        : STEP_HERO[step];
+
+  if (isPending || !session) {
+    return (
+      <div aria-busy="true" aria-live="polite">
+        <OnboardingStepper current={sn} total={totalSteps} className="mb-5" />
+        <CardHeader className="space-y-2 border-b border-black/6 px-0 pb-4 pt-0">
+          <CardTitle className="text-xl font-semibold tracking-tight text-foreground">
+            <div className="flex items-center justify-between gap-2">
+              <div>Loading</div>
+              <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                Step —/{totalSteps}
+              </span>
+            </div>
+          </CardTitle>
+          <CardDescription className="text-[13px] leading-relaxed text-muted-foreground">
+            Checking your session…
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center gap-3 px-0 py-14">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden />
+          <p className="text-[12px] text-muted-foreground">One moment</p>
+        </CardContent>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4" style={{ backgroundColor: "var(--background)" }}>
-      <div className={`w-full ${step === "prompts" ? "max-w-xl" : "max-w-md"}`}>
-
-        {/* Progress */}
-        <div className="flex items-center justify-center gap-2 mb-10">
-          {stepOrder.map((_, i) => (
-            <div key={i} className={`h-[3px] transition-all ${i < sn ? "w-8 bg-foreground" : "w-4 bg-foreground/10"}`} />
-          ))}
+    <div>
+      <OnboardingStepper current={sn} total={totalSteps} className="mb-5" />
+      <CardHeader className="space-y-2 border-b border-black/6 px-0 pb-4 pt-0">
+        <div className="space-y-1.5">
+          <CardTitle className="text-xl font-semibold tracking-tight text-foreground">
+            <div className="flex items-start justify-between gap-3">
+              <span className="min-w-0 leading-snug">{hero.headline}</span>
+              <span className="shrink-0 pt-0.5 text-[11px] tabular-nums tracking-wide text-muted-foreground">
+                Step {sn}/{totalSteps}
+              </span>
+            </div>
+          </CardTitle>
+          <CardDescription className="text-[13px] leading-relaxed text-muted-foreground">
+            {hero.sub}
+          </CardDescription>
+          {/* {showStepDetail && (
+            <div className="border-t border-black/6 pt-3">
+              <p className="text-[13px] font-medium text-foreground">{stepTitle}</p>
+              <CardDescription className="mt-0.5 text-[12px] leading-relaxed">
+                {stepDescription}
+              </CardDescription>
+            </div>
+          )} */}
         </div>
+      </CardHeader>
 
+      <CardContent className="space-y-4 px-0 pt-5">
         {/* ── Step 1: Company ── */}
         {step === "company" && (
-          <div>
-            <div className="text-center mb-8">
-              <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">What&apos;s your brand?</h1>
-              <p className="mt-2 text-[14px] text-muted-foreground tracking-[-0.01em]">We&apos;ll use this to set up your workspace</p>
+          <form onSubmit={handleCompanyNext} className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="onboarding-company" className="text-[12px] font-medium">
+                Company name
+              </Label>
+              <Input
+                id="onboarding-company"
+                placeholder="Acme Inc."
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                required
+                autoFocus
+                className="h-9 rounded-md border-neutral-200 bg-white text-[13px]"
+              />
             </div>
-            <form onSubmit={handleCompanyNext} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-[13px] font-medium text-foreground tracking-[-0.01em]">Company name</Label>
-                <Input placeholder="Acme Inc." value={companyName} onChange={(e) => setCompanyName(e.target.value)} required autoFocus className="h-11 text-[14px] bg-white border-border" />
-              </div>
-              {error && <p className="text-[13px] text-destructive">{error}</p>}
-              <button type="submit" disabled={!companyName.trim()} className="w-full h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
-                Continue <ArrowRight className="inline ml-1.5 w-4 h-4" />
-              </button>
-            </form>
-          </div>
+            {error ? <p className={ERR_BOX}>{error}</p> : null}
+            <Button
+              type="submit"
+              disabled={!companyName.trim()}
+              className="auth-cta-btn h-9 w-full rounded-md text-[13px] font-medium text-white hover:text-white"
+            >
+              Continue <ArrowRight className="h-4 w-4" />
+            </Button>
+          </form>
         )}
 
         {/* ── Step 2: Platform ── */}
         {step === "platform" && (
-          <div>
-            <div className="text-center mb-8">
-              <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">Choose your platform</h1>
-              <p className="mt-2 text-[14px] text-muted-foreground tracking-[-0.01em]">Connect to enable auto-fixes and deeper insights</p>
-            </div>
-            <div className="space-y-3 mb-6">
+          <div className="space-y-3">
+            <div className="space-y-3">
               {([
-                { id: "shopify" as Platform, label: "Shopify", desc: "Connect via app install", icon: <ShoppingBag className="w-5 h-5" />, color: "#96bf48" },
-                { id: "wordpress" as Platform, label: "WordPress", desc: "Connect via plugin", icon: <Globe className="w-5 h-5" />, color: "#21759b" },
+                { id: "shopify" as Platform, label: "Shopify", desc: "Connect via app install", icon: <ShoppingBag className="h-5 w-5" />, wrap: "bg-[#96bf48]/10", accent: "text-[#96bf48]" },
+                { id: "wordpress" as Platform, label: "WordPress", desc: "Connect via plugin", icon: <Globe className="h-5 w-5" />, wrap: "bg-[#21759b]/10", accent: "text-[#21759b]" },
               ]).map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   onClick={() => handlePlatformSelect(p.id)}
-                  className="flex w-full items-center gap-4 bg-white p-4 text-left transition-all hover:shadow-md"
-                  style={{ border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 4px 4px rgba(23,23,23,0.04)" }}
+                  className="flex w-full items-center gap-4 rounded-xl border border-black/8 bg-white p-4 text-left shadow-[0_2px_14px_rgba(0,0,0,0.045)] transition hover:border-black/12 hover:bg-neutral-50/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.99]"
                 >
-                  <div className="w-10 h-10 flex items-center justify-center shrink-0" style={{ backgroundColor: `${p.color}12` }}>
-                    <span style={{ color: p.color }}>{p.icon}</span>
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center ${p.wrap}`}>
+                    <span className={p.accent}>{p.icon}</span>
                   </div>
                   <div>
-                    <p className="text-[14px] font-medium text-foreground tracking-[-0.01em]">{p.label}</p>
+                    <p className="text-[13px] font-medium text-foreground">{p.label}</p>
                     <p className="text-[12px] text-muted-foreground">{p.desc}</p>
                   </div>
-                  <ArrowRight className="w-4 h-4 ml-auto text-muted-foreground" />
+                  <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" />
                 </button>
               ))}
             </div>
-            <button type="button" onClick={() => setStep("company")} className="flex items-center justify-center gap-1.5 w-full text-[13px] text-muted-foreground hover:text-foreground transition">
-              <ArrowLeft className="w-3.5 h-3.5" /> Back
-            </button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 w-full rounded-md border-neutral-200 bg-white text-[13px] font-medium"
+              onClick={() => setStep("company")}
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> Back
+            </Button>
           </div>
         )}
 
         {/* ── Step 3: Enter URL ── */}
         {step === "url" && platform === "shopify" && (
-          <div>
-            <div className="text-center mb-8">
-              <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">Your store URL</h1>
-              <p className="mt-2 text-[14px] text-muted-foreground tracking-[-0.01em]">Enter your Shopify store domain</p>
+          <form onSubmit={handleUrlNext} className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="onboarding-shop-domain" className="text-[12px] font-medium">
+                Store domain
+              </Label>
+              <Input
+                id="onboarding-shop-domain"
+                placeholder="your-store.myshopify.com"
+                value={shopDomain}
+                onChange={(e) => setShopDomain(e.target.value)}
+                required
+                autoFocus
+                className="h-9 rounded-md border-neutral-200 bg-white text-[13px]"
+              />
             </div>
-            <form onSubmit={handleUrlNext} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-[13px] font-medium tracking-[-0.01em]">Store domain</Label>
-                <Input placeholder="your-store.myshopify.com" value={shopDomain} onChange={(e) => setShopDomain(e.target.value)} required autoFocus className="h-11 text-[14px] bg-white" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[13px] font-medium tracking-[-0.01em]">Storefront password <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                <Input type="password" placeholder="Leave empty if not protected" value={storePassword} onChange={(e) => setStorePassword(e.target.value)} className="h-11 text-[14px] bg-white" />
-              </div>
-              {error && <p className="text-[13px] text-destructive">{error}</p>}
-              {statusMsg && <p className="flex items-center gap-2 text-[13px] text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />{statusMsg}</p>}
-              <div className="flex gap-3">
-                <button type="button" onClick={() => { setStep("platform"); setError(""); }} className="flex-1 h-11 border border-border text-[14px] font-medium text-foreground bg-white transition hover:bg-muted">
-                  <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
-                </button>
-                <button type="submit" disabled={loading || !shopDomain.trim()} className="flex-[2] h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
-                  {loading ? <><Loader2 className="inline mr-1.5 w-4 h-4 animate-spin" /> Setting up...</> : <>Continue <ArrowRight className="inline ml-1.5 w-4 h-4" /></>}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="onboarding-store-password" className="text-[12px] font-medium">
+                Storefront password <span className="font-normal text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                id="onboarding-store-password"
+                type="password"
+                placeholder="Leave empty if not protected"
+                value={storePassword}
+                onChange={(e) => setStorePassword(e.target.value)}
+                className="h-9 rounded-md border-neutral-200 bg-white text-[13px]"
+              />
+            </div>
+            {error ? <p className={ERR_BOX}>{error}</p> : null}
+            {statusMsg ? (
+              <p className={STATUS_BOX} role="status">
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+                {statusMsg}
+              </p>
+            ) : null}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 flex-1 rounded-md border-neutral-200 bg-white text-[13px] font-medium"
+                onClick={() => {
+                  setStep("platform");
+                  setError("");
+                }}
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || !shopDomain.trim()}
+                className="auth-cta-btn h-9 min-w-0 flex-[2] rounded-md text-[13px] font-medium text-white hover:text-white"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Setting up…
+                  </>
+                ) : (
+                  <>
+                    Continue <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         )}
 
         {step === "url" && platform === "wordpress" && (
-          <div>
-            <div className="text-center mb-8">
-              <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">Your website URL</h1>
-              <p className="mt-2 text-[14px] text-muted-foreground tracking-[-0.01em]">Enter your WordPress site URL</p>
+          <form onSubmit={handleUrlNext} className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="onboarding-wp-url" className="text-[12px] font-medium">
+                Site URL
+              </Label>
+              <Input
+                id="onboarding-wp-url"
+                placeholder="yoursite.com"
+                value={wpSiteUrl}
+                onChange={(e) => setWpSiteUrl(e.target.value)}
+                required
+                autoFocus
+                className="h-9 rounded-md border-neutral-200 bg-white text-[13px]"
+              />
             </div>
-            <form onSubmit={handleUrlNext} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-[13px] font-medium tracking-[-0.01em]">Site URL</Label>
-                <Input placeholder="yoursite.com" value={wpSiteUrl} onChange={(e) => setWpSiteUrl(e.target.value)} required autoFocus className="h-11 text-[14px] bg-white" />
-              </div>
-              {error && <p className="text-[13px] text-destructive">{error}</p>}
-              {statusMsg && <p className="flex items-center gap-2 text-[13px] text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />{statusMsg}</p>}
-              <div className="flex gap-3">
-                <button type="button" onClick={() => { setStep("platform"); setError(""); }} className="flex-1 h-11 border border-border text-[14px] font-medium text-foreground bg-white transition hover:bg-muted">
-                  <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
-                </button>
-                <button type="submit" disabled={loading || !wpSiteUrl.trim()} className="flex-[2] h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
-                  {loading ? <><Loader2 className="inline mr-1.5 w-4 h-4 animate-spin" /> Setting up...</> : <>Continue <ArrowRight className="inline ml-1.5 w-4 h-4" /></>}
-                </button>
-              </div>
-            </form>
-          </div>
+            {error ? <p className={ERR_BOX}>{error}</p> : null}
+            {statusMsg ? (
+              <p className={STATUS_BOX} role="status">
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+                {statusMsg}
+              </p>
+            ) : null}
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 flex-1 rounded-md border-neutral-200 bg-white text-[13px] font-medium"
+                onClick={() => {
+                  setStep("platform");
+                  setError("");
+                }}
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || !wpSiteUrl.trim()}
+                className="auth-cta-btn h-9 min-w-0 flex-[2] rounded-md text-[13px] font-medium text-white hover:text-white"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Setting up…
+                  </>
+                ) : (
+                  <>
+                    Continue <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         )}
 
         {/* ── Step 4: Install App ── */}
         {step === "install" && platform === "shopify" && (
-          <div>
-            <div className="text-center mb-8">
-              <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">Install Signalor</h1>
-              <p className="mt-2 text-[14px] text-muted-foreground tracking-[-0.01em]">
-                Install the Signalor app on <span className="text-foreground font-medium">{shopDomain.replace(/^https?:\/\//, "").replace(/\.myshopify\.com$/, "")}</span>
-              </p>
-            </div>
+          <div className="space-y-3">
+            <p className="text-center text-[12px] text-muted-foreground">
+              Store{" "}
+              <span className="font-medium text-foreground">
+                {shopDomain.replace(/^https?:\/\//, "").replace(/\.myshopify\.com$/, "")}
+              </span>
+            </p>
 
-            <div className="bg-white p-5 mb-4" style={{ border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 4px 4px rgba(23,23,23,0.04)" }}>
-              <div className="flex items-start gap-4 mb-5">
-                <div className="w-10 h-10 flex items-center justify-center shrink-0" style={{ backgroundColor: "#96bf4812" }}>
-                  <ShoppingBag className="w-5 h-5" style={{ color: "#96bf48" }} />
+            <div className={`${PANEL} p-5`}>
+              <div className="mb-5 flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#96bf48]/10">
+                  <ShoppingBag className="h-5 w-5 text-[#96bf48]" />
                 </div>
                 <div>
-                  <p className="text-[14px] font-medium text-foreground mb-1">Signalor GEO for Shopify</p>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    This installs our app on your store to enable auto-fixes, schema injection, AI meta tags, and llms.txt generation.
+                  <p className="mb-1 text-[13px] font-medium text-foreground">Signalor GEO for Shopify</p>
+                  <p className="text-[12px] leading-relaxed text-muted-foreground">
+                    This installs our app on your store to enable auto-fixes, schema injection, AI meta tags, and
+                    llms.txt generation.
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-3 mb-5">
+              <div className="mb-5 space-y-3">
                 {[
                   "Auto-fix SEO & GEO issues directly on your store",
                   "Inject JSON-LD schema markup automatically",
@@ -423,106 +640,168 @@ export default function CompanyInfoPage() {
                   "Generate and serve llms.txt for AI discovery",
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span className="text-[13px] text-foreground">{item}</span>
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                    <span className="text-[12px] text-foreground">{item}</span>
                   </div>
                 ))}
               </div>
 
-              <button
+              <Button
                 type="button"
                 onClick={handleShopifyInstall}
                 disabled={loading}
-                className="w-full h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40 flex items-center justify-center gap-2"
+                className="auth-cta-btn flex h-9 w-full items-center justify-center gap-2 rounded-md text-[13px] font-medium text-white hover:text-white"
               >
                 {loading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting to Shopify...</>
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Redirecting to Shopify…
+                  </>
                 ) : (
-                  <><ExternalLink className="w-4 h-4" /> Install on Shopify</>
+                  <>
+                    <ExternalLink className="h-4 w-4" /> Install on Shopify
+                  </>
                 )}
-              </button>
+              </Button>
             </div>
 
-            {error && <p className="text-[13px] text-destructive mb-3">{error}</p>}
-            {statusMsg && <p className="flex items-center gap-2 text-[13px] text-muted-foreground mb-3"><Loader2 className="h-3.5 w-3.5 animate-spin" />{statusMsg}</p>}
+            {error ? <p className={ERR_BOX}>{error}</p> : null}
+            {statusMsg ? (
+              <p className={STATUS_BOX} role="status">
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+                {statusMsg}
+              </p>
+            ) : null}
 
-            <div className="flex gap-3">
-              <button type="button" onClick={() => { setStep("url"); setError(""); }} className="flex-1 h-11 border border-border text-[14px] font-medium text-foreground bg-white transition hover:bg-muted">
-                <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
-              </button>
-              <button type="button" onClick={handleSkipInstall} className="flex-1 h-11 border border-border text-[14px] font-medium text-muted-foreground bg-white transition hover:bg-muted hover:text-foreground">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 flex-1 rounded-md border-neutral-200 bg-white text-[13px] font-medium"
+                onClick={() => {
+                  setStep("url");
+                  setError("");
+                }}
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 flex-1 rounded-md border-neutral-200 bg-white text-[13px] font-medium text-muted-foreground hover:text-foreground"
+                onClick={handleSkipInstall}
+              >
                 Skip for now
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
         {step === "install" && platform === "wordpress" && (
-          <div>
-            <div className="text-center mb-8">
-              <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">Install Plugin</h1>
-              <p className="mt-2 text-[14px] text-muted-foreground tracking-[-0.01em]">
-                Install Signalor GEO on your WordPress site
-              </p>
-            </div>
-
-            <div className="space-y-3 mb-4">
-              {/* Step 1: Download */}
-              <div className="bg-white p-4" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="w-6 h-6 bg-primary text-white text-[12px] font-bold flex items-center justify-center shrink-0">1</span>
+          <div className="space-y-3">
+            <div className="space-y-3">
+              <div className={`${PANEL} p-4`}>
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-[12px] font-bold text-white">
+                    1
+                  </span>
                   <p className="text-[13px] font-medium text-foreground">Download the plugin</p>
                 </div>
-                <a href={signalorWpPlugin.zipPath} download onClick={() => setTimeout(() => setWpStep(2), 500)} className="flex items-center justify-center gap-2 w-full bg-muted py-2.5 text-[13px] font-medium text-foreground transition hover:bg-foreground/5">
-                  <Download className="w-3.5 h-3.5" /> Download signalor-geo.zip
+                <a
+                  href={signalorWpPlugin.zipPath}
+                  download
+                  onClick={() => setTimeout(() => setWpStep(2), 500)}
+                  className="flex w-full items-center justify-center gap-2 bg-muted py-2.5 text-[13px] font-medium text-foreground transition hover:bg-foreground/5"
+                >
+                  <Download className="h-3.5 w-3.5" /> Download signalor-geo.zip
                 </a>
               </div>
 
-              {/* Step 2: Upload & activate */}
               {wpStep >= 2 && (
-                <div className="bg-white p-4" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="w-6 h-6 bg-primary text-white text-[12px] font-bold flex items-center justify-center shrink-0">2</span>
+                <div className={`${PANEL} p-4`}>
+                  <div className="mb-3 flex items-center gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-[12px] font-bold text-white">
+                      2
+                    </span>
                     <p className="text-[13px] font-medium text-foreground">Upload & activate in WordPress</p>
                   </div>
                   <a
                     href={`${siteUrl.replace(/\/$/, "")}/wp-admin/plugin-install.php?tab=upload`}
-                    target="_blank" rel="noopener"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onClick={() => setTimeout(() => setWpStep(3), 1000)}
-                    className="flex items-center justify-center gap-2 w-full bg-muted py-2.5 text-[13px] font-medium text-foreground transition hover:bg-foreground/5"
+                    className="flex w-full items-center justify-center gap-2 bg-muted py-2.5 text-[13px] font-medium text-foreground transition hover:bg-foreground/5"
                   >
-                    <ExternalLink className="w-3.5 h-3.5" /> Open WP Plugin Upload
+                    <ExternalLink className="h-3.5 w-3.5" /> Open WP Plugin Upload
                   </a>
                 </div>
               )}
 
-              {/* Step 3: API key */}
               {wpStep >= 3 && (
-                <div className="bg-white p-4" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="w-6 h-6 bg-primary text-white text-[12px] font-bold flex items-center justify-center shrink-0">3</span>
+                <div className={`${PANEL} p-4`}>
+                  <div className="mb-3 flex items-center gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-[12px] font-bold text-white">
+                      3
+                    </span>
                     <p className="text-[13px] font-medium text-foreground">Paste the API key</p>
                   </div>
-                  <Input type="text" placeholder="API key from Settings > Signalor GEO" value={wpApiKey} onChange={(e) => setWpApiKey(e.target.value)} className="h-10 text-[13px] font-mono bg-white" />
+                  <Input
+                    type="text"
+                    placeholder="API key from Settings > Signalor GEO"
+                    value={wpApiKey}
+                    onChange={(e) => setWpApiKey(e.target.value)}
+                    className="h-9 rounded-md border-neutral-200 bg-white font-mono text-[13px]"
+                  />
                 </div>
               )}
             </div>
 
-            {error && <p className="text-[13px] text-destructive mb-3">{error}</p>}
-            {statusMsg && <p className="flex items-center gap-2 text-[13px] text-muted-foreground mb-3"><Loader2 className="h-3.5 w-3.5 animate-spin" />{statusMsg}</p>}
+            {error ? <p className={ERR_BOX}>{error}</p> : null}
+            {statusMsg ? (
+              <p className={STATUS_BOX} role="status">
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+                {statusMsg}
+              </p>
+            ) : null}
 
-            <div className="flex gap-3">
-              <button type="button" onClick={() => { setStep("url"); setError(""); setWpStep(1); }} className="flex-1 h-11 border border-border text-[14px] font-medium text-foreground bg-white transition hover:bg-muted">
-                <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
-              </button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 flex-1 rounded-md border-neutral-200 bg-white text-[13px] font-medium"
+                onClick={() => {
+                  setStep("url");
+                  setError("");
+                  setWpStep(1);
+                }}
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Button>
               {wpStep >= 3 && wpApiKey.trim() ? (
-                <button type="button" onClick={handleWordPressConnect} disabled={loading} className="flex-[2] h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
-                  {loading ? <><Loader2 className="inline mr-1.5 w-4 h-4 animate-spin" /> Connecting...</> : <>Connect <ArrowRight className="inline ml-1.5 w-4 h-4" /></>}
-                </button>
+                <Button
+                  type="button"
+                  onClick={handleWordPressConnect}
+                  disabled={loading}
+                  className="auth-cta-btn h-9 min-w-0 flex-[2] rounded-md text-[13px] font-medium text-white hover:text-white"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Connecting…
+                    </>
+                  ) : (
+                    <>
+                      Connect <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
               ) : (
-                <button type="button" onClick={handleSkipInstall} className="flex-1 h-11 border border-border text-[14px] font-medium text-muted-foreground bg-white transition hover:bg-muted hover:text-foreground">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-9 flex-1 rounded-md border-neutral-200 bg-white text-[13px] font-medium text-muted-foreground hover:text-foreground"
+                  onClick={handleSkipInstall}
+                >
                   Skip for now
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -530,36 +809,72 @@ export default function CompanyInfoPage() {
 
         {/* ── Step 5: Prompts ── */}
         {step === "prompts" && (
-          <div>
-            <div className="text-center mb-6">
-              <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">Review prompts</h1>
-              <p className="mt-2 text-[14px] text-muted-foreground tracking-[-0.01em]">
-                We&apos;ll track these across AI engines for <span className="text-foreground font-medium">{companyName}</span>
-              </p>
-            </div>
+          <div className="space-y-3">
+            <p className="text-center text-[12px] text-muted-foreground">
+              Brand <span className="font-medium text-foreground">{companyName}</span>
+            </p>
 
             {loadingPrompts ? (
-              <div className="flex flex-col items-center gap-3 py-16">
-                <Loader2 className="h-5 w-5 animate-spin text-foreground" />
-                <p className="text-[13px] text-muted-foreground">Generating prompts...</p>
+              <div className="flex flex-col items-center gap-3 py-12">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <p className="text-[12px] text-muted-foreground">Generating prompts…</p>
               </div>
             ) : (
               <>
-                <div className="bg-white overflow-hidden mb-4" style={{ border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 4px 4px rgba(23,23,23,0.04)" }}>
+                <div className={`overflow-hidden ${PANEL}`}>
                   {prompts.map((prompt, idx) => (
-                    <div key={idx} className={`flex items-center gap-3 px-4 py-2.5 group transition hover:bg-muted/50 ${idx > 0 ? "border-t border-border" : ""}`}>
+                    <div
+                      key={idx}
+                      className={`group flex min-h-[44px] items-center gap-3 px-4 py-2.5 transition hover:bg-muted/50 ${idx > 0 ? "border-t border-border" : ""}`}
+                    >
                       {editingIdx === idx ? (
-                        <div className="flex-1 flex gap-2">
-                          <Input value={editText} onChange={(e) => setEditText(e.target.value)} className="flex-1 text-[13px] h-8 bg-white" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(idx); if (e.key === "Escape") setEditingIdx(null); }} />
-                          <button onClick={() => saveEdit(idx)} className="text-[12px] font-medium text-foreground px-2 hover:underline">Save</button>
+                        <div className="flex flex-1 gap-2">
+                          <Input
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            className="h-8 flex-1 rounded-md border-neutral-200 bg-white text-[13px]"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveEdit(idx);
+                              if (e.key === "Escape") setEditingIdx(null);
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => saveEdit(idx)}
+                            className="px-2 text-[12px] font-medium text-foreground hover:underline"
+                          >
+                            Save
+                          </button>
                         </div>
                       ) : (
                         <>
-                          <span className="text-[11px] font-mono text-muted-foreground w-4 text-right shrink-0">{idx + 1}</span>
-                          <span className="flex-1 text-[13px] text-foreground tracking-[-0.01em] cursor-pointer truncate" onClick={() => editPrompt(idx)}>{prompt}</span>
-                          <div className="flex gap-0 opacity-0 group-hover:opacity-100 transition shrink-0">
-                            <button onClick={() => editPrompt(idx)} className="p-1 transition hover:bg-muted"><Pencil className="w-3 h-3 text-muted-foreground" /></button>
-                            <button onClick={() => rmPrompt(idx)} className="p-1 transition hover:bg-red-50"><X className="w-3 h-3 text-muted-foreground" /></button>
+                          <span className="w-4 shrink-0 text-right font-mono text-[11px] text-muted-foreground">
+                            {idx + 1}
+                          </span>
+                          <span
+                            className="flex-1 cursor-pointer truncate text-[13px] text-foreground"
+                            onClick={() => editPrompt(idx)}
+                          >
+                            {prompt}
+                          </span>
+                          <div className="flex shrink-0 gap-0 opacity-0 transition group-hover:opacity-100">
+                            <button
+                              type="button"
+                              onClick={() => editPrompt(idx)}
+                              className="p-1 transition hover:bg-muted"
+                              aria-label="Edit prompt"
+                            >
+                              <Pencil className="h-3 w-3 text-muted-foreground" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => rmPrompt(idx)}
+                              className="p-1 transition hover:bg-red-50"
+                              aria-label="Remove prompt"
+                            >
+                              <X className="h-3 w-3 text-muted-foreground" />
+                            </button>
                           </div>
                         </>
                       )}
@@ -567,126 +882,197 @@ export default function CompanyInfoPage() {
                   ))}
                 </div>
 
-                <button type="button" onClick={() => { if (prompts.length < 15) { setPrompts((p) => [...p, ""]); setEditingIdx(prompts.length); setEditText(""); } }} disabled={prompts.length >= 15} className="flex items-center gap-2 w-full px-4 py-2.5 border border-dashed border-border bg-white text-[13px] text-muted-foreground hover:text-foreground transition mb-6 disabled:opacity-30">
-                  <Plus className="w-3.5 h-3.5" /> Add prompt
-                </button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={prompts.length >= 15}
+                  onClick={() => {
+                    if (prompts.length < 15) {
+                      setPrompts((p) => [...p, ""]);
+                      setEditingIdx(prompts.length);
+                      setEditText("");
+                    }
+                  }}
+                  className="mb-2 flex h-9 w-full items-center gap-2 rounded-md border-dashed border-neutral-200 bg-white text-[13px] text-muted-foreground hover:text-foreground disabled:opacity-30"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add prompt
+                </Button>
               </>
             )}
 
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setStep("install")} className="flex-1 h-11 border border-border text-[14px] font-medium text-foreground bg-white transition hover:bg-muted">
-                <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
-              </button>
-              <button onClick={() => setStep("analytics")} disabled={loadingPrompts || prompts.length === 0} className="flex-[2] h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
-                Continue <ArrowRight className="inline ml-1.5 w-4 h-4" />
-              </button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 flex-1 rounded-md border-neutral-200 bg-white text-[13px] font-medium"
+                onClick={() => setStep("install")}
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setStep("analytics")}
+                disabled={loadingPrompts || prompts.length === 0}
+                className="auth-cta-btn h-9 min-w-0 flex-[2] rounded-md text-[13px] font-medium text-white hover:text-white"
+              >
+                Continue <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         )}
 
         {/* ── Step 6: Google Analytics ── */}
         {step === "analytics" && (
-          <div>
-            <div className="text-center mb-8">
-              <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">Connect Analytics</h1>
-              <p className="mt-2 text-[14px] text-muted-foreground tracking-[-0.01em]">
-                Link Google Analytics to track AI-driven traffic
-              </p>
-            </div>
-
-            <div className="bg-white p-5 mb-4" style={{ border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 4px 4px rgba(23,23,23,0.04)" }}>
-              <div className="flex items-start gap-4 mb-5">
-                <div className="w-10 h-10 flex items-center justify-center shrink-0" style={{ backgroundColor: "#e8710a12" }}>
-                  <BarChart3 className="w-5 h-5" style={{ color: "#e8710a" }} />
+          <div className="space-y-3">
+            <div className={`${PANEL} p-5`}>
+              <div className="mb-5 flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#e8710a]/10">
+                  <BarChart3 className="h-5 w-5 text-[#e8710a]" />
                 </div>
                 <div>
-                  <p className="text-[14px] font-medium text-foreground mb-1">Google Analytics</p>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    See how much traffic AI engines send to your site. Track referrals from ChatGPT, Gemini, Perplexity, and more.
+                  <p className="mb-1 text-[13px] font-medium text-foreground">Google Analytics</p>
+                  <p className="text-[12px] leading-relaxed text-muted-foreground">
+                    See how much traffic AI engines send to your site. Track referrals from ChatGPT, Gemini, Perplexity,
+                    and more.
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-3 mb-5">
+              <div className="mb-5 space-y-3">
                 {[
                   "Track AI referral traffic (ChatGPT, Perplexity, etc.)",
                   "Measure organic vs AI-driven sessions",
                   "Monitor conversion impact from AI visibility",
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span className="text-[13px] text-foreground">{item}</span>
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                    <span className="text-[12px] text-foreground">{item}</span>
                   </div>
                 ))}
               </div>
 
-              <button
+              <Button
                 type="button"
                 onClick={() => {
                   // TODO: implement GA OAuth connect
-                  // For now, skip to launch
                   setStep("launch");
                 }}
-                className="w-full h-11 bg-primary text-white text-[14px] font-medium tracking-[-0.02em] transition hover:opacity-88 flex items-center justify-center gap-2"
+                className="auth-cta-btn flex h-9 w-full items-center justify-center gap-2 rounded-md text-[13px] font-medium text-white hover:text-white"
               >
-                <ExternalLink className="w-4 h-4" /> Connect Google Analytics
-              </button>
+                <ExternalLink className="h-4 w-4" /> Connect Google Analytics
+              </Button>
             </div>
 
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setStep("prompts")} className="flex-1 h-11 border border-border text-[14px] font-medium text-foreground bg-white transition hover:bg-muted">
-                <ArrowLeft className="inline mr-1.5 w-4 h-4" /> Back
-              </button>
-              <button type="button" onClick={() => setStep("launch")} className="flex-1 h-11 border border-border text-[14px] font-medium text-muted-foreground bg-white transition hover:bg-muted hover:text-foreground">
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 flex-1 rounded-md border-neutral-200 bg-white text-[13px] font-medium"
+                onClick={() => setStep("prompts")}
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 flex-1 rounded-md border-neutral-200 bg-white text-[13px] font-medium text-muted-foreground hover:text-foreground"
+                onClick={() => setStep("launch")}
+              >
                 Skip for now
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
         {/* ── Step 7: Launch ── */}
         {step === "launch" && (
-          <div>
-            <div className="text-center mb-8">
-              <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">Launch analysis</h1>
-              <p className="mt-2 text-[14px] text-muted-foreground tracking-[-0.01em]">
-                Scanning <span className="text-foreground font-medium">{siteUrl.replace(/^https?:\/\//, "")}</span> across 6 pillars
-              </p>
-            </div>
+          <div className="space-y-3">
+            <p className="text-center text-[12px] text-muted-foreground">
+              Site{" "}
+              <span className="font-medium text-foreground">{siteUrl.replace(/^https?:\/\//, "")}</span>
+            </p>
 
-            <div className="bg-white overflow-hidden mb-6" style={{ border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 4px 4px rgba(23,23,23,0.04)" }}>
+            <div className={`mb-2 overflow-hidden ${PANEL}`}>
               {[
                 { k: "Brand", v: companyName },
                 { k: "Platform", v: platform.charAt(0).toUpperCase() + platform.slice(1) },
                 { k: "App Installed", v: appInstalled ? "Yes" : "Not yet" },
                 { k: "Prompts", v: `${prompts.length} tracked` },
               ].map((r, i) => (
-                <div key={r.k} className={`flex items-center justify-between px-4 py-3 ${i > 0 ? "border-t border-border" : ""}`}>
-                  <span className="text-[13px] text-muted-foreground">{r.k}</span>
-                  <span className={`text-[13px] font-medium ${r.k === "App Installed" && !appInstalled ? "text-amber-500" : "text-foreground"}`}>{r.v}</span>
+                <div
+                  key={r.k}
+                  className={`flex items-center justify-between px-4 py-3 ${i > 0 ? "border-t border-border" : ""}`}
+                >
+                  <span className="text-[12px] text-muted-foreground">{r.k}</span>
+                  <span
+                    className={`text-[12px] font-medium ${r.k === "App Installed" && !appInstalled ? "text-amber-500" : "text-foreground"}`}
+                  >
+                    {r.v}
+                  </span>
                 </div>
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-2 justify-center mb-8">
+            <div className="mb-2 flex flex-wrap justify-center gap-2">
               {["Content", "Schema", "E-E-A-T", "Technical", "Entity", "AI Visibility"].map((n) => (
-                <span key={n} className="text-[11px] font-medium tracking-[-0.01em] px-3 py-1.5 text-muted-foreground bg-white" style={{ border: "1px solid rgba(0,0,0,0.06)" }}>{n}</span>
+                <span
+                  key={n}
+                  className="rounded-md border border-black/8 bg-white px-3 py-1.5 text-[11px] font-medium tracking-tight text-muted-foreground"
+                >
+                  {n}
+                </span>
               ))}
             </div>
 
-            {error && <p className="text-[13px] text-destructive mb-3 text-center">{error}</p>}
-            {statusMsg && <p className="flex items-center justify-center gap-2 text-[13px] text-muted-foreground mb-3"><Loader2 className="h-3.5 w-3.5 animate-spin" />{statusMsg}</p>}
+            {error ? <p className={`${ERR_BOX} text-center`}>{error}</p> : null}
+            {statusMsg ? (
+              <p className={`${STATUS_BOX} justify-center`} role="status">
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />
+                {statusMsg}
+              </p>
+            ) : null}
 
-            <button onClick={handleLaunch} disabled={loading} className="w-full h-12 bg-primary text-white text-[15px] font-medium tracking-[-0.02em] transition hover:opacity-88 disabled:opacity-40">
-              {loading ? <><Loader2 className="inline mr-2 w-4 h-4 animate-spin" /> Analyzing...</> : <><Rocket className="inline mr-2 w-4 h-4" /> Launch Analysis</>}
-            </button>
+            <Button
+              type="button"
+              onClick={handleLaunch}
+              disabled={loading}
+              className="auth-cta-btn h-10 w-full rounded-md text-[13px] font-medium text-white hover:text-white"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Analyzing…
+                </>
+              ) : (
+                <>
+                  <Rocket className="h-4 w-4" /> Launch analysis
+                </>
+              )}
+            </Button>
 
-            <button type="button" onClick={() => setStep("analytics")} disabled={loading} className="flex items-center justify-center gap-1.5 w-full mt-4 text-[13px] text-muted-foreground hover:text-foreground transition disabled:opacity-50">
-              <ArrowLeft className="w-3.5 h-3.5" /> Back
-            </button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={loading}
+              className="h-9 w-full text-[13px] text-muted-foreground hover:text-foreground"
+              onClick={() => setStep("analytics")}
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> Back
+            </Button>
           </div>
         )}
-      </div>
+      </CardContent>
+
+      <CardFooter className="justify-center border-t border-black/6 px-0 pb-0 pt-6">
+        <p className="text-center text-[12px] text-muted-foreground">
+          Different account?{" "}
+          <Link
+            href={routes.signIn}
+            className="font-medium text-foreground underline decoration-neutral-300 underline-offset-2 hover:decoration-foreground"
+          >
+            Sign in
+          </Link>
+        </p>
+      </CardFooter>
     </div>
   );
 }
