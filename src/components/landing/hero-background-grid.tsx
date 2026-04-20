@@ -13,7 +13,7 @@ export function HeroBackgroundGrid({
   spotlight = true,
   fade = true,
   markers = true,
-  markerColor = "rgba(0, 0, 0, 0.098)",
+  markerColor = "rgba(0, 0, 0, 0.22)",
   markerSize = 5,
 }: {
   cellSize?: number;

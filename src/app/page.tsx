@@ -18,13 +18,15 @@ import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
 import { Button } from "@/components/ui/button";
+import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
 
 
 export default function Home() {
   return (
     <LandingMarketingShell>
         <LandingHero />
-        <section className="border-t border-border/60 bg-background/80 py-10 backdrop-blur-sm">
+        <section className="relative border-t border-border/60 bg-background/80 py-10 backdrop-blur-sm">
+          <CornerDiamonds top />
           <p className="mb-8 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">
             Optimize for every major AI search engine
           </p>
