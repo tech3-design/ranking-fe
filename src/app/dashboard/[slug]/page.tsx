@@ -11,7 +11,6 @@ import {
 import { useRun } from "./_components/run-context";
 import { config, routes } from "@/lib/config";
 import {
-  Search,
   ChevronDown,
   Filter,
   MoreHorizontal,
@@ -22,7 +21,8 @@ import {
 } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { RotatingGeoFact } from "@/components/ui/rotating-geo-fact";
-import { CommandPalette } from "@/components/ui/command-palette";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   SocialBrandReachCard,
   type SocialPresenceDetails,
@@ -75,7 +75,6 @@ export default function SignalorDashboard() {
   const [reanalyzeError, setReanalyzeError] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [paletteOpen, setPaletteOpen] = useState(false);
   const [historyRange, setHistoryRange] = useState<"7d" | "1m" | "3m" | "all">("all");
   const [historyDropdownOpen, setHistoryDropdownOpen] = useState(false);
 
@@ -97,18 +96,6 @@ export default function SignalorDashboard() {
       setGreeting(g);
     }, 60_000);
     return () => clearInterval(timer);
-  }, []);
-
-  // Cmd+K / Ctrl+K to open command palette
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setPaletteOpen((o) => !o);
-      }
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
   }, []);
 
   const email = session?.user?.email ?? "";
@@ -383,18 +370,26 @@ export default function SignalorDashboard() {
             </p>
           </div>
           <div className="flex items-center justify-center gap-3">
-            <button
+            <Button
+              type="button"
+              variant="default"
+              size="default"
+              className="auth-cta-btn gap-2 text-[13px] font-semibold"
               onClick={handleReanalyze}
               disabled={reanalyzing}
-              className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition disabled:opacity-50"
-              style={{ backgroundColor: CORAL }}
             >
               {reanalyzing ? (
-                <><RefreshCw className="w-4 h-4 animate-spin" /> Retrying...</>
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Retrying…
+                </>
               ) : (
-                <><RefreshCw className="w-4 h-4" /> Try Again</>
+                <>
+                  <RefreshCw className="size-4" />
+                  Try Again
+                </>
               )}
-            </button>
+            </Button>
           </div>
           {reanalyzeError && (
             <p className="text-xs text-red-500">{reanalyzeError}</p>
@@ -407,44 +402,16 @@ export default function SignalorDashboard() {
   return (
     <>
       {/* ── Sticky Top Bar (compact) ── */}
-      <header className="sticky top-0 z-20 px-6 py-2.5 flex items-center justify-end gap-3 bg-background border-b border-border">
-        <button
-          onClick={() => setPaletteOpen(true)}
-          className="flex items-center gap-2 bg-card rounded-xl py-2 pl-3 pr-3 text-sm border border-border text-muted-foreground hover:bg-accent transition w-52"
-        >
-          <Search className="w-4 h-4 shrink-0" />
-          <span className="flex-1 text-left text-xs">Search...</span>
-          <kbd className="text-[10px] font-mono bg-accent border border-border rounded px-1.5 py-0.5">⌘K</kbd>
-        </button>
-        <button
-          onClick={handleReanalyze}
-          disabled={reanalyzing || isRunning}
-          className="flex items-center gap-1.5 bg-card rounded-xl px-4 py-2 text-xs font-medium transition disabled:opacity-50 hover:opacity-80 border border-border text-foreground"
-        >
-          <RefreshCw className="w-3.5 h-3.5" /> Re-analyze
-        </button>
-        <button
-          onClick={handleDownloadPDF}
-          disabled={!run || isRunning}
-          className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-medium text-white transition disabled:opacity-50 hover:opacity-90"
-          style={{ backgroundColor: CORAL }}
-        >
-          <Download className="w-3.5 h-3.5" /> Download PDF
-        </button>
-      </header>
+     
 
       {/* ── Greeting + URL (scrollable) ── */}
-      <div className="px-6 pt-5 pb-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-none text-foreground">
-          {greeting}, <span style={{ color: CORAL }}>{session?.user?.name?.split(" ")[0] || "there"}</span>
-          <span style={{ color: CORAL }}>.</span>
+      <div className="px-6 pb-4 pt-5">
+        <h1 className="text-3xl font-bold leading-none tracking-tight text-foreground md:text-4xl">
+          {greeting},{" "}
+          <span className="text-primary">{session?.user?.name?.split(" ")[0] || "there"}</span>
+          <span className="text-primary">.</span>
         </h1>
-        <p className="text-sm mt-1.5 text-muted-foreground">
-          Stay on top of your GEO score, monitor visibility, and track progress.
-        </p>
-
-        {/* URL bar */}
-        {run?.url && (
+        {/* {run?.url && (
           <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 bg-card mt-4 border border-border">
             <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: `${CORAL}15` }}>
               <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -458,8 +425,36 @@ export default function SignalorDashboard() {
               </span>
             )}
           </div>
-        )}
+        )} */}
       </div>
+      <header className="sticky top-0 z-20 flex items-center justify-end gap-2 border-b border-border bg-background/85 px-6 py-2.5 backdrop-blur-md supports-backdrop-filter:bg-background/70">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleReanalyze}
+          disabled={reanalyzing || isRunning}
+          className="h-9 gap-1.5 border-neutral-200/90 bg-card px-4 text-xs font-semibold text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+        >
+          {reanalyzing ? (
+            <Loader2 className="size-3.5 animate-spin" aria-hidden />
+          ) : (
+            <RefreshCw className="size-3.5" aria-hidden />
+          )}
+          Re-analyze
+        </Button>
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          onClick={handleDownloadPDF}
+          disabled={!run || isRunning}
+          className="auth-cta-btn h-9 gap-1.5 px-4 text-xs font-semibold"
+        >
+          <Download className="size-3.5" aria-hidden />
+          Download PDF
+        </Button>
+      </header>
 
       {/* Dashboard content */}
       {run && !isRunning && (
@@ -521,30 +516,40 @@ export default function SignalorDashboard() {
                 <p className="text-sm font-semibold text-foreground">GEO Score History</p>
                 {/* Range dropdown */}
                 <div className="relative">
-                  <button
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="xs"
                     onClick={() => setHistoryDropdownOpen(!historyDropdownOpen)}
-                    className="flex items-center gap-1 text-[11px] rounded-lg px-2.5 py-1 transition hover:opacity-80 text-muted-foreground border border-border"
+                    className="h-7 gap-1 border-neutral-200/90 bg-card px-2.5 text-[11px] font-medium text-muted-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
                   >
                     {{ "7d": "7 days", "1m": "1 month", "3m": "3 months", "all": "All time" }[historyRange]}
-                    <ChevronDown className="w-3 h-3" />
-                  </button>
-                  {historyDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-1 rounded-xl bg-card shadow-lg py-1 z-50 min-w-[110px] border border-border">
+                    <ChevronDown className="size-3 opacity-70" aria-hidden />
+                  </Button>
+                  {historyDropdownOpen ? (
+                    <div className="absolute right-0 top-full z-50 mt-1 min-w-[118px] rounded-md border border-border bg-card py-0.5 shadow-md ring-1 ring-black/5 dark:ring-white/10">
                       {([["7d", "7 days"], ["1m", "1 month"], ["3m", "3 months"], ["all", "All time"]] as const).map(([key, label]) => (
-                        <button
+                        <Button
                           key={key}
-                          onClick={() => { setHistoryRange(key); setHistoryDropdownOpen(false); }}
-                          className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${historyRange === key ? "font-semibold" : "font-normal text-muted-foreground"}`}
-                          style={{
-                            color: historyRange === key ? CORAL : undefined,
-                            backgroundColor: historyRange === key ? `${CORAL}08` : "transparent",
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setHistoryRange(key);
+                            setHistoryDropdownOpen(false);
                           }}
+                          className={cn(
+                            "h-8 w-full justify-start rounded-none px-3 text-xs font-normal",
+                            historyRange === key
+                              ? "bg-primary/10 font-semibold text-primary hover:bg-primary/15"
+                              : "text-muted-foreground hover:text-foreground",
+                          )}
                         >
                           {label}
-                        </button>
+                        </Button>
                       ))}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
               <div className="h-[120px] relative">
@@ -594,7 +599,15 @@ export default function SignalorDashboard() {
             <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-foreground">Pillar Breakdown</p>
-                <button className="text-muted-foreground"><MoreHorizontal className="w-4 h-4" /></button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  className="text-muted-foreground"
+                  aria-label="Pillar breakdown options"
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
               </div>
               <div className="flex flex-col gap-3">
                 {breakdownRows.length > 0 ? breakdownRows.map((row) => (
@@ -970,26 +983,26 @@ export default function SignalorDashboard() {
                 <p className="text-lg font-semibold text-foreground">Recommendations</p>
                 <Link
                   href={`/dashboard/${slug}/recommendations`}
-                  className="text-[11px] font-medium transition hover:opacity-80"
-                  style={{ color: CORAL }}
+                  className="text-[11px] font-medium text-primary underline decoration-neutral-300 underline-offset-2 transition hover:decoration-primary"
                 >
-                  View all &rarr;
+                  View all →
                 </Link>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {FILTER_TABS.map((tab) => (
-                  <button
+                  <Button
                     key={tab}
+                    type="button"
+                    variant={activeFilter === tab ? "default" : "outline"}
+                    size="sm"
                     onClick={() => setActiveFilter(tab)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      activeFilter === tab
-                        ? "text-white"
-                        : "bg-background text-muted-foreground"
-                    }`}
-                    style={activeFilter === tab ? { backgroundColor: CORAL } : undefined}
+                    className={cn(
+                      "h-8 rounded-full px-3.5 text-xs font-semibold",
+                      activeFilter === tab ? "auth-cta-btn" : "border-neutral-200/90 bg-card font-medium text-muted-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:text-foreground",
+                    )}
                   >
                     {tab}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -1055,7 +1068,6 @@ export default function SignalorDashboard() {
       )}
 
 
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </>
   );
 }

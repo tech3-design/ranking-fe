@@ -103,7 +103,7 @@ export default function BillingSettingsPage() {
   const atAnyLimit = usage?.at_limit.projects || usage?.at_limit.prompts;
 
   return (
-    <div className="px-6 py-6 space-y-6">
+    <div className="px-2 py-2 space-y-6">
       <div>
         <h2 className="text-2xl font-semibold text-foreground">Billing & Usage</h2>
         <p className="text-xs mt-1 text-muted-foreground">

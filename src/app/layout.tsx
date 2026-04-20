@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, DM_Serif_Display, JetBrains_Mono } from "next/font/google";
+import { Inter, DM_Serif_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const fontSans = Plus_Jakarta_Sans({
+const fontSans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
 });
 
 const fontSerif = DM_Serif_Display({
@@ -32,10 +33,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light">
+    <html lang="en" className={`light ${fontSans.variable}`}>
       <body
         suppressHydrationWarning
-        className={`signalor-body ${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased`}
+        className={`signalor-body ${fontSerif.variable} ${fontMono.variable} antialiased`}
       >
         {children}
       </body>

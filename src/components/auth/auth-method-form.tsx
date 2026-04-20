@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useOnboardingStore } from "@/lib/stores/onboarding-store";
 import { authClient } from "@/lib/auth-client";
 import { checkOrganizationExists } from "@/lib/api/organizations";
@@ -52,35 +51,53 @@ export function AuthMethodForm() {
     }
   }
 
+  const isSignUp = authMode === "sign-up";
+
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
+    <div className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-[12px] font-medium text-foreground">
+            Email
+          </Label>
           <Input
             id="email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="you@company.com"
             value={emailInput}
             onChange={(e) => setEmailInput(e.target.value)}
             required
             autoComplete="email"
+            className="h-9 rounded-md border-neutral-200 bg-white text-[13px]"
           />
+          {isSignUp && (
+            <p className="text-[11px] text-neutral-600">Use your work email.</p>
+          )}
         </div>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Checking\u2026" : "Continue with Email"}
+        {error && (
+          <p className="text-[12px] font-medium text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+        <Button
+          type="submit"
+          className="auth-cta-btn h-9 w-full rounded-md text-[13px] font-medium text-white hover:text-white"
+          disabled={loading}
+        >
+          {loading ? "Sending…" : isSignUp ? "Sign Up" : "Sign In"}
         </Button>
       </form>
 
-      <div className="relative">
-        <Separator />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-          or
-        </span>
+      <div className="relative py-0.5">
+        {/* <div className="absolute inset-x-0 top-1/2 h-px bg-border" aria-hidden /> */}
+        <div className="relative flex justify-center">
+          <span className="bg-white px-2 text-[11px] text-muted-foreground lg:bg-transparent">
+            or continue with
+          </span>
+        </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         <OAuthButton provider="google" />
         <OAuthButton provider="apple" />
       </div>

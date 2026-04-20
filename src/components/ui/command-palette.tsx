@@ -59,7 +59,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
       {/* Dialog */}
       <div className="relative flex items-start justify-center pt-[20vh]">
-        <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
+        <div className="w-full max-w-lg bg-card border border-border rounded-md shadow-2xl overflow-hidden">
           <Command label="Command palette" className="flex flex-col">
             {/* Search input */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
@@ -69,7 +69,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                 className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                 autoFocus
               />
-              <kbd className="text-[10px] font-mono text-muted-foreground bg-accent border border-border rounded px-1.5 py-0.5">ESC</kbd>
+              <kbd className="text-[10px] font-mono text-muted-foreground bg-accent border border-border rounded-md px-1.5 py-0.5">ESC</kbd>
             </div>
 
             <Command.List className="max-h-[320px] overflow-y-auto p-2">
@@ -113,8 +113,8 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
             {/* Footer */}
             <div className="flex items-center justify-between px-4 py-2 border-t border-border text-[10px] text-muted-foreground">
-              <span>Navigate with <kbd className="font-mono bg-accent border border-border rounded px-1 mx-0.5">↑</kbd><kbd className="font-mono bg-accent border border-border rounded px-1 mx-0.5">↓</kbd></span>
-              <span>Select with <kbd className="font-mono bg-accent border border-border rounded px-1 mx-0.5">↵</kbd></span>
+              <span>Navigate with <kbd className="font-mono bg-accent border border-border rounded-md px-1 mx-0.5">↑</kbd><kbd className="font-mono bg-accent border border-border rounded-md px-1 mx-0.5">↓</kbd></span>
+              <span>Select with <kbd className="font-mono bg-accent border border-border rounded-md px-1 mx-0.5">↵</kbd></span>
             </div>
           </Command>
         </div>
@@ -133,9 +133,9 @@ function PaletteItem({ icon: Icon, label, desc, onSelect }: {
     <Command.Item
       value={`${label} ${desc}`}
       onSelect={onSelect}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors data-[selected=true]:bg-accent text-foreground"
+      className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors data-[selected=true]:bg-accent text-foreground"
     >
-      <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shrink-0">
+      <div className="w-8 h-8 rounded-md-lg bg-accent flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4 text-muted-foreground" />
       </div>
       <div className="flex-1 min-w-0">
