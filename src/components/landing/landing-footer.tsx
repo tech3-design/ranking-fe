@@ -44,10 +44,10 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   {
     title: "Free tools",
     links: [
-      { href: "/analyzer", label: "URL analyzer" },
-      { href: "#features", label: "Citation checker" },
-      { href: "#features", label: "Schema readiness" },
-      { href: "/prompt-tracking", label: "Prompt coverage map" },
+      { href: "/tools/url-analyzer", label: "URL analyzer" },
+      { href: "/tools/llms-check", label: "LLM checker" },
+      { href: "/tools/competitors-analysis", label: "Competitors analysis" },
+      { href: "/tools/schema-validator", label: "Schema validator" },
     ],
   },
   {

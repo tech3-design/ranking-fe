@@ -7,22 +7,26 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRight,
   BarChart3,
+  Binary,
   BookOpen,
+  Bot,
   ChevronDown,
   FileText,
   LayoutGrid,
   LineChart,
+  Link2,
   LogIn,
   Plug,
   Radar,
   Sparkles,
   Tags,
   Target,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
-type MegaKey = "solutions" | "features" | "resources";
+type MegaKey = "solutions" | "features" | "freeTools" | "resources";
 
 const CLOSE_MS = 140;
 
@@ -108,6 +112,35 @@ const MENUS: Record<
         title: "Discovery",
         desc: "Surface emerging prompts, citations, and competitor gaps.",
         icon: BarChart3,
+      },
+    ],
+  },
+  freeTools: {
+    label: "Free tools",
+    items: [
+      {
+        href: "/tools/url-analyzer",
+        title: "URL analyzer",
+        desc: "Score any URL for GEO, citability, schema, and content health.",
+        icon: Link2,
+      },
+      {
+        href: "/tools/llms-check",
+        title: "LLM checker",
+        desc: "See how ChatGPT, Claude, Gemini, and Perplexity talk about your brand.",
+        icon: Bot,
+      },
+      {
+        href: "/tools/competitors-analysis",
+        title: "Competitors analysis",
+        desc: "Rank your share of AI citations against up to 5 competitors.",
+        icon: Users,
+      },
+      {
+        href: "/tools/schema-validator",
+        title: "Schema validator",
+        desc: "Check JSON-LD coverage across Organization, Product, FAQ, and more.",
+        icon: Binary,
       },
     ],
   },
