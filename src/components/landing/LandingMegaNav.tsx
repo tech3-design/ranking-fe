@@ -526,6 +526,15 @@ export function LandingMegaNav() {
         </AnimatePresence>
       </div>
 
+      <div className="hidden shrink-0 items-center gap-2 lg:flex">
+        <Button asChild variant="link" className="px-4 text-neutral-700 hover:text-neutral-900">
+          <Link href="/sign-in">Log In</Link>
+        </Button>
+        <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "px-4")}>
+          <Link href="/sign-up">Sign Up</Link>
+        </Button>
+      </div>
+
       <div className="lg:hidden">
         <Button
           type="button"
