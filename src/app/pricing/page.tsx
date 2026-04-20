@@ -152,11 +152,12 @@ function PricingPageInner() {
         {/* Back link */}
         <Link
           href={returnTo || routes.dashboard}
-          className="inline-flex items-center gap-1.5 text-xs font-medium mb-8 transition hover:opacity-70"
-          style={{ color: "#00000060" }}
+          className="group inline-flex items-center gap-2 mb-8 text-[12px] font-semibold text-gray-400 hover:text-gray-700 transition-all"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          {returnTo ? "Back to setup" : "Back to Dashboard"}
+          <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-black/[0.05] group-hover:bg-black/[0.09] transition-colors">
+            <ArrowLeft className="w-3 h-3" />
+          </span>
+          {returnTo ? "Setup" : "Dashboard"}
         </Link>
 
         {/* Header */}
@@ -182,7 +183,7 @@ function PricingPageInner() {
           <div className="mb-6 max-w-md mx-auto space-y-2">
             <p
               className="text-sm rounded-lg px-4 py-3 text-center"
-              style={{ color: "#F95C4B", backgroundColor: "#F95C4B10" }}
+              style={{ color: "#E04D00", backgroundColor: "#E04D0010" }}
             >
               {error}
             </p>
@@ -219,13 +220,13 @@ function PricingPageInner() {
                 key={plan.id}
                 className="relative rounded-2xl bg-white p-6 flex flex-col"
                 style={{
-                  border: plan.popular ? "2px solid #F95C4B" : "1px solid #E4DED2",
+                  border: plan.popular ? "2px solid #E04D00" : "1px solid #E4DED2",
                 }}
               >
                 {plan.popular && (
                   <div
                     className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
-                    style={{ backgroundColor: "#F95C4B" }}
+                    style={{ backgroundColor: "#E04D00" }}
                   >
                     Most Popular
                   </div>
@@ -235,7 +236,7 @@ function PricingPageInner() {
                 <div className="mb-5">
                   <div
                     className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold mb-3"
-                    style={{ backgroundColor: "#F95C4B15", color: "#F95C4B" }}
+                    style={{ backgroundColor: "#E04D0015", color: "#E04D00" }}
                   >
                     <Icon className="w-3.5 h-3.5" />
                     {plan.label}
@@ -260,9 +261,9 @@ function PricingPageInner() {
                     <div key={f} className="flex items-center gap-2.5">
                       <div
                         className="w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: "#F95C4B15", width: 18, height: 18 }}
+                        style={{ backgroundColor: "#E04D0015", width: 18, height: 18 }}
                       >
-                        <Check className="h-2.5 w-2.5" style={{ color: "#F95C4B" }} />
+                        <Check className="h-2.5 w-2.5" style={{ color: "#E04D00" }} />
                       </div>
                       <span className="text-sm" style={{ color: "#000000CC" }}>{f}</span>
                     </div>
@@ -305,7 +306,7 @@ function PricingPageInner() {
                   disabled={!!loadingPlan}
                   className="flex w-full items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
                   style={{
-                    backgroundColor: plan.popular ? "#F95C4B" : "#000000",
+                    backgroundColor: plan.popular ? "#E04D00" : "#000000",
                   }}
                 >
                   {isLoading ? (

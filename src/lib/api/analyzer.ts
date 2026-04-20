@@ -121,8 +121,6 @@ export interface BrandVisibility {
   google_details: Record<string, unknown>;
   reddit_score: number;
   reddit_details: Record<string, unknown>;
-  medium_score: number;
-  medium_details: Record<string, unknown>;
   web_mentions_score: number;
   web_mentions_details: Record<string, unknown>;
   /** Instagram/Facebook public scrape + derived scores (optional on older runs) */

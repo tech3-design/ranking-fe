@@ -8,7 +8,7 @@ const SESSION_COOKIE_CANDIDATES = [
   "__Host-better-auth.session_token",
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthenticated = SESSION_COOKIE_CANDIDATES.some((cookieName) =>
     request.cookies.has(cookieName),
