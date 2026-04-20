@@ -10,7 +10,15 @@ import { HeroBackgroundGrid } from "@/components/landing/hero-background-grid";
 import { PROMPT_TRACKING_HERO, PROMPT_TRACKING_HUB_CARDS } from "@/lib/landing-prompt-tracking-content";
 import type { LucideIcon } from "lucide-react";
 
-type HeroContent = typeof PROMPT_TRACKING_HERO;
+type Widen<T> =
+  T extends string ? string
+  : T extends number ? number
+  : T extends boolean ? boolean
+  : T extends readonly (infer U)[] ? readonly Widen<U>[]
+  : T extends object ? { [K in keyof T]: Widen<T[K]> }
+  : T;
+
+type HeroContent = Widen<typeof PROMPT_TRACKING_HERO>;
 type HubCard = { slug: string; href: string; title: string; description: string; Icon: LucideIcon; cta: string };
 
 export function PromptTrackingHero({

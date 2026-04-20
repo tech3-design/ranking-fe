@@ -1,6 +1,6 @@
 import type { PromptTrackingChatAnswerPart } from "@/lib/landing-prompt-tracking-content";
 
-export function PromptTrackingChatAnswerParts({ parts }: { parts: PromptTrackingChatAnswerPart[] }) {
+export function PromptTrackingChatAnswerParts({ parts }: { parts: readonly PromptTrackingChatAnswerPart[] }) {
   return (
     <>
       {parts.map((part, i) => {

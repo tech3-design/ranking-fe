@@ -4,7 +4,6 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import LogoComp from "@/components/LogoComp";
 import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
-import { HeroAnalyzerForm } from "@/components/landing/landing-hero-analyzer-form";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -52,9 +51,9 @@ export default function AnalyzerPage() {
           </p>
 
           {/* The Form Component */}
-          <div className="mt-12 w-full">
+          {/* <div className="mt-12 w-full">
             <HeroAnalyzerForm />
-          </div>
+          </div> */}
 
           {/* Benefits Grid */}
           <div className="mt-24 grid gap-8 md:grid-cols-3">

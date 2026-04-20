@@ -14,6 +14,14 @@ import {
   PROMPT_TRACKING_WHY,
 } from "@/lib/landing-prompt-tracking-content";
 
+type Widen<T> =
+  T extends string ? string
+  : T extends number ? number
+  : T extends boolean ? boolean
+  : T extends readonly (infer U)[] ? readonly Widen<U>[]
+  : T extends object ? { [K in keyof T]: Widen<T[K]> }
+  : T;
+
 /**
  * Same structural pattern as {@link LandingWhySignalor}: eyebrow, headline with dashed primary span,
  * intro copy, then bg-black-10 md:grid-cols-2 band with proof tiles, preview, breakdown, capability list.
@@ -28,7 +36,7 @@ export function PromptTrackingWhySection({
   secondaryCtaHref = "/prompt-tracking/prompt-library",
   headingId = "prompt-tracking-why-heading",
 }: {
-  content?: typeof PROMPT_TRACKING_WHY;
+  content?: Widen<typeof PROMPT_TRACKING_WHY>;
   proofMetrics?: readonly { value: string; label: string }[];
   pillarRows?: readonly { label: string; value: number; tone: string }[];
   capabilityRows?: readonly { icon: typeof PROMPT_TRACKING_CAPABILITY_ROWS[number]["icon"]; title: string; description: string }[];

@@ -405,6 +405,17 @@ function FeatureCell({
  * Copy is driven by {@link PROMPT_TRACKING_FEATURE_CELLS} in `landing-prompt-tracking-content.ts`.
  */
 type FeatureCellContent = { title: string; description: string; mock: PromptTrackingFeatureMock };
+type FeaturesIntro = {
+  eyebrow: string;
+  titleBefore: string;
+  titleAccent: string;
+  description: string;
+};
+type FeaturesFooterCtas = {
+  primary: string;
+  secondary: string;
+  secondaryHref: string;
+};
 
 export function PromptTrackingFeaturesGrid({
   intro = PROMPT_TRACKING_FEATURES_INTRO,
@@ -413,9 +424,9 @@ export function PromptTrackingFeaturesGrid({
   headingId = "prompt-tracking-features-heading",
   theme = "orange",
 }: {
-  intro?: typeof PROMPT_TRACKING_FEATURES_INTRO;
+  intro?: FeaturesIntro;
   cells?: readonly FeatureCellContent[];
-  footerCtas?: typeof PROMPT_TRACKING_FEATURES_FOOTER_CTAS;
+  footerCtas?: FeaturesFooterCtas;
   headingId?: string;
   theme?: FeaturesGridTheme;
 }) {

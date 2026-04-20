@@ -1,11 +1,7 @@
 "use client";
 
-import Link from "next/link";
-
-import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import { LandingMegaNav } from "@/components/landing/LandingMegaNav";
 import LogoComp from "@/components/LogoComp";
-import { Button } from "@/components/ui/button";
 import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
 
 export function LandingMarketingShell({ children }: { children: React.ReactNode }) {
@@ -19,14 +15,6 @@ export function LandingMarketingShell({ children }: { children: React.ReactNode 
               <LogoComp />
             </div>
             <LandingMegaNav />
-            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-              <Button asChild variant="link" className="hidden px-4 sm:inline-flex">
-                <Link href="/sign-in">Log In</Link>
-              </Button>
-              <Button asChild className={`${LANDING_PRIMARY_CTA_CLASS} px-4`}>
-                <Link href="/sign-up">Sign Up</Link>
-              </Button>
-            </div>
           </div>
           <div
             aria-hidden
