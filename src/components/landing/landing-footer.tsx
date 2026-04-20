@@ -24,6 +24,8 @@ const FOOTER_COLUMNS: FooterColumn[] = [
     title: "Platform",
     links: [
       { href: "/pricing", label: "Pricing" },
+      { href: "/integration", label: "Integrations" },
+      { href: "/prompt-tracking", label: "Prompt tracking" },
       { href: "/analyzer", label: "Free GEO audit" },
       { href: "/sign-up", label: "Get started" },
       { href: "#features", label: "Product tour" },
@@ -44,7 +46,7 @@ const FOOTER_COLUMNS: FooterColumn[] = [
       { href: "/analyzer", label: "URL analyzer" },
       { href: "#features", label: "Citation checker" },
       { href: "#features", label: "Schema readiness" },
-      { href: "#features", label: "Prompt coverage map" },
+      { href: "/prompt-tracking", label: "Prompt coverage map" },
     ],
   },
   {
@@ -100,12 +102,12 @@ export function LandingFooter() {
         <div className="relative mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-2 ">
           <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12 xl:gap-16">
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#2563eb]/90">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary/90">
                 Get started
               </p>
               <h2 className="mt-3 font-sans text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.35rem] xl:text-5xl">
                 Be the brand{" "}
-                <span className="whitespace-nowrap text-[#2563eb]">AI recommends</span>
+                <span className="whitespace-nowrap text-primary">AI recommends</span>
               </h2>
               <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base">
                 Run a free GEO audit, track citations across models, and ship fixes that move how

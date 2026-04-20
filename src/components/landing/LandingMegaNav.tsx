@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
@@ -20,10 +20,34 @@ import {
   Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 type MegaKey = "solutions" | "features" | "resources";
 
 const CLOSE_MS = 140;
+
+const INTEGRATION_PLUGINS: {
+  key: string;
+  label: string;
+  href: string;
+  img: string;
+  desc: string;
+}[] = [
+  {
+    key: "shopify",
+    label: "Shopify",
+    href: "/integration/shopify",
+    img: "/logos/shopify.svg",
+    desc: "Connect Shopify to your Signalor account to automatically sync your products and orders.",
+  },
+  {
+    key: "wordpress",
+    label: "WordPress",
+    href: "/integration/wordpress",
+    img: "/logos/wordpress.svg",
+    desc: "Connect WordPress to your Signalor account to automatically sync your posts and pages.",
+  },
+];
 
 const MENUS: Record<
   MegaKey,
@@ -62,7 +86,7 @@ const MENUS: Record<
     label: "Features",
     items: [
       {
-        href: "#features",
+        href: "/prompt-tracking",
         title: "Prompt tracking",
         desc: "Monitor prompts and surfaces where your brand should appear.",
         icon: LayoutGrid,
@@ -91,10 +115,10 @@ const MENUS: Record<
     label: "Resources",
     items: [
       {
-        href: "#docs",
-        title: "Documentation",
-        desc: "Product guides, API notes, and implementation checklists.",
-        icon: BookOpen,
+        href: "/integration",
+        title: "Integrations",
+        desc: "Connect analytics and publishing workflows you already use.",
+        icon: Plug,
       },
       {
         href: "#blog",
@@ -103,7 +127,7 @@ const MENUS: Record<
         icon: FileText,
       },
       {
-        href: "#pricing",
+        href: "/pricing",
         title: "Pricing",
         desc: "Plans for teams shipping serious AI visibility programs.",
         icon: Tags,
@@ -117,6 +141,212 @@ const MENUS: Record<
     ],
   },
 };
+
+type MegaMenuItem = (typeof MENUS)[MegaKey]["items"][number];
+
+function MegaMenuLinkCell({
+  item,
+  onNavigate,
+  className,
+}: {
+  item: MegaMenuItem;
+  onNavigate: () => void;
+  className?: string;
+}) {
+  const Icon = item.icon;
+  return (
+    <motion.div
+      className={className}
+      variants={{
+        hidden: { opacity: 0, y: 6 },
+        show: { opacity: 1, y: 0 },
+      }}
+      transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <Link
+        href={item.href}
+        className="group flex gap-3 rounded-sm border border-transparent p-2 text-left transition-colors hover:bg-neutral-50/80"
+        onClick={onNavigate}
+      >
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-black/8 text-primary shadow-sm">
+          <Icon className="h-[15px] w-[15px]" strokeWidth={1.75} aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-start justify-between gap-2">
+            <span className="text-[14px] font-semibold leading-snug tracking-tight text-neutral-900">
+              {item.title}
+            </span>
+          </span>
+          <span className="block text-xs font-light leading-snug text-accent-foreground">
+            {item.desc}
+          </span>
+        </span>
+      </Link>
+    </motion.div>
+  );
+}
+
+function ResourcesMegaGrid({ setOpen }: { setOpen: (v: MegaKey | null) => void }) {
+  const [integ, blog, pricing, customerLogin] = MENUS.resources.items;
+  const IntIcon = integ.icon;
+
+  const [showPluginLinks, setShowPluginLinks] = useState(false);
+  const hideLinksTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const enterPluginZone = useCallback(() => {
+    if (hideLinksTimer.current) {
+      clearTimeout(hideLinksTimer.current);
+      hideLinksTimer.current = null;
+    }
+    setShowPluginLinks(true);
+  }, []);
+
+  const leavePluginZone = useCallback(() => {
+    if (hideLinksTimer.current) clearTimeout(hideLinksTimer.current);
+    hideLinksTimer.current = setTimeout(() => {
+      setShowPluginLinks(false);
+      hideLinksTimer.current = null;
+    }, 140);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (hideLinksTimer.current) clearTimeout(hideLinksTimer.current);
+    },
+    [],
+  );
+
+  return (
+    <motion.div
+      className="grid gap-2 rounded-sm border border-black/6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(220px,260px)] sm:grid-rows-2 sm:gap-x-3 sm:gap-y-1 justify-center items-center"
+      variants={{
+        show: { transition: { staggerChildren: 0.035, delayChildren: 0.04 } },
+      }}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.div
+        className="sm:col-start-1 sm:row-start-1"
+        variants={{
+          hidden: { opacity: 0, y: 6 },
+          show: { opacity: 1, y: 0 },
+        }}
+        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <div
+          className="rounded-sm border border-transparent p-2 transition-colors hover:bg-neutral-50/80"
+          onPointerEnter={enterPluginZone}
+          onPointerLeave={leavePluginZone}
+        >
+          <Link
+            href={integ.href}
+            className="group flex gap-3 text-left"
+            onClick={() => setOpen(null)}
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-black/8 text-primary shadow-sm">
+              <IntIcon className="h-[15px] w-[15px]" strokeWidth={1.75} aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="text-[14px] font-semibold leading-snug tracking-tight text-neutral-900">
+                {integ.title}
+              </span>
+              <span className="mt-0.5 block text-xs font-light leading-snug text-accent-foreground">
+                {integ.desc}
+              </span>
+            </span>
+          </Link>
+        </div>
+      </motion.div>
+
+      <MegaMenuLinkCell
+        item={blog}
+        onNavigate={() => setOpen(null)}
+        className="sm:col-start-2 sm:row-start-1"
+      />
+
+      <motion.div
+        className="min-h-0 sm:col-start-3 sm:row-span-2 sm:row-start-1"
+        variants={{
+          hidden: { opacity: 0, y: 6 },
+          show: { opacity: 1, y: 0 },
+        }}
+        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <IntegrationPluginLinksPanel
+          visible={showPluginLinks}
+          onNavigate={() => setOpen(null)}
+          onPointerEnter={enterPluginZone}
+          onPointerLeave={leavePluginZone}
+        />
+      </motion.div>
+
+      <MegaMenuLinkCell
+        item={pricing}
+        onNavigate={() => setOpen(null)}
+        className="sm:col-start-1 sm:row-start-2"
+      />
+
+      <MegaMenuLinkCell
+        item={customerLogin}
+        onNavigate={() => setOpen(null)}
+        className="sm:col-start-2 sm:row-start-2"
+      />
+    </motion.div>
+  );
+}
+
+function IntegrationPluginLinksPanel({
+  visible,
+  onNavigate,
+  onPointerEnter,
+  onPointerLeave,
+}: {
+  visible: boolean;
+  onNavigate: () => void;
+  onPointerEnter: () => void;
+  onPointerLeave: () => void;
+}) {
+  return (
+    <div
+      className="flex min-h-42 flex-col rounded-sm border border-black/8 bg-neutral-50/80  shadow-inner"
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+    >
+      <AnimatePresence>
+        {visible ? (
+          <motion.ul
+            key="plugin-links"
+            role="list"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col gap-0.5"
+          >
+            {INTEGRATION_PLUGINS.map((p) => (
+              <li key={p.key}>
+                <Link
+                  href={p.href}
+                  className="rounded-md p-2  text-[13px] font-semibold tracking-tight text-neutral-900 transition-colors hover:bg-white hover:shadow-sm flex flex-col items-center gap-2"
+                  onClick={onNavigate}
+                >
+                  <div className="flex items-center gap-2 w-full">
+                  <span className="flex h-6 w-6 bg-white shrink-0 items-center justify-center rounded-sm border border-black/8 text-primary shadow-sm">
+          <Image src={p.img} alt={p.label} width={20} height={20} />
+        </span>
+                  {p.label}
+                  </div>
+                 
+                  <span className="text-xs font-light leading-snug text-accent-foreground">{p.desc}</span>
+                </Link>
+              </li>
+            ))}
+          </motion.ul>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export function LandingMegaNav() {
   const [open, setOpen] = useState<MegaKey | null>(null);
@@ -183,7 +413,7 @@ export function LandingMegaNav() {
           );
         })}
         <Link
-          href="#pricing"
+          href="/pricing"
           className="rounded-md px-3 py-2 text-[14px] font-medium tracking-tight text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
         >
           Pricing
@@ -195,7 +425,12 @@ export function LandingMegaNav() {
           <motion.div
             key={open}
             role="presentation"
-            className="absolute left-1/2 top-full -mt-1 w-[min(40rem,calc(100vw-1rem))] -translate-x-1/2 pt-2"
+            className={cn(
+              "absolute left-1/2 top-full -mt-1 -translate-x-1/2 pt-2",
+              open === "resources"
+                ? "w-[min(52rem,calc(100vw-1rem))]"
+                : "w-[min(40rem,calc(100vw-1rem))]",
+            )}
             style={{ transformOrigin: "50% 0" }}
             initial={{ opacity: 0, y: 10, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -210,48 +445,24 @@ export function LandingMegaNav() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.02 }}
             >
-              <motion.div
-                className="grid gap-2 sm:grid-cols-2 sm:gap-x-3 sm:gap-y-1 rounded-sm border border-black/6"
-                variants={{
-                  show: { transition: { staggerChildren: 0.035, delayChildren: 0.04 } },
-                }}
-                initial="hidden"
-                animate="show"
-              >
-                {MENUS[open].items.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <motion.div
-                      key={item.title}
-                      variants={{
-                        hidden: { opacity: 0, y: 6 },
-                        show: { opacity: 1, y: 0 },
-                      }}
-                      transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                      <Link
-                        href={item.href}
-                        className="group flex gap-3 rounded-sm border border-transparent p-2 text-left transition-colors hover:bg-neutral-50/80"
-                        onClick={() => setOpen(null)}
-                      >
-                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-black/8 text-primary shadow-sm">
-                          <Icon className="h-[15px] w-[15px]" strokeWidth={1.75} aria-hidden />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-start justify-between gap-2">
-                            <span className="text-[14px] font-semibold leading-snug tracking-tight text-neutral-900">
-                              {item.title}
-                            </span>
-                          </span>
-                          <span className="block text-xs font-light leading-snug text-accent-foreground">
-                            {item.desc}
-                          </span>
-                        </span>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
+              {open === "resources" ? (
+                <ResourcesMegaGrid setOpen={setOpen} />
+              ) : (
+                <motion.div
+                  className="grid gap-2 rounded-sm border border-black/6 sm:grid-cols-2 sm:gap-x-3 sm:gap-y-1"
+                  variants={{
+                    show: {
+                      transition: { staggerChildren: 0.035, delayChildren: 0.04 },
+                    },
+                  }}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {MENUS[open].items.map((item) => (
+                    <MegaMenuLinkCell key={item.title} item={item} onNavigate={() => setOpen(null)} />
+                  ))}
+                </motion.div>
+              )}
             </motion.div>
           </motion.div>
         ) : null}
