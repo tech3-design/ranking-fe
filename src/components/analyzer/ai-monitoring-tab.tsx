@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { RefreshCw, Loader2 } from "lucide-react";
 import {
   getPromptTracks,
   getShareOfVoice,
@@ -81,7 +80,7 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
     schedulePoll(3000);
   }
 
-  function handleRechecked(_trackId: number) {
+  function handleRechecked() {
     schedulePoll(3000);
   }
 
@@ -108,18 +107,13 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
           <h2 className="text-lg font-semibold text-foreground">Prompt Tracking</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Track how <span className="text-foreground font-medium">{brandName}</span> appears in AI responses
+            {recheckCount !== null ? (
+              <span className="mt-1 block text-xs text-muted-foreground">
+                Started recheck for {recheckCount} prompt{recheckCount !== 1 ? "s" : ""}.
+              </span>
+            ) : null}
           </p>
         </div>
-        {tracks.length > 0 && (
-          <button
-            onClick={handleRecheckAll}
-            disabled={recheckingAll}
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-4 py-1.5 text-xs text-muted-foreground transition hover:bg-muted disabled:opacity-50"
-          >
-            {recheckingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-            {recheckingAll ? "Re-checking…" : recheckCount !== null ? `Started ${recheckCount}` : "Re-check All"}
-          </button>
-        )}
       </div>
 
       {/* Share of Voice */}
@@ -140,6 +134,8 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
           tracks={tracks}
           onAdded={handleAdded}
           onRechecked={handleRechecked}
+          onRecheckAll={handleRecheckAll}
+          recheckingAll={recheckingAll}
         />
       </div>
 

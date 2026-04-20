@@ -8,6 +8,7 @@ import { routes } from "@/lib/config";
 import { ArrowRight, ArrowLeft, Globe, MapPin, Sparkles } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { RotatingGeoFact } from "@/components/ui/rotating-geo-fact";
+import { Button } from "../ui/button";
 
 const COUNTRY_OPTIONS = [
   "United States",
@@ -66,7 +67,7 @@ export function HeroAnalyzerForm() {
       });
       router.push(routes.analyzerResults(run.id));
     } catch {
-      setError("Analysis failed. Please verify the URL and try again.");
+      setError("Couldn’t start the audit. Check the URL and try again.");
       setLoading(false);
       setDir(-1);
       setStep(1);
@@ -74,11 +75,10 @@ export function HeroAnalyzerForm() {
   }
 
   return (
-    <div className="w-full max-w-xl mt-8">
-      <div className="rounded-2xl bg-card/80 backdrop-blur-xl border border-border p-1.5 shadow-lg overflow-hidden">
-        <div className="relative min-h-[64px] data-[loading=1]:min-h-[168px]" data-loading={step === 2 ? 1 : 0}>
+    <div className="mt-8 w-full max-w-2xl">
+      <div className="rounded-sm bg-card/80 backdrop-blur-xl border border-border p-1.5 shadow-inner overflow-hidden">
+        <div className="relative  data-[loading=1]:min-h-[168px]" data-loading={step === 2 ? 1 : 0}>
           <AnimatePresence mode="wait" custom={dir}>
-            {/* STEP 0: URL Input */}
             {step === 0 && (
               <motion.div
                 key="url"
@@ -88,28 +88,28 @@ export function HeroAnalyzerForm() {
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="flex items-center gap-2 px-4 py-2"
+                className="flex min-w-0 flex-wrap items-center gap-2 px-4 py-2 sm:flex-nowrap"
               >
-                <Globe className="w-5 h-5 text-muted-foreground shrink-0" />
+                <Globe className="h-5 w-5 shrink-0 text-muted-foreground" />
                 <input
                   ref={inputRef}
                   type="text"
-                  placeholder="Enter your website URL..."
+                  placeholder="Enter your domain (e.g. signalor.ai)"
                   value={url}
                   onChange={(e) => { setUrl(e.target.value); setError(""); }}
                   onKeyDown={(e) => e.key === "Enter" && url.trim() && goNext()}
-                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none py-2"
+                  className="min-w-[180px] flex-1 bg-transparent py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                   autoFocus
                 />
-                <button
+                <Button
                   type="button"
                   onClick={goNext}
                   disabled={!url.trim()}
-                  className="flex items-center gap-1.5 bg-primary text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition hover:bg-primary/90 active:scale-95 disabled:opacity-40"
+                  className="flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-primary/90 active:scale-95 disabled:opacity-40 sm:w-auto"
                 >
-                  Next
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                  Analyze
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
               </motion.div>
             )}
 
@@ -123,20 +123,20 @@ export function HeroAnalyzerForm() {
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="flex items-center gap-2 px-4 py-2"
+                className="flex min-w-0 flex-wrap items-center gap-2 px-4 py-2 sm:flex-nowrap"
               >
                 <button
                   type="button"
                   onClick={goBack}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-accent transition shrink-0"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-accent"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="h-4 w-4" />
                 </button>
-                <MapPin className="w-5 h-5 text-muted-foreground shrink-0" />
+                <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" />
                 <select
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none py-2 cursor-pointer"
+                  className="min-w-[180px] flex-1 cursor-pointer bg-transparent py-2 text-sm text-foreground focus:outline-none"
                   autoFocus
                 >
                   {COUNTRY_OPTIONS.map((opt) => (
@@ -146,10 +146,10 @@ export function HeroAnalyzerForm() {
                 <button
                   type="button"
                   onClick={handleAnalyze}
-                  className="flex items-center gap-1.5 bg-primary text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition hover:bg-primary/90 active:scale-95"
+                  className="flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-primary/90 active:scale-95 sm:w-auto"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Analyze
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Run audit
                 </button>
               </motion.div>
             )}
@@ -182,7 +182,7 @@ export function HeroAnalyzerForm() {
             className="h-1 rounded-full transition-all duration-300"
             style={{
               width: step === s ? 24 : 8,
-              backgroundColor: step >= s ? "#F95C4B" : "var(--border)",
+              backgroundColor: step >= s ? "#E04D00" : "var(--border)",
             }}
           />
         ))}

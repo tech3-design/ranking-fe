@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Recommendation, RecommendationStep, FixPreview } from "@/lib/api/analyzer";
 import { previewFix, verifyFix, applyAutoFix, approveFix } from "@/lib/api/analyzer";
@@ -8,9 +8,19 @@ import { FixPreviewModal } from "./fix-preview-modal";
 import {
   Loader2, Eye, ChevronDown, ChevronRight, Copy, Check,
   AlertTriangle, ArrowUp, Minus, ShieldCheck, Clock, Zap,
-  Flame, Star, Trophy, XCircle, RefreshCw, ShoppingBag, Globe, MessageSquare,
+  XCircle, RefreshCw, ShoppingBag, Globe, MessageSquare,
 } from "lucide-react";
 import type { PlatformStepInfo } from "@/lib/api/analyzer";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 const PILLAR_LABELS: Record<string, string> = {
   content: "Content",
@@ -35,12 +45,6 @@ const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: typeof 
   high: { color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", icon: ArrowUp },
   medium: { color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20", icon: Minus },
   low: { color: "text-muted-foreground", bg: "bg-neutral-500/10 border-neutral-500/20", icon: Minus },
-};
-
-const DIFFICULTY_CONFIG: Record<string, { label: string; color: string; icon: typeof Star }> = {
-  easy: { label: "Easy", color: "text-emerald-400", icon: Star },
-  medium: { label: "Medium", color: "text-amber-400", icon: Flame },
-  hard: { label: "Hard", color: "text-red-400", icon: Trophy },
 };
 
 /** Shown when API has no `steps` so every card still has a guided flow + circles */
@@ -124,12 +128,14 @@ function StepStatusCircle({
   onToggleUser: () => void;
   disableUserToggle: boolean;
 }) {
-  const common =
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 mt-0.5";
+  const circleDisplay =
+    "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200";
+  const circleBtn =
+    "mt-0.5 h-8 w-8 shrink-0 rounded-full border-2 p-0 transition-all duration-200";
 
   if (state === "loading") {
     return (
-      <div className={`${common} border-primary/40 bg-primary/10`} aria-hidden>
+      <div className={cn(circleDisplay, "border-primary/40 bg-primary/10")} aria-hidden>
         <Loader2 className="h-4 w-4 animate-spin text-primary" />
       </div>
     );
@@ -137,7 +143,7 @@ function StepStatusCircle({
   if (state === "pending_queue") {
     return (
       <div
-        className={`${common} border-muted-foreground/35 bg-muted/60 text-muted-foreground`}
+        className={cn(circleDisplay, "border-muted-foreground/35 bg-muted/60 text-muted-foreground")}
         title="Waiting on live page check — not verified yet"
       >
         <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -146,7 +152,7 @@ function StepStatusCircle({
   }
   if (state === "server_ok") {
     return (
-      <div className={`${common} border-emerald-500 bg-emerald-500 text-white shadow-sm`} title="Verified on your live page">
+      <div className={cn(circleDisplay, "border-emerald-500 bg-emerald-500 text-white shadow-sm")} title="Verified on your live page">
         <Check className="h-4 w-4" strokeWidth={3} />
       </div>
     );
@@ -154,7 +160,7 @@ function StepStatusCircle({
   if (state === "scan_warn") {
     return (
       <div
-        className={`${common} border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400`}
+        className={cn(circleDisplay, "border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400")}
         title="You may have done this step, but the live site check still failed"
       >
         <Check className="h-4 w-4" strokeWidth={2.5} />
@@ -164,7 +170,7 @@ function StepStatusCircle({
   if (state === "scan_fail") {
     return (
       <div
-        className={`${common} border-red-500 bg-red-500/15 text-red-500`}
+        className={cn(circleDisplay, "border-red-500 bg-red-500/15 text-red-500")}
         title="Live page did not pass verification"
       >
         <XCircle className="h-4 w-4" />
@@ -173,33 +179,45 @@ function StepStatusCircle({
   }
   if (state === "user_done") {
     return (
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="icon"
         disabled={disableUserToggle}
         onClick={(e) => {
           e.stopPropagation();
           onToggleUser();
         }}
-        className={`${common} border-sky-500/70 bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20 disabled:opacity-60`}
+        className={cn(
+          circleBtn,
+          "border-sky-500/70 bg-sky-500/10 text-sky-600 hover:bg-sky-500/20 dark:text-sky-400",
+          "disabled:opacity-60",
+        )}
         title="Marked done on your side — tap to undo"
       >
         <Check className="h-3.5 w-3.5" strokeWidth={3} />
-      </button>
+      </Button>
     );
   }
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
+      size="icon"
       disabled={disableUserToggle}
       onClick={(e) => {
         e.stopPropagation();
         onToggleUser();
       }}
-      className={`${common} border-muted-foreground/25 bg-background text-[10px] font-bold text-muted-foreground hover:border-primary/50 hover:text-primary disabled:opacity-50`}
+      className={cn(
+        circleBtn,
+        "border-muted-foreground/25 bg-background text-[10px] font-bold text-muted-foreground hover:border-primary/50 hover:text-primary",
+        "disabled:opacity-50",
+      )}
       title="Tap when you finish this step on your site"
     >
       {stepNum}
-    </button>
+    </Button>
   );
 }
 
@@ -240,7 +258,10 @@ function circleStateForStep(
 }
 
 interface RecommendationsPanelProps {
+  /** Rows to render (typically filtered). */
   recommendations: Recommendation[];
+  /** Full run list for XP totals and lookups. Defaults to `recommendations` when omitted. */
+  allRecommendations?: Recommendation[];
   slug?: string;
   email?: string;
   orgId?: number;
@@ -250,7 +271,16 @@ interface RecommendationsPanelProps {
   onFixResult?: (recId: number, result: { status: string; message: string }) => void;
 }
 
-export function RecommendationsPanel({ recommendations, slug, email, orgId, platform, initialFixResults, onFixResult }: RecommendationsPanelProps) {
+export function RecommendationsPanel({
+  recommendations,
+  allRecommendations,
+  slug,
+  email,
+  orgId,
+  platform,
+  initialFixResults,
+  onFixResult,
+}: RecommendationsPanelProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [fixingIds, setFixingIds] = useState<Set<number>>(new Set());
   const [fixResults, setFixResults] = useState<Record<number, { status: string; message: string }>>(initialFixResults ?? {});
@@ -261,6 +291,8 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
   const [userStepsByRec, setUserStepsByRec] = useState<Record<number, Set<number>>>({});
   /** Sequential "scanning" animation during verify */
   const [verifySweep, setVerifySweep] = useState<{ recId: number; index: number } | null>(null);
+
+  const fullList = allRecommendations ?? recommendations;
 
   useEffect(() => {
     if (initialFixResults) setFixResults((prev) => ({ ...initialFixResults, ...prev }));
@@ -329,7 +361,7 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
 
   async function handleVerify(recId: number) {
     if (!slug) return;
-    const rec = recommendations.find((r) => r.id === recId);
+    const rec = fullList.find((r) => r.id === recId);
     const stepList =
       rec?.steps && rec.steps.length > 0 ? rec.steps : FALLBACK_GUIDE_STEPS;
 
@@ -480,10 +512,10 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
     setPreviewingId(null);
   }
 
-  if (!recommendations.length) return null;
+  if (!fullList.length) return null;
 
-  const totalXP = recommendations.reduce((s, r) => s + (r.xp_reward || 0), 0);
-  const earnedXP = recommendations.reduce((s, r) => {
+  const totalXP = fullList.reduce((s, r) => s + (r.xp_reward || 0), 0);
+  const earnedXP = fullList.reduce((s, r) => {
     const result = fixResults[r.id];
     if (result?.status === "success" || result?.status === "verified") return s + (r.xp_reward || 0);
     return s;
@@ -491,164 +523,198 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
 
   return (
     <div className="space-y-4">
-      {/* Header with XP summary */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Action Plan</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {recommendations.length} quests to improve your GEO score
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs font-medium text-amber-400">
-              <Zap className="w-3.5 h-3.5" />
-              {earnedXP} / {totalXP} XP
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none">
+        <div className="border-b border-border/60 px-4 py-3">
+          <p className="sr-only">Recommendation list and progress</p>
+          <div className="flex max-w-md items-center gap-3">
+            <span className="shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+              <span className="font-medium text-foreground">{earnedXP}</span>
+              <span className="text-muted-foreground/80"> / {totalXP} XP</span>
+            </span>
+            <div className="h-1.5 min-w-0 flex-1 rounded-full bg-muted">
+              <motion.div
+                className="h-full rounded-full bg-linear-to-r from-amber-500 to-orange-500"
+                initial={{ width: 0 }}
+                animate={{ width: totalXP > 0 ? `${(earnedXP / totalXP) * 100}%` : "0%" }}
+                transition={{ duration: 0.6 }}
+              />
             </div>
           </div>
         </div>
-        {/* XP progress bar */}
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: totalXP > 0 ? `${(earnedXP / totalXP) * 100}%` : "0%" }}
-            transition={{ duration: 0.6 }}
-          />
-        </div>
-      </div>
 
-      {/* Quest cards */}
-      <div className="space-y-3">
-        {recommendations.map((rec, index) => {
-          const isExpanded = expandedId === rec.id;
-          const priority = PRIORITY_CONFIG[rec.priority] || PRIORITY_CONFIG.medium;
-          const difficulty = DIFFICULTY_CONFIG[rec.difficulty] || DIFFICULTY_CONFIG.medium;
-          const DiffIcon = difficulty.icon;
-          const fixResult = fixResults[rec.id];
-          const isFixing = fixingIds.has(rec.id);
-          const displaySteps =
-            rec.steps && rec.steps.length > 0 ? rec.steps : FALLBACK_GUIDE_STEPS;
-          const totalSteps = displaySteps.length;
-          const isVerified = fixResult?.status === "success" || fixResult?.status === "verified";
-          const verifyFailedWhileIdle =
-            fixResult?.status === "failed" && !isFixing;
-          const userDone = userStepsByRec[rec.id] ?? new Set<number>();
+        <Table>
+          <TableHeader>
+            <TableRow className="border-border/60 hover:bg-transparent">
+              <TableHead className="w-10 pl-4">#</TableHead>
+              <TableHead>Recommendation</TableHead>
+              <TableHead className="hidden w-[104px] md:table-cell">Pillar</TableHead>
+              <TableHead className="w-[84px]">Priority</TableHead>
+              <TableHead className="hidden w-[100px] lg:table-cell">Impact</TableHead>
+              <TableHead className="w-[120px] text-right sm:w-[132px]">Status</TableHead>
+              <TableHead className="w-8 p-0 pr-3">
+                <span className="sr-only">Expand</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {recommendations.length === 0 ? (
+              <TableRow className="border-border/60 hover:bg-transparent">
+                <TableCell colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
+                  No recommendations match your search or filters.
+                </TableCell>
+              </TableRow>
+            ) : (
+              recommendations.map((rec, index) => {
+              const isExpanded = expandedId === rec.id;
+              const priority = PRIORITY_CONFIG[rec.priority] || PRIORITY_CONFIG.medium;
+              const fixResult = fixResults[rec.id];
+              const isFixing = fixingIds.has(rec.id);
+              const isVerified = fixResult?.status === "success" || fixResult?.status === "verified";
 
-          return (
-            <div
-              key={rec.id}
-              className={`rounded-xl border bg-card overflow-hidden transition-all ${
-                isVerified ? "border-emerald-500/30 bg-emerald-500/5" : "border-border"
-              }`}
-            >
-              {/* Card header — clickable */}
-              <div
-                className="px-4 py-3.5 cursor-pointer hover:bg-accent/30 transition-colors"
-                onClick={() => setExpandedId(isExpanded ? null : rec.id)}
-              >
-                <div className="flex items-start gap-3">
-                  {/* Number badge */}
-                  <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                    {isVerified ? (
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                    ) : (
-                      <span className="text-[10px] font-bold text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${priority.bg} ${priority.color}`}>
-                        {rec.priority}
+              const statusCell = (
+                <div
+                  className="flex flex-wrap items-center justify-end gap-1.5"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  role="presentation"
+                >
+                  {isFixing ? (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-medium text-primary">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      {previewingId === rec.id ? "Applying…" : "Checking…"}
+                    </span>
+                  ) : fixResult ? (
+                    isVerified ? (
+                      <span className="inline-flex items-center gap-0.5 rounded-md border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                        <ShieldCheck className="h-3 w-3" /> Done
                       </span>
-                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${PILLAR_COLORS[rec.pillar] || "bg-muted text-muted-foreground border-border"}`}>
+                    ) : fixResult.status === "manual" ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleVerify(rec.id);
+                        }}
+                        disabled={isFixing}
+                        className="h-7 gap-0.5 rounded-md border-amber-500/30 bg-amber-500/5 px-2 text-[10px] font-semibold text-amber-800 dark:text-amber-400"
+                      >
+                        <ShieldCheck className="h-3 w-3" /> Verify
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAutoFix(rec.id);
+                        }}
+                        className="h-7 gap-0.5 rounded-md border-red-500/30 bg-red-500/5 px-2 text-[10px] font-semibold text-red-600 dark:text-red-400"
+                      >
+                        <RefreshCw className="h-3 w-3" /> Retry
+                      </Button>
+                    )
+                  ) : rec.can_auto_fix && slug && email ? (
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAutoFix(rec.id);
+                      }}
+                      disabled={isFixing}
+                      className="auth-cta-btn h-7 gap-1 px-2.5 text-[10px] font-semibold"
+                    >
+                      <Zap className="h-3 w-3" /> Fix
+                    </Button>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground">Manual</span>
+                  )}
+                </div>
+              );
+
+              return (
+                <Fragment key={rec.id}>
+                  <TableRow
+                    className={cn(
+                      "cursor-pointer border-border/60",
+                      isExpanded && "bg-muted/40",
+                      isVerified && "bg-emerald-500/4",
+                    )}
+                    data-state={isExpanded ? "selected" : undefined}
+                    onClick={() => setExpandedId(isExpanded ? null : rec.id)}
+                  >
+                    <TableCell className="pl-4 align-middle">
+                      {isVerified ? (
+                        <ShieldCheck className="mx-auto size-4 text-emerald-500" aria-hidden />
+                      ) : (
+                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-muted text-[10px] font-semibold text-muted-foreground">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-[min(480px,70vw)] align-middle">
+                      <p className="font-medium leading-snug text-foreground line-clamp-2">{rec.title}</p>
+                      {rec.description ? (
+                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{rec.description}</p>
+                      ) : null}
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-0.5 text-amber-600/90 dark:text-amber-400/90">
+                          <Zap className="size-2.5" />+{rec.xp_reward} XP
+                        </span>
+                        {rec.estimated_minutes > 0 ? (
+                          <span className="inline-flex items-center gap-0.5">
+                            <Clock className="size-2.5" />
+                            ~{rec.estimated_minutes} min
+                          </span>
+                        ) : null}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden align-middle md:table-cell">
+                      <span
+                        className={cn(
+                          "inline-block rounded-md border px-1.5 py-0.5 text-[10px] font-medium",
+                          PILLAR_COLORS[rec.pillar] || "border-border bg-muted/50 text-muted-foreground",
+                        )}
+                      >
                         {PILLAR_LABELS[rec.pillar] || rec.pillar}
                       </span>
-                      <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium ${difficulty.color}`}>
-                        <DiffIcon className="w-2.5 h-2.5" />
-                        {difficulty.label}
-                      </span>
-                    </div>
-
-                    <h4 className="text-sm font-medium text-foreground leading-snug">{rec.title}</h4>
-
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-400">
-                        <Zap className="w-2.5 h-2.5" /> +{rec.xp_reward} XP
-                      </span>
-                      {rec.estimated_minutes > 0 && (
-                        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-                          <Clock className="w-2.5 h-2.5" /> ~{rec.estimated_minutes} min
-                        </span>
-                      )}
-                      {totalSteps > 0 && (
-                        <span className="text-[10px] text-muted-foreground">
-                          {totalSteps} guided step{totalSteps !== 1 ? "s" : ""} · verify on live site
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right side: auto-fix button + status + chevron */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    {isFixing ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-[10px] font-medium text-primary">
-                        <Loader2 className="h-3 w-3 animate-spin" /> {previewingId === rec.id ? "Applying..." : "Checking..."}
-                      </span>
-                    ) : fixResult ? (
-                      isVerified ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-medium text-emerald-500">
-                          <ShieldCheck className="h-3 w-3" /> Verified
-                        </span>
-                      ) : fixResult.status === "manual" ? (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
-                          disabled={isFixing}
-                          className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 text-[10px] font-medium text-amber-400 hover:bg-amber-500/20 transition"
-                        >
-                          <ShieldCheck className="h-3 w-3" /> Verify
-                        </button>
-                      ) : (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
-                          className="inline-flex items-center gap-1 rounded-full bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[10px] font-medium text-red-500 hover:bg-red-500/20 transition"
-                        >
-                          <RefreshCw className="h-3 w-3" /> Retry
-                        </button>
-                      )
-                    ) : rec.can_auto_fix && slug && email ? (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
-                        disabled={isFixing}
-                        className="inline-flex items-center gap-1.5 bg-primary text-white px-3 py-1.5 text-[11px] font-semibold transition hover:opacity-88 disabled:opacity-50"
+                    </TableCell>
+                    <TableCell className="align-middle">
+                      <span
+                        className={cn(
+                          "inline-flex rounded-md border px-1.5 py-0.5 text-[10px] font-semibold capitalize",
+                          priority.bg,
+                          priority.color,
+                        )}
                       >
-                        <Zap className="h-3 w-3" /> Auto Fix
-                      </button>
-                    ) : null}
+                        {rec.priority}
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden align-middle lg:table-cell">
+                      <span className="line-clamp-2 text-xs text-muted-foreground">
+                        {rec.impact_estimate || "—"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="align-middle">{statusCell}</TableCell>
+                    <TableCell className="pr-3 align-middle text-muted-foreground">
+                      {isExpanded ? (
+                        <ChevronDown className="mx-auto size-4" aria-hidden />
+                      ) : (
+                        <ChevronRight className="mx-auto size-4" aria-hidden />
+                      )}
+                    </TableCell>
+                  </TableRow>
 
-                    {isExpanded
-                      ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      : <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    }
-                  </div>
-                </div>
-              </div>
-
-              {/* Expanded details */}
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-4 pb-4 pt-1 border-t border-border">
+                  {isExpanded ? (
+                    <TableRow className="border-border/60 hover:bg-muted/25">
+                      <TableCell colSpan={7} className="p-0">
+                        <div className="border-t border-border/50 bg-muted/15 px-4 py-4">
                       {/* Description */}
-                      <p className="text-xs text-muted-foreground leading-relaxed mt-3 mb-4">{rec.description}</p>
+                      <p className="mb-4 text-xs leading-relaxed text-muted-foreground">{rec.description}</p>
 
                       {/* Impact estimate */}
                       {rec.impact_estimate && (
@@ -688,12 +754,23 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                                       {stepCode && (
                                         <div className="mt-2 relative group">
                                           <pre className="bg-card border border-border p-2.5 text-[11px] font-mono text-foreground overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">{stepCode}</pre>
-                                          <button
-                                            onClick={(e) => { e.stopPropagation(); copyCode(stepCode, `${rec.id}-${idx}`); }}
-                                            className="absolute top-1.5 right-1.5 bg-card border border-border p-1.5 text-muted-foreground hover:text-foreground transition opacity-0 group-hover:opacity-100"
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon-sm"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              copyCode(stepCode, `${rec.id}-${idx}`);
+                                            }}
+                                            className="absolute right-1.5 top-1.5 border-neutral-200/90 opacity-0 shadow-sm transition group-hover:opacity-100"
+                                            aria-label="Copy code"
                                           >
-                                            {copiedCode === `${rec.id}-${idx}` ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                                          </button>
+                                            {copiedCode === `${rec.id}-${idx}` ? (
+                                              <Check className="h-3 w-3 text-emerald-500" />
+                                            ) : (
+                                              <Copy className="h-3 w-3" />
+                                            )}
+                                          </Button>
                                         </div>
                                       )}
                                     </div>
@@ -757,15 +834,20 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                                   })}
                                 </div>
                                 {Boolean((fixResult as Record<string, unknown>).generated_content) && (
-                                  <button
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      navigator.clipboard.writeText(String((fixResult as Record<string, unknown>).generated_content));
+                                      navigator.clipboard.writeText(
+                                        String((fixResult as Record<string, unknown>).generated_content),
+                                      );
                                     }}
-                                    className="mt-2 flex items-center gap-1.5 rounded bg-amber-500/20 px-3 py-1.5 text-[11px] font-medium text-amber-200 hover:bg-amber-500/30 transition"
+                                    className="mt-2 gap-1.5 border-amber-500/30 bg-amber-500/10 text-[11px] font-semibold text-amber-800 hover:bg-amber-500/20 dark:text-amber-200"
                                   >
-                                    <Copy className="h-3 w-3" /> Copy Generated Content
-                                  </button>
+                                    <Copy className="h-3 w-3" /> Copy generated content
+                                  </Button>
                                 )}
                               </div>
                             </>
@@ -789,18 +871,34 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                           {/* Auto Fix — only for auto-fixable items that haven't returned manual */}
                           {rec.can_auto_fix && slug && email && fixResult?.status !== "manual" && (
                             <>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handlePreview(rec.id); }}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePreview(rec.id);
+                                }}
                                 disabled={isFixing}
-                                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-xs font-medium text-foreground transition hover:bg-accent disabled:opacity-60"
+                                className="h-9 gap-2 border-neutral-200/90 bg-card text-xs font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
                               >
-                                {isFixing && previewingId === rec.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
+                                {isFixing && previewingId === rec.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <Eye className="h-3.5 w-3.5" />
+                                )}
                                 Preview
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleAutoFix(rec.id); }}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="default"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAutoFix(rec.id);
+                                }}
                                 disabled={isFixing || !slug}
-                                className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition hover:opacity-88 disabled:opacity-60"
+                                className="auth-cta-btn h-9 gap-2 text-xs font-semibold"
                               >
                                 {isFixing && previewingId === rec.id ? (
                                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -809,17 +907,23 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                                 ) : (
                                   <Zap className="h-3.5 w-3.5" />
                                 )}
-                                {fixResult?.status === "failed" ? "Retry Fix" : "Auto Fix"}
-                              </button>
+                                {fixResult?.status === "failed" ? "Retry fix" : "Auto Fix"}
+                              </Button>
                             </>
                           )}
                           {/* Verify + Ask in Chat — shown for manual results OR non-auto-fixable items */}
                           {(fixResult?.status === "manual" || !rec.can_auto_fix) && (
                             <>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleVerify(rec.id); }}
+                              <Button
+                                type="button"
+                                variant="default"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleVerify(rec.id);
+                                }}
                                 disabled={isFixing || !slug}
-                                className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-medium text-background transition hover:opacity-88 disabled:opacity-60"
+                                className="auth-cta-btn h-9 gap-2 text-xs font-semibold"
                               >
                                 {isFixing && previewingId !== rec.id ? (
                                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -827,30 +931,40 @@ export function RecommendationsPanel({ recommendations, slug, email, orgId, plat
                                   <ShieldCheck className="h-3.5 w-3.5" />
                                 )}
                                 Verify
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  window.dispatchEvent(new CustomEvent("open-ai-chat", {
-                                    detail: { message: `Help me fix: "${rec.title}". ${rec.description?.slice(0, 150) || ""}. Give me step-by-step instructions for Shopify.` },
-                                  }));
+                                  window.dispatchEvent(
+                                    new CustomEvent("open-ai-chat", {
+                                      detail: {
+                                        message: `Help me fix: "${rec.title}". ${rec.description?.slice(0, 150) || ""}. Give me step-by-step instructions for Shopify.`,
+                                      },
+                                    }),
+                                  );
                                 }}
-                                className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2 text-xs font-medium text-foreground transition hover:bg-accent"
+                                className="h-9 gap-2 border-neutral-200/90 bg-card text-xs font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
                               >
                                 <MessageSquare className="h-3.5 w-3.5" />
                                 Ask in Chat
-                              </button>
+                              </Button>
                             </>
                           )}
                         </div>
                       )}
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </Fragment>
+              );
+              })
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Preview Modal */}
@@ -907,12 +1021,20 @@ function ActionContent({ action }: { action: string }) {
               <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto">
                 {trimmed}
               </pre>
-              <button
-                onClick={() => { navigator.clipboard.writeText(trimmed); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-                className="absolute right-2 top-1.5 opacity-0 group-hover:opacity-100 transition text-muted-foreground hover:text-foreground"
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(trimmed);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1500);
+                }}
+                className="absolute right-2 top-1.5 border-neutral-200/90 opacity-0 shadow-sm transition group-hover:opacity-100"
+                aria-label="Copy snippet"
               >
                 <Copy className="h-3 w-3" />
-              </button>
+              </Button>
             </div>
           );
         }
@@ -954,9 +1076,23 @@ function PlatformBlock({ platform, info, copyKey, copiedCode, onCopy }: {
       {info.code && (
         <div className="relative mt-2 group">
           <pre className="rounded-lg bg-card border border-border px-3 py-2 font-mono text-[11px] text-muted-foreground overflow-x-auto whitespace-pre-wrap">{info.code}</pre>
-          <button onClick={(e) => { e.stopPropagation(); onCopy(info.code!, copyKey); }} className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition p-1 rounded bg-muted hover:bg-accent">
-            {copiedCode === copyKey ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-muted-foreground" />}
-          </button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCopy(info.code!, copyKey);
+            }}
+            className="absolute right-2 top-2 border-neutral-200/90 opacity-0 shadow-sm transition group-hover:opacity-100"
+            aria-label="Copy code"
+          >
+            {copiedCode === copyKey ? (
+              <Check className="size-3 text-emerald-500" />
+            ) : (
+              <Copy className="size-3 text-muted-foreground" />
+            )}
+          </Button>
         </div>
       )}
     </div>

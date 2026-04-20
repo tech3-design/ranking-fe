@@ -32,13 +32,13 @@ export function OAuthButton({ provider }: OAuthButtonProps) {
   return (
     <Button
       variant="outline"
-      className="w-full"
+      className="h-9 w-full rounded-md border-neutral-200 bg-white text-[13px] font-medium text-foreground shadow-none hover:bg-neutral-50"
       onClick={handleClick}
       disabled={loading}
       type="button"
     >
       {providerConfig[provider].icon()}
-      {loading ? "Redirecting\u2026" : `Continue with ${label}`}
+      {loading ? "Redirecting…" : `${label}`}
     </Button>
   );
 }
@@ -59,7 +59,7 @@ const providerConfig: Record<
 
 function GoogleIcon() {
   return (
-    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="size-[18px] shrink-0" viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
         fill="#4285F4"
@@ -83,7 +83,7 @@ function GoogleIcon() {
 function AppleIcon() {
   return (
     <svg
-      className="mr-2 h-4 w-4"
+      className="size-[18px] shrink-0"
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden="true"
