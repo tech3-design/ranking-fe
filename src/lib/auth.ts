@@ -1,11 +1,21 @@
+import fs from "fs";
+import path from "path";
 import { betterAuth } from "better-auth";
 import { emailOTP } from "better-auth/plugins";
-import { Pool } from "pg";
-import { sendOtpEmail } from "@/lib/services/email";
+import Database from "better-sqlite3";
+import { sendOtpEmail } from "./services/email";
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+const rawSqlitePath = process.env.BETTER_AUTH_SQLITE_PATH?.trim();
+const sqliteFile = rawSqlitePath
+  ? path.isAbsolute(rawSqlitePath)
+    ? rawSqlitePath
+    : path.join(process.cwd(), rawSqlitePath)
+  : path.join(process.cwd(), ".data", "better-auth.sqlite");
+
+fs.mkdirSync(path.dirname(sqliteFile), { recursive: true });
+
+const sqlite = new Database(sqliteFile);
+sqlite.pragma("journal_mode = WAL");
 
 const authSecret =
   process.env.BETTER_AUTH_SECRET ??
@@ -26,7 +36,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({
   secret: authSecret,
-  database: pool,
+  database: sqlite,
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   session: {
     expiresIn: 60 * 60 * 24 * 10, // 10 days

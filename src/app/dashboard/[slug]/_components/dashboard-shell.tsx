@@ -102,7 +102,7 @@ export function DashboardShell({ slug, activeNav, children }: DashboardShellProp
         {children}
 
         {/* Footer */}
-        <footer className="px-6 py-4 flex items-center justify-between text-[11px] text-gray-400 border-t border-gray-200/60">
+        {/* <footer className="px-6 py-4 flex items-center justify-between text-[11px] text-gray-400 border-t border-gray-200/60">
           <p>Copyright &copy; 2026 Signalor Ltd.</p>
           <div className="flex items-center gap-4">
             <a href="/privacy-policy" className="hover:text-gray-600 transition">Privacy Policy</a>
@@ -112,7 +112,7 @@ export function DashboardShell({ slug, activeNav, children }: DashboardShellProp
           <div className="flex items-center gap-2 text-gray-400">
             <span>f</span><span>X</span><span>in</span><span>o</span><span>yt</span><span>in</span>
           </div>
-        </footer>
+        </footer> */}
       </main>
     </div>
   );
