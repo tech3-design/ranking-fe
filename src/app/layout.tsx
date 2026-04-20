@@ -36,7 +36,7 @@ export default function RootLayout({
     <html lang="en" className={`light ${fontSans.variable}`}>
       <body
         suppressHydrationWarning
-        className={`signalor-body ${fontSerif.variable} ${fontMono.variable} antialiased`}
+        className={`signalor-body ${fontSerif.variable} ${fontMono.variable} overflow-x-hidden antialiased`}
       >
         {children}
       </body>

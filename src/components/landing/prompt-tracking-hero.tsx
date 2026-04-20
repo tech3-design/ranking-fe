@@ -8,9 +8,19 @@ import { cn } from "@/lib/utils";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import { HeroBackgroundGrid } from "@/components/landing/hero-background-grid";
 import { PROMPT_TRACKING_HERO, PROMPT_TRACKING_HUB_CARDS } from "@/lib/landing-prompt-tracking-content";
+import type { LucideIcon } from "lucide-react";
 
-export function PromptTrackingHero() {
-  const h = PROMPT_TRACKING_HERO;
+type HeroContent = typeof PROMPT_TRACKING_HERO;
+type HubCard = { slug: string; href: string; title: string; description: string; Icon: LucideIcon; cta: string };
+
+export function PromptTrackingHero({
+  hero = PROMPT_TRACKING_HERO,
+  cards = PROMPT_TRACKING_HUB_CARDS,
+}: {
+  hero?: HeroContent;
+  cards?: readonly HubCard[];
+}) {
+  const h = hero;
   return (
     <section className="relative bg-background px-6 pb-16 pt-16 lg:px-12 lg:pb-24 lg:pt-20">
       <HeroBackgroundGrid />
@@ -51,7 +61,7 @@ export function PromptTrackingHero() {
         </div>
 
         <div className="relative z-10 grid min-w-0 gap-3 sm:grid-cols-2 lg:max-w-xl lg:justify-self-end">
-          {PROMPT_TRACKING_HUB_CARDS.map((card) => {
+          {cards.map((card) => {
             const CardIcon = card.Icon;
             return (
               <Link

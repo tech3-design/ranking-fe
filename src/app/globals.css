@@ -82,6 +82,18 @@
     --sidebar-accent-foreground: #171717;
     --sidebar-border: rgba(0,0,0,0.06);
     --sidebar-ring: #e04a3d;
+
+    /* Feature-page theme tokens — accents + section tints per feature grid.
+       Consumed by PromptTrackingFeaturesGrid (theme prop: orange|blue|emerald|violet). */
+    --feature-orange: #e04a3d;          /* same as --primary */
+    --feature-orange-tint: transparent; /* no section tint on orange theme */
+    --feature-blue: #2563eb;
+    --feature-blue-tint: rgba(239, 246, 255, 0.4);   /* tailwind bg-[#eff6ff]/40 */
+    --feature-emerald: #047857;         /* tailwind emerald-700 */
+    --feature-emerald-tint: rgba(236, 253, 245, 0.4); /* tailwind emerald-50/40 */
+    --feature-violet: #6d28d9;          /* tailwind violet-700 */
+    --feature-violet-tint: rgba(245, 243, 255, 0.4);  /* tailwind violet-50/40 */
+
     /* Primary UI font: Inter via `next/font` on `<body>` (`--font-sans`). Fallbacks only here. */
     --font-serif: "DM Serif Display", serif;
     --font-mono: "JetBrains Mono", monospace;

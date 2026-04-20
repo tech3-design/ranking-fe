@@ -3,13 +3,13 @@ import type { LucideIcon } from "lucide-react";
 
 /** Hub + marketing metadata */
 export const PROMPT_TRACKING_SITE = {
-  title: "Prompt tracking",
+  title: "Prompt monitoring",
   description:
     "Monitor AI prompts and surfaces where your brand should appear—aligned with Signalor GEO scoring, citations, and prioritized fixes.",
 } as const;
 
 export const PROMPT_TRACKING_HERO = {
-  titleLine1: "Track",
+  titleLine1: "Monitor",
   titleBadge: "AI",
   titleLine2: "prompts like a",
   titleAccent: "product surface",
@@ -143,6 +143,34 @@ export type PromptTrackingFeatureMock =
       title: string;
       window: string;
       rows: { name: string; pct: string; pctNum: number; barClass: string }[];
+    }
+  | {
+      kind: "engineGrid";
+      engines: {
+        name: string;
+        initial: string;
+        tone: string;
+        coverage: number;
+        trend: "up" | "flat" | "down";
+      }[];
+    }
+  | {
+      kind: "impactList";
+      items: {
+        title: string;
+        impact: number;
+        effort: "S" | "M" | "L";
+        impactTone: "red" | "amber" | "emerald" | "blue";
+      }[];
+    }
+  | {
+      kind: "trendingList";
+      items: {
+        prompt: string;
+        velocity: string;
+        direction: "up" | "new";
+        surface: string;
+      }[];
     };
 
 export const PROMPT_TRACKING_FEATURE_CELLS: {

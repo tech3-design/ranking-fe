@@ -18,17 +18,34 @@ import {
  * Same structural pattern as {@link LandingWhySignalor}: eyebrow, headline with dashed primary span,
  * intro copy, then bg-black-10 md:grid-cols-2 band with proof tiles, preview, breakdown, capability list.
  */
-export function PromptTrackingWhySection() {
-  const w = PROMPT_TRACKING_WHY;
-  const primaryCta = PROMPT_TRACKING_HERO.primaryCta;
+export function PromptTrackingWhySection({
+  content = PROMPT_TRACKING_WHY,
+  proofMetrics = PROMPT_TRACKING_PROOF_METRICS,
+  pillarRows = PROMPT_TRACKING_PILLAR_ROWS,
+  capabilityRows = PROMPT_TRACKING_CAPABILITY_ROWS,
+  primaryCta = PROMPT_TRACKING_HERO.primaryCta,
+  secondaryCtaLabel = "Browse prompt library",
+  secondaryCtaHref = "/prompt-tracking/prompt-library",
+  headingId = "prompt-tracking-why-heading",
+}: {
+  content?: typeof PROMPT_TRACKING_WHY;
+  proofMetrics?: readonly { value: string; label: string }[];
+  pillarRows?: readonly { label: string; value: number; tone: string }[];
+  capabilityRows?: readonly { icon: typeof PROMPT_TRACKING_CAPABILITY_ROWS[number]["icon"]; title: string; description: string }[];
+  primaryCta?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaHref?: string;
+  headingId?: string;
+} = {}) {
+  const w = content;
   return (
-    <section className="relative bg-background" aria-labelledby="prompt-tracking-why-heading">
+    <section className="relative bg-background" aria-labelledby={headingId}>
       <div aria-hidden className="relative left-1/2 w-screen -translate-x-1/2 border-t border-black/6" />
 
       <div className="mx-auto max-w-7xl px-6 pb-12 pt-14 lg:px-12 lg:pb-14 lg:pt-16">
         <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">{w.eyebrow}</p>
         <h2
-          id="prompt-tracking-why-heading"
+          id={headingId}
           className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem] xl:text-5xl"
         >
           {w.titleBefore}{" "}
@@ -58,7 +75,7 @@ export function PromptTrackingWhySection() {
             </div>
             <div className="flex min-h-0 flex-1 flex-col">
               <div className="grid grid-cols-2 gap-px border border-black/6 bg-border">
-                {PROMPT_TRACKING_PROOF_METRICS.map((m) => (
+                {proofMetrics.map((m) => (
                   <div
                     key={m.label}
                     className="bg-background p-6 transition-colors hover:bg-muted/50 sm:p-7"
@@ -83,7 +100,7 @@ export function PromptTrackingWhySection() {
                 variant="outline"
                 className="h-10 border-black/15 bg-background px-5 text-sm font-semibold shadow-sm hover:bg-muted/50"
               >
-                <Link href="/prompt-tracking/prompt-library">Browse prompt library</Link>
+                <Link href={secondaryCtaHref}>{secondaryCtaLabel}</Link>
               </Button>
             </div>
           </div>
@@ -138,7 +155,7 @@ export function PromptTrackingWhySection() {
                     </div>
                   </div>
                   <ul className="mt-4 space-y-2.5 border-t border-black/6 pt-3 text-[12px] font-medium text-neutral-700">
-                    {PROMPT_TRACKING_PILLAR_ROWS.map((row) => (
+                    {pillarRows.map((row) => (
                       <li key={row.label} className="flex items-center gap-2">
                         <span className={`h-1.5 w-8 shrink-0 rounded-full ${row.tone}`} aria-hidden />
                         <span>
@@ -184,7 +201,7 @@ export function PromptTrackingWhySection() {
               <div className="rounded-sm border border-black/6 bg-background p-4">
                 <div className="rounded-xl border border-black/8 bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                   <ul className="divide-y divide-black/6 text-[12px] font-medium">
-                    {PROMPT_TRACKING_CAPABILITY_ROWS.map(({ icon: Icon, title, description }) => (
+                    {capabilityRows.map(({ icon: Icon, title, description }) => (
                       <li key={title} className="flex gap-3 py-3 first:pt-1 last:pb-1">
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-black/8 bg-neutral-50 text-[#e04a3d]">
                           <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />

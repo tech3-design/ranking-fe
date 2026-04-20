@@ -188,17 +188,211 @@ function FeatureMock({ mock }: { mock: PromptTrackingFeatureMock }) {
     );
   }
 
+  if (mock.kind === "engineGrid") {
+    return (
+      <div className="mt-auto w-full rounded-xl border border-black/8 bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <div className="grid grid-cols-3 gap-2">
+          {mock.engines.map((e) => {
+            const arrow = e.trend === "up" ? "↑" : e.trend === "down" ? "↓" : "→";
+            const arrowTone =
+              e.trend === "up" ? "text-emerald-600" : e.trend === "down" ? "text-rose-600" : "text-neutral-400";
+            return (
+              <div key={e.name} className="rounded-md border border-black/6 bg-neutral-50 p-2">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={cn(
+                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[10px] font-bold text-white",
+                      e.tone,
+                    )}
+                    aria-hidden
+                  >
+                    {e.initial}
+                  </span>
+                  <span className="truncate text-[11px] font-semibold text-neutral-800">{e.name}</span>
+                </div>
+                <div className="mt-1.5 flex items-baseline justify-between">
+                  <span className="text-[15px] font-bold tabular-nums text-neutral-900">{e.coverage}%</span>
+                  <span className={cn("text-[11px] font-bold", arrowTone)} aria-hidden>
+                    {arrow}
+                  </span>
+                </div>
+                <div className="mt-1 h-1 overflow-hidden rounded-full bg-neutral-200">
+                  <div className={cn("h-full rounded-full", e.tone)} style={{ width: `${e.coverage}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  if (mock.kind === "impactList") {
+    const effortLabel = { S: "S", M: "M", L: "L" } as const;
+    const impactBg = {
+      red: "bg-rose-100 text-rose-700",
+      amber: "bg-amber-100 text-amber-700",
+      emerald: "bg-emerald-100 text-emerald-700",
+      blue: "bg-[#2563eb]/10 text-[#2563eb]",
+    } as const;
+    return (
+      <div className="mt-auto w-full rounded-xl border border-black/8 bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <ul className="space-y-2 text-[12px]">
+          {mock.items.map((it) => (
+            <li key={it.title} className="flex items-center gap-2.5 rounded-md border border-black/6 bg-neutral-50 p-2">
+              <span
+                className={cn(
+                  "flex h-6 w-10 shrink-0 items-center justify-center rounded text-[10px] font-bold tabular-nums",
+                  impactBg[it.impactTone],
+                )}
+                aria-hidden
+              >
+                +{it.impact}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-semibold text-neutral-900">{it.title}</div>
+                <div className="mt-1 h-1 overflow-hidden rounded-full bg-neutral-200">
+                  <div
+                    className={cn(
+                      "h-full rounded-full",
+                      it.impactTone === "red" && "bg-rose-500",
+                      it.impactTone === "amber" && "bg-amber-500",
+                      it.impactTone === "emerald" && "bg-emerald-500",
+                      it.impactTone === "blue" && "bg-[#2563eb]",
+                    )}
+                    style={{ width: `${Math.min(100, it.impact * 10)}%` }}
+                  />
+                </div>
+              </div>
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-black/10 bg-white text-[10px] font-bold text-neutral-700">
+                {effortLabel[it.effort]}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (mock.kind === "trendingList") {
+    return (
+      <div className="mt-auto w-full rounded-xl border border-black/8 bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <ul className="space-y-2 text-[12px]">
+          {mock.items.map((it) => (
+            <li key={it.prompt} className="flex items-center gap-2.5 rounded-md border border-black/6 bg-neutral-50 p-2">
+              <span
+                className={cn(
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
+                  it.direction === "new"
+                    ? "bg-[#2563eb]/10 text-[#2563eb]"
+                    : "bg-emerald-100 text-emerald-700",
+                )}
+                aria-hidden
+              >
+                {it.direction === "new" ? "★" : "↑"}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-semibold text-neutral-900">{it.prompt}</div>
+                <div className="truncate text-[10px] text-neutral-500">
+                  {it.surface} · {it.velocity}
+                </div>
+              </div>
+              <span
+                className={cn(
+                  "shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                  it.direction === "new"
+                    ? "bg-[#2563eb] text-white"
+                    : "bg-emerald-600 text-white",
+                )}
+              >
+                {it.direction === "new" ? "New" : "Rising"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
   return null;
 }
 
-function FeatureCell({ title, description, mock }: { title: string; description: string; mock: PromptTrackingFeatureMock }) {
+type FeaturesGridTheme = "orange" | "blue" | "emerald" | "violet";
+
+const THEME_STYLES: Record<
+  FeaturesGridTheme,
+  {
+    sectionBg: string;
+    eyebrow: string;
+    accentText: string;
+    accentUnderline: string;
+    cellBg: string;
+    cellPreviewBg: string;
+    cellPreviewBorder: string;
+    cellRadius: string;
+  }
+> = {
+  orange: {
+    sectionBg: "bg-background",
+    eyebrow: "text-neutral-400",
+    accentText: "text-primary",
+    accentUnderline: "border-primary/45",
+    cellBg: "bg-white",
+    cellPreviewBg: "bg-background",
+    cellPreviewBorder: "border-black/10",
+    cellRadius: "rounded-sm",
+  },
+  blue: {
+    sectionBg: "bg-[#eff6ff]/40",
+    eyebrow: "text-[#2563eb]/70",
+    accentText: "text-[#2563eb]",
+    accentUnderline: "border-[#2563eb]/45",
+    cellBg: "bg-white",
+    cellPreviewBg: "bg-[#eff6ff]/60",
+    cellPreviewBorder: "border-[#2563eb]/15",
+    cellRadius: "rounded-lg",
+  },
+  emerald: {
+    sectionBg: "bg-emerald-50/40",
+    eyebrow: "text-emerald-700/70",
+    accentText: "text-emerald-700",
+    accentUnderline: "border-emerald-600/45",
+    cellBg: "bg-white",
+    cellPreviewBg: "bg-emerald-50/60",
+    cellPreviewBorder: "border-emerald-600/15",
+    cellRadius: "rounded-2xl",
+  },
+  violet: {
+    sectionBg: "bg-violet-50/40",
+    eyebrow: "text-violet-700/70",
+    accentText: "text-violet-700",
+    accentUnderline: "border-violet-600/45",
+    cellBg: "bg-white",
+    cellPreviewBg: "bg-violet-50/60",
+    cellPreviewBorder: "border-violet-600/15",
+    cellRadius: "rounded-xl",
+  },
+};
+
+function FeatureCell({
+  title,
+  description,
+  mock,
+  theme,
+}: {
+  title: string;
+  description: string;
+  mock: PromptTrackingFeatureMock;
+  theme: FeaturesGridTheme;
+}) {
+  const t = THEME_STYLES[theme];
   return (
-    <div className="flex flex-col gap-8 rounded-sm bg-white px-6 py-12 md:px-8 md:py-16 lg:px-10">
+    <div className={cn("flex flex-col gap-8 px-6 py-12 md:px-8 md:py-16 lg:px-10", t.cellBg, t.cellRadius)}>
       <div>
         <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">{title}</h3>
         <p className="mt-3 max-w-sm text-sm font-light leading-relaxed text-accent-foreground md:text-[15px]">{description}</p>
       </div>
-      <div className="flex h-full w-full items-center justify-center rounded-sm border bg-background p-4">
+      <div className={cn("flex h-full w-full items-center justify-center border p-4", t.cellRadius, t.cellPreviewBg, t.cellPreviewBorder)}>
         <FeatureMock mock={mock} />
       </div>
     </div>
@@ -210,56 +404,74 @@ function FeatureCell({ title, description, mock }: { title: string; description:
  * max-w-7xl intro, bg-black-10 grid with divide borders and mock UI cards.
  * Copy is driven by {@link PROMPT_TRACKING_FEATURE_CELLS} in `landing-prompt-tracking-content.ts`.
  */
-export function PromptTrackingFeaturesGrid() {
-  const row1 = PROMPT_TRACKING_FEATURE_CELLS.slice(0, 3);
-  const row2 = PROMPT_TRACKING_FEATURE_CELLS.slice(3, 6);
+type FeatureCellContent = { title: string; description: string; mock: PromptTrackingFeatureMock };
+
+export function PromptTrackingFeaturesGrid({
+  intro = PROMPT_TRACKING_FEATURES_INTRO,
+  cells = PROMPT_TRACKING_FEATURE_CELLS,
+  footerCtas = PROMPT_TRACKING_FEATURES_FOOTER_CTAS,
+  headingId = "prompt-tracking-features-heading",
+  theme = "orange",
+}: {
+  intro?: typeof PROMPT_TRACKING_FEATURES_INTRO;
+  cells?: readonly FeatureCellContent[];
+  footerCtas?: typeof PROMPT_TRACKING_FEATURES_FOOTER_CTAS;
+  headingId?: string;
+  theme?: FeaturesGridTheme;
+}) {
+  const row1 = cells.slice(0, 3);
+  const row2 = cells.slice(3, 6);
+  const t = THEME_STYLES[theme];
 
   return (
-    <section className="relative bg-background" aria-labelledby="prompt-tracking-features-heading">
+    <section className={cn("relative", t.sectionBg)} aria-labelledby={headingId}>
       <div aria-hidden className="relative left-1/2 w-screen -translate-x-1/2 border-t border-black/6" />
       <div className="mx-auto max-w-7xl rounded-sm px-6 pb-12 pt-14 lg:px-12 lg:pb-14 lg:pt-16">
-        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
-          {PROMPT_TRACKING_FEATURES_INTRO.eyebrow}
+        <p className={cn("text-[11px] font-medium uppercase tracking-[0.22em]", t.eyebrow)}>
+          {intro.eyebrow}
         </p>
         <h2
-          id="prompt-tracking-features-heading"
+          id={headingId}
           className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem] xl:text-5xl"
         >
-          {PROMPT_TRACKING_FEATURES_INTRO.titleBefore}{" "}
-          <span className="relative whitespace-nowrap text-primary">
-            {PROMPT_TRACKING_FEATURES_INTRO.titleAccent}
+          {intro.titleBefore}{" "}
+          <span className={cn("relative whitespace-nowrap", t.accentText)}>
+            {intro.titleAccent}
             <span
-              className="absolute -bottom-1 left-0 right-0 border-b-2 border-dashed border-primary/45"
+              className={cn("absolute -bottom-1 left-0 right-0 border-b-2 border-dashed", t.accentUnderline)}
               aria-hidden
             />
           </span>
         </h2>
         <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
-          {PROMPT_TRACKING_FEATURES_INTRO.description}
+          {intro.description}
         </p>
       </div>
       <div aria-hidden className="relative left-1/2 w-screen -translate-x-1/2 border-t border-black/6" />
       <div className="mx-auto max-w-7xl bg-black-10">
         <div className="grid grid-cols-1 divide-y divide-black/6 md:grid-cols-3 md:divide-x md:divide-y-0 md:divide-black/6">
           {row1.map((cell) => (
-            <FeatureCell key={cell.title} title={cell.title} description={cell.description} mock={cell.mock} />
+            <FeatureCell key={cell.title} title={cell.title} description={cell.description} mock={cell.mock} theme={theme} />
           ))}
         </div>
 
-        <div aria-hidden className="relative left-1/2 w-screen -translate-x-1/2 border-t border-black/6" />
-
-        <div className="grid grid-cols-1 divide-y divide-black/6 md:grid-cols-3 md:divide-x md:divide-y-0 md:divide-black/6">
-          {row2.map((cell) => (
-            <FeatureCell key={cell.title} title={cell.title} description={cell.description} mock={cell.mock} />
-          ))}
-        </div>
+        {row2.length > 0 && (
+          <>
+            <div aria-hidden className="relative left-1/2 w-screen -translate-x-1/2 border-t border-black/6" />
+            <div className="grid grid-cols-1 divide-y divide-black/6 md:grid-cols-3 md:divide-x md:divide-y-0 md:divide-black/6">
+              {row2.map((cell) => (
+                <FeatureCell key={cell.title} title={cell.title} description={cell.description} mock={cell.mock} theme={theme} />
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="mx-auto max-w-7xl px-6 pb-10 pt-8 lg:px-12">
         <div className="flex flex-wrap justify-center gap-3">
           <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "h-10 px-5")}>
             <Link href="/sign-up">
-              {PROMPT_TRACKING_FEATURES_FOOTER_CTAS.primary}
+              {footerCtas.primary}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </Button>
@@ -268,8 +480,8 @@ export function PromptTrackingFeaturesGrid() {
             variant="outline"
             className="h-10 border-black/15 bg-background px-5 text-sm font-semibold shadow-sm hover:bg-muted/50"
           >
-            <Link href={PROMPT_TRACKING_FEATURES_FOOTER_CTAS.secondaryHref}>
-              {PROMPT_TRACKING_FEATURES_FOOTER_CTAS.secondary}
+            <Link href={footerCtas.secondaryHref}>
+              {footerCtas.secondary}
             </Link>
           </Button>
         </div>
