@@ -4,7 +4,7 @@ import { Bell } from "lucide-react";
 
 export default function NotificationsSettingsPage() {
   return (
-    <div className="px-6 py-6 space-y-6">
+    <div className="px-2 py-2 space-y-6">
       <div>
         <h2 className="text-2xl font-semibold text-foreground">Notifications</h2>
         <p className="text-xs mt-1 text-muted-foreground">Manage email notifications and alerts.</p>

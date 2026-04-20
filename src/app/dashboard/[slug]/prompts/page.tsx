@@ -8,7 +8,7 @@ import {
   type PromptTrack,
 } from "@/lib/api/analyzer";
 import { PromptTracker } from "@/components/analyzer/prompt-tracker";
-import { Loader2, AlertCircle, RefreshCw, Sparkles } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 
 export default function PromptsOverviewPage() {
@@ -48,13 +48,9 @@ export default function PromptsOverviewPage() {
     }
   }
 
-  const totalRuns = tracks.reduce((sum, t) => sum + (t.total_runs ?? 0), 0);
-  const totalMentions = tracks.reduce((sum, t) => sum + (t.mentions ?? 0), 0);
-  const visibility = totalRuns > 0 ? Math.round((totalMentions / totalRuns) * 100) : 0;
-
   return (
     <div className="space-y-6 w-full">
-      <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
+      {/* <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -97,6 +93,13 @@ export default function PromptsOverviewPage() {
             </span>
           </div>
         )}
+      </div> */}
+      <div className="min-w-0">
+        <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Prompt Tracking</h2>
+        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+          See how AI models and search engines respond to queries about your brand.
+          Scored with the 2026 AI Visibility Framework — Authority, Content Quality &amp; Structural signals.
+        </p>
       </div>
 
       {loading && (
@@ -118,6 +121,9 @@ export default function PromptsOverviewPage() {
           tracks={tracks}
           onAdded={(track) => setTracks((prev) => [track, ...prev])}
           onRechecked={() => fetchData()}
+          onDeleted={(trackId) => setTracks((prev) => prev.filter((t) => t.id !== trackId))}
+          onRecheckAll={handleRecheckAll}
+          recheckingAll={recheckingAll}
         />
       )}
     </div>

@@ -121,8 +121,6 @@ export interface BrandVisibility {
   google_details: Record<string, unknown>;
   reddit_score: number;
   reddit_details: Record<string, unknown>;
-  medium_score: number;
-  medium_details: Record<string, unknown>;
   web_mentions_score: number;
   web_mentions_details: Record<string, unknown>;
   /** Instagram/Facebook public scrape + derived scores (optional on older runs) */
@@ -297,6 +295,10 @@ export async function getCitationTrend(slug: string): Promise<CitationTrendPoint
 
 export async function recheckPrompt(slug: string, trackId: number): Promise<void> {
   await apiClient.post(`/api/analyzer/runs/s/${slug}/prompts/${trackId}/recheck/`);
+}
+
+export async function deletePromptTrack(slug: string, trackId: number): Promise<void> {
+  await apiClient.delete(`/api/analyzer/runs/s/${slug}/prompts/${trackId}/`);
 }
 
 export async function recheckAllPrompts(slug: string): Promise<{ count: number }> {
