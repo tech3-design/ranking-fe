@@ -42,18 +42,18 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 
-/* ── Lime accent for the new overview look (matches reference mock) ── */
-const LIME = "#C6F73D";
+/* ── Neon orange accent (matches brand primary) ── */
+const LIME = "#FF5A2B"; // kept var name for minimal diff; now neon orange
 const INK = "#111111";
 
 type Range = "Today" | "Week" | "Month" | "Year";
 const RANGES: Range[] = ["Today", "Week", "Month", "Year"];
 
 const PILLAR_COLORS: Record<string, string> = {
-  Content: "#C6F73D",
-  Schema: "#A3D635",
-  "E-E-A-T": "#86B22B",
-  Technical: "#5F7F1F",
+  Content: "#FF5A2B",
+  Schema: "#E04A3D",
+  "E-E-A-T": "#B8392E",
+  Technical: "#7F2720",
 };
 
 /* ── page ── */
