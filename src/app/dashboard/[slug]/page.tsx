@@ -399,125 +399,181 @@ export default function SignalorDashboard() {
     );
   }
 
+  const projectName =
+    run?.display_brand_name?.trim() ||
+    run?.brand_name ||
+    (run?.url ? normalizeUrl(run.url).split("/")[0] : "Overview");
+  const projectInitials = projectName
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const statusLabel =
+    run?.status === "complete" ? "Active" : run?.status === "failed" ? "Failed" : "Analyzing";
+  const statusClasses =
+    run?.status === "complete"
+      ? "bg-emerald-100 text-emerald-700"
+      : run?.status === "failed"
+        ? "bg-red-100 text-red-700"
+        : "bg-amber-100 text-amber-700";
+
   return (
     <>
-      {/* ── Sticky Top Bar (compact) ── */}
-     
-
-      {/* ── Greeting + URL (scrollable) ── */}
-      <div className="px-6 pb-4 pt-5">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-          {greeting},{" "}
-          <span className="text-primary">{session?.user?.name?.split(" ")[0] || "there"}</span>
-          <span className="text-primary">.</span>
-        </h1>
-        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-          Scores, quick actions, and your latest GEO snapshot.
-        </p>
-        {/* {run?.url && (
-          <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 bg-card mt-4 border border-border">
-            <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: `${CORAL}15` }}>
-              <svg viewBox="0 0 24 24" className="w-3 h-3" fill="none" stroke={CORAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
+      {/* ── Project header (sticky, screenshot-style) ── */}
+      <header className="sticky top-0 z-20 border-b border-neutral-100 bg-background/85 px-6 py-4 backdrop-blur-md supports-backdrop-filter:bg-background/70">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <span className="text-sm font-bold text-primary">{projectInitials}</span>
             </div>
-            <span className="text-xs font-medium truncate text-muted-foreground">{run.url}</span>
-            {run.brand_name && (
-              <span className="ml-auto text-[10px] font-semibold rounded-md px-2 py-0.5 shrink-0" style={{ backgroundColor: `${CORAL}10`, color: CORAL }}>
-                {run.brand_name}
-              </span>
-            )}
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                {projectName}
+              </h1>
+              {run?.url ? (
+                <p className="truncate text-xs text-muted-foreground">{run.url}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {greeting}, {session?.user?.name?.split(" ")[0] || "there"}.
+                </p>
+              )}
+            </div>
           </div>
-        )} */}
-      </div>
-      <header className="sticky top-0 z-20 flex items-center justify-end gap-2 border-b border-border bg-background/85 px-6 py-2.5 backdrop-blur-md supports-backdrop-filter:bg-background/70">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleReanalyze}
-          disabled={reanalyzing || isRunning}
-          className="h-9 gap-1.5 border-neutral-200/90 bg-card px-4 text-xs font-semibold text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
-        >
-          {reanalyzing ? (
-            <Loader2 className="size-3.5 animate-spin" aria-hidden />
-          ) : (
-            <RefreshCw className="size-3.5" aria-hidden />
-          )}
-          Re-analyze
-        </Button>
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          onClick={handleDownloadPDF}
-          disabled={!run || isRunning}
-          className="auth-cta-btn h-9 gap-1.5 px-4 text-xs font-semibold"
-        >
-          <Download className="size-3.5" aria-hidden />
-          Download PDF
-        </Button>
+          <div className="flex shrink-0 flex-wrap items-center gap-4 sm:gap-5">
+            <div className="flex flex-col items-end gap-0.5 text-right">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Status</span>
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+                  statusClasses,
+                )}
+              >
+                {statusLabel}
+              </span>
+            </div>
+            {run?.created_at ? (
+              <div className="hidden flex-col items-end gap-0.5 text-right sm:flex">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Created on
+                </span>
+                <span className="text-xs font-medium text-foreground">
+                  {new Date(run.created_at).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+              </div>
+            ) : null}
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleReanalyze}
+                disabled={reanalyzing || isRunning}
+                className="h-9 gap-1.5 rounded-xl border-neutral-200/90 bg-card px-4 text-xs font-semibold text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+              >
+                {reanalyzing ? (
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                ) : (
+                  <RefreshCw className="size-3.5" aria-hidden />
+                )}
+                Re-analyze
+              </Button>
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={handleDownloadPDF}
+                disabled={!run || isRunning}
+                className="auth-cta-btn h-9 gap-1.5 rounded-xl px-4 text-xs font-semibold"
+              >
+                <Download className="size-3.5" aria-hidden />
+                Download PDF
+              </Button>
+            </div>
+          </div>
+        </div>
       </header>
 
       {/* Dashboard content */}
       {run && !isRunning && (
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 pt-5">
           {/* ── ROW 1 ── */}
           <div className="grid grid-cols-12 gap-4 mb-4">
-            {/* GEO Score Card */}
-            <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
-              <div className="flex items-start gap-6">
-                <div className="flex flex-col items-center shrink-0">
-                  <p className="text-sm font-semibold mb-3 text-foreground">GEO Score</p>
-                  <div className="relative w-28 h-28">
-                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" strokeWidth="7" />
-                      <circle
-                        cx="50" cy="50" r="40" fill="none"
-                        stroke={CORAL} strokeWidth="7" strokeLinecap="round"
-                        strokeDasharray={`${compositeScore * 2.51} ${100 * 2.51}`}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold text-foreground">{Math.round(compositeScore)}</span>
-                      {scoreChange !== null && (
-                        <span className="text-[11px] font-semibold text-muted-foreground">
-                          {scoreChange >= 0 ? "+" : ""}{scoreChange} pts
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+            {/* GEO Score — gauge meter */}
+            <div className="col-span-3 bg-white rounded-xl p-4 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-foreground">GEO Score</p>
+                <button
+                  type="button"
+                  aria-label="GEO score options"
+                  className="text-muted-foreground transition hover:text-foreground"
+                >
+                  <MoreHorizontal className="size-4" />
+                </button>
+              </div>
 
-                <div className="flex flex-col gap-3 flex-1 pt-1">
-                  <Link
-                    href={`/dashboard/${slug}/recommendations`}
-                    className="rounded-xl px-4 py-3.5 border border-primary/15 bg-primary/5 transition hover:bg-primary/10"
+              <div className="mt-1 flex items-center justify-center">
+                <svg viewBox="0 0 180 108" className="w-[170px]" aria-hidden>
+                  {(() => {
+                    const total = 15;
+                    const filled = Math.round((compositeScore / 100) * total);
+                    const cx = 90;
+                    const cy = 94;
+                    const r = 68;
+                    const barW = 7;
+                    const barH = 20;
+                    return Array.from({ length: total }).map((_, i) => {
+                      const angleDeg = 180 - (i / (total - 1)) * 180;
+                      const rad = (angleDeg * Math.PI) / 180;
+                      const x = cx + r * Math.cos(rad);
+                      const y = cy - r * Math.sin(rad);
+                      const rot = 90 - angleDeg;
+                      const isFilled = i < filled;
+                      return (
+                        <rect
+                          key={i}
+                          x={-barW / 2}
+                          y={-barH / 2}
+                          width={barW}
+                          height={barH}
+                          rx={2.5}
+                          fill={CORAL}
+                          fillOpacity={isFilled ? 1 : 0.15}
+                          transform={`translate(${x} ${y}) rotate(${rot})`}
+                        />
+                      );
+                    });
+                  })()}
+                  <text
+                    x="90"
+                    y="86"
+                    textAnchor="middle"
+                    className="fill-foreground font-bold"
+                    style={{ fontSize: 22 }}
                   >
-                    <p className="text-xs mb-1 text-muted-foreground">Recommendations</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-foreground">{recommendations.length}</span>
-                      {criticalCount > 0 && (
-                        <span className="text-xs text-muted-foreground">{criticalCount} critical</span>
-                      )}
-                    </div>
-                  </Link>
-                  <Link
-                    href={`/dashboard/${slug}/recommendations`}
-                    className="rounded-xl px-4 py-3.5 border border-border bg-background transition hover:bg-muted/40"
+                    {Math.round(compositeScore)}
+                    <tspan style={{ fontSize: 11 }} className="fill-muted-foreground"> /100</tspan>
+                  </text>
+                  <text
+                    x="90"
+                    y="102"
+                    textAnchor="middle"
+                    className="fill-muted-foreground"
+                    style={{ fontSize: 9 }}
                   >
-                    <p className="text-xs mb-1 text-muted-foreground">Priority Issues</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-foreground">{criticalCount + highCount}</span>
-                      <span className="text-xs text-muted-foreground">{criticalCount} critical / {highCount} high</span>
-                    </div>
-                  </Link>
-                </div>
+                    GEO Score
+                  </text>
+                </svg>
               </div>
             </div>
 
             {/* GEO Score History */}
-            <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
+            <div className="col-span-5 bg-white rounded-xl p-5 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-foreground">GEO Score History</p>
                 {/* Range dropdown */}
@@ -602,7 +658,7 @@ export default function SignalorDashboard() {
             </div>
 
             {/* Pillar Breakdown — horizontal bars */}
-            <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
+            <div className="col-span-4 bg-white rounded-xl p-5 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-foreground">Pillar Breakdown</p>
                 <Button
@@ -657,12 +713,12 @@ export default function SignalorDashboard() {
           {/* ── ROW 2 ── */}
           <div className="grid grid-cols-12 gap-4 mb-4">
             {/* Top Issues */}
-            <div className="col-span-5 bg-card rounded-2xl p-5 border border-border">
+            <div className="col-span-5 bg-white rounded-xl p-5 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold text-foreground">Top Issues</p>
                 <Link
                   href={`/dashboard/${slug}/recommendations`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/25 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
+                  className="text-xs font-semibold text-primary transition hover:underline"
                 >
                   View All ({recommendations.length})
                 </Link>
@@ -672,7 +728,7 @@ export default function SignalorDashboard() {
                   <Link
                     key={i}
                     href={`/dashboard/${slug}/recommendations`}
-                    className="rounded-xl p-4 transition hover:shadow-sm group bg-background border border-border"
+                    className="group rounded-xl border border-neutral-100 bg-white p-4 transition hover:border-primary/15 hover:shadow-[0_1px_3px_rgba(15,23,42,0.06)]"
                   >
                     <div className="flex items-start gap-2 mb-1.5">
                       <span
@@ -692,7 +748,7 @@ export default function SignalorDashboard() {
             </div>
 
             {/* Visibility by Platform */}
-            <div className="col-span-4 bg-card rounded-2xl p-6 border border-border">
+            <div className="col-span-4 bg-white rounded-xl p-6 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
               <p className="text-sm font-semibold mb-5 text-foreground">Visibility by Platform</p>
               {visibilityBars.length > 0 ? (
                 <div className="flex items-end gap-5 px-2" style={{ height: 180 }}>
@@ -762,7 +818,7 @@ export default function SignalorDashboard() {
             </div>
 
             {/* AI Engine Probes — pie chart */}
-            <div className="col-span-3 bg-card rounded-2xl p-5 border border-border flex flex-col">
+            <div className="col-span-3 bg-white rounded-xl p-5 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)] flex flex-col">
               <p className="text-sm font-semibold text-foreground mb-3">AI Engine Probes</p>
               {sentiment ? (() => {
                 const mentionPct = sentiment.aiMentioned / sentiment.aiTotal;
@@ -819,7 +875,7 @@ export default function SignalorDashboard() {
           {(prediction.gain > 0 || sentiment) && (
             <div className="grid grid-cols-12 gap-4 mb-4">
               {/* 7-Day Prediction */}
-              <div className="col-span-7 bg-card rounded-2xl p-6 border border-border">
+              <div className="col-span-7 bg-white rounded-xl p-6 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                 <div className="flex items-center justify-between mb-5">
                   <div>
                     <p className="text-sm font-semibold text-foreground">7-Day Score Prediction</p>
@@ -899,7 +955,7 @@ export default function SignalorDashboard() {
               </div>
 
               {/* Sentiment Analysis — -10 to +10 scale */}
-              <div className="col-span-5 bg-card rounded-2xl p-6 border border-border">
+              <div className="col-span-5 bg-white rounded-xl p-6 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                 <p className="text-sm font-semibold mb-1 text-foreground">Sentiment Analysis</p>
                 <p className="text-xs mb-5 text-muted-foreground">What people say about your brand online</p>
 
@@ -984,7 +1040,7 @@ export default function SignalorDashboard() {
           )}
 
           {/* ── ROW 3: Recommendations ── */}
-          <div className="bg-card rounded-2xl p-5 border border-border">
+          <div className="bg-white rounded-xl p-5 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <p className="text-lg font-semibold text-foreground">Recommendations</p>

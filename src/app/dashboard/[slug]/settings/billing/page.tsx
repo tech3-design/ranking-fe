@@ -103,10 +103,10 @@ export default function BillingSettingsPage() {
   const atAnyLimit = usage?.at_limit.projects || usage?.at_limit.prompts;
 
   return (
-    <div className="px-2 py-2 space-y-6">
+    <div className="px-2 py-2 space-y-6 font-sans">
       <div>
-        <h2 className="text-2xl font-semibold text-foreground">Billing & Usage</h2>
-        <p className="text-xs mt-1 text-muted-foreground">
+        <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Billing & Usage</h2>
+        <p className="mt-1 text-[13px] font-light leading-relaxed text-accent-foreground">
           Manage your subscription and track what you&apos;ve used.
         </p>
       </div>
@@ -118,28 +118,28 @@ export default function BillingSettingsPage() {
       ) : (
         <>
           {/* Subscription status */}
-          <div className="bg-card rounded-2xl p-6 border border-border">
+          <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    sub?.is_active ? "bg-[#22c55e]/10" : "bg-primary/10"
+                  className={`flex h-10 w-10 items-center justify-center rounded-sm border border-black/8 bg-white shadow-sm ${
+                    sub?.is_active ? "text-[#16a34a]" : "text-primary"
                   }`}
                 >
                   {sub?.is_active ? (
-                    <CheckCircle2 className="w-5 h-5 text-[#22c55e]" />
+                    <CheckCircle2 className="h-5 w-5" strokeWidth={1.75} />
                   ) : (
-                    <XCircle className="w-5 h-5 text-primary" />
+                    <XCircle className="h-5 w-5" strokeWidth={1.75} />
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    <PlanIcon className="w-4 h-4 text-primary" />
+                  <p className="flex items-center gap-2 text-[14px] font-semibold tracking-tight text-neutral-900">
+                    <PlanIcon className="h-4 w-4 text-primary" strokeWidth={1.75} />
                     {sub?.is_active
                       ? `${sub.plan_label} Plan — Active`
                       : "No Active Subscription"}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[12px] font-light leading-snug text-accent-foreground">
                     {sub?.is_active && sub.current_period_end
                       ? `Renews on ${new Date(sub.current_period_end).toLocaleDateString("en-GB", {
                           month: "long",
@@ -151,15 +151,15 @@ export default function BillingSettingsPage() {
                 </div>
               </div>
               {sub?.is_active ? (
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#22c55e]/10 text-[#22c55e]">
+                <span className="rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 px-3 py-1.5 text-[11px] font-semibold tracking-tight text-[#16a34a]">
                   Active
                 </span>
               ) : (
                 <Link
                   href="/pricing"
-                  className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white bg-primary transition hover:opacity-90"
+                  className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-[12px] font-semibold tracking-tight text-primary-foreground shadow-sm transition hover:opacity-90"
                 >
-                  <CreditCard className="w-3.5 h-3.5" />
+                  <CreditCard className="h-3.5 w-3.5" strokeWidth={1.75} />
                   Choose a Plan
                 </Link>
               )}
@@ -168,12 +168,12 @@ export default function BillingSettingsPage() {
 
           {/* Usage */}
           {usage && (
-            <div className="bg-card rounded-2xl p-6 border border-border space-y-5">
+            <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm space-y-5">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-foreground">Usage this period</p>
+                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Usage this period</p>
                 {atAnyLimit && (
-                  <span className="text-[11px] font-semibold text-[#E04D00] flex items-center gap-1">
-                    <AlertTriangle className="w-3.5 h-3.5" />
+                  <span className="flex items-center gap-1 text-[11px] font-semibold tracking-tight text-[#E04D00]">
+                    <AlertTriangle className="h-3.5 w-3.5" />
                     At limit — upgrade to continue
                   </span>
                 )}
@@ -193,14 +193,14 @@ export default function BillingSettingsPage() {
               />
 
               <div className="pt-1">
-                <p className="text-xs text-muted-foreground mb-2 font-medium">AI Engines included</p>
+                <p className="mb-2 text-[12px] font-light leading-snug text-accent-foreground">AI Engines included</p>
                 <div className="flex flex-wrap gap-1.5">
                   {["gemini", "google", "chatgpt", "perplexity", "claude"].map((eng) => {
                     const allowed = usage.limits.engines.includes(eng);
                     return (
                       <span
                         key={eng}
-                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                        className="rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-tight"
                         style={{
                           backgroundColor: allowed ? "#22c55e18" : "#00000008",
                           color: allowed ? "#16a34a" : "#00000040",
@@ -216,17 +216,17 @@ export default function BillingSettingsPage() {
                 </div>
               </div>
 
-              <div className="pt-1 border-t border-border text-xs text-muted-foreground flex items-center justify-between">
-                <span>Runs this month: <strong className="text-foreground">{usage.usage.runs_this_month}</strong></span>
-                <span className="capitalize text-foreground font-medium">{sub?.plan_label || "Starter"} plan</span>
+              <div className="flex items-center justify-between border-t border-black/8 pt-3 text-[12px] font-light text-accent-foreground">
+                <span>Runs this month: <strong className="font-semibold text-neutral-900">{usage.usage.runs_this_month}</strong></span>
+                <span className="capitalize font-semibold text-neutral-900">{sub?.plan_label || "Starter"} plan</span>
               </div>
             </div>
           )}
 
           {/* Plan features */}
           {sub?.is_active && sub.limits && (
-            <div className="bg-card rounded-2xl p-6 border border-border">
-              <p className="text-sm font-semibold text-foreground mb-4">
+            <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm">
+              <p className="mb-4 text-[14px] font-semibold tracking-tight text-neutral-900">
                 What&apos;s included in your plan
               </p>
               <div className="space-y-2.5">
@@ -244,8 +244,8 @@ export default function BillingSettingsPage() {
                   ),
                 ].map((f) => (
                   <div key={f} className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[#22c55e]" />
-                    <span className="text-xs text-foreground">{f}</span>
+                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#16a34a]" strokeWidth={2} />
+                    <span className="text-[13px] font-light leading-snug text-neutral-900">{f}</span>
                   </div>
                 ))}
               </div>
@@ -254,18 +254,18 @@ export default function BillingSettingsPage() {
 
           {/* Invoice */}
           {sub?.is_active && sub.invoice_available && email && (
-            <div className="bg-card rounded-2xl p-6 border border-border">
-              <p className="text-sm font-semibold text-foreground mb-1">Invoices</p>
-              <p className="text-xs text-muted-foreground mb-4">
+            <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm">
+              <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Invoices</p>
+              <p className="mb-4 mt-1 text-[12px] font-light leading-snug text-accent-foreground">
                 Download the PDF receipt for your latest successful payment.
               </p>
               <a
                 href={`${config.apiBaseUrl}/api/payments/invoice/?email=${encodeURIComponent(email)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold border border-border bg-background text-foreground transition hover:bg-muted"
+                className="inline-flex items-center gap-2 rounded-sm border border-black/8 bg-white px-4 py-2.5 text-[12px] font-semibold tracking-tight text-neutral-900 shadow-sm transition hover:bg-neutral-50"
               >
-                <FileDown className="w-4 h-4" />
+                <FileDown className="h-4 w-4" strokeWidth={1.75} />
                 Download latest invoice
               </a>
             </div>
@@ -273,30 +273,30 @@ export default function BillingSettingsPage() {
 
           {/* Upgrade prompt */}
           {sub?.is_active && sub.plan !== "business" && (
-            <div className="bg-card rounded-2xl p-5 border border-border flex items-center justify-between">
+            <div className="flex items-center justify-between rounded-sm border border-black/8 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Rocket className="w-4 h-4 text-primary" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
+                  <Rocket className="h-4 w-4" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-[14px] font-semibold tracking-tight text-neutral-900">
                     {atAnyLimit ? "You've hit your plan limit" : "Need more capacity?"}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[12px] font-light leading-snug text-accent-foreground">
                     Upgrade for more projects, prompts, and AI engines.
                   </p>
                 </div>
               </div>
               <Link
                 href="/pricing"
-                className="rounded-xl px-4 py-2 text-xs font-semibold text-white bg-primary transition hover:opacity-90"
+                className="rounded-sm bg-primary px-4 py-2 text-[12px] font-semibold tracking-tight text-primary-foreground shadow-sm transition hover:opacity-90"
               >
                 Upgrade
               </Link>
             </div>
           )}
 
-          <p className="text-[11px] text-muted-foreground text-center">
+          <p className="text-center text-[11px] font-light text-accent-foreground">
             Payments are processed securely by Dodo Payments. Cancel anytime.
           </p>
         </>
