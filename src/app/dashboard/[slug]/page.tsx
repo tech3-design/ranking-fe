@@ -44,9 +44,7 @@ import { cn } from "@/lib/utils";
 
 /* ── Lime accent for the new overview look (matches reference mock) ── */
 const LIME = "#C6F73D";
-const LIME_SOFT = "#E8FBA8";
 const INK = "#111111";
-const MUTED_BAR = "#E6E8EA";
 
 type Range = "Today" | "Week" | "Month" | "Year";
 const RANGES: Range[] = ["Today", "Week", "Month", "Year"];
@@ -383,10 +381,10 @@ export default function SignalorDashboard() {
             icon={<Zap className="size-4 fill-neutral-900 text-neutral-900" />}
             href={`/dashboard/${slug}/visibility`}
           >
-            <div className="mb-3 text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl">
+            <div className="mb-2 text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl">
               {Math.round(compositeScore).toLocaleString()}
             </div>
-            <div className="h-[200px] w-full">
+            <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData} margin={{ top: 24, right: 12, left: 0, bottom: 0 }}>
                   <defs>
@@ -438,18 +436,18 @@ export default function SignalorDashboard() {
                         return (
                           <g>
                             <rect
-                              x={x - 20}
-                              y={y - 22}
-                              width={40}
-                              height={18}
-                              rx={9}
+                              x={x - 17}
+                              y={y - 20}
+                              width={34}
+                              height={16}
+                              rx={8}
                               fill={LIME}
                             />
                             <text
                               x={x}
-                              y={y - 9}
+                              y={y - 8.5}
                               textAnchor="middle"
-                              fontSize={11}
+                              fontSize={10.5}
                               fontWeight={700}
                               fill={INK}
                             >
@@ -510,7 +508,7 @@ export default function SignalorDashboard() {
               href={`/dashboard/${slug}/recommendations`}
             >
               <div className="flex items-center gap-4">
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-1.5">
                   {pillarDonut.slice(0, 3).map((p) => (
                     <div
                       key={p.name}
@@ -527,14 +525,14 @@ export default function SignalorDashboard() {
                     </div>
                   ))}
                 </div>
-                <div className="relative size-[128px]">
+                <div className="relative size-[136px] shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={pillarDonut}
                         dataKey="value"
-                        innerRadius={42}
-                        outerRadius={62}
+                        innerRadius={44}
+                        outerRadius={66}
                         paddingAngle={3}
                         stroke="none"
                       >
@@ -545,17 +543,17 @@ export default function SignalorDashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-lg font-bold text-neutral-900">
+                    <span className="text-base font-bold text-neutral-900">
                       {donutTotal > 0 ? "100%" : "—"}
                     </span>
                     <span className="text-[9px] text-neutral-400">Data</span>
                   </div>
-                  <div className="absolute -left-1 top-2 rounded-md bg-white px-1.5 py-0.5 text-[9px] font-semibold text-neutral-700 shadow ring-1 ring-neutral-200">
-                    {Math.round((pillarDonut[0]?.value / Math.max(1, donutTotal)) * 100)}%
-                  </div>
-                  <div className="absolute -right-2 bottom-4 rounded-md bg-white px-1.5 py-0.5 text-[9px] font-semibold text-neutral-700 shadow ring-1 ring-neutral-200">
-                    {Math.round((pillarDonut[2]?.value / Math.max(1, donutTotal)) * 100)}%
-                  </div>
+                  <span className="absolute -top-1 left-1/2 -translate-x-1/2 text-[10px] font-bold text-neutral-800">
+                    {Math.round(((pillarDonut[0]?.value ?? 0) / Math.max(1, donutTotal)) * 100)}%
+                  </span>
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-bold text-neutral-800">
+                    {Math.round(((pillarDonut[2]?.value ?? 0) / Math.max(1, donutTotal)) * 100)}%
+                  </span>
                 </div>
               </div>
             </Tile>
@@ -605,27 +603,29 @@ export default function SignalorDashboard() {
               <div className="mb-4 text-3xl font-semibold tracking-tight text-neutral-900">
                 {Math.round(compositeScore).toLocaleString()}
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {pillarBars.map((b) => {
                   const pct = Math.max(4, Math.min(100, (b.value / b.max) * 100));
                   return (
                     <div key={b.label} className="flex items-center gap-3">
-                      <span className="w-14 shrink-0 text-[11px] font-medium text-neutral-500">
-                        {b.label}
+                      <span className="w-10 shrink-0 text-[11px] font-medium text-neutral-500">
+                        {b.label.slice(0, 2)}
                       </span>
-                      <div className="relative h-4 flex-1 overflow-hidden rounded-full bg-neutral-100">
+                      <div className="flex h-5 flex-1 overflow-hidden rounded-full">
                         <div
-                          className="absolute inset-y-0 left-0 flex items-center rounded-full"
+                          className="h-full"
                           style={{ width: `${pct}%`, backgroundColor: LIME }}
                         />
                         <div
-                          className="absolute inset-y-0 left-0 flex items-center rounded-full opacity-0"
-                          style={{ width: `${pct}%`, backgroundColor: MUTED_BAR }}
+                          className="h-full"
+                          style={{
+                            width: `${100 - pct}%`,
+                            backgroundImage:
+                              "repeating-linear-gradient(90deg, #D4D4D4 0 4px, transparent 4px 8px)",
+                            backgroundColor: "transparent",
+                          }}
                         />
                       </div>
-                      <span className="w-14 shrink-0 text-right text-[11px] font-semibold tabular-nums text-neutral-700">
-                        {b.value.toLocaleString()}
-                      </span>
                     </div>
                   );
                 })}
@@ -707,9 +707,9 @@ function Tile({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl bg-white p-5 ring-1 ring-neutral-200/80">
+    <div className="rounded-[22px] border border-neutral-100 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_14px_-6px_rgba(15,23,42,0.08)]">
       <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-[13px] font-medium text-neutral-700">
+        <div className="flex items-center gap-1.5 text-[13px] font-medium text-neutral-800">
           {icon}
           <span>{label}</span>
         </div>
@@ -717,7 +717,7 @@ function Tile({
           <Link
             href={href}
             aria-label={`Open ${label}`}
-            className="flex size-6 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
+            className="flex size-6 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"
           >
             <ArrowUpRight className="size-3.5" />
           </Link>
