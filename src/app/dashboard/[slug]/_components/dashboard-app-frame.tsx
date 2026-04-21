@@ -141,7 +141,7 @@ export function DashboardAppFrame({
   );
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-muted/40 text-foreground dark:bg-background">
+    <div className="flex h-[100dvh] flex-col bg-muted/40 text-foreground dark:bg-background">
 
       <ThemeHotkeyBinder />
 
@@ -239,7 +239,7 @@ export function DashboardAppFrame({
 
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-muted/40 dark:bg-background/80">
 
-            <main className="mx-auto w-full max-w-7xl flex-1 overflow-y-auto px-4 py-8 sm:py-8">
+            <main className="mx-auto w-full min-h-0 max-w-7xl flex-1 overflow-y-auto px-4 py-8 sm:py-8">
               {children}
             </main>
 

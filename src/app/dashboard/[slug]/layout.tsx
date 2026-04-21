@@ -62,7 +62,7 @@ const MAIN_NAV: MainNavItem[] = [
     path: "/prompts",
     children: [
       { label: "Actions", path: "/prompts/actions" },
-      { label: "Recommendations", path: "/prompts/recommendations" },
+      { label: "Explorer", path: "/prompts/recommendations" },
       { label: "History", path: "/prompts/history" },
     ],
   },
@@ -104,8 +104,8 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
   }
   if (rel.startsWith("/prompts/recommendations")) {
     return {
-      title: "Prompt recommendations",
-      hint: "Suggested prompt sets for your properties.",
+      title: "Explorer",
+      hint: "Explore suggested prompt sets for your properties.",
     };
   }
   if (rel.startsWith("/prompts/history")) {
