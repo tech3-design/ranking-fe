@@ -93,6 +93,8 @@
     --feature-emerald-tint: rgba(236, 253, 245, 0.4); /* tailwind emerald-50/40 */
     --feature-violet: #6d28d9;          /* tailwind violet-700 */
     --feature-violet-tint: rgba(245, 243, 255, 0.4);  /* tailwind violet-50/40 */
+    --feature-amber: #b45309;           /* tailwind amber-700 — editorial/blog accent */
+    --feature-amber-tint: rgba(255, 251, 235, 0.5);   /* tailwind amber-50/50 */
 
     /* Primary UI font: Inter via `next/font` on `<body>` (`--font-sans`). Fallbacks only here. */
     --font-serif: "DM Serif Display", serif;

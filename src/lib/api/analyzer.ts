@@ -216,6 +216,17 @@ export function getExportPDFUrl(runId: number): string {
 export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity" | "google" | "bing";
 export type Sentiment = "positive" | "neutral" | "negative";
 
+export interface PromptCitation {
+  id: number;
+  url: string;
+  domain: string;
+  title: string;
+  snippet: string;
+  position: number;
+  is_brand: boolean;
+  is_competitor: boolean;
+}
+
 export interface PromptResult {
   id: number;
   engine: Engine;
@@ -225,6 +236,32 @@ export interface PromptResult {
   confidence: number;
   rank_position: number;
   checked_at: string;
+  citations?: PromptCitation[];
+}
+
+export interface CitationDomain {
+  domain: string;
+  total: number;
+  is_brand: boolean;
+  is_competitor: boolean;
+  by_engine: Partial<Record<Engine, number>>;
+  sample_url: string;
+}
+
+export interface CitedPage {
+  url: string;
+  title: string;
+  mentions: number;
+  domain?: string;
+}
+
+export interface CitationSourcesResponse {
+  total_citations: number;
+  brand_citations: number;
+  competitor_citations: number;
+  domains: CitationDomain[];
+  your_pages: CitedPage[];
+  rival_pages: CitedPage[];
 }
 
 export interface PromptTrack {
@@ -289,6 +326,13 @@ export async function getShareOfVoice(slug: string): Promise<ShareOfVoiceItem[]>
 export async function getCitationTrend(slug: string): Promise<CitationTrendPoint[]> {
   const { data } = await apiClient.get<CitationTrendPoint[]>(
     `/api/analyzer/runs/s/${slug}/citation-trend/`,
+  );
+  return data;
+}
+
+export async function getCitationSources(slug: string): Promise<CitationSourcesResponse> {
+  const { data } = await apiClient.get<CitationSourcesResponse>(
+    `/api/analyzer/runs/s/${slug}/citations/`,
   );
   return data;
 }

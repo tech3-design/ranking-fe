@@ -28,8 +28,8 @@ import {
   type SocialPresenceDetails,
 } from "@/components/analyzer/social-brand-reach-card";
 
-/* ── coral is theme-constant; everything else uses Tailwind classes ── */
-const CORAL = "#F95C4B";
+/* ── Aligned with theme primary (`--primary: #e04a3d` in globals.css). ── */
+const CORAL = "#e04a3d";
 
 /* ── priority colors ── */
 const PRIORITY_COLORS: Record<string, string> = {
@@ -40,7 +40,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  critical: "bg-[#F95C4B]/10 text-[#F95C4B]",
+  critical: "bg-primary/10 text-primary",
   high: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   medium: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
   low: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
@@ -406,11 +406,14 @@ export default function SignalorDashboard() {
 
       {/* ── Greeting + URL (scrollable) ── */}
       <div className="px-6 pb-4 pt-5">
-        <h1 className="text-3xl font-bold leading-none tracking-tight text-foreground md:text-4xl">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
           {greeting},{" "}
           <span className="text-primary">{session?.user?.name?.split(" ")[0] || "there"}</span>
           <span className="text-primary">.</span>
         </h1>
+        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+          Scores, quick actions, and your latest GEO snapshot.
+        </p>
         {/* {run?.url && (
           <div className="flex items-center gap-2 rounded-xl px-3.5 py-2 bg-card mt-4 border border-border">
             <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: `${CORAL}15` }}>
@@ -461,27 +464,24 @@ export default function SignalorDashboard() {
         <div className="px-6 pb-6">
           {/* ── ROW 1 ── */}
           <div className="grid grid-cols-12 gap-4 mb-4">
-            {/* GEO Score Card — special coral gradient, kept as-is */}
-            <div className="col-span-4 rounded-2xl p-6 relative overflow-hidden" style={{ background: `linear-gradient(145deg, ${CORAL} 0%, #FF7A6B 50%, #FF9080 100%)`, border: "none" }}>
-              {/* Decorative circles */}
-              <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.12)" }} />
-              <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.08)" }} />
-              <div className="flex items-start gap-6 relative z-10">
+            {/* GEO Score Card */}
+            <div className="col-span-4 bg-card rounded-2xl p-5 border border-border">
+              <div className="flex items-start gap-6">
                 <div className="flex flex-col items-center shrink-0">
-                  <p className="text-xs font-semibold mb-3 text-white/70">GEO Score</p>
+                  <p className="text-sm font-semibold mb-3 text-foreground">GEO Score</p>
                   <div className="relative w-28 h-28">
                     <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="7" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" strokeWidth="7" />
                       <circle
                         cx="50" cy="50" r="40" fill="none"
-                        stroke="#FFFFFF" strokeWidth="7" strokeLinecap="round"
+                        stroke={CORAL} strokeWidth="7" strokeLinecap="round"
                         strokeDasharray={`${compositeScore * 2.51} ${100 * 2.51}`}
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold text-white">{Math.round(compositeScore)}</span>
+                      <span className="text-3xl font-bold text-foreground">{Math.round(compositeScore)}</span>
                       {scoreChange !== null && (
-                        <span className="text-[11px] font-semibold text-white/80">
+                        <span className="text-[11px] font-semibold text-muted-foreground">
                           {scoreChange >= 0 ? "+" : ""}{scoreChange} pts
                         </span>
                       )}
@@ -490,20 +490,26 @@ export default function SignalorDashboard() {
                 </div>
 
                 <div className="flex flex-col gap-3 flex-1 pt-1">
-                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:brightness-110" style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                    <p className="text-xs mb-1 text-white/60">Recommendations</p>
+                  <Link
+                    href={`/dashboard/${slug}/recommendations`}
+                    className="rounded-xl px-4 py-3.5 border border-primary/15 bg-primary/5 transition hover:bg-primary/10"
+                  >
+                    <p className="text-xs mb-1 text-muted-foreground">Recommendations</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-white">{recommendations.length}</span>
+                      <span className="text-2xl font-bold text-foreground">{recommendations.length}</span>
                       {criticalCount > 0 && (
-                        <span className="text-xs text-white/70">{criticalCount} critical</span>
+                        <span className="text-xs text-muted-foreground">{criticalCount} critical</span>
                       )}
                     </div>
                   </Link>
-                  <Link href={`/dashboard/${slug}/recommendations`} className="rounded-xl px-4 py-3.5 transition hover:brightness-110" style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                    <p className="text-xs mb-1 text-white/60">Priority Issues</p>
+                  <Link
+                    href={`/dashboard/${slug}/recommendations`}
+                    className="rounded-xl px-4 py-3.5 border border-border bg-background transition hover:bg-muted/40"
+                  >
+                    <p className="text-xs mb-1 text-muted-foreground">Priority Issues</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-white">{criticalCount + highCount}</span>
-                      <span className="text-xs text-white/60">{criticalCount} critical / {highCount} high</span>
+                      <span className="text-2xl font-bold text-foreground">{criticalCount + highCount}</span>
+                      <span className="text-xs text-muted-foreground">{criticalCount} critical / {highCount} high</span>
                     </div>
                   </Link>
                 </div>
@@ -617,7 +623,7 @@ export default function SignalorDashboard() {
                       <span className="font-semibold text-foreground">{Math.round(row.score)}/100</span>
                     </div>
                     <div className="h-2 rounded-full overflow-hidden bg-muted">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, row.score)}%`, backgroundColor: CORAL }} />
+                      <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, row.score)}%` }} />
                     </div>
                   </div>
                 )) : (
@@ -656,8 +662,7 @@ export default function SignalorDashboard() {
                 <p className="text-sm font-semibold text-foreground">Top Issues</p>
                 <Link
                   href={`/dashboard/${slug}/recommendations`}
-                  className="flex items-center gap-1.5 text-xs rounded-lg px-3 py-1.5 transition hover:opacity-80"
-                  style={{ color: CORAL, border: `1px solid ${CORAL}30` }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/25 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/5"
                 >
                   View All ({recommendations.length})
                 </Link>
@@ -671,8 +676,10 @@ export default function SignalorDashboard() {
                   >
                     <div className="flex items-start gap-2 mb-1.5">
                       <span
-                        className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                        style={{ backgroundColor: rec.priority === "critical" ? CORAL : "#D97706" }}
+                        className={cn(
+                          "w-1.5 h-1.5 rounded-full mt-1.5 shrink-0",
+                          rec.priority === "critical" ? "bg-primary" : "bg-amber-600",
+                        )}
                       />
                       <p className="text-sm font-semibold line-clamp-2 group-hover:underline text-foreground">{rec.title}</p>
                     </div>

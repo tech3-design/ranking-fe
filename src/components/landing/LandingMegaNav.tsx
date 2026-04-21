@@ -10,9 +10,11 @@ import {
   Binary,
   BookOpen,
   Bot,
+  Check,
   ChevronDown,
   FileText,
   LayoutGrid,
+  LifeBuoy,
   LineChart,
   Link2,
   LogIn,
@@ -108,8 +110,8 @@ const MENUS: Record<
         icon: Plug,
       },
       {
-        href: "/discovery",
-        title: "Discovery",
+        href: "/explorer",
+        title: "Explorer",
         desc: "Surface emerging prompts, citations, and competitor gaps.",
         icon: BarChart3,
       },
@@ -154,7 +156,7 @@ const MENUS: Record<
         icon: Plug,
       },
       {
-        href: "#blog",
+        href: "/blog",
         title: "Blog",
         desc: "GEO playbooks, research drops, and launch notes.",
         icon: FileText,
@@ -219,35 +221,78 @@ function MegaMenuLinkCell({
   );
 }
 
+type ResourceKey = "integ" | "blog" | "pricing" | "login";
+
+const BLOG_POSTS: { title: string; date: string; href: string }[] = [
+  {
+    title: "The GEO audit checklist",
+    date: "Apr 2026",
+    href: "/blog/geo-audit-checklist",
+  },
+  {
+    title: "How LLMs pick citations",
+    date: "Mar 2026",
+    href: "/blog/how-llms-pick-citations",
+  },
+  {
+    title: "Schema AI engines actually read",
+    date: "Mar 2026",
+    href: "/blog/schema-ai-engines-read",
+  },
+];
+
+const PRICING_TIERS: {
+  name: string;
+  price: string;
+  note: string;
+  highlight?: boolean;
+}[] = [
+  { name: "Essential", price: "$99", note: "1 site" },
+  { name: "Professional", price: "$249", note: "2 sites", highlight: true },
+  { name: "Business", price: "$579", note: "5 sites" },
+];
+
+const LOGIN_LINKS: { label: string; href: string }[] = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Workspace settings", href: "/dashboard/settings" },
+  { label: "Billing & plan", href: "/dashboard/billing" },
+];
+
 function ResourcesMegaGrid({ setOpen }: { setOpen: (v: MegaKey | null) => void }) {
   const [integ, blog, pricing, customerLogin] = MENUS.resources.items;
-  const IntIcon = integ.icon;
 
-  const [showPluginLinks, setShowPluginLinks] = useState(false);
-  const hideLinksTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hovered, setHovered] = useState<ResourceKey | null>(null);
+  const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const enterPluginZone = useCallback(() => {
-    if (hideLinksTimer.current) {
-      clearTimeout(hideLinksTimer.current);
-      hideLinksTimer.current = null;
+  const enterZone = useCallback((key: ResourceKey) => {
+    if (clearTimer.current) {
+      clearTimeout(clearTimer.current);
+      clearTimer.current = null;
     }
-    setShowPluginLinks(true);
+    setHovered(key);
   }, []);
 
-  const leavePluginZone = useCallback(() => {
-    if (hideLinksTimer.current) clearTimeout(hideLinksTimer.current);
-    hideLinksTimer.current = setTimeout(() => {
-      setShowPluginLinks(false);
-      hideLinksTimer.current = null;
+  const leaveZone = useCallback(() => {
+    if (clearTimer.current) clearTimeout(clearTimer.current);
+    clearTimer.current = setTimeout(() => {
+      setHovered(null);
+      clearTimer.current = null;
     }, 140);
   }, []);
 
   useEffect(
     () => () => {
-      if (hideLinksTimer.current) clearTimeout(hideLinksTimer.current);
+      if (clearTimer.current) clearTimeout(clearTimer.current);
     },
     [],
   );
+
+  const cells: { key: ResourceKey; item: MegaMenuItem; pos: string }[] = [
+    { key: "integ", item: integ, pos: "sm:col-start-1 sm:row-start-1" },
+    { key: "blog", item: blog, pos: "sm:col-start-2 sm:row-start-1" },
+    { key: "pricing", item: pricing, pos: "sm:col-start-1 sm:row-start-2" },
+    { key: "login", item: customerLogin, pos: "sm:col-start-2 sm:row-start-2" },
+  ];
 
   return (
     <motion.div
@@ -258,44 +303,16 @@ function ResourcesMegaGrid({ setOpen }: { setOpen: (v: MegaKey | null) => void }
       initial="hidden"
       animate="show"
     >
-      <motion.div
-        className="sm:col-start-1 sm:row-start-1"
-        variants={{
-          hidden: { opacity: 0, y: 6 },
-          show: { opacity: 1, y: 0 },
-        }}
-        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <div
-          className="rounded-sm border border-transparent p-2 transition-colors hover:bg-neutral-50/80"
-          onPointerEnter={enterPluginZone}
-          onPointerLeave={leavePluginZone}
-        >
-          <Link
-            href={integ.href}
-            className="group flex gap-3 text-left"
-            onClick={() => setOpen(null)}
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-black/8 text-primary shadow-sm">
-              <IntIcon className="h-[15px] w-[15px]" strokeWidth={1.75} aria-hidden />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="text-[14px] font-semibold leading-snug tracking-tight text-neutral-900">
-                {integ.title}
-              </span>
-              <span className="mt-0.5 block text-xs font-light leading-snug text-accent-foreground">
-                {integ.desc}
-              </span>
-            </span>
-          </Link>
-        </div>
-      </motion.div>
-
-      <MegaMenuLinkCell
-        item={blog}
-        onNavigate={() => setOpen(null)}
-        className="sm:col-start-2 sm:row-start-1"
-      />
+      {cells.map(({ key, item, pos }) => (
+        <ResourceHoverCell
+          key={key}
+          item={item}
+          className={pos}
+          onEnter={() => enterZone(key)}
+          onLeave={leaveZone}
+          onNavigate={() => setOpen(null)}
+        />
+      ))}
 
       <motion.div
         className="min-h-0 sm:col-start-3 sm:row-span-2 sm:row-start-1"
@@ -305,79 +322,303 @@ function ResourcesMegaGrid({ setOpen }: { setOpen: (v: MegaKey | null) => void }
         }}
         transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
       >
-        <IntegrationPluginLinksPanel
-          visible={showPluginLinks}
+        <ResourcePreviewPanel
+          hovered={hovered}
           onNavigate={() => setOpen(null)}
-          onPointerEnter={enterPluginZone}
-          onPointerLeave={leavePluginZone}
+          onPointerEnter={() => {
+            if (clearTimer.current) {
+              clearTimeout(clearTimer.current);
+              clearTimer.current = null;
+            }
+          }}
+          onPointerLeave={leaveZone}
         />
       </motion.div>
-
-      <MegaMenuLinkCell
-        item={pricing}
-        onNavigate={() => setOpen(null)}
-        className="sm:col-start-1 sm:row-start-2"
-      />
-
-      <MegaMenuLinkCell
-        item={customerLogin}
-        onNavigate={() => setOpen(null)}
-        className="sm:col-start-2 sm:row-start-2"
-      />
     </motion.div>
   );
 }
 
-function IntegrationPluginLinksPanel({
-  visible,
+function ResourceHoverCell({
+  item,
+  className,
+  onEnter,
+  onLeave,
+  onNavigate,
+}: {
+  item: MegaMenuItem;
+  className?: string;
+  onEnter: () => void;
+  onLeave: () => void;
+  onNavigate: () => void;
+}) {
+  const Icon = item.icon;
+  return (
+    <motion.div
+      className={className}
+      variants={{
+        hidden: { opacity: 0, y: 6 },
+        show: { opacity: 1, y: 0 },
+      }}
+      transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <div
+        className="rounded-sm border border-transparent p-2 transition-colors hover:bg-neutral-50/80"
+        onPointerEnter={onEnter}
+        onPointerLeave={onLeave}
+      >
+        <Link href={item.href} className="group flex gap-3 text-left" onClick={onNavigate}>
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-black/8 text-primary shadow-sm">
+            <Icon className="h-[15px] w-[15px]" strokeWidth={1.75} aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="text-[14px] font-semibold leading-snug tracking-tight text-neutral-900">
+              {item.title}
+            </span>
+            <span className="mt-0.5 block text-xs font-light leading-snug text-accent-foreground">
+              {item.desc}
+            </span>
+          </span>
+        </Link>
+      </div>
+    </motion.div>
+  );
+}
+
+function ResourcePreviewPanel({
+  hovered,
   onNavigate,
   onPointerEnter,
   onPointerLeave,
 }: {
-  visible: boolean;
+  hovered: ResourceKey | null;
   onNavigate: () => void;
   onPointerEnter: () => void;
   onPointerLeave: () => void;
 }) {
+  const activeKey = hovered ?? "default";
   return (
     <div
-      className="flex min-h-42 flex-col rounded-sm border border-black/8 bg-neutral-50/80  shadow-inner"
+      className="flex min-h-42 flex-col rounded-sm border border-black/8 bg-neutral-50/80 p-2 shadow-inner"
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
     >
-      <AnimatePresence>
-        {visible ? (
-          <motion.ul
-            key="plugin-links"
-            role="list"
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col gap-0.5"
-          >
-            {INTEGRATION_PLUGINS.map((p) => (
-              <li key={p.key}>
-                <Link
-                  href={p.href}
-                  className="rounded-md p-2  text-[13px] font-semibold tracking-tight text-neutral-900 transition-colors hover:bg-white hover:shadow-sm flex flex-col items-center gap-2"
-                  onClick={onNavigate}
-                >
-                  <div className="flex items-center gap-2 w-full">
-                  <span className="flex h-6 w-6 bg-white shrink-0 items-center justify-center rounded-sm border border-black/8 text-primary shadow-sm">
-          <Image src={p.img} alt={p.label} width={20} height={20} />
-        </span>
-                  {p.label}
-                  </div>
-                 
-                  <span className="text-xs font-light leading-snug text-accent-foreground">{p.desc}</span>
-                </Link>
-              </li>
-            ))}
-          </motion.ul>
-        ) : null}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeKey}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+          className="flex h-full flex-col"
+        >
+          {hovered === "integ" ? (
+            <IntegrationsPreview onNavigate={onNavigate} />
+          ) : hovered === "blog" ? (
+            <BlogPreview onNavigate={onNavigate} />
+          ) : hovered === "pricing" ? (
+            <PricingPreview onNavigate={onNavigate} />
+          ) : hovered === "login" ? (
+            <LoginPreview onNavigate={onNavigate} />
+          ) : (
+            <DefaultPreview />
+          )}
+        </motion.div>
       </AnimatePresence>
     </div>
+  );
+}
+
+function PreviewHeading({ label }: { label: string }) {
+  return (
+    <span className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
+      {label}
+    </span>
+  );
+}
+
+function IntegrationsPreview({ onNavigate }: { onNavigate: () => void }) {
+  return (
+    <>
+      <PreviewHeading label="Plugins" />
+      <ul role="list" className="flex flex-col gap-0.5">
+        {INTEGRATION_PLUGINS.map((p) => (
+          <li key={p.key}>
+            <Link
+              href={p.href}
+              className="flex flex-col items-center gap-2 rounded-md p-2 text-[13px] font-semibold tracking-tight text-neutral-900 transition-colors hover:bg-white hover:shadow-sm"
+              onClick={onNavigate}
+            >
+              <div className="flex w-full items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
+                  <Image src={p.img} alt={p.label} width={20} height={20} />
+                </span>
+                {p.label}
+              </div>
+              <span className="text-xs font-light leading-snug text-accent-foreground">
+                {p.desc}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function BlogPreview({ onNavigate }: { onNavigate: () => void }) {
+  return (
+    <>
+      <PreviewHeading label="Latest posts" />
+      <ul role="list" className="flex flex-col gap-0.5">
+        {BLOG_POSTS.map((post) => (
+          <li key={post.href}>
+            <Link
+              href={post.href}
+              className="group flex items-start gap-2 rounded-md p-2 transition-colors hover:bg-white hover:shadow-sm"
+              onClick={onNavigate}
+            >
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
+                <FileText className="h-3 w-3" strokeWidth={1.75} aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px] font-semibold tracking-tight text-neutral-900">
+                  {post.title}
+                </span>
+                <span className="text-[11px] font-light text-accent-foreground">
+                  {post.date}
+                </span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <Link
+        href="/blog"
+        className="mt-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold tracking-tight text-primary hover:underline"
+        onClick={onNavigate}
+      >
+        Browse all posts
+        <ArrowUpRight className="h-3 w-3" strokeWidth={2} aria-hidden />
+      </Link>
+    </>
+  );
+}
+
+function PricingPreview({ onNavigate }: { onNavigate: () => void }) {
+  return (
+    <>
+      <PreviewHeading label="Plans" />
+      <ul role="list" className="flex flex-col gap-0.5">
+        {PRICING_TIERS.map((tier) => (
+          <li key={tier.name}>
+            <Link
+              href="/pricing"
+              className={cn(
+                "flex items-center justify-between gap-2 rounded-md p-2 transition-colors hover:bg-white hover:shadow-sm",
+                tier.highlight && "bg-white shadow-sm",
+              )}
+              onClick={onNavigate}
+            >
+              <span className="flex min-w-0 flex-col">
+                <span className="text-[13px] font-semibold tracking-tight text-neutral-900">
+                  {tier.name}
+                </span>
+                <span className="text-[11px] font-light text-accent-foreground">
+                  {tier.note}
+                </span>
+              </span>
+              <span className="text-[13px] font-semibold tracking-tight text-neutral-900">
+                {tier.price}
+                <span className="ml-0.5 text-[10px] font-light text-accent-foreground">
+                  /mo
+                </span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <Link
+        href="/pricing"
+        className="mt-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold tracking-tight text-primary hover:underline"
+        onClick={onNavigate}
+      >
+        Compare plans
+        <ArrowUpRight className="h-3 w-3" strokeWidth={2} aria-hidden />
+      </Link>
+    </>
+  );
+}
+
+function LoginPreview({ onNavigate }: { onNavigate: () => void }) {
+  return (
+    <>
+      <PreviewHeading label="Quick access" />
+      <ul role="list" className="flex flex-col gap-0.5">
+        {LOGIN_LINKS.map((link) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className="flex items-center gap-2 rounded-md p-2 text-[13px] font-semibold tracking-tight text-neutral-900 transition-colors hover:bg-white hover:shadow-sm"
+              onClick={onNavigate}
+            >
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
+                <Check className="h-3 w-3" strokeWidth={2} aria-hidden />
+              </span>
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <Link
+        href="/sign-in"
+        className="mt-auto inline-flex items-center justify-center gap-1 rounded-md bg-primary px-2 py-1.5 text-[12px] font-semibold tracking-tight text-primary-foreground shadow-sm transition-colors hover:opacity-90"
+        onClick={onNavigate}
+      >
+        <LogIn className="h-3 w-3" strokeWidth={2} aria-hidden />
+        Sign in
+      </Link>
+    </>
+  );
+}
+
+function DefaultPreview() {
+  const hints: { icon: LucideIcon; label: string; hint: string }[] = [
+    { icon: BookOpen, label: "Playbooks", hint: "Step-by-step GEO guides" },
+    { icon: Sparkles, label: "What's new", hint: "Latest product updates" },
+    { icon: LifeBuoy, label: "Help center", hint: "Docs and onboarding" },
+  ];
+  return (
+    <>
+      <PreviewHeading label="Resources" />
+      <div className="px-1 pb-2">
+        <p className="text-[13px] font-semibold leading-snug tracking-tight text-neutral-900">
+          Everything about Signalor
+        </p>
+        <p className="mt-0.5 text-[11px] font-light leading-snug text-accent-foreground">
+          Guides, integrations, and product updates for teams shipping GEO.
+        </p>
+      </div>
+      <ul role="list" className="flex flex-col gap-0.5">
+        {hints.map(({ icon: Icon, label, hint }) => (
+          <li
+            key={label}
+            className="flex items-start gap-2 rounded-md p-2 text-[12px] font-semibold tracking-tight text-neutral-900"
+          >
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
+              <Icon className="h-3 w-3" strokeWidth={1.75} aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[12px] font-semibold tracking-tight text-neutral-900">
+                {label}
+              </span>
+              <span className="text-[11px] font-light text-accent-foreground">
+                {hint}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 

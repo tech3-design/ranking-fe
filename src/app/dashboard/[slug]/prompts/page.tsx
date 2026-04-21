@@ -8,6 +8,7 @@ import {
   type PromptTrack,
 } from "@/lib/api/analyzer";
 import { PromptTracker } from "@/components/analyzer/prompt-tracker";
+import { CitationSourcesPanel } from "@/components/analyzer/citation-sources-panel";
 import { AlertCircle } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 
@@ -116,15 +117,31 @@ export default function PromptsOverviewPage() {
       )}
 
       {!loading && !error && (
-        <PromptTracker
-          slug={slug}
-          tracks={tracks}
-          onAdded={(track) => setTracks((prev) => [track, ...prev])}
-          onRechecked={() => fetchData()}
-          onDeleted={(trackId) => setTracks((prev) => prev.filter((t) => t.id !== trackId))}
-          onRecheckAll={handleRecheckAll}
-          recheckingAll={recheckingAll}
-        />
+        <>
+          <PromptTracker
+            slug={slug}
+            tracks={tracks}
+            onAdded={(track) => setTracks((prev) => [track, ...prev])}
+            onRechecked={() => fetchData()}
+            onDeleted={(trackId) => setTracks((prev) => prev.filter((t) => t.id !== trackId))}
+            onRecheckAll={handleRecheckAll}
+            recheckingAll={recheckingAll}
+          />
+          {tracks.length > 0 && (
+            <div className="mt-6 space-y-3">
+              <div>
+                <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
+                  Citation sources
+                </h2>
+                <p className="mt-0.5 text-[12px] text-muted-foreground">
+                  URLs AI engines and search surfaces cite for your tracked prompts —
+                  the pages AI loves, and the rival URLs you need to beat.
+                </p>
+              </div>
+              <CitationSourcesPanel slug={slug} />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
