@@ -34,10 +34,12 @@ export default function CompetitorsPage() {
         </p>
       </div>
 
-      {competitors.length ? (
+      {competitors.length || run?.url ? (
         <CompetitorTable
           competitors={competitors}
           yourScore={run?.composite_score ?? null}
+          yourName={run?.display_brand_name || run?.brand_name || undefined}
+          yourUrl={run?.url}
         />
       ) : (
         <div className="rounded-lg border border-border/60 bg-card/65 p-8 text-center">
