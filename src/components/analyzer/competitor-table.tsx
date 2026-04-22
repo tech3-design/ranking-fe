@@ -1,11 +1,53 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spotlight } from "@/components/ui/spotlight";
 import { MovingBorder } from "@/components/ui/moving-border";
-import { Lock } from "lucide-react";
+import { Globe, Lock } from "lucide-react";
 import type { Competitor } from "@/lib/api/analyzer";
+
+function hostOf(url: string): string {
+  try {
+    const u = new URL(url.includes("://") ? url : `https://${url}`);
+    return u.hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+function SiteLogo({ url, size = 28 }: { url: string; size?: number }) {
+  const host = hostOf(url);
+  const [failed, setFailed] = useState(false);
+  const src = host
+    ? `https://www.google.com/s2/favicons?domain=${host}&sz=${size * 2}`
+    : "";
+
+  if (!host || failed) {
+    return (
+      <div
+        className="flex shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/40 text-muted-foreground"
+        style={{ width: size, height: size }}
+      >
+        <Globe className="h-3.5 w-3.5" aria-hidden />
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      width={size}
+      height={size}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      className="shrink-0 rounded-md border border-border/60 bg-white object-contain p-0.5"
+      style={{ width: size, height: size }}
+    />
+  );
+}
 
 interface CompetitorTableProps {
   competitors: Competitor[];
@@ -61,6 +103,13 @@ export function CompetitorTable({
                   key={comp.id}
                   className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/35 p-2.5 transition-colors hover:bg-muted/40"
                 >
+                  {locked ? (
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/40 text-muted-foreground">
+                      <Globe className="h-3.5 w-3.5" aria-hidden />
+                    </div>
+                  ) : (
+                    <SiteLogo url={comp.url} />
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">
                       {locked ? `Competitor ${idx + 1}` : comp.name}
