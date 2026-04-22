@@ -661,3 +661,84 @@ export async function getAgentLog(slug: string): Promise<AgentLogResponse> {
   );
   return data;
 }
+
+// ---------------------------------------------------------------------------
+// Schema Watchtower
+// ---------------------------------------------------------------------------
+
+export type SchemaWatchStatus = "queued" | "running" | "complete" | "failed";
+export type SchemaPageSeverity = "ok" | "warn" | "fail";
+
+export interface SchemaWatchIssue {
+  code: string;
+  label: string;
+  severity: SchemaPageSeverity | "info";
+  type: string;
+}
+
+export interface SchemaWatchSummary {
+  id: number;
+  status: SchemaWatchStatus;
+  progress: number;
+  total_urls: number;
+  healthy_count: number;
+  warn_count: number;
+  broken_count: number;
+  discovered_from_sitemap: boolean;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  error_message: string;
+}
+
+export interface SchemaWatchPage {
+  id: number;
+  url: string;
+  path: string;
+  page_kind: string;
+  status_code: number;
+  schema_types: string[];
+  jsonld_count: number;
+  raw_jsonld: unknown[];
+  severity: SchemaPageSeverity;
+  issues: SchemaWatchIssue[];
+  fix_targets: string[];
+  error_message: string;
+  checked_at: string;
+}
+
+export interface SchemaWatchResponse {
+  watch: SchemaWatchSummary | null;
+  pages: SchemaWatchPage[];
+  total: number;
+  page?: number;
+  page_size?: number;
+}
+
+export interface SchemaWatchQuery {
+  severity?: SchemaPageSeverity;
+  kind?: string;
+  q?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export async function startSchemaWatch(slug: string): Promise<SchemaWatchSummary> {
+  const { data } = await apiClient.post<SchemaWatchSummary>(
+    `/api/analyzer/runs/s/${slug}/schema-watch/start/`,
+    {},
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function getSchemaWatch(
+  slug: string,
+  query: SchemaWatchQuery = {},
+): Promise<SchemaWatchResponse> {
+  const { data } = await apiClient.get<SchemaWatchResponse>(
+    `/api/analyzer/runs/s/${slug}/schema-watch/`,
+    { params: query, timeout: 30_000 },
+  );
+  return data;
+}

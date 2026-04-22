@@ -18,6 +18,7 @@ import {
   ListChecks,
   Eye,
   Map,
+  ShieldCheck,
   Users,
   MessageSquare,
   ChevronUp,
@@ -60,6 +61,7 @@ const MAIN_NAV: MainNavItem[] = [
   { icon: Eye, label: "Visibility", path: "/visibility" },
   { icon: Users, label: "Competitors", path: "/competitors" },
   { icon: Map, label: "Sitemap", path: "/sitemap" },
+  { icon: ShieldCheck, label: "Watchtower", path: "/watchtower" },
   {
     icon: MessageSquare,
     label: "Prompts",
@@ -110,6 +112,12 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Sitemap",
       hint: "Page-level audit of speed, structure, and AI readiness.",
+    };
+  }
+  if (rel.startsWith("/watchtower")) {
+    return {
+      title: "Schema Watchtower",
+      hint: "Catch broken Product, Article, and FAQ structured data.",
     };
   }
   if (rel.startsWith("/prompts/actions")) {
