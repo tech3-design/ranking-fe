@@ -18,6 +18,7 @@ import {
   ListChecks,
   Eye,
   Map,
+  Users,
   MessageSquare,
   ChevronUp,
   ChevronDown,
@@ -57,6 +58,7 @@ const MAIN_NAV: MainNavItem[] = [
   { icon: LayoutDashboard, label: "Overview", path: "" },
   { icon: ListChecks, label: "Recommendations", path: "/recommendations" },
   { icon: Eye, label: "Visibility", path: "/visibility" },
+  { icon: Users, label: "Competitors", path: "/competitors" },
   { icon: Map, label: "Sitemap", path: "/sitemap" },
   {
     icon: MessageSquare,
@@ -96,6 +98,12 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Visibility",
       hint: "How models and search surfaces see your brand.",
+    };
+  }
+  if (rel.startsWith("/competitors")) {
+    return {
+      title: "Competitors",
+      hint: "Benchmark rival brands across AI surfaces.",
     };
   }
   if (rel.startsWith("/sitemap")) {
