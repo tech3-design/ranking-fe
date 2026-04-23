@@ -99,7 +99,6 @@ export function AuthMethodForm() {
 
       <div className="space-y-2">
         <OAuthButton provider="google" />
-        <OAuthButton provider="apple" />
       </div>
     </div>
   );

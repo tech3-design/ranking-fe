@@ -1,4 +1,3 @@
-"use client";
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -405,7 +404,7 @@ function FeatureCell({
  * Copy is driven by {@link PROMPT_TRACKING_FEATURE_CELLS} in `landing-prompt-tracking-content.ts`.
  */
 type FeatureCellContent = { title: string; description: string; mock: PromptTrackingFeatureMock };
-type FeaturesIntro = {
+type FeaturesIntroContent = {
   eyebrow: string;
   titleBefore: string;
   titleAccent: string;
@@ -424,8 +423,9 @@ export function PromptTrackingFeaturesGrid({
   headingId = "prompt-tracking-features-heading",
   theme = "orange",
 }: {
-  intro?: FeaturesIntro;
+  intro?: FeaturesIntroContent;
   cells?: readonly FeatureCellContent[];
+  footerCtas?: FeaturesFooterCtas;
   footerCtas?: FeaturesFooterCtas;
   headingId?: string;
   theme?: FeaturesGridTheme;
