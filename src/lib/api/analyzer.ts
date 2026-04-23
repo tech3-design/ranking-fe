@@ -547,3 +547,143 @@ export async function verifyFix(
   );
   return data;
 }
+
+// ---------------------------------------------------------------------------
+// Sitemap audit
+// ---------------------------------------------------------------------------
+
+export type SitemapAuditStatus = "queued" | "running" | "complete" | "failed";
+export type SitemapPageState = "crawled" | "redirect" | "queued" | "failed";
+export type SitemapPageSeverity = "ok" | "warn" | "fail";
+
+export interface SitemapAuditFinding {
+  code: string;
+  label: string;
+  severity: SitemapPageSeverity;
+}
+
+export interface SitemapAuditSummary {
+  id: number;
+  status: SitemapAuditStatus;
+  progress: number;
+  sitemap_url: string;
+  crawl_limit: number;
+  total_urls: number;
+  indexed_count: number;
+  redirect_count: number;
+  queued_count: number;
+  failed_count: number;
+  avg_lcp_ms: number | null;
+  avg_fcp_ms: number | null;
+  avg_ttfb_ms: number | null;
+  avg_ai_score: number | null;
+  truncated: boolean;
+  discovered_url_count: number;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  error_message: string;
+}
+
+export interface SitemapAuditPage {
+  id: number;
+  url: string;
+  path: string;
+  final_url: string;
+  state: SitemapPageState;
+  status_code: number;
+  redirect_count: number;
+  title: string;
+  meta_description: string;
+  h1_count: number;
+  word_count: number;
+  text_ratio: number;
+  content_length: number;
+  lcp_ms: number | null;
+  fcp_ms: number | null;
+  ttfb_ms: number | null;
+  server_ms: number | null;
+  resource_count: number;
+  resource_bytes: number;
+  link_count_total: number;
+  link_count_internal: number;
+  link_count_external: number;
+  jsonld_count: number;
+  has_canonical: boolean;
+  has_og: boolean;
+  is_noindex: boolean;
+  robots_allows_gptbot: boolean;
+  robots_allows_claudebot: boolean;
+  robots_allows_perplexitybot: boolean;
+  ai_score: number;
+  severity: SitemapPageSeverity;
+  findings: SitemapAuditFinding[];
+  error_message: string;
+  checked_at: string;
+}
+
+export interface SitemapAuditResponse {
+  audit: SitemapAuditSummary | null;
+  pages: SitemapAuditPage[];
+  total: number;
+  page?: number;
+  page_size?: number;
+}
+
+export interface SitemapAuditQuery {
+  state?: SitemapPageState;
+  severity?: SitemapPageSeverity;
+  q?: string;
+  sort?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export async function startSitemapAudit(slug: string): Promise<SitemapAuditSummary> {
+  const { data } = await apiClient.post<SitemapAuditSummary>(
+    `/api/analyzer/runs/s/${slug}/sitemap/start/`,
+    {},
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function getSitemapAudit(
+  slug: string,
+  query: SitemapAuditQuery = {},
+): Promise<SitemapAuditResponse> {
+  const { data } = await apiClient.get<SitemapAuditResponse>(
+    `/api/analyzer/runs/s/${slug}/sitemap/`,
+    { params: query, timeout: 30_000 },
+  );
+  return data;
+}
+
+export interface AgentLogEntry {
+  id: number;
+  bot_name: string;
+  path: string;
+  status_code: number;
+  ts: string;
+  source: "cloudflare" | "vercel" | "manual";
+}
+
+export interface AgentLogIntegration {
+  name: string;
+  key: "cloudflare" | "vercel";
+  connected: boolean;
+  status: "coming_soon" | "ready" | "error";
+}
+
+export interface AgentLogResponse {
+  entries: AgentLogEntry[];
+  integrations: AgentLogIntegration[];
+}
+
+export async function getAgentLog(slug: string): Promise<AgentLogResponse> {
+  const { data } = await apiClient.get<AgentLogResponse>(
+    `/api/analyzer/runs/s/${slug}/agent-log/`,
+    { timeout: 15_000 },
+  );
+  return data;
+}
