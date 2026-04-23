@@ -17,6 +17,8 @@ import {
   LayoutDashboard,
   ListChecks,
   Eye,
+  Map,
+  Users,
   MessageSquare,
   ChevronUp,
   ChevronDown,
@@ -56,13 +58,15 @@ const MAIN_NAV: MainNavItem[] = [
   { icon: LayoutDashboard, label: "Overview", path: "" },
   { icon: ListChecks, label: "Recommendations", path: "/recommendations" },
   { icon: Eye, label: "Visibility", path: "/visibility" },
+  { icon: Users, label: "Competitors", path: "/competitors" },
+  { icon: Map, label: "Sitemap", path: "/sitemap" },
   {
     icon: MessageSquare,
     label: "Prompts",
     path: "/prompts",
     children: [
       { label: "Actions", path: "/prompts/actions" },
-      { label: "Recommendations", path: "/prompts/recommendations" },
+      { label: "Explorer", path: "/prompts/recommendations" },
       { label: "History", path: "/prompts/history" },
     ],
   },
@@ -96,6 +100,18 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
       hint: "How models and search surfaces see your brand.",
     };
   }
+  if (rel.startsWith("/competitors")) {
+    return {
+      title: "Competitors",
+      hint: "Benchmark rival brands across AI surfaces.",
+    };
+  }
+  if (rel.startsWith("/sitemap")) {
+    return {
+      title: "Sitemap",
+      hint: "Page-level audit of speed, structure, and AI readiness.",
+    };
+  }
   if (rel.startsWith("/prompts/actions")) {
     return {
       title: "Prompt actions",
@@ -104,8 +120,8 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
   }
   if (rel.startsWith("/prompts/recommendations")) {
     return {
-      title: "Prompt recommendations",
-      hint: "Suggested prompt sets for your properties.",
+      title: "Explorer",
+      hint: "Explore suggested prompt sets for your properties.",
     };
   }
   if (rel.startsWith("/prompts/history")) {
@@ -553,6 +569,7 @@ export default function DashboardSlugLayout({
             sidebarNav={sidebarNav}
             sidebarBottom={sidebarBottom}
             topBarActions={topBarActions}
+            breadcrumbs={[]}
           >
             <div className="animate-enter">{children}</div>
             {/* <footer className="mt-10 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border px-0 py-6 text-[11px] text-muted-foreground">

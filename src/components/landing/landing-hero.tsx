@@ -3,8 +3,6 @@
 import { HeroAnalyzerForm } from "../analyzer/hero-analyzer-form";
 import { HeroBackgroundGrid } from "./hero-background-grid";
 
-import { LandingHeroHighlights } from "./landing-hero-highlights";
-
 export function LandingHero() {
   return (
     <section className="relative bg-background px-6 pb-16 pt-16 lg:px-12 lg:pb-24 lg:pt-20">
@@ -56,10 +54,6 @@ export function LandingHero() {
               />
             </div> */}
       </div>
-     
-
-
-      <LandingHeroHighlights />
     </section>
   );
 }

@@ -100,10 +100,14 @@ export function ShareOfVoicePanel({ data }: ShareOfVoicePanelProps) {
                   borderRadius: 8,
                   fontSize: 12,
                 }}
-                // formatter={(v: number, _n, { payload }) => [
-                //   `${v}% (${payload.mentioned}/${payload.total})`,
-                //   payload.engine,
-                // ]}
+                formatter={(value, _name, item) => {
+                  const v = typeof value === "number" ? value : Number(value ?? 0);
+                  const payload = (item as { payload?: { mentioned?: number; total?: number; engine?: string } } | undefined)?.payload;
+                  return [
+                    `${v}% (${payload?.mentioned ?? 0}/${payload?.total ?? 0})`,
+                    payload?.engine ?? "Engine",
+                  ];
+                }}
               />
               <Bar dataKey="sov" radius={[6, 6, 0, 0]} barSize={32}>
                 {chartData.map((entry, i) => (
@@ -141,7 +145,10 @@ export function ShareOfVoicePanel({ data }: ShareOfVoicePanelProps) {
                         borderRadius: 8,
                         fontSize: 12,
                       }}
-                      // formatter={(v: number, name: string) => [`${v} mentions`, name]}
+                      formatter={(value, name) => {
+                        const v = typeof value === "number" ? value : Number(value ?? 0);
+                        return [`${v} mentions`, String(name ?? "Engine")];
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>

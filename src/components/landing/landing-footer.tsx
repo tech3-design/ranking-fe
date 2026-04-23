@@ -53,10 +53,10 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   {
     title: "Blog & resources",
     links: [
-      { href: "#blog", label: "GEO playbooks" },
-      { href: "#blog", label: "AI visibility guides" },
-      { href: "#blog", label: "Product changelog" },
-      { href: "#docs", label: "Documentation" },
+      { href: "/blog", label: "Blog" },
+      { href: "/blog?category=Playbooks", label: "GEO playbooks" },
+      { href: "/blog?category=AI%20visibility", label: "AI visibility guides" },
+      { href: "/blog?category=Product", label: "Product changelog" },
     ],
   },
 ];

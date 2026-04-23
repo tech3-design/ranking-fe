@@ -40,12 +40,6 @@ const PROOF_METRICS = [
   { value: "24h", label: "To see visibility growth" },
 ] as const;
 
-const PILLAR_SCORES = [
-  { label: "Citability", value: 82, tone: "bg-[#2563eb]/80" },
-  { label: "Schema", value: 71, tone: "bg-emerald-500/90" },
-  { label: "Content", value: 74, tone: "bg-amber-500/90" },
-] as const;
-
 export function LandingWhySignalor() {
   return (
     <section className="relative bg-background" aria-labelledby="why-signalor-heading">
@@ -123,43 +117,64 @@ export function LandingWhySignalor() {
             </div>
           </div>
 
-          {/* 2 — Live preview (conversation only) */}
+          {/* 2 — Citation attribution (feature moat — the URL roll-up) */}
           <div className="flex flex-col gap-8 bg-white px-6 py-12 md:px-8 md:py-16 lg:px-10 rounded-sm border border-black/6">
             <div>
               <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">
-                Live preview
+                Citation attribution
               </h3>
               <p className="mt-3 max-w-sm text-sm font-light leading-relaxed text-accent-foreground md:text-[15px]">
-                Prompts and model answers the way your team reviews them — before you ship changes.
+                See exactly which URLs AI engines cite for your prompts — yours, your rivals&apos;,
+                and everyone else. The page to fix, not a guess.
               </p>
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col justify-center">
               <div className="rounded-sm border border-black/6 bg-background p-4">
                 <div className="rounded-xl border border-black/8 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                  <div className="space-y-3 text-[13px] leading-snug">
-                    <div className="max-w-[92%] rounded-2xl rounded-bl-md bg-neutral-100 px-3.5 py-2.5 text-neutral-700">
-                      Why should we prioritize GEO over traditional SEO this quarter?
-                    </div>
-                    <div className="ml-auto max-w-[94%] rounded-2xl rounded-br-md bg-neutral-900 px-3.5 py-2.5 text-[12px] font-medium text-neutral-100">
-                      Generative engines cite sources, not blue links. Teams using{" "}
-                      <span className="font-semibold text-orange-400">Signalor</span> see clearer gaps
-                      in schema, entity coverage, and prompts where they never appear.
-                    </div>
+                  <div className="mb-3 flex items-center justify-between text-[11px] font-semibold text-neutral-500">
+                    <span>Top cited domains · 7d</span>
+                    <span className="tabular-nums text-neutral-400">24 citations</span>
                   </div>
+                  <ul className="space-y-2.5 text-[12px] font-medium">
+                    {[
+                      { domain: "signalor.ai", pct: 62, tag: "YOU", tagBg: "bg-emerald-100", tagFg: "text-emerald-700", bar: "bg-emerald-600" },
+                      { domain: "tryprofound.com", pct: 38, tag: "RIVAL", tagBg: "bg-amber-100", tagFg: "text-amber-700", bar: "bg-amber-500" },
+                      { domain: "siftly.ai", pct: 26, tag: "RIVAL", tagBg: "bg-amber-100", tagFg: "text-amber-700", bar: "bg-amber-500" },
+                      { domain: "searchengineland.com", pct: 18, tag: "", tagBg: "", tagFg: "", bar: "bg-neutral-400" },
+                    ].map((r) => (
+                      <li key={r.domain}>
+                        <div className="flex items-center justify-between gap-2 text-[12px] font-semibold text-neutral-800">
+                          <span className="flex min-w-0 items-center gap-1.5">
+                            <span className="truncate">{r.domain}</span>
+                            {r.tag && (
+                              <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${r.tagBg} ${r.tagFg}`}>
+                                {r.tag}
+                              </span>
+                            )}
+                          </span>
+                          <span className="tabular-nums text-neutral-500">{r.pct}%</span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-neutral-200">
+                          <div className={`h-full rounded-full ${r.bar}`} style={{ width: `${r.pct}%` }} />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 3 — Signal breakdown (fills the 4th grid slot on xl) */}
+          {/* 3 — Competitor delta (closing the gap week over week) */}
           <div className="flex flex-col gap-8 bg-white px-6 py-12 md:px-8 md:py-16 lg:px-10 rounded-sm border border-black/6">
             <div>
               <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">
-                Signal breakdown
+                Competitor delta
               </h3>
               <p className="mt-3 max-w-sm text-sm font-light leading-relaxed text-accent-foreground md:text-[15px]">
-                Roll-up score plus the three pillars that move fastest when models start citing you.
+                Track which prompts you win back from rivals week over week — so you see the
+                content sprint paying off, not just static scores.
               </p>
             </div>
 
@@ -169,47 +184,45 @@ export function LandingWhySignalor() {
                   <div className="flex items-end justify-between gap-3">
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
-                        Overall
+                        Prompts won this week
                       </p>
                       <p className="mt-1 text-3xl font-bold tabular-nums tracking-tight text-neutral-900">
-                        78
-                        <span className="text-lg font-semibold text-neutral-400">/100</span>
+                        +4
+                        <span className="ml-1 text-sm font-semibold text-emerald-600">↑</span>
                       </p>
                     </div>
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-4 border-[#2563eb]/25 text-[11px] font-bold text-[#2563eb]">
-                      +12
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-4 border-emerald-500/30 text-[11px] font-bold text-emerald-600">
+                      +18%
                     </div>
                   </div>
-                  <ul className="mt-4 space-y-2.5 border-t border-black/6 pt-3 text-[12px] font-medium text-neutral-700">
-                    {PILLAR_SCORES.map((row) => (
-                      <li key={row.label} className="flex items-center gap-2">
-                        <span className={`h-1.5 w-8 shrink-0 rounded-full ${row.tone}`} aria-hidden />
-                        <span>
-                          {row.label} · {row.value}
+                  <ul className="mt-4 space-y-2.5 border-t border-black/6 pt-3 text-[12px] font-medium">
+                    {[
+                      { name: "Acme", prev: 44, now: 40, delta: -4, rival: true },
+                      { name: "Northwind", prev: 22, now: 20, delta: -2, rival: true },
+                      { name: "You", prev: 34, now: 40, delta: 6, rival: false },
+                    ].map((row) => (
+                      <li key={row.name} className="flex items-center gap-2">
+                        <span className="min-w-0 flex-1">
+                          <span className={row.rival ? "text-neutral-700" : "font-semibold text-emerald-700"}>
+                            {row.name}
+                          </span>
+                          <span className="ml-1 text-[11px] text-neutral-500 tabular-nums">
+                            {row.prev}% → {row.now}%
+                          </span>
+                        </span>
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
+                            row.delta > 0
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-red-50 text-red-600"
+                          }`}
+                        >
+                          {row.delta > 0 ? "+" : ""}
+                          {row.delta}
                         </span>
                       </li>
                     ))}
                   </ul>
-                  <div className="mt-4">
-                    <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-neutral-500">
-                      <span>Mentioned</span>
-                      <span>Missing</span>
-                    </div>
-                    <div className="flex h-2.5 overflow-hidden rounded-full bg-neutral-200">
-                      <div className="w-[40%] bg-[#2563eb]" />
-                      <div
-                        className="relative flex-1 bg-neutral-200"
-                        style={{
-                          backgroundImage:
-                            "repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(0,0,0,0.06) 4px, rgba(0,0,0,0.06) 5px)",
-                        }}
-                      />
-                    </div>
-                    <div className="mt-1.5 flex justify-between text-[11px] font-semibold tabular-nums text-neutral-600">
-                      <span>40%</span>
-                      <span>60%</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

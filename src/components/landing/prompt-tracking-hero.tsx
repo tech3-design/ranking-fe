@@ -1,4 +1,3 @@
-"use client";
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -10,15 +9,16 @@ import { HeroBackgroundGrid } from "@/components/landing/hero-background-grid";
 import { PROMPT_TRACKING_HERO, PROMPT_TRACKING_HUB_CARDS } from "@/lib/landing-prompt-tracking-content";
 import type { LucideIcon } from "lucide-react";
 
-type Widen<T> =
-  T extends string ? string
-  : T extends number ? number
-  : T extends boolean ? boolean
-  : T extends readonly (infer U)[] ? readonly Widen<U>[]
-  : T extends object ? { [K in keyof T]: Widen<T[K]> }
-  : T;
-
-type HeroContent = Widen<typeof PROMPT_TRACKING_HERO>;
+type HeroContent = {
+  titleLine1: string;
+  titleBadge: string;
+  titleLine2: string;
+  titleAccent: string;
+  subhead: string;
+  primaryCta: string;
+  secondaryCta: string;
+  footnote: string;
+};
 type HubCard = { slug: string; href: string; title: string; description: string; Icon: LucideIcon; cta: string };
 
 export function PromptTrackingHero({
