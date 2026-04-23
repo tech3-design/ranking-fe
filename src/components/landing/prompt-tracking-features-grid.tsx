@@ -426,6 +426,7 @@ export function PromptTrackingFeaturesGrid({
   intro?: FeaturesIntroContent;
   cells?: readonly FeatureCellContent[];
   footerCtas?: FeaturesFooterCtas;
+  footerCtas?: FeaturesFooterCtas;
   headingId?: string;
   theme?: FeaturesGridTheme;
 }) {

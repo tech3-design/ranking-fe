@@ -1,14 +1,32 @@
 import { betterAuth } from "better-auth";
 import { emailOTP } from "better-auth/plugins";
+import { mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname } from "node:path";
 import { Pool } from "pg";
 import { sendOtpEmail } from "./services/email";
 
+const require = createRequire(import.meta.url);
 const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required (Neon Postgres connection string).");
+
+function getDatabaseClient() {
+  if (databaseUrl) {
+    return new Pool({ connectionString: databaseUrl });
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("DATABASE_URL is required in production (Neon Postgres connection string).");
+  }
+
+  const sqlitePath = process.env.BETTER_AUTH_SQLITE_PATH ?? ".data/better-auth.sqlite";
+  mkdirSync(dirname(sqlitePath), { recursive: true });
+  const { DatabaseSync } = require("node:sqlite") as {
+    DatabaseSync: new (path: string) => unknown;
+  };
+  return new DatabaseSync(sqlitePath);
 }
 
-const pool = new Pool({ connectionString: databaseUrl });
+const dbClient = getDatabaseClient();
 
 const authSecret =
   process.env.BETTER_AUTH_SECRET ??
@@ -29,7 +47,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 export const auth = betterAuth({
   secret: authSecret,
-  database: pool,
+  database: dbClient,
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   session: {
     expiresIn: 60 * 60 * 24 * 10, // 10 days
