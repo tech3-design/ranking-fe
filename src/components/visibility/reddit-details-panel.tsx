@@ -3,6 +3,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { RedditDetails } from "@/lib/api/visibility";
+import {
+  ChartContainer,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { PieChart, Pie, Cell } from "recharts";
+import { MessageSquare, ArrowUp, MessageCircle, ExternalLink } from "lucide-react";
 
 interface RedditDetailsPanelProps {
   details: RedditDetails;
@@ -11,18 +17,51 @@ interface RedditDetailsPanelProps {
   compact?: boolean;
 }
 
+function scoreTone(s: number) {
+  if (s >= 70) return { text: "text-emerald-600" };
+  if (s >= 40) return { text: "text-amber-600" };
+  return { text: "text-primary" };
+}
+
+const SENTIMENT_COLORS = {
+  positive: "#22c55e",
+  negative: "#ef4444",
+  neutral: "#94a3b8",
+};
+
+const sentimentConfig: ChartConfig = {
+  positive: { label: "Positive", color: SENTIMENT_COLORS.positive },
+  negative: { label: "Negative", color: SENTIMENT_COLORS.negative },
+  neutral: { label: "Neutral", color: SENTIMENT_COLORS.neutral },
+};
+
 export function RedditDetailsPanel({ details, score, compact = false }: RedditDetailsPanelProps) {
   const sentiment = details.sentiment;
+  const roundedScore = score != null ? Math.round(score) : 0;
+  const tone = scoreTone(roundedScore);
+
+  const sentimentData = sentiment
+    ? [
+        { name: "positive", value: sentiment.positive, fill: SENTIMENT_COLORS.positive },
+        { name: "negative", value: sentiment.negative, fill: SENTIMENT_COLORS.negative },
+        { name: "neutral", value: sentiment.neutral, fill: SENTIMENT_COLORS.neutral },
+      ].filter((d) => d.value > 0)
+    : [];
 
   return (
-    <Card className="h-full border-border shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none">
-      <CardHeader className={cn(compact && "space-y-0 pb-2 pt-4")}>
+    <Card className="glass-card h-full border-border">
+      <CardHeader className={cn("pb-3", compact && "pb-2 pt-4")}>
         <div className="flex items-center justify-between gap-2">
-          <CardTitle className={cn("tracking-tight", compact ? "text-sm" : "text-base")}>
-            Reddit
-          </CardTitle>
-          <span className={cn("shrink-0 font-mono font-bold tabular-nums", compact ? "text-sm" : "text-sm")}>
-            {score != null ? Math.round(score) : "—"}
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex size-7 items-center justify-center rounded-lg bg-orange-500/10">
+              <MessageSquare className="size-3.5 text-orange-600" />
+            </div>
+            <CardTitle className={cn("tracking-tight", compact ? "text-sm" : "text-base")}>
+              Reddit
+            </CardTitle>
+          </div>
+          <span className={cn("shrink-0 font-mono font-bold tabular-nums", compact ? "text-base" : "text-lg", tone.text)}>
+            {score != null ? roundedScore : "—"}
             <span className="font-sans text-xs font-normal text-muted-foreground">/100</span>
           </span>
         </div>
@@ -32,49 +71,104 @@ export function RedditDetailsPanel({ details, score, compact = false }: RedditDe
           <p className="text-sm text-destructive">{details.error}</p>
         )}
 
-        <div className={cn("grid grid-cols-3 gap-2 text-center sm:gap-3", compact && "gap-1.5")}>
-          <div className={cn("rounded-lg border", compact ? "p-2" : "p-3")}>
-            <p className={cn("font-bold", compact ? "text-lg" : "text-2xl")}>{details.total_mentions ?? 0}</p>
-            <p className="text-[10px] text-muted-foreground sm:text-xs">Mentions</p>
-          </div>
-          <div className={cn("rounded-lg border", compact ? "p-2" : "p-3")}>
-            <p className={cn("font-bold", compact ? "text-lg" : "text-2xl")}>{details.total_upvotes ?? 0}</p>
-            <p className="text-[10px] text-muted-foreground sm:text-xs">Upvotes</p>
-          </div>
-          <div className={cn("rounded-lg border", compact ? "p-2" : "p-3")}>
-            <p className={cn("font-bold", compact ? "text-lg" : "text-2xl")}>{details.total_comments ?? 0}</p>
-            <p className="text-[10px] text-muted-foreground sm:text-xs">Comments</p>
-          </div>
-        </div>
-
-        {sentiment && (
-          <div className={cn("rounded-lg border", compact ? "p-2" : "p-3")}>
-            <p className={cn("font-medium", compact ? "mb-1 text-xs" : "mb-2 text-sm")}>Sentiment</p>
+        {/* Key metrics row */}
+        <div className={cn("grid grid-cols-3 gap-2", compact && "gap-1.5")}>
+          {[
+            {
+              label: "Mentions",
+              value: details.total_mentions ?? 0,
+              icon: <MessageSquare className="size-3.5 text-orange-500" />,
+            },
+            {
+              label: "Upvotes",
+              value: details.total_upvotes ?? 0,
+              icon: <ArrowUp className="size-3.5 text-emerald-500" />,
+            },
+            {
+              label: "Comments",
+              value: details.total_comments ?? 0,
+              icon: <MessageCircle className="size-3.5 text-blue-500" />,
+            },
+          ].map((metric) => (
             <div
+              key={metric.label}
               className={cn(
-                "flex flex-wrap gap-x-3 gap-y-0.5 text-muted-foreground",
-                compact ? "text-[10px] sm:text-xs" : "text-sm",
+                "rounded-xl border border-border/60 bg-muted/20 text-center transition-colors hover:bg-muted/40",
+                compact ? "px-2 py-2.5" : "px-3 py-3",
               )}
             >
-              <span className="text-green-500">+{sentiment.positive} pos</span>
-              <span className="text-red-500">−{sentiment.negative} neg</span>
-              <span>{sentiment.neutral} neutral</span>
+              <div className="flex justify-center mb-1">{metric.icon}</div>
+              <p className={cn("font-bold tabular-nums tracking-tight", compact ? "text-lg" : "text-xl")}>
+                {metric.value}
+              </p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mt-0.5">
+                {metric.label}
+              </p>
             </div>
+          ))}
+        </div>
+
+        {/* Sentiment donut + legend */}
+        {sentiment && (
+          <div className={cn("rounded-xl border border-border/60 bg-muted/10", compact ? "p-2.5" : "p-3.5")}>
+            <p className={cn("font-semibold tracking-tight mb-2", compact ? "text-xs" : "text-sm")}>Sentiment</p>
+            {sentimentData.length > 0 ? (
+              <div className="flex items-center gap-3">
+                <ChartContainer config={sentimentConfig} className="h-16 w-16 shrink-0 !aspect-square">
+                  <PieChart>
+                    <Pie
+                      data={sentimentData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={18}
+                      outerRadius={28}
+                      strokeWidth={2}
+                      stroke="var(--card)"
+                    >
+                      {sentimentData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full bg-emerald-500" />
+                    <span className="text-muted-foreground">{sentiment.positive} positive</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full bg-red-500" />
+                    <span className="text-muted-foreground">{sentiment.negative} negative</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full bg-slate-400" />
+                    <span className="text-muted-foreground">{sentiment.neutral} neutral</span>
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                <span className="text-emerald-600">+{sentiment.positive} pos</span>
+                <span className="text-red-500">−{sentiment.negative} neg</span>
+                <span>{sentiment.neutral} neutral</span>
+              </div>
+            )}
           </div>
         )}
 
+        {/* Subreddits */}
         {details.subreddits && details.subreddits.length > 0 && (
           <div>
-            <p className={cn("mb-2 font-medium", compact ? "text-xs" : "text-sm")}>
+            <p className={cn("mb-2 font-semibold tracking-tight", compact ? "text-xs" : "text-sm")}>
               Subreddits{compact ? "" : ` (${details.subreddits.length})`}
             </p>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {details.subreddits.slice(0, compact ? 8 : undefined).map((sub) => (
                 <span
                   key={sub}
                   className={cn(
-                    "rounded-full bg-muted text-muted-foreground",
-                    compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-xs",
+                    "rounded-lg bg-orange-500/8 border border-orange-500/15 text-foreground font-medium",
+                    compact ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-[11px]",
                   )}
                 >
                   r/{sub}
@@ -84,12 +178,13 @@ export function RedditDetailsPanel({ details, score, compact = false }: RedditDe
           </div>
         )}
 
+        {/* Recent posts */}
         {details.posts && details.posts.length > 0 && (
-          <div className="space-y-1">
-            <p className={cn("font-medium", compact ? "text-xs" : "text-sm")}>Recent</p>
+          <div className="space-y-1.5">
+            <p className={cn("font-semibold tracking-tight", compact ? "text-xs" : "text-sm")}>Recent</p>
             <div
               className={cn(
-                "space-y-1 overflow-y-auto",
+                "space-y-1.5 overflow-y-auto",
                 compact ? "max-h-[9rem]" : "max-h-60",
               )}
             >
@@ -99,13 +194,20 @@ export function RedditDetailsPanel({ details, score, compact = false }: RedditDe
                   href={post.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded bg-muted/30 p-2 transition-colors hover:bg-muted/60"
+                  className="group flex items-start gap-2 rounded-xl border border-border/40 bg-muted/10 p-2.5 transition-all hover:bg-muted/30 hover:border-border/80"
                 >
-                  <p className="truncate text-xs">{post.title}</p>
-                  <div className="mt-1 flex gap-2 text-[10px] text-muted-foreground">
-                    <span>r/{post.subreddit}</span>
-                    <span>{post.upvotes}↑</span>
-                    <span>{post.comments}c</span>
+                  <ExternalLink className="mt-0.5 size-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-medium">{post.title}</p>
+                    <div className="mt-1 flex gap-3 text-[10px] text-muted-foreground">
+                      <span className="font-medium text-orange-600/80">r/{post.subreddit}</span>
+                      <span className="flex items-center gap-0.5">
+                        <ArrowUp className="size-2.5" /> {post.upvotes}
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <MessageCircle className="size-2.5" /> {post.comments}
+                      </span>
+                    </div>
                   </div>
                 </a>
               ))}

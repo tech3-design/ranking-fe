@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Spotlight } from "@/components/ui/spotlight";
-import { MovingBorder } from "@/components/ui/moving-border";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { Globe, Lock } from "lucide-react";
 import type { Competitor } from "@/lib/api/analyzer";
 
@@ -53,113 +60,167 @@ interface CompetitorTableProps {
   competitors: Competitor[];
   yourScore: number | null;
   locked?: boolean;
+  query?: string;
+  scoreBand?: ScoreBandFilter;
+  confidence?: ConfidenceFilter;
 }
+
+export type ScoreBandFilter = "all" | "leaders" | "mid" | "low";
+export type ConfidenceFilter = "all" | "scored" | "unscored";
 
 export function CompetitorTable({
   competitors,
   yourScore,
   locked = false,
+  query = "",
+  scoreBand = "all",
+  confidence = "all",
 }: CompetitorTableProps) {
   if (!competitors.length) return null;
 
-  const sorted = [...competitors].sort(
-    (a, b) =>
-      Number(Boolean(b.scored)) - Number(Boolean(a.scored)) ||
-      (b.composite_score ?? -1) - (a.composite_score ?? -1),
+  const sorted = useMemo(
+    () =>
+      [...competitors].sort(
+        (a, b) =>
+          Number(Boolean(b.scored)) - Number(Boolean(a.scored)) ||
+          (b.composite_score ?? -1) - (a.composite_score ?? -1),
+      ),
+    [competitors],
+  );
+
+  const filtered = useMemo(
+    () =>
+      sorted.filter((comp) => {
+        const hay = `${comp.name} ${comp.url} ${hostOf(comp.url)}`.toLowerCase();
+        const matchQuery = !query.trim() || hay.includes(query.toLowerCase());
+        const matchConfidence =
+          confidence === "all" ||
+          (confidence === "scored" ? comp.scored : !comp.scored);
+        const score = comp.composite_score ?? 0;
+        const matchScore =
+          scoreBand === "all" ||
+          (scoreBand === "leaders" && score >= 70) ||
+          (scoreBand === "mid" && score >= 40 && score < 70) ||
+          (scoreBand === "low" && score < 40);
+        return matchQuery && matchConfidence && matchScore;
+      }),
+    [confidence, query, scoreBand, sorted],
   );
 
   return (
-    <Spotlight className="rounded-xl">
-      <Card className="border-border/60 bg-card/65 backdrop-blur-xl shadow-lg">
-        <CardHeader>
-          <CardTitle>Competitor Comparison</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative space-y-2">
-            {yourScore !== null && (
-              <MovingBorder className="rounded-lg">
-                <div className="flex items-center gap-3 rounded-lg border border-primary/25 bg-primary/10 p-2.5">
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold">Your Site</p>
-                  </div>
-                  <div className="w-40">
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 transition-all"
-                        style={{ width: `${yourScore}%` }}
-                      />
-                    </div>
-                  </div>
-                  <span className="w-10 text-right font-mono text-sm font-bold">
-                    {Math.round(yourScore)}
+    <Card className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none py-0 bg-white">
+      <div className={cn("relative", locked && "blur-[2px] select-none pointer-events-none")}>
+        <Table>
+          <TableHeader className="bg-muted/35">
+            <TableRow className="border-border/60 hover:bg-muted/35">
+              <TableHead className="w-10 pl-4">#</TableHead>
+              <TableHead>Competitor</TableHead>
+              <TableHead className="hidden md:table-cell">Domain</TableHead>
+              <TableHead className="w-[108px]">Confidence</TableHead>
+              <TableHead className="w-[84px] text-right pr-4">Score</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {yourScore !== null ? (
+              <TableRow className="border-border/60 bg-primary/5 hover:bg-primary/10">
+                <TableCell className="pl-4 align-middle">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-[10px] font-semibold text-primary">
+                    You
                   </span>
-                </div>
-              </MovingBorder>
-            )}
+                </TableCell>
+                <TableCell className="align-middle">
+                  <p className="text-sm font-medium text-foreground">Your site</p>
+                </TableCell>
+                <TableCell className="hidden align-middle text-xs text-muted-foreground md:table-cell">
+                  Current project
+                </TableCell>
+                <TableCell className="align-middle">
+                  <span className="inline-flex rounded-md border border-primary/25 bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                    Verified
+                  </span>
+                </TableCell>
+                <TableCell className="pr-4 text-right font-mono text-sm font-semibold align-middle">
+                  {Math.round(yourScore)}
+                </TableCell>
+              </TableRow>
+            ) : null}
 
-            <div className={locked ? "space-y-2 blur-[3px] select-none pointer-events-none" : "space-y-2"}>
-              {sorted.map((comp, idx) => (
-                <div
-                  key={comp.id}
-                  className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/35 p-2.5 transition-colors hover:bg-muted/40"
-                >
-                  {locked ? (
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/40 text-muted-foreground">
-                      <Globe className="h-3.5 w-3.5" aria-hidden />
-                    </div>
-                  ) : (
-                    <SiteLogo url={comp.url} />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">
-                      {locked ? `Competitor ${idx + 1}` : comp.name}
-                      {!locked && !comp.scored && (
-                        <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-amber-600">
-                          Low confidence
-                        </span>
+            {filtered.length === 0 ? (
+              <TableRow className="border-border/60 hover:bg-transparent">
+                <TableCell colSpan={5} className="py-12 text-center text-sm text-muted-foreground">
+                  No competitors match your filters.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((comp, idx) => (
+                <TableRow key={comp.id} className="border-border/60">
+                  <TableCell className="pl-4 align-middle">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-muted text-[10px] font-semibold text-muted-foreground">
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                  </TableCell>
+                  <TableCell className="align-middle">
+                    <div className="flex items-center gap-2.5">
+                      {locked ? (
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/40 text-muted-foreground">
+                          <Globe className="h-3.5 w-3.5" aria-hidden />
+                        </div>
+                      ) : (
+                        <SiteLogo url={comp.url} />
                       )}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {locked ? "hidden-domain.com" : comp.url}
-                    </p>
-                  </div>
-                  <div className="w-40">
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-muted-foreground/50 transition-all"
-                        style={{ width: `${comp.composite_score ?? 0}%` }}
-                      />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {locked ? `Competitor ${idx + 1}` : comp.name}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground md:hidden">
+                          {locked ? "hidden-domain.com" : hostOf(comp.url) || comp.url}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <span className="w-10 text-right font-mono text-sm">
+                  </TableCell>
+                  <TableCell className="hidden align-middle text-xs text-muted-foreground md:table-cell">
+                    {locked ? "hidden-domain.com" : hostOf(comp.url) || comp.url}
+                  </TableCell>
+                  <TableCell className="align-middle">
+                    {comp.scored ? (
+                      <span className="inline-flex rounded-md border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="inline-flex rounded-md border border-amber-500/25 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                        Low confidence
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="pr-4 text-right font-mono text-sm align-middle">
                     {locked ? "?" : comp.composite_score != null ? Math.round(comp.composite_score) : "\u2014"}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {locked && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/45">
-                <div className="max-w-xs rounded-xl border border-border bg-card px-4 py-3 text-center shadow-lg">
-                  <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary/12">
-                    <Lock className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="text-sm font-semibold">Unlock competitor details</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Upgrade to premium to reveal competitor names, scores, and ranking gaps.
-                  </p>
-                  <Link
-                    href="/pricing"
-                    className="mt-3 inline-flex rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
-                  >
-                    Buy Premium
-                  </Link>
-                </div>
-              </div>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
+          </TableBody>
+        </Table>
+
+        {locked && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/45">
+            <div className="max-w-xs rounded-xl border border-border bg-card px-4 py-3 text-center shadow-lg">
+              <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary/12">
+                <Lock className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-sm font-semibold">Unlock competitor details</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Upgrade to premium to reveal competitor names, scores, and ranking gaps.
+              </p>
+              <Link
+                href="/pricing"
+                className="mt-3 inline-flex rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+              >
+                Buy Premium
+              </Link>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </Spotlight>
+        )}
+      </div>
+    </Card>
   );
 }
