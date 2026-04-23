@@ -206,14 +206,14 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
 
   if (loading) {
     return (
-      <div className="w-full flex items-center justify-center" style={{ aspectRatio: "2/1" }}>
-        <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${coral}40`, borderTopColor: coral }} />
+      <div className="flex w-full items-center justify-center rounded-lg bg-muted/20" style={{ aspectRatio: "5/1", maxHeight: "140px" }}>
+        <div className="h-4 w-4 animate-spin rounded-full border-2" style={{ borderColor: `${coral}40`, borderTopColor: coral }} />
       </div>
     );
   }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: "3/1", background: "transparent" }}>
+    <div className="relative w-full max-h-[min(160px,28vw)] overflow-hidden rounded-lg bg-muted/10" style={{ aspectRatio: "5/1" }}>
       <svg
         viewBox={`0 0 ${W} ${CLIP_H}`}
         className="w-full h-full"

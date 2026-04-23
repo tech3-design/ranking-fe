@@ -1,4 +1,3 @@
-"use client";
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -13,6 +12,7 @@ import {
   PROMPT_TRACKING_PROOF_METRICS,
   PROMPT_TRACKING_WHY,
 } from "@/lib/landing-prompt-tracking-content";
+import type { LucideIcon } from "lucide-react";
 
 /**
  * Same structural pattern as {@link LandingWhySignalor}: eyebrow, headline with dashed primary span,
@@ -28,16 +28,28 @@ export function PromptTrackingWhySection({
   secondaryCtaHref = "/prompt-tracking/prompt-library",
   headingId = "prompt-tracking-why-heading",
 }: {
-  content?: typeof PROMPT_TRACKING_WHY;
+  content?: Partial<{
+    eyebrow: string;
+    titleBefore: string;
+    titleAccent: string;
+    titleAfter: string;
+    intro: string;
+    proofTitle: string;
+    proofBody: string;
+    breakdownTitle: string;
+    breakdownBody: string;
+    capabilityTitle: string;
+    capabilityBody: string;
+  }>;
   proofMetrics?: readonly { value: string; label: string }[];
   pillarRows?: readonly { label: string; value: number; tone: string }[];
-  capabilityRows?: readonly { icon: typeof PROMPT_TRACKING_CAPABILITY_ROWS[number]["icon"]; title: string; description: string }[];
+  capabilityRows?: readonly { icon: LucideIcon; title: string; description: string }[];
   primaryCta?: string;
   secondaryCtaLabel?: string;
   secondaryCtaHref?: string;
   headingId?: string;
 } = {}) {
-  const w = content;
+  const w = { ...PROMPT_TRACKING_WHY, ...content };
   return (
     <section className="relative bg-background" aria-labelledby={headingId}>
       <div aria-hidden className="relative left-1/2 w-screen -translate-x-1/2 border-t border-black/6" />

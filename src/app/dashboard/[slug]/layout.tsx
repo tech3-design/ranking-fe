@@ -569,6 +569,7 @@ export default function DashboardSlugLayout({
             sidebarNav={sidebarNav}
             sidebarBottom={sidebarBottom}
             topBarActions={topBarActions}
+            breadcrumbs={[]}
           >
             <div className="animate-enter">{children}</div>
             {/* <footer className="mt-10 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border px-0 py-6 text-[11px] text-muted-foreground">
