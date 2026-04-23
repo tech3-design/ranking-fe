@@ -71,9 +71,13 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
       for (const r of fixStatuses) fMap[r.recommendation_id] = { status: r.status, message: r.message };
       setFixResults(fMap);
 
+      // Unblock rendering now — score history loads in the background
+      setLoading(false);
+
       if (detail.email) {
-        const history = await getScoreHistory(detail.email).catch(() => []);
-        setScoreHistory(history);
+        getScoreHistory(detail.email)
+          .then((history) => setScoreHistory(history))
+          .catch(() => {});
       }
     } catch (err: unknown) {
       if (isAxios404(err)) {
@@ -82,7 +86,6 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
         return;
       }
       setError(err instanceof Error ? err.message : "Failed to load analysis");
-    } finally {
       setLoading(false);
     }
   }, [slug]);
