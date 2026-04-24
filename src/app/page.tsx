@@ -44,7 +44,7 @@ export default function Home() {
                   width={160}
                   height={48}
                   decoding="async"
-                  className="h-9 w-auto max-w-40 object-contain object-center transition duration-300 ease-out grayscale opacity-55 group-hover:scale-[1.04] group-hover:grayscale-0 group-hover:opacity-100 md:h-10 md:max-w-44"
+                  className="h-9 w-auto max-w-40 object-contain object-center transition duration-300 ease-out group-hover:scale-[1.04] md:h-10 md:max-w-44"
                 />
               </div>
             ))}

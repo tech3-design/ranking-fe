@@ -157,7 +157,6 @@ export interface AnalysisRunDetail {
   recommendations: Recommendation[];
   ai_probes: AIProbe[];
   brand_visibility: BrandVisibility | null;
-  llm_logs: LLMLog[];
 }
 
 export async function startAnalysis(
@@ -230,7 +229,7 @@ export interface PromptCitation {
 export interface PromptResult {
   id: number;
   engine: Engine;
-  response_text: string;
+  response_text: string; // truncated to 500 chars in list; use getPromptResultFull() for the complete text
   brand_mentioned: boolean;
   sentiment: Sentiment;
   confidence: number;
@@ -264,10 +263,30 @@ export interface CitationSourcesResponse {
   rival_pages: CitedPage[];
 }
 
+/** API codes for `intent` — display via `PROMPT_INTENT_LABEL`. */
+export type PromptSearchIntent = "brand" | "informational" | "transactional";
+
+/** API codes for `prompt_type` — display via `PROMPT_SURFACE_TYPE_LABEL`. */
+export type PromptSurfaceType = "organic" | "branded" | "competitive";
+
+export const PROMPT_INTENT_LABEL: Record<PromptSearchIntent, string> = {
+  brand: "Brand",
+  informational: "Information",
+  transactional: "Transactional",
+};
+
+export const PROMPT_SURFACE_TYPE_LABEL: Record<PromptSurfaceType, string> = {
+  organic: "Organic",
+  branded: "Brand",
+  competitive: "Competition",
+};
+
 export interface PromptTrack {
   id: number;
   prompt_text: string;
   is_custom: boolean;
+  intent?: PromptSearchIntent;
+  prompt_type?: PromptSurfaceType;
   score: number;
   created_at: string;
   results: PromptResult[];
@@ -343,6 +362,13 @@ export async function recheckPrompt(slug: string, trackId: number): Promise<void
 
 export async function deletePromptTrack(slug: string, trackId: number): Promise<void> {
   await apiClient.delete(`/api/analyzer/runs/s/${slug}/prompts/${trackId}/`);
+}
+
+export async function getPromptResultFull(slug: string, trackId: number, resultId: number): Promise<PromptResult> {
+  const { data } = await apiClient.get<PromptResult>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/results/${resultId}/`,
+  );
+  return data;
 }
 
 export async function recheckAllPrompts(slug: string): Promise<{ count: number }> {

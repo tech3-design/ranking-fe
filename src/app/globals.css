@@ -228,6 +228,22 @@
   .shimmer {
     animation: shimmer 1.7s linear infinite;
   }
+
+  /**
+   * Prompt tracker — Information / Organic chips use shared marketing tokens
+   * (`--feature-*` in `:root`) so they match the rest of the product palette.
+   */
+  .badge-prompt-intent-informational {
+    border-color: color-mix(in srgb, var(--feature-blue) 38%, transparent);
+    background: var(--feature-blue-tint);
+    color: var(--feature-blue);
+  }
+  .badge-prompt-type-organic {
+    border-color: color-mix(in srgb, var(--feature-emerald) 38%, transparent);
+    background: var(--feature-emerald-tint);
+    color: var(--feature-emerald);
+  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
