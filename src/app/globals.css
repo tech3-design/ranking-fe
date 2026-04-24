@@ -241,6 +241,7 @@
     background: var(--feature-emerald-tint);
     color: var(--feature-emerald);
   }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
