@@ -661,3 +661,104 @@ export async function getAgentLog(slug: string): Promise<AgentLogResponse> {
   );
   return data;
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// Rank Tracker — auto-suggested queries + Google/Reddit/Quora rank snapshots
+// ──────────────────────────────────────────────────────────────────────────
+
+export type RankAuditStatus = "queued" | "running" | "complete" | "failed";
+export type RankSurface = "google" | "reddit" | "quora" | "ai";
+export type RankQueryStatus = "queued" | "done" | "failed";
+export type AiEngineKey = "gpt" | "claude" | "gemini" | "perplexity";
+export type RankSentiment = "positive" | "neutral" | "negative";
+
+export interface RankAuditSummary {
+  id: number;
+  status: RankAuditStatus;
+  progress: number;
+  total_queries: number;
+  queries_done: number;
+  avg_brand_mentions: number;
+  avg_top3_brand_rate: number;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  error_message: string;
+}
+
+export interface RankResult {
+  id: number;
+  surface: RankSurface;
+  position: number;
+  url: string;
+  domain: string;
+  title: string;
+  snippet: string;
+  engine: string;
+  response_text: string;
+  sentiment: RankSentiment;
+  is_brand_mentioned: boolean;
+  competitors_mentioned: string[];
+  upvotes: number | null;
+  subreddit: string;
+  checked_at: string | null;
+}
+
+export interface RankQuery {
+  id: number;
+  prompt_text: string;
+  rank: number;
+  brand_mention_count: number;
+  status: RankQueryStatus;
+  error_message: string;
+  results: RankResult[];
+}
+
+export interface RankAuditResponse {
+  audit: RankAuditSummary | null;
+  queries: RankQuery[];
+}
+
+export interface RankAuditQuery {
+  surface?: RankSurface;
+  query_id?: number;
+  q?: string;
+  only_brand?: boolean;
+}
+
+export async function startRankAudit(slug: string): Promise<RankAuditSummary> {
+  const { data } = await apiClient.post<RankAuditSummary>(
+    `/api/analyzer/runs/s/${slug}/rank/start/`,
+    {},
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function getRankAudit(
+  slug: string,
+  query: RankAuditQuery = {},
+): Promise<RankAuditResponse> {
+  const params: Record<string, string | number | boolean> = {};
+  if (query.surface) params.surface = query.surface;
+  if (query.query_id != null) params.query_id = query.query_id;
+  if (query.q) params.q = query.q;
+  if (query.only_brand) params.only_brand = "1";
+  const { data } = await apiClient.get<RankAuditResponse>(
+    `/api/analyzer/runs/s/${slug}/rank/`,
+    { params, timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function refreshRankQuery(
+  slug: string,
+  queryId: number,
+): Promise<RankQuery> {
+  const { data } = await apiClient.post<RankQuery>(
+    `/api/analyzer/runs/s/${slug}/rank/query/${queryId}/refresh/`,
+    {},
+    { timeout: 30_000 },
+  );
+  return data;
+}
