@@ -50,6 +50,11 @@ export interface Competitor {
   name: string;
   url: string;
   industry: string;
+  tier?: string;
+  target_market?: string;
+  geography?: string;
+  pricing_model?: string;
+  positioning?: string;
   composite_score: number | null;
   scored: boolean;
   page_score: PageScore | null;
@@ -424,12 +429,14 @@ export async function getScoreHistory(
 
 // ── Scheduled Analysis ────────────────────────────────────────────────────
 
+export type ScheduleFrequency = "once" | "weekly" | "monthly";
+
 export interface ScheduledAnalysis {
   id: number;
   email: string;
   url: string;
   brand_name: string;
-  frequency: "weekly" | "monthly";
+  frequency: ScheduleFrequency;
   next_run_at: string;
   last_run_at: string | null;
   last_run_slug: string;
@@ -453,8 +460,10 @@ export async function toggleSchedule(payload: {
   org_id: number;
   url: string;
   brand_name?: string;
-  frequency: "weekly" | "monthly";
+  frequency: ScheduleFrequency;
   is_active: boolean;
+  /** ISO datetime — required when frequency="once", optional otherwise. */
+  run_at?: string;
 }): Promise<ScheduledAnalysis> {
   const { data } = await apiClient.post<ScheduledAnalysis>(
     "/api/analyzer/schedule/",

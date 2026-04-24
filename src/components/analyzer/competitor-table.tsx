@@ -28,6 +28,7 @@ interface BrandRow {
   isMine: boolean;
   locked: boolean;
   scored: boolean;
+  defaultRelation: Relation;
 }
 
 interface CompetitorTableProps {
@@ -39,6 +40,17 @@ interface CompetitorTableProps {
   query?: string;
   scoreBand?: ScoreBandFilter;
   confidence?: ConfidenceFilter;
+}
+
+function deriveRelation(c: Competitor): Exclude<Relation, "unknown"> {
+  // AI-suggested default from backend signals. User can override via dropdown.
+  const tier = (c.tier || "").toLowerCase();
+  if (tier.includes("tier 1") || tier.includes("direct")) return "direct";
+  if (tier.includes("tier 2")) return "indirect";
+  const tm = (c.target_market || "").toLowerCase();
+  if (tm && (tm.includes("same") || tm.includes("identical"))) return "direct";
+  // Fallback: treat unclassified as adjacent rather than leaving unselected
+  return "adjacent";
 }
 
 function hostOf(url: string): string {
@@ -106,6 +118,7 @@ export function CompetitorTable({
         isMine: true,
         locked: false,
         scored: true,
+        defaultRelation: "unknown",
       });
     }
     const sorted = [...competitors].sort(
@@ -138,6 +151,7 @@ export function CompetitorTable({
         isMine: false,
         locked,
         scored: c.scored,
+        defaultRelation: deriveRelation(c),
       });
     });
     return list;
@@ -181,7 +195,7 @@ export function CompetitorTable({
             {rows.map((r) => {
               const rel: Relation = r.isMine
                 ? "unknown"
-                : (relations[r.key] ?? "unknown");
+                : (relations[r.key] ?? r.defaultRelation);
               const scoreVal =
                 r.score != null ? Math.round(r.score) : null;
               return (
