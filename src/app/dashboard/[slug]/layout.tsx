@@ -67,6 +67,7 @@ const MAIN_NAV: MainNavItem[] = [
     children: [
       { label: "Actions", path: "/prompts/actions" },
       { label: "Explorer", path: "/prompts/recommendations" },
+      { label: "Ranking", path: "/prompts/ranking" },
       { label: "History", path: "/prompts/history" },
     ],
   },
@@ -122,6 +123,12 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Explorer",
       hint: "Explore suggested prompt sets for your properties.",
+    };
+  }
+  if (rel.startsWith("/prompts/ranking")) {
+    return {
+      title: "Ranking",
+      hint: "What's ranking in Google, Reddit, and Quora for queries tailored to your brand.",
     };
   }
   if (rel.startsWith("/prompts/history")) {
