@@ -9,6 +9,10 @@ import { Menu, Moon, Sun, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Diamond } from "@/components/ui/intersection-diamonds";
 import { cn } from "@/lib/utils";
+import {
+  DashboardBreadcrumbNav,
+  type DashboardBreadcrumbItem,
+} from "./dashboard-breadcrumbs";
 
 const DASHBOARD_TOPBAR_H = "h-[60px]";
 
@@ -76,6 +80,7 @@ export type DashboardAppSection = {
 export function DashboardAppFrame({
   children,
   section,
+  breadcrumbs,
   sidebarBrand,
   sidebarBelowHeaderRow,
   sidebarNav,
@@ -85,6 +90,7 @@ export function DashboardAppFrame({
 }: {
   children: React.ReactNode;
   section: DashboardAppSection;
+  breadcrumbs: DashboardBreadcrumbItem[];
   sidebarBrand: React.ReactNode;
   sidebarBelowHeaderRow: React.ReactNode;
   sidebarNav: React.ReactNode;
@@ -123,15 +129,16 @@ export function DashboardAppFrame({
       )}
     >
       <div className="min-w-0 flex-1 pr-2">
-        <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">
+        <DashboardBreadcrumbNav items={breadcrumbs} className="mb-1" />
+        {/* <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">
           {section.title}
-        </h2>
+        </h2> */}
 
-        {section.hint ? (
+        {/* {section.hint ? (
           <p className="truncate text-xs text-muted-foreground">
             {section.hint}
           </p>
-        ) : null}
+        ) : null} */}
       </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -161,6 +168,7 @@ export function DashboardAppFrame({
         </Button>
 
         <div className="min-w-0 flex-1">
+          <DashboardBreadcrumbNav items={breadcrumbs} className="mb-0.5 max-w-[min(100%,14rem)] sm:max-w-none" />
           <p className="truncate text-sm font-semibold text-foreground">
             {section.title}
           </p>
@@ -228,7 +236,7 @@ export function DashboardAppFrame({
 
             {/* Bottom User Section */}
 
-            <div className="relative mt-auto shrink-0 border-t border-border/40 px-0.5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] pt-2">
+            <div className="relative mt-auto shrink-0 border-t border-border/40 px-0.5 pb-1 ">
               {sidebarBottom}
               <Diamond style={{ top: -2.5, right: -2.5 }} />
             </div>
@@ -239,7 +247,7 @@ export function DashboardAppFrame({
 
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-muted/40 dark:bg-background/80">
 
-            <main className="mx-auto w-full min-h-0 max-w-7xl flex-1 overflow-y-auto px-4 py-8 sm:py-8">
+            <main className="mx-auto w-full min-h-0 max-w-7xl flex-1 overflow-y-auto px-4 py-8 sm:py-4">
               {children}
             </main>
 

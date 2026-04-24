@@ -7,6 +7,9 @@ import { ChevronDown, Globe, Lock, Plus, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Competitor } from "@/lib/api/analyzer";
 
+export type ScoreBandFilter = "all" | "leaders" | "mid" | "low";
+export type ConfidenceFilter = "all" | "scored" | "unscored";
+
 type Relation = "direct" | "indirect" | "adjacent" | "unknown";
 
 const RELATION_LABEL: Record<Relation, string> = {
@@ -33,6 +36,9 @@ interface CompetitorTableProps {
   yourName?: string;
   yourUrl?: string;
   locked?: boolean;
+  query?: string;
+  scoreBand?: ScoreBandFilter;
+  confidence?: ConfidenceFilter;
 }
 
 function hostOf(url: string): string {
@@ -81,6 +87,9 @@ export function CompetitorTable({
   yourName,
   yourUrl,
   locked = false,
+  query = "",
+  scoreBand = "all",
+  confidence = "all",
 }: CompetitorTableProps) {
   const [relations, setRelations] = useState<Record<string, Relation>>({});
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -104,7 +113,22 @@ export function CompetitorTable({
         Number(Boolean(b.scored)) - Number(Boolean(a.scored)) ||
         (b.composite_score ?? -1) - (a.composite_score ?? -1),
     );
-    sorted.forEach((c, idx) => {
+    const q = query.trim().toLowerCase();
+    const filtered = sorted.filter((c) => {
+      const hay = `${c.name} ${c.url} ${hostOf(c.url)}`.toLowerCase();
+      const matchQuery = !q || hay.includes(q);
+      const matchConfidence =
+        confidence === "all" ||
+        (confidence === "scored" ? c.scored : !c.scored);
+      const score = c.composite_score ?? 0;
+      const matchScore =
+        scoreBand === "all" ||
+        (scoreBand === "leaders" && score >= 70) ||
+        (scoreBand === "mid" && score >= 40 && score < 70) ||
+        (scoreBand === "low" && score < 40);
+      return matchQuery && matchConfidence && matchScore;
+    });
+    filtered.forEach((c, idx) => {
       list.push({
         key: `c-${c.id}`,
         name: locked ? `Competitor ${idx + 1}` : c.name,
@@ -117,7 +141,7 @@ export function CompetitorTable({
       });
     });
     return list;
-  }, [competitors, yourScore, yourName, yourUrl, locked]);
+  }, [competitors, yourScore, yourName, yourUrl, locked, query, confidence, scoreBand]);
 
   if (!rows.length) return null;
 
