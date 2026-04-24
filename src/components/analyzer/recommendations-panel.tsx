@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Fragment } from "react";
+import { useState, useEffect, useCallback, Fragment, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Recommendation, RecommendationStep, FixPreview } from "@/lib/api/analyzer";
 import { previewFix, verifyFix, applyAutoFix, approveFix } from "@/lib/api/analyzer";
@@ -8,10 +8,11 @@ import { FixPreviewModal } from "./fix-preview-modal";
 import {
   Loader2, Eye, ChevronDown, ChevronRight, Copy, Check,
   AlertTriangle, ArrowUp, Minus, ShieldCheck, Clock, Zap,
-  XCircle, RefreshCw, ShoppingBag, Globe, MessageSquare,
+  XCircle, RefreshCw, ShoppingBag, Globe, MessageSquare, Search, Tag,
 } from "lucide-react";
 import type { PlatformStepInfo } from "@/lib/api/analyzer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -271,6 +272,8 @@ interface RecommendationsPanelProps {
   onFixResult?: (recId: number, result: { status: string; message: string }) => void;
 }
 
+type PriorityFilter = "all" | "critical" | "high" | "medium" | "low";
+
 export function RecommendationsPanel({
   recommendations,
   allRecommendations,
@@ -287,6 +290,8 @@ export function RecommendationsPanel({
   const [previewData, setPreviewData] = useState<FixPreview | null>(null);
   const [previewingId, setPreviewingId] = useState<number | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<PriorityFilter>("all");
   /** User-marked "I did this on my site" per recommendation step number */
   const [userStepsByRec, setUserStepsByRec] = useState<Record<number, Set<number>>>({});
   /** Sequential "scanning" animation during verify */
@@ -521,10 +526,71 @@ export function RecommendationsPanel({
     return s;
   }, 0);
 
+  // const filteredRecommendations = useMemo(
+  //   () =>
+  //     recommendations.filter((rec) => {
+  //       const matchesFilter = activeFilter === "all" || rec.priority === activeFilter;
+  //       const hay = `${rec.title} ${rec.description} ${PILLAR_LABELS[rec.pillar] ?? rec.pillar}`.toLowerCase();
+  //       const matchesQuery = !query.trim() || hay.includes(query.toLowerCase());
+  //       return matchesFilter && matchesQuery;
+  //     }),
+  //   [activeFilter, query, recommendations],
+  // );
+
+  // const filterCounts = {
+  //   all: recommendations.length,
+  //   critical: recommendations.filter((r) => r.priority === "critical").length,
+  //   high: recommendations.filter((r) => r.priority === "high").length,
+  //   medium: recommendations.filter((r) => r.priority === "medium").length,
+  //   low: recommendations.filter((r) => r.priority === "low").length,
+  // } as const;
+
   return (
     <div className="space-y-4">
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none">
-        <div className="border-b border-border/60 px-4 py-3">
+        {/* <div className="space-y-3 border-b border-border/60 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {([
+              ["all", "All"],
+              ["critical", "Critical"],
+              ["high", "High"],
+              ["medium", "Medium"],
+              ["low", "Low"],
+            ] as const).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setActiveFilter(value)}
+                className={cn(
+                  "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                  activeFilter === value
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-border/70 bg-background text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {label}{" "}
+                <span className="ml-0.5 text-[11px] opacity-80">({filterCounts[value]})</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-sm">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Filter recommendations..."
+                className="h-8 rounded-md border-border/70 pl-8 text-xs"
+              />
+            </div>
+
+            <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+              <Tag className="h-3.5 w-3.5" />
+              Filters
+            </Button>
+          </div>
+
           <p className="sr-only">Recommendation list and progress</p>
           <div className="flex max-w-md items-center gap-3">
             <span className="shrink-0 whitespace-nowrap text-xs tabular-nums text-muted-foreground">
@@ -540,7 +606,7 @@ export function RecommendationsPanel({
               />
             </div>
           </div>
-        </div>
+        </div> */}
 
         <Table>
           <TableHeader>

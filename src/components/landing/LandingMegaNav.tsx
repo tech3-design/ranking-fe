@@ -18,15 +18,19 @@ import {
   LineChart,
   Link2,
   LogIn,
+  Menu,
   Plug,
   Radar,
   Sparkles,
   Tags,
   Target,
   Users,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 
 type MegaKey = "solutions" | "features" | "freeTools" | "resources";
 
@@ -624,6 +628,7 @@ function DefaultPreview() {
 
 export function LandingMegaNav() {
   const [open, setOpen] = useState<MegaKey | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const cancelClose = useCallback(() => {
@@ -646,99 +651,208 @@ export function LandingMegaNav() {
     [cancelClose],
   );
 
+  useEffect(
+    () => () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
+
   return (
-    <div
-      className="relative hidden flex-1 justify-center lg:flex z-20"
-      onMouseLeave={scheduleClose}
-    >
-      <nav
-        className="flex items-center gap-0.5 font-sans"
-        aria-label="Primary"
+    <div className="relative z-20 flex flex-1 items-center justify-end lg:justify-center">
+      <div
+        className="relative hidden flex-1 justify-center lg:flex"
+        onMouseLeave={scheduleClose}
       >
-        {(Object.keys(MENUS) as MegaKey[]).map((key) => {
-          const isOpen = open === key;
-          return (
-            <div
-              key={key}
-              className="relative"
-              onMouseEnter={() => openMenu(key)}
-            >
-              <button
-                type="button"
-                className={cn(
-                  "inline-flex items-center gap-0.5 rounded-md px-3 py-2 text-[14px] font-medium tracking-tight transition-colors",
-                  isOpen
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900",
-                )}
-                aria-expanded={isOpen}
-                aria-haspopup="true"
-              >
-                {MENUS[key].label}
-                <ChevronDown
-                  className={cn(
-                    "h-3.5 w-3.5 text-neutral-400 transition-transform",
-                    isOpen && "rotate-180",
-                  )}
-                  aria-hidden
-                />
-              </button>
-            </div>
-          );
-        })}
-        <Link
-          href="/pricing"
-          className="rounded-md px-3 py-2 text-[14px] font-medium tracking-tight text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+        <nav
+          className="flex items-center gap-0.5 font-sans"
+          aria-label="Primary"
         >
-          Pricing
-        </Link>
-      </nav>
+          {(Object.keys(MENUS) as MegaKey[]).map((key) => {
+            const isOpen = open === key;
+            return (
+              <div
+                key={key}
+                className="relative"
+                onMouseEnter={() => openMenu(key)}
+              >
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex items-center gap-0.5 rounded-md px-3 py-2 text-[14px] font-medium tracking-tight transition-colors",
+                    isOpen
+                      ? "bg-neutral-100 text-neutral-900"
+                      : "text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900",
+                  )}
+                  aria-expanded={isOpen}
+                  aria-haspopup="true"
+                >
+                  {MENUS[key].label}
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 text-neutral-400 transition-transform",
+                      isOpen && "rotate-180",
+                    )}
+                    aria-hidden
+                  />
+                </button>
+              </div>
+            );
+          })}
+          <Link
+            href="/pricing"
+            className="rounded-md px-3 py-2 text-[14px] font-medium tracking-tight text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+          >
+            Pricing
+          </Link>
+        </nav>
+
+        <AnimatePresence>
+          {open ? (
+            <motion.div
+              key={open}
+              role="presentation"
+              className={cn(
+                "absolute left-1/2 top-full -mt-1 -translate-x-1/2 pt-2",
+                open === "resources"
+                  ? "w-[min(52rem,calc(100vw-1rem))]"
+                  : "w-[min(40rem,calc(100vw-1rem))]",
+              )}
+              style={{ transformOrigin: "50% 0" }}
+              initial={{ opacity: 0, y: 10, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 6, scale: 0.98 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              onMouseEnter={cancelClose}
+              onMouseLeave={scheduleClose}
+            >
+              <motion.div
+                className="rounded-sm border-2 bg-white p-2 font-sans shadow-[0_20px_50px_-12px_rgba(15,23,42,0.18)]"
+                initial={{ opacity: 0.92 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.02 }}
+              >
+                {open === "resources" ? (
+                  <ResourcesMegaGrid setOpen={setOpen} />
+                ) : (
+                  <motion.div
+                    className="grid gap-2 rounded-sm border border-black/6 sm:grid-cols-2 sm:gap-x-3 sm:gap-y-1"
+                    variants={{
+                      show: {
+                        transition: { staggerChildren: 0.035, delayChildren: 0.04 },
+                      },
+                    }}
+                    initial="hidden"
+                    animate="show"
+                  >
+                    {MENUS[open].items.map((item) => (
+                      <MegaMenuLinkCell key={item.title} item={item} onNavigate={() => setOpen(null)} />
+                    ))}
+                  </motion.div>
+                )}
+              </motion.div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </div>
+
+      <div className="hidden shrink-0 items-center gap-2 lg:flex">
+        <Button asChild variant="link" className="px-4 text-neutral-700 hover:text-neutral-900">
+          <Link href="/sign-in">Log In</Link>
+        </Button>
+        <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "px-4")}>
+          <Link href="/sign-up">Sign Up</Link>
+        </Button>
+      </div>
+
+      <div className="lg:hidden">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 border-black/12 bg-white/90"
+          aria-expanded={mobileOpen}
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMobileOpen((prev) => !prev)}
+        >
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+      </div>
 
       <AnimatePresence>
-        {open ? (
-          <motion.div
-            key={open}
-            role="presentation"
-            className={cn(
-              "absolute left-1/2 top-full -mt-1 -translate-x-1/2 pt-2",
-              open === "resources"
-                ? "w-[min(52rem,calc(100vw-1rem))]"
-                : "w-[min(40rem,calc(100vw-1rem))]",
-            )}
-            style={{ transformOrigin: "50% 0" }}
-            initial={{ opacity: 0, y: 10, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.98 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            onMouseEnter={cancelClose}
-            onMouseLeave={scheduleClose}
-          >
-            <motion.div
-              className="rounded-sm border-2 bg-white p-2 font-sans shadow-[0_20px_50px_-12px_rgba(15,23,42,0.18)]"
-              initial={{ opacity: 0.92 }}
+        {mobileOpen ? (
+          <>
+            <motion.button
+              type="button"
+              aria-label="Close menu overlay"
+              className="fixed inset-0 z-40 bg-black/25 lg:hidden"
+              initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.02 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen(false)}
+            />
+            <motion.div
+              className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-lg border border-black/10 bg-white p-3 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.22)] lg:hidden"
+              initial={{ opacity: 0, y: 8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             >
-              {open === "resources" ? (
-                <ResourcesMegaGrid setOpen={setOpen} />
-              ) : (
-                <motion.div
-                  className="grid gap-2 rounded-sm border border-black/6 sm:grid-cols-2 sm:gap-x-3 sm:gap-y-1"
-                  variants={{
-                    show: {
-                      transition: { staggerChildren: 0.035, delayChildren: 0.04 },
-                    },
-                  }}
-                  initial="hidden"
-                  animate="show"
+              <nav className="flex flex-col" aria-label="Mobile primary">
+                {(Object.keys(MENUS) as MegaKey[]).map((key) => (
+                  <details key={key} className="group border-b border-black/8 py-1 last:border-b-0">
+                    <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-neutral-800 transition-colors hover:bg-neutral-50">
+                      {MENUS[key].label}
+                      <ChevronDown className="h-4 w-4 text-neutral-500 transition-transform group-open:rotate-180" />
+                    </summary>
+                    <div className="flex flex-col gap-1 px-2 pb-2 pt-1">
+                      {MENUS[key].items.map((item) => (
+                        <Link
+                          key={`${key}-${item.title}`}
+                          href={item.href}
+                          className="rounded-md px-2 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {item.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </details>
+                ))}
+                <Link
+                  href="/pricing"
+                  className="mt-2 rounded-md px-2 py-2 text-sm font-medium text-neutral-800 transition-colors hover:bg-neutral-50"
+                  onClick={() => setMobileOpen(false)}
                 >
-                  {MENUS[open].items.map((item) => (
-                    <MegaMenuLinkCell key={item.title} item={item} onNavigate={() => setOpen(null)} />
-                  ))}
-                </motion.div>
-              )}
+                  Pricing
+                </Link>
+              </nav>
+
+              <div className="mt-3 flex flex-col gap-2 border-t border-black/8 pt-3">
+                <Button asChild variant="outline" className="w-full justify-center border-black/12 bg-white">
+                  <Link href="/sign-in" onClick={() => setMobileOpen(false)}>
+                    Log In
+                  </Link>
+                </Button>
+                <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "w-full justify-center")}>
+                  <Link href="/sign-up" onClick={() => setMobileOpen(false)}>
+                    Sign Up
+                  </Link>
+                </Button>
+              </div>
             </motion.div>
-          </motion.div>
+          </>
         ) : null}
       </AnimatePresence>
     </div>

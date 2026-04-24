@@ -30,8 +30,11 @@ import {
   type SitemapPageState,
 } from "@/lib/api/analyzer";
 import { cn } from "@/lib/utils";
+import { Input } from "../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 type StateTab = "crawled" | "redirect" | "queued" | "failed";
+type SeverityFilter = SitemapPageSeverity | "all";
 
 const SORT_OPTIONS: { label: string; value: string }[] = [
   { label: "AI score ↓", value: "-ai_score" },
@@ -50,7 +53,7 @@ export function SitemapAuditPanel({ slug }: { slug: string }) {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<StateTab>("crawled");
-  const [severity, setSeverity] = useState<SitemapPageSeverity | "">("");
+  const [severity, setSeverity] = useState<SeverityFilter>("all");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("-ai_score");
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -63,7 +66,7 @@ export function SitemapAuditPanel({ slug }: { slug: string }) {
     try {
       const res = await getSitemapAudit(slug, {
         state,
-        severity: severity || undefined,
+        severity: severity === "all" ? undefined : severity,
         q: q || undefined,
         sort,
         page: 1,
@@ -424,7 +427,13 @@ function StateTabs({
     { key: "failed", label: "Failed", count: audit.failed_count },
   ];
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div>
+        {/* <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">Sitemap</p> */}
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">Sitemap Audit</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Fetch your sitemap, score every page for Core Web Vitals, structure, and AI readiness. Up to 200 URLs per run.</p>
+      </div>
+      <div>
       {items.map((it) => {
         const isActive = it.key === active;
         return (
@@ -446,6 +455,8 @@ function StateTabs({
           </button>
         );
       })}
+      </div>
+      
     </div>
   );
 }
@@ -462,19 +473,19 @@ function Toolbar({
   onQ: (v: string) => void;
   sort: string;
   onSort: (v: string) => void;
-  severity: SitemapPageSeverity | "";
-  onSeverity: (v: SitemapPageSeverity | "") => void;
+  severity: SeverityFilter;
+  onSeverity: (v: SeverityFilter) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-wrap items-center justify-end gap-3">
       <div className="relative min-w-[220px] flex-1 md:flex-initial md:w-80">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-        <input
+        <Input
           type="text"
           placeholder="Search URLs…"
           value={q}
           onChange={(e) => onQ(e.target.value)}
-          className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-8 text-[13px] text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+          className="w-full rounded-md border border-border bg-white py-2 pl-9 pr-8 text-[13px] text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
         />
         {q ? (
           <button
@@ -488,27 +499,41 @@ function Toolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        <select
+        <Select
           value={severity}
-          onChange={(e) => onSeverity((e.target.value as SitemapPageSeverity | "") || "")}
-          className="rounded-md border border-border bg-background px-2 py-2 text-[12px] font-medium text-foreground focus:border-primary focus:outline-none"
+          onValueChange={(v) => onSeverity(v as SeverityFilter)}
         >
-          <option value="">All severities</option>
-          <option value="ok">OK</option>
-          <option value="warn">Warning</option>
-          <option value="fail">Fail</option>
-        </select>
-        <select
+          <SelectTrigger
+            size="sm"
+            className="h-9 w-34 shrink-0 border border-border/80 bg-white text-foreground shadow-sm sm:w-36 dark:bg-white dark:text-foreground dark:hover:bg-neutral-50"
+          >
+            <SelectValue placeholder="All severities" />
+          </SelectTrigger>
+          <SelectContent> 
+            <SelectItem value="all">All severities</SelectItem>
+            <SelectItem value="ok">OK</SelectItem>
+            <SelectItem value="warn">Warning</SelectItem>
+            <SelectItem value="fail">Fail</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
           value={sort}
-          onChange={(e) => onSort(e.target.value)}
-          className="rounded-md border border-border bg-background px-2 py-2 text-[12px] font-medium text-foreground focus:border-primary focus:outline-none"
+          onValueChange={(v) => onSort(v as string)}
         >
-          {SORT_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            size="sm"
+            className="h-9 w-34 shrink-0 border border-border/80 bg-white text-foreground shadow-sm sm:w-36 dark:bg-white dark:text-foreground dark:hover:bg-neutral-50"
+          >
+            <SelectValue placeholder="Sort" />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select> 
       </div>
     </div>
   );
@@ -545,21 +570,21 @@ function PagesTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-      <table className="w-full min-w-[1100px] text-left text-[12px]">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <table className="w-full table-fixed text-left text-[12px]">
         <thead className="border-b border-border bg-muted/30 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           <tr>
-            <th className="px-4 py-3">URL</th>
-            <th className="px-3 py-3">Status</th>
-            <th className="px-3 py-3">Content</th>
-            <th className="px-3 py-3">LCP</th>
-            <th className="px-3 py-3">FCP</th>
-            <th className="px-3 py-3">TTFB</th>
-            <th className="px-3 py-3">Server</th>
-            <th className="px-3 py-3">Resources</th>
-            <th className="px-3 py-3">Links</th>
-            <th className="px-3 py-3">AI Readiness</th>
-            <th className="px-3 py-3 whitespace-nowrap">Crawled</th>
+            <th className="w-[30%] px-4 py-3">URL</th>
+            <th className="w-[6%] px-2 py-3">Status</th>
+            <th className="w-[10%] px-2 py-3">Content</th>
+            <th className="w-[6%] px-2 py-3">LCP</th>
+            <th className="w-[6%] px-2 py-3">FCP</th>
+            <th className="w-[6%] px-2 py-3">TTFB</th>
+            <th className="w-[6%] px-2 py-3">Server</th>
+            <th className="w-[8%] px-2 py-3">Resources</th>
+            <th className="w-[8%] px-2 py-3">Links</th>
+            <th className="w-[10%] px-2 py-3">AI</th>
+            <th className="w-[8%] px-2 py-3 whitespace-nowrap">Crawled</th>
           </tr>
         </thead>
         <tbody>
@@ -593,7 +618,7 @@ function PageRow({ page }: { page: SitemapAuditPage }) {
             <span className="mt-0.5 text-muted-foreground">
               {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
             </span>
-            <div className="min-w-0">
+            <div className="min-w-0 max-w-full">
               <p className="truncate font-medium text-foreground" title={page.url}>
                 {page.path || page.url}
               </p>
@@ -605,41 +630,41 @@ function PageRow({ page }: { page: SitemapAuditPage }) {
             </div>
           </div>
         </td>
-        <td className="px-3 py-3 align-top">
+        <td className="px-2 py-3 align-top whitespace-nowrap">
           <StatusPill code={page.status_code} />
         </td>
-        <td className="px-3 py-3 align-top tabular-nums">
-          <p className="font-medium text-foreground">{page.word_count.toLocaleString()} words</p>
+        <td className="px-2 py-3 align-top tabular-nums">
+          <p className="whitespace-nowrap font-medium text-foreground">{page.word_count.toLocaleString()} words</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             {(page.text_ratio * 100).toFixed(0)}% text ratio
           </p>
         </td>
-        <td className={cn("px-3 py-3 align-top tabular-nums", vitalColor(page.lcp_ms, [2500, 4000]))}>
+        <td className={cn("px-2 py-3 align-top tabular-nums whitespace-nowrap", vitalColor(page.lcp_ms, [2500, 4000]))}>
           {fmtMs(page.lcp_ms)}
         </td>
-        <td className={cn("px-3 py-3 align-top tabular-nums", vitalColor(page.fcp_ms, [1800, 3000]))}>
+        <td className={cn("px-2 py-3 align-top tabular-nums whitespace-nowrap", vitalColor(page.fcp_ms, [1800, 3000]))}>
           {fmtMs(page.fcp_ms)}
         </td>
-        <td className={cn("px-3 py-3 align-top tabular-nums", vitalColor(page.ttfb_ms, [800, 1800]))}>
+        <td className={cn("px-2 py-3 align-top tabular-nums whitespace-nowrap", vitalColor(page.ttfb_ms, [800, 1800]))}>
           {fmtMs(page.ttfb_ms)}
         </td>
-        <td className="px-3 py-3 align-top tabular-nums text-muted-foreground">
+        <td className="px-2 py-3 align-top tabular-nums whitespace-nowrap text-muted-foreground">
           {fmtMs(page.server_ms)}
         </td>
-        <td className="px-3 py-3 align-top tabular-nums">
+        <td className="px-2 py-3 align-top tabular-nums">
           <p>{page.resource_count} files</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">{fmtBytes(page.resource_bytes)}</p>
         </td>
-        <td className="px-3 py-3 align-top tabular-nums">
+        <td className="px-2 py-3 align-top tabular-nums">
           <p>{page.link_count_total} Links</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             {page.link_count_internal} int / {page.link_count_external} ext
           </p>
         </td>
-        <td className="px-3 py-3 align-top">
+        <td className="px-2 py-3 align-top">
           <AiScoreCell score={page.ai_score} severity={page.severity} />
         </td>
-        <td className="whitespace-nowrap px-3 py-3 align-top text-[11px] text-muted-foreground">
+        <td className="whitespace-nowrap px-2 py-3 align-top text-[11px] text-muted-foreground">
           {new Date(page.checked_at).toLocaleDateString(undefined, {
             day: "2-digit",
             month: "short",
@@ -755,8 +780,8 @@ function AiScoreCell({
     ? "bg-amber-100 text-amber-700"
     : "bg-emerald-100 text-emerald-700";
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-20">
+    <div className="flex items-center gap-1.5">
+      <div className="w-14 min-w-0">
         <div className="flex items-center justify-between text-[11px]">
           <span className="font-semibold tabular-nums text-foreground">{score}</span>
         </div>
@@ -764,7 +789,7 @@ function AiScoreCell({
           <div className={cn("h-full rounded-full", bar)} style={{ width: `${score}%` }} />
         </div>
       </div>
-      <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase", chip)}>
+      <span className={cn("rounded-full px-1 py-0.5 text-[9px] font-bold uppercase", chip)}>
         {severity}
       </span>
     </div>
