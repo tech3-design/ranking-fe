@@ -3,6 +3,7 @@
 import { useId } from "react";
 import { Minus, MoreHorizontal, TrendingDown, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Sparkles } from "@/components/ui/sparkles";
 import { cn } from "@/lib/utils";
 import { CORAL } from "./constants";
 
@@ -37,14 +38,17 @@ function getGeoScoreGaugeRects(score: number) {
 export function GeoScoreCard({
   compositeScore,
   scoreChange,
+  sparkle = false,
 }: {
   compositeScore: number;
   scoreChange: number | null;
+  sparkle?: boolean;
 }) {
   const gradId = useId().replace(/:/g, "");
 
   return (
-    <div className="col-span-3 flex h-full min-h-0 flex-col rounded-xl border border-neutral-100 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <div className="relative col-span-3 flex h-full min-h-0 flex-col rounded-xl border border-neutral-100 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+      {sparkle ? <Sparkles /> : null}
       <div className="flex shrink-0 items-center justify-between mb-0.5">
         <p className="text-sm font-semibold text-foreground">GEO Score</p>
         <Button

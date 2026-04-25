@@ -24,6 +24,7 @@ export function AnalysisOverlay() {
     run?.brand_name?.trim() ||
     "Your brand";
   const host = hostOf(run?.url || "");
+  const progress = Math.max(0, Math.min(100, run?.progress ?? 0));
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background">
@@ -47,6 +48,11 @@ export function AnalysisOverlay() {
               ) : null}
             </div>
           </div>
+
+          {/* Progress */}
+          <div className="mt-6">
+            <TimerStat label="Progress" value={`${Math.round(progress)}%`} mono />
+          </div>
         </div>
       </div>
 
@@ -55,6 +61,29 @@ export function AnalysisOverlay() {
         intervalMs={4500}
         className="mx-auto mt-12 max-w-lg"
       />
+    </div>
+  );
+}
+
+function TimerStat({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
+        {label}
+      </p>
+      <p
+        className={`mt-1 text-2xl font-semibold tabular-nums text-foreground ${mono ? "font-mono" : ""}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

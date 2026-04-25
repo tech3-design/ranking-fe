@@ -32,6 +32,11 @@ import {
   ChevronsUpDown,
   Check,
   Loader2,
+  Compass,
+  GitFork,
+  Activity,
+  Zap,
+  History,
   type LucideIcon,
 } from "lucide-react";
 import LogoComp from "@/components/LogoComp";
@@ -45,30 +50,36 @@ import {
 import { CommandPalette } from "@/components/ui/command-palette";
 import { DashboardTopBarActions } from "./_components/dashboard-top-bar-actions";
 
-type MainNavItem =
-  | { icon: LucideIcon; label: string; path: string; children?: undefined }
-  | {
-      icon: LucideIcon;
-      label: string;
-      path: string;
-      children: { label: string; path: string }[];
-    };
+type MainNavItem = { icon: LucideIcon; label: string; path: string };
+type MainNavGroup = { heading?: string; items: MainNavItem[] };
 
-const MAIN_NAV: MainNavItem[] = [
-  { icon: LayoutDashboard, label: "Overview", path: "" },
-  { icon: ListChecks, label: "Recommendations", path: "/recommendations" },
-  { icon: Eye, label: "Visibility", path: "/visibility" },
-  { icon: Users, label: "Competitors", path: "/competitors" },
-  { icon: Map, label: "Sitemap", path: "/sitemap" },
+const MAIN_NAV_GROUPS: MainNavGroup[] = [
   {
-    icon: MessageSquare,
-    label: "Prompts",
-    path: "/prompts",
-    children: [
-      { label: "Actions", path: "/prompts/actions" },
-      { label: "Explorer", path: "/prompts/recommendations" },
-      { label: "Ranking", path: "/prompts/ranking" },
-      { label: "History", path: "/prompts/history" },
+    items: [
+      { icon: LayoutDashboard, label: "Overview", path: "" },
+      { icon: Compass, label: "Explorer", path: "/visibility/explorer" },
+      { icon: GitFork, label: "Ranking", path: "/prompts/ranking" },
+    ],
+  },
+  {
+    heading: "Monitoring",
+    items: [
+      { icon: Eye, label: "Visibility", path: "/visibility" },
+      { icon: Map, label: "Sitemap", path: "/sitemap" },
+      { icon: Activity, label: "Fixes", path: "/recommendations" },
+    ],
+  },
+  {
+    heading: "Prompts",
+    items: [
+      { icon: Zap, label: "Actions", path: "/prompts/actions" },
+      { icon: History, label: "History", path: "/prompts/history" },
+    ],
+  },
+  {
+    heading: "Sources",
+    items: [
+      { icon: Users, label: "Competitors", path: "/competitors" },
     ],
   },
 ];
@@ -91,8 +102,14 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
   }
   if (rel.startsWith("/recommendations")) {
     return {
-      title: "Recommendations",
+      title: "Fixes",
       hint: "Prioritized fixes to improve AI visibility and citations.",
+    };
+  }
+  if (rel.startsWith("/visibility/explorer")) {
+    return {
+      title: "Explorer",
+      hint: "Explore suggested prompt sets for your properties.",
     };
   }
   if (rel.startsWith("/visibility")) {
@@ -117,12 +134,6 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Prompt actions",
       hint: "Tune prompts and automated follow-ups.",
-    };
-  }
-  if (rel.startsWith("/prompts/recommendations")) {
-    return {
-      title: "Explorer",
-      hint: "Explore suggested prompt sets for your properties.",
     };
   }
   if (rel.startsWith("/prompts/ranking")) {
@@ -317,16 +328,23 @@ export default function DashboardSlugLayout({
 
   const isSettingsPage = pathname.startsWith(basePath + "/settings");
 
+  const allNavPaths = MAIN_NAV_GROUPS.flatMap((g) => g.items.map((i) => i.path));
+
   function isActive(navPath: string) {
     if (navPath === "") return pathname === basePath;
-    return pathname.startsWith(basePath + navPath);
+    const full = basePath + navPath;
+    const matches = pathname === full || pathname.startsWith(`${full}/`);
+    if (!matches) return false;
+    // Defer to a more-specific sibling that also matches (e.g. /visibility vs /visibility/explorer).
+    const moreSpecific = allNavPaths.some(
+      (p) =>
+        p !== navPath &&
+        p.startsWith(navPath + "/") &&
+        (pathname === basePath + p || pathname.startsWith(`${basePath + p}/`)),
+    );
+    return !moreSpecific;
   }
 
-  function isPromptSubActive(subPath: string) {
-    return pathname === basePath + subPath || pathname.startsWith(`${basePath + subPath}/`);
-  }
-
-  const promptsOverviewPath = `${basePath}/prompts`;
   const section = sectionForDashboardPath(pathname, basePath);
 
   const sidebarBrand = (
@@ -371,7 +389,7 @@ export default function DashboardSlugLayout({
         </button>
 
         {orgDropdownOpen ? (
-          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-md border border-border/60 bg-white py-1 shadow-md ring-1 ring-black/5  ">
+          <div className="absolute left-0 top-full z-[120] mt-1 w-64 max-h-60 overflow-y-auto rounded-md border border-border/60 bg-white py-1 shadow-lg ring-1 ring-black/5">
             {organizations.map((org) => {
               const orgSelected = org.id === activeOrg?.id;
               return (
@@ -413,78 +431,14 @@ export default function DashboardSlugLayout({
       ) : null} */}
 
       {isSettingsPage ? (
-        <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-          Settings
-        </p>
-      ) : (
-        <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-          Navigation
-        </p>
-      )}
-
-      <nav className="flex flex-col gap-0.5">
-        {isSettingsPage
-          ? SETTINGS_NAV.map((item) => {
+        <>
+          <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            Settings
+          </p>
+          <nav className="flex flex-col gap-0.5">
+            {SETTINGS_NAV.map((item) => {
               const active = isActive(item.path);
               const Icon = item.icon;
-              return (
-                <Link
-                  key={item.label}
-                  href={basePath + item.path}
-                  className={cn(
-                    "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    active
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
-                  {item.label}
-                </Link>
-              );
-            })
-          : MAIN_NAV.map((item) => {
-              const Icon = item.icon;
-              if (item.children && item.children.length > 0) {
-                const parentActive =
-                  pathname === promptsOverviewPath || pathname.startsWith(`${promptsOverviewPath}/`);
-                return (
-                  <div key={item.label} className="flex flex-col gap-0.5">
-                    <Link
-                      href={promptsOverviewPath}
-                      className={cn(
-                        "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                        parentActive
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                    >
-                      <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
-                      {item.label}
-                    </Link>
-                    <div className="ml-2 flex flex-col gap-0.5 border-l border-border/60 pl-2">
-                      {item.children.map((sub) => {
-                        const subActive = isPromptSubActive(sub.path);
-                        return (
-                          <Link
-                            key={sub.path}
-                            href={basePath + sub.path}
-                            className={cn(
-                              "rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
-                              subActive
-                                ? "bg-primary/15 text-primary"
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                            )}
-                          >
-                            {sub.label}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              }
-              const active = isActive(item.path);
               return (
                 <Link
                   key={item.label}
@@ -501,7 +455,40 @@ export default function DashboardSlugLayout({
                 </Link>
               );
             })}
-      </nav>
+          </nav>
+        </>
+      ) : (
+        <nav className="flex flex-col gap-2.5">
+          {MAIN_NAV_GROUPS.map((group, gi) => (
+            <div key={group.heading ?? `group-${gi}`} className="flex flex-col gap-0.5">
+              {group.heading ? (
+                <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {group.heading}
+                </p>
+              ) : null}
+              {group.items.map((item) => {
+                const active = isActive(item.path);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.label}
+                    href={basePath + item.path}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+      )}
     </div>
   );
 

@@ -117,7 +117,7 @@ export function DashboardAppFrame({
   }, [mobileOpen]);
 
   const topBarShell = cn(
-    "shrink-0 border-b border-border/40 bg-white dark:bg-zinc-950",
+    "sticky top-0 z-50 shrink-0 border-b border-border/40 bg-white dark:bg-zinc-950",
     DASHBOARD_TOPBAR_H
   );
 
@@ -128,17 +128,14 @@ export function DashboardAppFrame({
         DASHBOARD_TOPBAR_H
       )}
     >
+      {sidebarBelowHeaderRow ? (
+        <div className="hidden shrink-0 items-center pr-3 md:flex md:w-60">
+          {sidebarBelowHeaderRow}
+        </div>
+      ) : null}
+
       <div className="min-w-0 flex-1 pr-2">
         <DashboardBreadcrumbNav items={breadcrumbs} className="mb-1" />
-        {/* <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">
-          {section.title}
-        </h2> */}
-
-        {/* {section.hint ? (
-          <p className="truncate text-xs text-muted-foreground">
-            {section.hint}
-          </p>
-        ) : null} */}
       </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -221,12 +218,6 @@ export function DashboardAppFrame({
 
           <aside className="flex min-h-0 w-56 shrink-0 flex-col overflow-hidden border-r border-border/40 bg-white md:sticky md:top-0 md:h-[calc(100dvh-60px)] md:self-start">
 
-            {sidebarBelowHeaderRow ? (
-              <div className="relative shrink-0 border-b border-border/40 px-3 py-2.5">
-                {sidebarBelowHeaderRow}
-                <Diamond style={{ bottom: -2.5, right: -2.5 }} />
-              </div>
-            ) : null}
 
             {/* Nav */}
 

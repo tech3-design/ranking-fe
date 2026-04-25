@@ -290,9 +290,9 @@ function PricingPageInner() {
                       {isLoading ? (
                         <SignalorLoader size="sm" />
                       ) : session ? (
-                        <>Start 7-day free trial</>
+                        <>Subscribe now</>
                       ) : (
-                        <>Start 7-day free trial</>
+                        <>Get started</>
                       )}
                     </Button>
                   </div>

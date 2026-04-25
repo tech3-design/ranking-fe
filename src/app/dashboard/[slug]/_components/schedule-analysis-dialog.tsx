@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Calendar, Loader2, X } from "lucide-react";
 import {
   Select,
@@ -63,6 +64,16 @@ export function ScheduleAnalysisDialog({
     }
   }, [open]);
 
+  // Lock body scroll while dialog is open; restore on close / unmount
+  useEffect(() => {
+    if (!open || typeof document === "undefined") return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   const runAtIso = useMemo(() => {
     if (!date || !time) return null;
     const d = new Date(`${date}T${time}:00`);
@@ -108,6 +119,7 @@ export function ScheduleAnalysisDialog({
   }
 
   if (!open) return null;
+  if (typeof document === "undefined") return null;
 
   const humanFreq =
     frequency === "once"
@@ -116,12 +128,12 @@ export function ScheduleAnalysisDialog({
         ? "every week from this moment"
         : "every month from this moment";
 
-  return (
+  const dialogMarkup = (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="schedule-analysis-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -221,4 +233,6 @@ export function ScheduleAnalysisDialog({
       </form>
     </div>
   );
+
+  return createPortal(dialogMarkup, document.body);
 }

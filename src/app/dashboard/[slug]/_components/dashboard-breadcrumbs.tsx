@@ -46,7 +46,12 @@ export function getDashboardBreadcrumbs(
   }
 
   if (rel.startsWith("/recommendations")) {
-    crumbs.push({ label: "Recommendations", href: null });
+    crumbs.push({ label: "Fixes", href: null });
+    return crumbs;
+  }
+  if (rel.startsWith("/visibility/explorer")) {
+    crumbs.push({ label: "Visibility", href: `${basePath}/visibility` });
+    crumbs.push({ label: "Explorer", href: null });
     return crumbs;
   }
   if (rel.startsWith("/visibility")) {
@@ -65,11 +70,6 @@ export function getDashboardBreadcrumbs(
   if (rel.startsWith("/prompts/actions")) {
     crumbs.push({ label: "Prompts", href: `${basePath}/prompts` });
     crumbs.push({ label: "Actions", href: null });
-    return crumbs;
-  }
-  if (rel.startsWith("/prompts/recommendations")) {
-    crumbs.push({ label: "Prompts", href: `${basePath}/prompts` });
-    crumbs.push({ label: "Explorer", href: null });
     return crumbs;
   }
   if (rel.startsWith("/prompts/history")) {
