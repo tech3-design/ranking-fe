@@ -108,8 +108,14 @@ export function LandingFooter() {
                 Get started
               </p>
               <h2 className="mt-3 font-sans text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.35rem] xl:text-5xl">
-                Be the brand{" "}
-                <span className="whitespace-nowrap text-primary">AI recommends</span>
+                Turn{" "}
+                <span className="inline-flex items-center gap-1.5 align-middle">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-neutral-900 text-[11px] font-bold text-white sm:h-8 sm:w-8 sm:text-xs">
+                    AI
+                  </span>
+                </span>{" "}
+                search into your{" "}
+                <span className="whitespace-nowrap text-primary">highest-intent pipeline</span>
               </h2>
               <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base">
                 Run a free GEO audit, track citations across models, and ship fixes that move how

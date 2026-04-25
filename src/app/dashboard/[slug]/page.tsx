@@ -38,7 +38,7 @@ export default function SignalorDashboard() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  const { run, scoreHistory, loading, error } = useRun();
+  const { run, scoreHistory, loading, error, scoreBump } = useRun();
   const [reanalyzing, setReanalyzing] = useState(false);
   const [reanalyzeError, setReanalyzeError] = useState("");
 
@@ -281,7 +281,11 @@ export default function SignalorDashboard() {
       {run && !isRunning && (
         <div className="px-3 pb-4 pt-3 sm:px-4">
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
-            <GeoScoreCard compositeScore={compositeScore} scoreChange={scoreChange} />
+            <GeoScoreCard
+              compositeScore={compositeScore}
+              scoreChange={scoreChange}
+              sparkle={!!scoreBump && scoreBump > 0}
+            />
             <VisibilityByPlatformCard brandVis={brandVis} />
             {/* <GeoScoreHistoryCard scoreHistory={scoreHistory} /> */}
             <div className="col-span-5 flex min-h-0 h-full flex-col gap-2">

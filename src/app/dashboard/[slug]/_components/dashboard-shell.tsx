@@ -15,7 +15,7 @@ import {
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Overview", route: (slug: string) => routes.dashboardProject(slug) },
-  { icon: ListChecks, label: "Recommendations", route: (slug: string) => routes.dashboardProjectRecommendations(slug) },
+  { icon: ListChecks, label: "Fixes", route: (slug: string) => routes.dashboardProjectRecommendations(slug) },
   { icon: Eye, label: "Visibility", route: (slug: string) => routes.dashboardProjectVisibility(slug) },
   { icon: MessageSquare, label: "Prompts", route: (slug: string) => routes.dashboardProjectPrompts(slug) },
   { icon: BarChart3, label: "Analytics", route: (slug: string) => routes.dashboardProjectAnalytics(slug) },

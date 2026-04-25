@@ -40,8 +40,8 @@ export function LandingPricingTeaser() {
           </span>
         </h2>
         <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
-          7-day free trial on every plan. Cancel anytime. No setup fees, no seats, no surprise
-          usage bills — just one clear monthly number in GBP.
+          Cancel anytime. No setup fees, no seats, no surprise usage bills — just one clear monthly
+          number in GBP.
         </p>
       </div>
 

@@ -106,8 +106,8 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
         const diff = Math.round(run.composite_score - prevScore);
         if (diff > 0) {
           setScoreBump(diff);
-          // Auto-clear after 5s
-          setTimeout(() => setScoreBump(null), 5000);
+          // Auto-clear after sparkle window
+          setTimeout(() => setScoreBump(null), 7000);
         }
       }
     }
