@@ -129,18 +129,21 @@ function YAxisLogoTick({
   payload,
   data,
 }: {
-  x?: number;
-  y?: number;
+  x?: number | string;
+  y?: number | string;
   payload?: { value: string; index: number };
   data: ChartDatum[];
 }) {
   if (x === undefined || y === undefined || !payload) return null;
+  const xNum = typeof x === "number" ? x : Number(x);
+  const yNum = typeof y === "number" ? y : Number(y);
+  if (Number.isNaN(xNum) || Number.isNaN(yNum)) return null;
   const d = data[payload.index];
   if (!d) return null;
   const width = 132;
   const height = 28;
   return (
-    <foreignObject x={x - width} y={y - height / 2} width={width} height={height}>
+    <foreignObject x={xNum - width} y={yNum - height / 2} width={width} height={height}>
       <div
         // @ts-expect-error xmlns on div is required for SVG foreignObject content
         xmlns="http://www.w3.org/1999/xhtml"
@@ -434,7 +437,7 @@ export function CompetitorsCard({
                         fontSize: 11,
                         fontWeight: 600,
                         fill: "#334155",
-                        formatter: (v: number) => `${v}`,
+                        formatter: (v: unknown) => (v == null ? "" : `${v}`),
                       }}
                     >
                       {chartData.map((d, i) => (
