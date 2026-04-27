@@ -27,7 +27,9 @@ export function ScheduleToggle({ email, orgId, url, brandName }: ScheduleToggleP
       .then((s) => {
         if (s) {
           setSchedule(s);
-          setFrequency(s.frequency);
+          if (s.frequency === "weekly" || s.frequency === "monthly") {
+            setFrequency(s.frequency);
+          }
         }
       })
       .catch(() => {});
