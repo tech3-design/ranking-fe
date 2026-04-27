@@ -10,9 +10,40 @@ import { cn } from "@/lib/utils";
 
 // Keep in sync with src/app/pricing/page.tsx PLANS constant.
 const TEASER_PLANS = [
-  { label: "Starter", price: 19.99, blurb: "1 project · 25 prompts" },
-  { label: "Pro", price: 49.99, blurb: "3 projects · 75 prompts", popular: true },
-  { label: "Max", price: 59.99, blurb: "6 projects · 200 prompts" },
+  {
+    label: "Starter",
+    price: 19.99,
+    tagline: "Solo brands getting started with GEO.",
+    features: [
+      "1 project · 25 prompts",
+      "Gemini & Google visibility",
+      "GEO analysis & scoring",
+      "PDF report exports",
+    ],
+  },
+  {
+    label: "Pro",
+    price: 49.99,
+    tagline: "Growing teams tracking multiple brands.",
+    popular: true,
+    features: [
+      "3 projects · 75 prompts",
+      "ChatGPT, Gemini & Perplexity",
+      "Shopify & WordPress integration",
+      "Scheduled re-analysis & trends",
+    ],
+  },
+  {
+    label: "Max",
+    price: 59.99,
+    tagline: "Full power for agencies and operators.",
+    features: [
+      "6 projects · 200 prompts",
+      "All engines, including Claude",
+      "Advanced competitor analysis",
+      "Priority support",
+    ],
+  },
 ];
 
 export function LandingPricingTeaser() {
@@ -80,14 +111,24 @@ export function LandingPricingTeaser() {
                   / month
                 </span>
               </div>
-              <p className="flex items-center gap-2 text-[13px] text-accent-foreground">
-                <Check
-                  className="h-3.5 w-3.5 shrink-0 text-primary"
-                  strokeWidth={2.25}
-                  aria-hidden
-                />
-                {p.blurb}
+              <p className="text-[13px] leading-relaxed text-muted-foreground">
+                {p.tagline}
               </p>
+              <ul className="space-y-2.5">
+                {p.features.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2 text-[13px] leading-snug text-accent-foreground"
+                  >
+                    <Check
+                      className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary"
+                      strokeWidth={2.5}
+                      aria-hidden
+                    />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
               <Link
                 href="/pricing"
                 className="mt-auto inline-flex items-center gap-1 text-[12px] font-semibold text-primary hover:underline"

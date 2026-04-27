@@ -31,6 +31,7 @@ import { PillarBreakdownCard } from "@/components/dashboard/pillar-breakdown-car
 import { TopIssuesCard } from "@/components/dashboard/top-issues-card";
 import { VisibilityByPlatformCard } from "@/components/dashboard/visibility-by-platform-card";
 import { AiEngineProbesCard } from "@/components/dashboard/ai-engine-probes-card";
+import { CompetitorsCard } from "@/components/dashboard/competitors-card";
 import { PredictionSentimentRow } from "@/components/dashboard/prediction-sentiment-row";
 
 export default function SignalorDashboard() {
@@ -311,6 +312,16 @@ export default function SignalorDashboard() {
 
           <div className="grid grid-cols-12 items-start gap-3 mb-3">
             <AiEngineProbesCard sentiment={sentiment} />
+          </div>
+
+          <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
+            <CompetitorsCard
+              slug={slug}
+              competitors={run.competitors ?? []}
+              yourScore={compositeScore}
+              yourName={projectName}
+              yourUrl={run.url}
+            />
           </div>
 
           {(prediction.gain > 0 || sentiment) && (
