@@ -29,6 +29,7 @@ import {
   type RankSurface,
 } from "@/lib/api/analyzer";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 export type RankTrackerMode = "search" | "ai";
 
@@ -286,7 +287,7 @@ function Header({
             Last run: {new Date(audit.finished_at).toLocaleString()}
           </span>
         ) : null}
-        <button
+        <Button
           type="button"
           disabled={disabled}
           onClick={onStart}
@@ -301,7 +302,7 @@ function Header({
             <Play className="h-4 w-4" />
           )}
           {isRunning ? "Running…" : label}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -330,7 +331,7 @@ function EmptyState({
           Google, Reddit, and Quora.
         </p>
       </div>
-      <button
+      <Button
         type="button"
         disabled={starting}
         onClick={onStart}
@@ -338,7 +339,7 @@ function EmptyState({
       >
         {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
         Run audit
-      </button>
+      </Button>
     </div>
   );
 }
@@ -537,8 +538,9 @@ function FocusedQuery({
               {query.brand_mention_count} brand mentions across all surfaces
             </p>
           </div>
-          <button
+          <Button
             type="button"
+            variant={"secondary"}
             onClick={onRefresh}
             disabled={refreshing || query.status === "queued"}
             className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-border/70 bg-background px-2.5 text-xs text-foreground transition hover:bg-muted disabled:opacity-60"
@@ -549,15 +551,16 @@ function FocusedQuery({
               <RefreshCw className="h-3.5 w-3.5" />
             )}
             Refresh
-          </button>
+          </Button>
         </div>
 
         <div className="flex flex-wrap items-center gap-1">
           {tabs.map(({ key, label, icon: Icon, count }) => {
             const active = activeKey === key;
             return (
-              <button
+              <Button
                 key={key}
+                // variant={""}
                 type="button"
                 onClick={() => onKeyChange(key)}
                 className={cn(
@@ -577,7 +580,7 @@ function FocusedQuery({
                 >
                   {count}
                 </span>
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -848,13 +851,13 @@ function AiResultRow({ result }: { result: RankResult }) {
           {body}
         </p>
         {needsTruncate ? (
-          <button
+          <Button
             type="button"
             onClick={() => setExpanded((v) => !v)}
             className="mt-1 text-[11px] font-medium text-foreground/70 hover:text-foreground"
           >
             {expanded ? "Show less" : "Show full response"}
-          </button>
+          </Button>
         ) : null}
         {result.competitors_mentioned.length > 0 ? (
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
