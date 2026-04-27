@@ -10,17 +10,9 @@ export function LandingHero() {
       <div className="relative z-10 grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:items-center lg:gap-8 xl:gap-12">
         <div className="relative z-10 min-w-0 max-w-xl text-left lg:max-w-none">
           <h1 className="text-3xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem] xl:text-6xl">
-            <span className="block">
-              Turn{" "}
-              <span className="inline-flex items-center gap-1.5 align-middle">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-neutral-900 text-xs font-bold text-white sm:h-9 sm:w-9">
-                  AI
-                </span>
-              </span>
-            </span>
-            <span className="block">search into your</span>
+            <span className="block">Be the brand</span>
             <span className="block w-fit text-[#e04a3d] underline decoration-dashed decoration-3 decoration-[#e04a3d]/55 underline-offset-4">
-              highest-intent pipeline
+              AI recommends
             </span>
           </h1>
 

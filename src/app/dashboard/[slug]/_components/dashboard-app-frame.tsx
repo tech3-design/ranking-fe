@@ -117,7 +117,7 @@ export function DashboardAppFrame({
   }, [mobileOpen]);
 
   const topBarShell = cn(
-    "shrink-0 border-b border-border/40 bg-white dark:bg-zinc-950",
+    "sticky top-0 z-50 shrink-0 border-b border-border/40 bg-white dark:bg-zinc-950",
     DASHBOARD_TOPBAR_H
   );
 
@@ -128,17 +128,14 @@ export function DashboardAppFrame({
         DASHBOARD_TOPBAR_H
       )}
     >
+      {sidebarBelowHeaderRow ? (
+        <div className="hidden shrink-0 items-center pr-3 md:flex md:w-60">
+          {sidebarBelowHeaderRow}
+        </div>
+      ) : null}
+
       <div className="min-w-0 flex-1 pr-2">
         <DashboardBreadcrumbNav items={breadcrumbs} className="mb-1" />
-        {/* <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">
-          {section.title}
-        </h2> */}
-
-        {/* {section.hint ? (
-          <p className="truncate text-xs text-muted-foreground">
-            {section.hint}
-          </p>
-        ) : null} */}
       </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -148,7 +145,7 @@ export function DashboardAppFrame({
   );
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-muted/40 text-foreground dark:bg-background">
+    <div className="flex h-dvh flex-col bg-muted/40 text-foreground dark:bg-background md:h-auto md:min-h-dvh">
 
       <ThemeHotkeyBinder />
 
@@ -191,7 +188,7 @@ export function DashboardAppFrame({
 
       {/* Desktop Layout — min-h-0 so nested overflow + flex stretch match the viewport */}
 
-      <div className="relative hidden min-h-0 flex-1 flex-col md:flex">
+      <div className="relative hidden min-h-0 flex-1 flex-col md:flex md:min-h-0 md:flex-none">
 
         {/* Topbar */}
 
@@ -215,18 +212,12 @@ export function DashboardAppFrame({
 
         {/* Body */}
 
-        <div className="flex min-h-0 flex-1 overflow-hidden">
+        <div className="flex min-h-0 flex-1 overflow-hidden md:min-h-[calc(100dvh-60px)] md:overflow-visible">
 
           {/* Sidebar */}
 
-          <aside className="flex min-h-0 w-56 shrink-0 flex-col self-stretch overflow-hidden border-r border-border/40 bg-white">
+          <aside className="flex min-h-0 w-56 shrink-0 flex-col overflow-hidden border-r border-border/40 bg-white md:sticky md:top-0 md:h-[calc(100dvh-60px)] md:self-start">
 
-            {sidebarBelowHeaderRow ? (
-              <div className="relative shrink-0 border-b border-border/40 px-3 py-2.5">
-                {sidebarBelowHeaderRow}
-                <Diamond style={{ bottom: -2.5, right: -2.5 }} />
-              </div>
-            ) : null}
 
             {/* Nav */}
 
@@ -245,9 +236,9 @@ export function DashboardAppFrame({
 
           {/* Main */}
 
-          <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-muted/40 dark:bg-background/80">
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-muted/40 dark:bg-background/80 md:overflow-visible">
 
-            <main className="mx-auto w-full min-h-0 max-w-7xl flex-1 overflow-y-auto px-4 py-8 sm:py-4">
+            <main className="mx-auto w-full min-h-0 max-w-7xl flex-1 px-4 py-8 sm:py-8 md:flex-none">
               {children}
             </main>
 

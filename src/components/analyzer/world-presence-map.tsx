@@ -219,9 +219,9 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
         className="w-full h-full"
         style={{ display: "block" }}
       >
-        {paths.map((p) => (
+        {paths.map((p, idx) => (
           <path
-            key={p.id}
+            key={`${p.id}-${idx}`}
             d={p.d}
             fill={getCountryFill(p.id, p.region)}
             fillOpacity={getCountryOpacity(p.id, p.region)}

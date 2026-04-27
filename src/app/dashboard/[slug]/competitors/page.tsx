@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { RiveLoader } from "@/components/ui/rive-loader";
 import { Search, X } from "lucide-react";
 
 export default function CompetitorsPage() {
@@ -27,8 +27,8 @@ export default function CompetitorsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <SignalorLoader />
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-2">
+        <RiveLoader size={200} label="Analyzing competitors…" />
       </div>
     );
   }
@@ -133,10 +133,12 @@ export default function CompetitorsPage() {
         </div>
       </div>
 
-      {competitors.length ? (
+      {competitors.length || run?.url ? (
         <CompetitorTable
           competitors={competitors}
           yourScore={run?.composite_score ?? null}
+          yourName={run?.display_brand_name || run?.brand_name || undefined}
+          yourUrl={run?.url}
           query={query}
           confidence={confidence}
           scoreBand={scoreBand}

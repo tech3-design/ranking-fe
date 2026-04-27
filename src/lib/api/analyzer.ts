@@ -50,6 +50,11 @@ export interface Competitor {
   name: string;
   url: string;
   industry: string;
+  tier?: string;
+  target_market?: string;
+  geography?: string;
+  pricing_model?: string;
+  positioning?: string;
   composite_score: number | null;
   scored: boolean;
   page_score: PageScore | null;
@@ -157,7 +162,6 @@ export interface AnalysisRunDetail {
   recommendations: Recommendation[];
   ai_probes: AIProbe[];
   brand_visibility: BrandVisibility | null;
-  llm_logs: LLMLog[];
 }
 
 export async function startAnalysis(
@@ -230,7 +234,7 @@ export interface PromptCitation {
 export interface PromptResult {
   id: number;
   engine: Engine;
-  response_text: string;
+  response_text: string; // truncated to 500 chars in list; use getPromptResultFull() for the complete text
   brand_mentioned: boolean;
   sentiment: Sentiment;
   confidence: number;
@@ -264,10 +268,30 @@ export interface CitationSourcesResponse {
   rival_pages: CitedPage[];
 }
 
+/** API codes for `intent` — display via `PROMPT_INTENT_LABEL`. */
+export type PromptSearchIntent = "brand" | "informational" | "transactional";
+
+/** API codes for `prompt_type` — display via `PROMPT_SURFACE_TYPE_LABEL`. */
+export type PromptSurfaceType = "organic" | "branded" | "competitive";
+
+export const PROMPT_INTENT_LABEL: Record<PromptSearchIntent, string> = {
+  brand: "Brand",
+  informational: "Information",
+  transactional: "Transactional",
+};
+
+export const PROMPT_SURFACE_TYPE_LABEL: Record<PromptSurfaceType, string> = {
+  organic: "Organic",
+  branded: "Brand",
+  competitive: "Competition",
+};
+
 export interface PromptTrack {
   id: number;
   prompt_text: string;
   is_custom: boolean;
+  intent?: PromptSearchIntent;
+  prompt_type?: PromptSurfaceType;
   score: number;
   created_at: string;
   results: PromptResult[];
@@ -345,6 +369,13 @@ export async function deletePromptTrack(slug: string, trackId: number): Promise<
   await apiClient.delete(`/api/analyzer/runs/s/${slug}/prompts/${trackId}/`);
 }
 
+export async function getPromptResultFull(slug: string, trackId: number, resultId: number): Promise<PromptResult> {
+  const { data } = await apiClient.get<PromptResult>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/results/${resultId}/`,
+  );
+  return data;
+}
+
 export async function recheckAllPrompts(slug: string): Promise<{ count: number }> {
   const { data } = await apiClient.post<{ status: string; count: number }>(
     `/api/analyzer/runs/s/${slug}/recheck-all/`,
@@ -398,12 +429,14 @@ export async function getScoreHistory(
 
 // ── Scheduled Analysis ────────────────────────────────────────────────────
 
+export type ScheduleFrequency = "once" | "weekly" | "monthly";
+
 export interface ScheduledAnalysis {
   id: number;
   email: string;
   url: string;
   brand_name: string;
-  frequency: "weekly" | "monthly";
+  frequency: ScheduleFrequency;
   next_run_at: string;
   last_run_at: string | null;
   last_run_slug: string;
@@ -427,8 +460,10 @@ export async function toggleSchedule(payload: {
   org_id: number;
   url: string;
   brand_name?: string;
-  frequency: "weekly" | "monthly";
+  frequency: ScheduleFrequency;
   is_active: boolean;
+  /** ISO datetime — required when frequency="once", optional otherwise. */
+  run_at?: string;
 }): Promise<ScheduledAnalysis> {
   const { data } = await apiClient.post<ScheduledAnalysis>(
     "/api/analyzer/schedule/",
@@ -658,6 +693,107 @@ export async function getAgentLog(slug: string): Promise<AgentLogResponse> {
   const { data } = await apiClient.get<AgentLogResponse>(
     `/api/analyzer/runs/s/${slug}/agent-log/`,
     { timeout: 15_000 },
+  );
+  return data;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Rank Tracker — auto-suggested queries + Google/Reddit/Quora rank snapshots
+// ──────────────────────────────────────────────────────────────────────────
+
+export type RankAuditStatus = "queued" | "running" | "complete" | "failed";
+export type RankSurface = "google" | "reddit" | "quora" | "ai";
+export type RankQueryStatus = "queued" | "done" | "failed";
+export type AiEngineKey = "gpt" | "claude" | "gemini" | "perplexity";
+export type RankSentiment = "positive" | "neutral" | "negative";
+
+export interface RankAuditSummary {
+  id: number;
+  status: RankAuditStatus;
+  progress: number;
+  total_queries: number;
+  queries_done: number;
+  avg_brand_mentions: number;
+  avg_top3_brand_rate: number;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  error_message: string;
+}
+
+export interface RankResult {
+  id: number;
+  surface: RankSurface;
+  position: number;
+  url: string;
+  domain: string;
+  title: string;
+  snippet: string;
+  engine: string;
+  response_text: string;
+  sentiment: RankSentiment;
+  is_brand_mentioned: boolean;
+  competitors_mentioned: string[];
+  upvotes: number | null;
+  subreddit: string;
+  checked_at: string | null;
+}
+
+export interface RankQuery {
+  id: number;
+  prompt_text: string;
+  rank: number;
+  brand_mention_count: number;
+  status: RankQueryStatus;
+  error_message: string;
+  results: RankResult[];
+}
+
+export interface RankAuditResponse {
+  audit: RankAuditSummary | null;
+  queries: RankQuery[];
+}
+
+export interface RankAuditQuery {
+  surface?: RankSurface;
+  query_id?: number;
+  q?: string;
+  only_brand?: boolean;
+}
+
+export async function startRankAudit(slug: string): Promise<RankAuditSummary> {
+  const { data } = await apiClient.post<RankAuditSummary>(
+    `/api/analyzer/runs/s/${slug}/rank/start/`,
+    {},
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function getRankAudit(
+  slug: string,
+  query: RankAuditQuery = {},
+): Promise<RankAuditResponse> {
+  const params: Record<string, string | number | boolean> = {};
+  if (query.surface) params.surface = query.surface;
+  if (query.query_id != null) params.query_id = query.query_id;
+  if (query.q) params.q = query.q;
+  if (query.only_brand) params.only_brand = "1";
+  const { data } = await apiClient.get<RankAuditResponse>(
+    `/api/analyzer/runs/s/${slug}/rank/`,
+    { params, timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function refreshRankQuery(
+  slug: string,
+  queryId: number,
+): Promise<RankQuery> {
+  const { data } = await apiClient.post<RankQuery>(
+    `/api/analyzer/runs/s/${slug}/rank/query/${queryId}/refresh/`,
+    {},
+    { timeout: 30_000 },
   );
   return data;
 }

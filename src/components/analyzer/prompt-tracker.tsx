@@ -29,12 +29,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { addPromptTrack, recheckPrompt, deletePromptTrack } from "@/lib/api/analyzer";
-import type {
-  PromptTrack,
-  PromptResult,
-  Engine,
-  Sentiment,
+import {
+  addPromptTrack,
+  recheckPrompt,
+  deletePromptTrack,
+  getPromptResultFull,
+} from "@/lib/api/analyzer";
+import {
+  PROMPT_INTENT_LABEL,
+  PROMPT_SURFACE_TYPE_LABEL,
+  type PromptTrack,
+  type PromptResult,
+  type Engine,
+  type Sentiment,
+  type PromptSearchIntent,
+  type PromptSurfaceType,
 } from "@/lib/api/analyzer";
 import { useSession } from "@/lib/auth-client";
 import { getSubscriptionStatus } from "@/lib/api/payments";
@@ -158,6 +167,28 @@ const LABEL_STYLES: Record<string, { ring: string; text: string; bg: string }> =
   },
 };
 
+/**
+ * Intent / type chips: default = quiet (matches reverted card chrome).
+ * Only **Information** + **Organic** get a clearer tint so they stand out without loud gradients.
+ */
+const INTENT_BADGE_CLASS: Record<PromptSearchIntent, string> = {
+  brand:
+    "inline-flex items-center rounded-sm border border-border/70 bg-muted/35 px-1.5 py-px text-[10px] font-medium text-muted-foreground",
+  informational:
+    "badge-prompt-intent-informational inline-flex items-center rounded-sm border px-1.5 py-px text-[10px] font-medium",
+  transactional:
+    "inline-flex items-center rounded-sm border border-border/70 bg-muted/35 px-1.5 py-px text-[10px] font-medium text-muted-foreground",
+};
+
+const TYPE_BADGE_CLASS: Record<PromptSurfaceType, string> = {
+  organic:
+    "badge-prompt-type-organic inline-flex items-center rounded-sm border px-1.5 py-px text-[10px] font-medium",
+  branded:
+    "inline-flex items-center rounded-sm border border-border/70 bg-muted/35 px-1.5 py-px text-[10px] font-medium text-muted-foreground",
+  competitive:
+    "inline-flex items-center rounded-sm border border-border/70 bg-muted/35 px-1.5 py-px text-[10px] font-medium text-muted-foreground",
+};
+
 type FilterLabel = "All" | "Strong" | "Moderate" | "Weak";
 type SortKey = "score" | "visibility" | "created";
 
@@ -192,9 +223,10 @@ export function PromptTracker({
   const [addError, setAddError] = useState<string | null>(null);
   const [rechecking, setRechecking] = useState<Record<number, boolean>>({});
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [viewingResponse, setViewingResponse] = useState<PromptResult | null>(
-    null,
-  );
+  const [viewingResponse, setViewingResponse] = useState<PromptResult | null>(null);
+  const [viewingTrackId, setViewingTrackId] = useState<number | null>(null);
+  const [fullResponseText, setFullResponseText] = useState<string | null>(null);
+  const [loadingFullText, setLoadingFullText] = useState(false);
   const [search, setSearch] = useState("");
   const [filterLabel, setFilterLabel] = useState<FilterLabel>("All");
   const [sortKey, setSortKey] = useState<SortKey>("score");
@@ -262,6 +294,17 @@ export function PromptTracker({
       .then((s) => setPlanEngines((s.limits.engines as Engine[]) ?? null))
       .catch(() => setPlanEngines(null));
   }, [session?.user?.email]);
+
+  // Lazy-load the full response_text when a modal opens
+  useEffect(() => {
+    if (!viewingResponse || !viewingTrackId) { setFullResponseText(null); return; }
+    setFullResponseText(null);
+    setLoadingFullText(true);
+    getPromptResultFull(slug, viewingTrackId, viewingResponse.id)
+      .then((r) => setFullResponseText(r.response_text || ""))
+      .catch(() => setFullResponseText(viewingResponse.response_text || ""))
+      .finally(() => setLoadingFullText(false));
+  }, [slug, viewingTrackId, viewingResponse]);
 
   const enginesForUi = useMemo(() => {
     if (!planEngines?.length) return ENGINES;
@@ -627,6 +670,35 @@ export function PromptTracker({
 
                     {/* Status row */}
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      {track.intent ? (
+                        <span
+                          title="Intent"
+                          className={
+                            INTENT_BADGE_CLASS[
+                              track.intent as PromptSearchIntent
+                            ] ??
+                            "inline-flex items-center rounded-sm border border-border/70 bg-muted/35 px-1.5 py-px text-[10px] font-medium text-muted-foreground"
+                          }
+                        >
+                          {PROMPT_INTENT_LABEL[track.intent as PromptSearchIntent] ??
+                            track.intent}
+                        </span>
+                      ) : null}
+                      {track.prompt_type ? (
+                        <span
+                          title="Type"
+                          className={
+                            TYPE_BADGE_CLASS[
+                              track.prompt_type as PromptSurfaceType
+                            ] ??
+                            "inline-flex items-center rounded-sm border border-border/70 bg-muted/35 px-1.5 py-px text-[10px] font-medium text-muted-foreground"
+                          }
+                        >
+                          {PROMPT_SURFACE_TYPE_LABEL[
+                            track.prompt_type as PromptSurfaceType
+                          ] ?? track.prompt_type}
+                        </span>
+                      ) : null}
                       {hasResults && (
                         <>
                           <span
@@ -978,7 +1050,7 @@ export function PromptTracker({
                                       (e) => e.key === r.engine,
                                     );
                                     const openResponse = () =>
-                                      setViewingResponse(r);
+                                      (setViewingResponse(r), setViewingTrackId(track.id));
                                     return (
                                       <div
                                         key={r.id}
@@ -1152,7 +1224,7 @@ export function PromptTracker({
         const isDeleting = !!deleting[confirmDeleteId];
         return createPortal(
           <div
-            className="fixed inset-0 z-[200] flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+            className="fixed inset-0 z-200 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
             onClick={() => { if (!isDeleting) { setConfirmDeleteId(null); setDeleteError(null); } }}
           >
             <div
@@ -1290,10 +1362,17 @@ export function PromptTracker({
                 </button>
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5 sm:py-5">
-                <p className="wrap-break-word whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                  {viewingResponse.response_text?.trim() ||
-                    "No response text was stored for this run."}
-                </p>
+                {loadingFullText ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                    Loading response...
+                  </div>
+                ) : (
+                  <p className="wrap-break-word whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                    {(fullResponseText ?? viewingResponse.response_text)?.trim() ||
+                      "No response text was stored for this run."}
+                  </p>
+                )}
               </div>
               <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-muted/20 px-4 py-3 sm:px-5">
                 <span className="text-[11px] tabular-nums text-muted-foreground">
