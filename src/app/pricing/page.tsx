@@ -111,16 +111,27 @@ function PricingPageInner() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [checkoutDodoMode, setCheckoutDodoMode] = useState<DodoMode | null>(null);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isPending || !session) return;
+    if (isPending || !session) {
+      setCurrentPlanId(null);
+      return;
+    }
     getSubscriptionStatus(session.user.email)
       .then((s) => {
         if (s.is_active) {
-          router.replace(returnTo || routes.dashboard);
+          setCurrentPlanId(s.plan);
+          // Preserve onboarding/setup flows: if the user landed here with a
+          // returnTo, send them onward. Otherwise let them browse pricing.
+          if (returnTo) {
+            router.replace(returnTo);
+          }
+        } else {
+          setCurrentPlanId(null);
         }
       })
-      .catch(() => {});
+      .catch(() => setCurrentPlanId(null));
   }, [isPending, session, router, returnTo]);
 
   const handleSubscribe = useCallback(
@@ -221,6 +232,7 @@ function PricingPageInner() {
           <div className="grid grid-cols-1 gap-0 md:grid-cols-3">
             {PLANS.map((plan) => {
               const isLoading = loadingPlan === plan.id;
+              const isCurrent = currentPlanId === plan.id;
               const priceLabel =
                 Math.round(plan.price) === plan.price ? `${plan.price}` : plan.price.toFixed(2);
 
@@ -229,14 +241,20 @@ function PricingPageInner() {
                   key={plan.id}
                   className={cn(
                     "relative flex flex-col px-8 py-10 md:px-10 md:py-12 border border-black/6",
-                    plan.popular
+                    isCurrent
+                      ? "bg-gradient-to-br from-emerald-50 via-white to-emerald-100/60 md:z-10 md:-my-2 md:shadow-[0_12px_40px_-12px_rgba(16,185,129,0.25)] ring-2 ring-emerald-500/40"
+                      : plan.popular
                       ? "bg-gradient-to-br from-primary/5 via-white to-primary/10 md:z-10 md:-my-2 md:shadow-[0_12px_40px_-12px_rgba(224,74,61,0.25)]"
                       : "bg-neutral-50/50",
                   )}
                 >
                   <div className="mb-1 flex items-center gap-2.5">
                     <h3 className="text-2xl font-bold tracking-tight text-foreground">{plan.label}</h3>
-                    {plan.popular ? (
+                    {isCurrent ? (
+                      <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                        Current Plan
+                      </span>
+                    ) : plan.popular ? (
                       <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
                         Most Popular
                       </span>
@@ -279,16 +297,20 @@ function PricingPageInner() {
                     <Button
                       type="button"
                       onClick={() => handleSubscribe(plan.id)}
-                      disabled={!!loadingPlan}
+                      disabled={!!loadingPlan || isCurrent}
                       className={cn(
                         "h-12 w-full rounded-lg text-sm font-semibold shadow-sm",
-                        plan.popular
+                        isCurrent
+                          ? "bg-emerald-600 text-white hover:brightness-110 disabled:opacity-100"
+                          : plan.popular
                           ? "bg-primary text-white hover:brightness-110"
                           : "border border-black/10 bg-white text-foreground hover:bg-neutral-50",
                       )}
                     >
                       {isLoading ? (
                         <SignalorLoader size="sm" />
+                      ) : isCurrent ? (
+                        <>Current Plan</>
                       ) : session ? (
                         <>Subscribe now</>
                       ) : (
