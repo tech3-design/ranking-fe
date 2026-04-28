@@ -1,0 +1,51 @@
+# Signalor.ai
+
+> Signalor is the Generative Engine Optimization (GEO) and Answer Engine Optimization (AEO) platform that scores, monitors, and improves how ChatGPT, Claude, Gemini, Perplexity, and Google AI Overviews cite your brand. It analyzes content, schema, E-E-A-T, technical SEO, entity coverage, and AI visibility across the major answer engines.
+
+Signalor is built for marketing teams, SEO operators, and brand owners who need their content to surface inside AI answers — not just in classic search results. The platform crawls a site, scores it across six GEO pillars (content, schema, E-E-A-T, technical, entity, AI visibility), tracks brand citations across LLM surfaces, and ships prioritized fixes.
+
+Key concepts:
+- **GEO (Generative Engine Optimization):** optimizing content so AI answer engines understand, trust, and cite it.
+- **AEO (Answer Engine Optimization):** optimizing for direct-answer surfaces (Google AI Overviews, Perplexity, Bing Copilot).
+- **AI visibility:** measurable presence of a brand inside LLM responses for tracked prompts.
+- **Citation attribution:** detecting when an LLM names your brand or links your URL in its answer.
+- **Six pillars:** content (0.20), schema (0.15), E-E-A-T (0.20), technical (0.15), entity (0.15), AI visibility (0.15).
+
+## Product
+
+- [Homepage](https://signalor.ai/): platform overview, supported AI engines, how Signalor works.
+- [Pricing](https://signalor.ai/pricing): Starter (£19.99), Pro (£49.99), Max (£59.99) — projects, prompt limits, supported engines.
+- [About](https://signalor.ai/about-us): company background, mission, team.
+- [AI visibility](https://signalor.ai/ai-visibility): how Signalor scores brand presence inside ChatGPT, Claude, Gemini, Perplexity, Google AI.
+- [Recommendations](https://signalor.ai/recommendations): how the prioritized-fix queue works (impact-ranked schema, structure, content, trust signals).
+- [Prompt tracking](https://signalor.ai/prompt-tracking): tracking AI prompts that surface your brand.
+- [AI surfaces](https://signalor.ai/prompt-tracking/ai-surfaces): coverage across ChatGPT, Claude, Gemini, Perplexity, Google AI, Copilot.
+- [Prompt library](https://signalor.ai/prompt-tracking/prompt-library): curated prompts for tracking AI visibility.
+
+## Tools
+
+- [URL analyzer](https://signalor.ai/tools/url-analyzer): free GEO/AEO score for any URL.
+- [Schema validator](https://signalor.ai/tools/schema-validator): validate Schema.org JSON-LD on a page.
+- [llms.txt check](https://signalor.ai/tools/llms-check): verify a site's llms.txt file is well-formed.
+- [Competitor analysis](https://signalor.ai/tools/competitors-analysis): see how competing brands rank in AI answers.
+
+## Integrations
+
+- [Integrations overview](https://signalor.ai/integration): connect Signalor to publishing and analytics stacks.
+- [Shopify integration](https://signalor.ai/integration/shopify): GEO scoring for Shopify product and content pages.
+- [WordPress plugin](https://signalor.ai/integration/wordpress): self-hosted plugin (`signalor-geo`) for WordPress sites.
+
+## Content
+
+- [Blog](https://signalor.ai/blog): playbooks, research, and guides on GEO, AI search visibility, citations, llms.txt, and structured data.
+
+## Legal
+
+- [Privacy policy](https://signalor.ai/privacy-policy): how Signalor handles user and crawl data.
+- [Terms and conditions](https://signalor.ai/terms-and-conditions): platform terms of service.
+
+## Optional
+
+- [Sitemap](https://signalor.ai/sitemap.xml): machine-readable index of all public pages.
+- [Robots](https://signalor.ai/robots.txt): crawler directives for AI and search bots.
+- [Full LLM context](https://signalor.ai/llms-full.txt): expanded reference document for LLM crawlers.
