@@ -57,6 +57,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`light ${fontSans.variable}`}>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="alternate" type="application/rss+xml" title="Signalor Blog" href="/blog/rss.xml" />
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
         <JsonLd id="ld-organization" data={organizationJsonLd()} />
