@@ -32,7 +32,7 @@ export const SITE_KEYWORDS = [
 
 export const SITE_LOCALE = "en_US";
 export const SITE_TWITTER = "@signalorai";
-export const SITE_OG_IMAGE = `${SITE_URL}/icon.svg`;
+export const SITE_OG_IMAGE = `${SITE_URL}/Gemini_Generated_Image_89pqln89pqln89pq.png`;
 
 export const ORG_SOCIAL = [
   "https://twitter.com/signalorai",
