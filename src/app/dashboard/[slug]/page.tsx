@@ -30,7 +30,6 @@ import { GeoScoreHistoryCard } from "@/components/dashboard/geo-score-history-ca
 import { PillarBreakdownCard } from "@/components/dashboard/pillar-breakdown-card";
 import { TopIssuesCard } from "@/components/dashboard/top-issues-card";
 import { VisibilityByPlatformCard } from "@/components/dashboard/visibility-by-platform-card";
-import { AiEngineProbesCard } from "@/components/dashboard/ai-engine-probes-card";
 import { CompetitorsCard } from "@/components/dashboard/competitors-card";
 import { PredictionSentimentRow } from "@/components/dashboard/prediction-sentiment-row";
 
@@ -308,10 +307,6 @@ export default function SignalorDashboard() {
               brandVisibility={brandVis}
               coral={CORAL}
             />
-          </div>
-
-          <div className="grid grid-cols-12 items-start gap-3 mb-3">
-            <AiEngineProbesCard sentiment={sentiment} />
           </div>
 
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
