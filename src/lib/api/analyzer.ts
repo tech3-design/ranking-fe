@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, apiClientLong } from "./client";
 
 export interface StartAnalysisPayload {
   url: string;
@@ -184,14 +184,14 @@ export async function getRunStatus(runId: number): Promise<RunStatus> {
 export async function getRunDetail(
   runId: number,
 ): Promise<AnalysisRunDetail> {
-  const { data } = await apiClient.get<AnalysisRunDetail>(
+  const { data } = await apiClientLong.get<AnalysisRunDetail>(
     `/api/analyzer/runs/${runId}/`,
   );
   return data;
 }
 
 export async function getRunBySlug(slug: string): Promise<AnalysisRunDetail> {
-  const { data } = await apiClient.get<AnalysisRunDetail>(
+  const { data } = await apiClientLong.get<AnalysisRunDetail>(
     `/api/analyzer/runs/s/${slug}/`,
   );
   return data;
@@ -323,7 +323,7 @@ export interface CitationTrendPoint {
 }
 
 export async function getPromptTracks(slug: string): Promise<PromptTrack[]> {
-  const { data } = await apiClient.get<PromptTrack[]>(
+  const { data } = await apiClientLong.get<PromptTrack[]>(
     `/api/analyzer/runs/s/${slug}/prompts/`,
   );
   return data;
@@ -341,21 +341,21 @@ export async function addPromptTrack(
 }
 
 export async function getShareOfVoice(slug: string): Promise<ShareOfVoiceItem[]> {
-  const { data } = await apiClient.get<ShareOfVoiceItem[]>(
+  const { data } = await apiClientLong.get<ShareOfVoiceItem[]>(
     `/api/analyzer/runs/s/${slug}/share-of-voice/`,
   );
   return data;
 }
 
 export async function getCitationTrend(slug: string): Promise<CitationTrendPoint[]> {
-  const { data } = await apiClient.get<CitationTrendPoint[]>(
+  const { data } = await apiClientLong.get<CitationTrendPoint[]>(
     `/api/analyzer/runs/s/${slug}/citation-trend/`,
   );
   return data;
 }
 
 export async function getCitationSources(slug: string): Promise<CitationSourcesResponse> {
-  const { data } = await apiClient.get<CitationSourcesResponse>(
+  const { data } = await apiClientLong.get<CitationSourcesResponse>(
     `/api/analyzer/runs/s/${slug}/citations/`,
   );
   return data;
@@ -372,6 +372,144 @@ export async function deletePromptTrack(slug: string, trackId: number): Promise<
 export async function getPromptResultFull(slug: string, trackId: number, resultId: number): Promise<PromptResult> {
   const { data } = await apiClient.get<PromptResult>(
     `/api/analyzer/runs/s/${slug}/prompts/${trackId}/results/${resultId}/`,
+  );
+  return data;
+}
+
+export interface BacklinkRow {
+  domain: string;
+  is_brand: boolean;
+  is_competitor: boolean;
+  citation_count: number;
+  referring_domains: number;
+  backlinks: number;
+  rank: number;
+  has_data: boolean;
+}
+
+export interface PromptBacklinksResponse {
+  brand_domain: string;
+  rows: BacklinkRow[];
+  api_used: boolean;
+  api_error?: string | null;
+  fetched_at?: string;
+}
+
+export async function getPromptBacklinks(
+  slug: string,
+  trackId: number,
+): Promise<PromptBacklinksResponse> {
+  const { data } = await apiClient.get<PromptBacklinksResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/backlinks/`,
+  );
+  return data;
+}
+
+export type OpportunityCategory =
+  | "directory"
+  | "review"
+  | "press"
+  | "forum"
+  | "resource"
+  | "other";
+
+export type OpportunityStatus =
+  | "suggested"
+  | "submitted"
+  | "live"
+  | "dismissed";
+
+export interface BacklinkOpportunity {
+  id: number;
+  name: string;
+  description: string;
+  rationale: string;
+  submit_url: string;
+  category: OpportunityCategory;
+  /** 1 = high, 2 = medium, 3 = low */
+  priority: number;
+  status: OpportunityStatus;
+  submitted_at: string | null;
+  live_url: string;
+  created_at: string | null;
+}
+
+export interface OpportunitiesResponse {
+  rows: BacklinkOpportunity[];
+  has_generated?: boolean;
+}
+
+export async function getPromptOpportunities(
+  slug: string,
+  trackId: number,
+): Promise<OpportunitiesResponse> {
+  const { data } = await apiClient.get<OpportunitiesResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/`,
+  );
+  return data;
+}
+
+export async function regeneratePromptOpportunities(
+  slug: string,
+  trackId: number,
+): Promise<OpportunitiesResponse> {
+  const { data } = await apiClient.post<OpportunitiesResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/`,
+    {},
+    { timeout: 90_000 },
+  );
+  return data;
+}
+
+export async function updateOpportunityStatus(
+  slug: string,
+  trackId: number,
+  oppId: number,
+  patch: { status?: OpportunityStatus; live_url?: string },
+): Promise<BacklinkOpportunity> {
+  const { data } = await apiClient.patch<BacklinkOpportunity>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/${oppId}/`,
+    patch,
+  );
+  return data;
+}
+
+export async function deleteOpportunity(
+  slug: string,
+  trackId: number,
+  oppId: number,
+): Promise<void> {
+  await apiClient.delete(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/${oppId}/`,
+  );
+}
+
+export interface BrandKit {
+  name: string;
+  url: string;
+  tagline: string;
+  short_description: string;
+  long_description: string;
+  categories: string[];
+  keywords: string[];
+  location: string;
+  contact_email: string;
+}
+
+export async function getBrandKit(slug: string): Promise<{ kit: BrandKit }> {
+  const { data } = await apiClientLong.get<{ kit: BrandKit }>(
+    `/api/analyzer/runs/s/${slug}/brand-kit/`,
+  );
+  return data;
+}
+
+export async function regenerateBrandKit(
+  slug: string,
+): Promise<{ kit: BrandKit }> {
+  const { data } = await apiClientLong.post<{ kit: BrandKit }>(
+    `/api/analyzer/runs/s/${slug}/brand-kit/`,
+    {},
+    { timeout: 90_000 },
   );
   return data;
 }

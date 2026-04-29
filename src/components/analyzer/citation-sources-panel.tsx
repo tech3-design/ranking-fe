@@ -90,7 +90,7 @@ export function CitationSourcesPanel({ slug }: { slug: string }) {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4">
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-muted-foreground" />
@@ -135,45 +135,6 @@ export function CitationSourcesPanel({ slug }: { slug: string }) {
           </ul>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-emerald-600" />
-            <h3 className="text-sm font-semibold text-foreground">Pages AI loves on your site</h3>
-          </div>
-          <p className="mt-1 text-[12px] text-muted-foreground">
-            Your URLs that AI engines actually cite. Fix and expand these first.
-          </p>
-          {data.your_pages.length > 0 ? (
-            <ul className="mt-4 space-y-2.5">
-              {data.your_pages.slice(0, 6).map((p) => (
-                <li key={p.url} className="group">
-                  <a
-                    href={p.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-start justify-between gap-3 rounded-lg px-2 py-1.5 transition hover:bg-muted/50"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-[13px] font-medium text-foreground">
-                        {p.title || p.url}
-                      </p>
-                      <p className="truncate text-[11px] text-muted-foreground">{p.url}</p>
-                    </div>
-                    <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-emerald-700">
-                      <span className="tabular-nums">{p.mentions}</span>
-                      <ExternalLink className="h-3 w-3 opacity-0 transition group-hover:opacity-100" />
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-4 text-[13px] text-muted-foreground">
-              No citations to your own pages yet. Check the rival pages list to see where the
-              gaps are and which of your content to push.
-            </p>
-          )}
-        </div>
       </div>
 
       {data.rival_pages.length > 0 && (

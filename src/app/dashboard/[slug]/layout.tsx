@@ -57,8 +57,8 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
   {
     items: [
       { icon: LayoutDashboard, label: "Overview", path: "" },
-      { icon: Compass, label: "Explorer", path: "/visibility/explorer" },
-      { icon: GitFork, label: "Ranking", path: "/prompts/ranking" },
+      // { icon: Compass, label: "Explorer", path: "/visibility/explorer" },
+      // { icon: GitFork, label: "Ranking", path: "/prompts/ranking" },
     ],
   },
   {
@@ -66,12 +66,13 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
     items: [
       { icon: Eye, label: "Visibility", path: "/visibility" },
       { icon: Map, label: "Sitemap", path: "/sitemap" },
-      { icon: Activity, label: "Fixes", path: "/recommendations" },
+      { icon: Activity, label: "Tasks", path: "/recommendations" },
     ],
   },
   {
     heading: "Prompts",
     items: [
+      { icon: MessageSquare, label: "Tracker", path: "/prompts" },
       { icon: Zap, label: "Actions", path: "/prompts/actions" },
       { icon: History, label: "History", path: "/prompts/history" },
     ],
@@ -102,8 +103,8 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
   }
   if (rel.startsWith("/recommendations")) {
     return {
-      title: "Fixes",
-      hint: "Prioritized fixes to improve AI visibility and citations.",
+      title: "Tasks",
+      hint: "Prioritized tasks to improve AI visibility and citations.",
     };
   }
   if (rel.startsWith("/visibility/explorer")) {

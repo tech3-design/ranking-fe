@@ -9,6 +9,7 @@ import {
   XCircle,
   RefreshCw,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Eye,
   Search,
@@ -48,6 +49,9 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { getSubscriptionStatus } from "@/lib/api/payments";
 import ActionsDropdown from "./ActionDropdown";
+import { CitationAuthorityPanel } from "./citation-authority-panel";
+import { BacklinkOpportunitiesPanel } from "./backlink-opportunities-panel";
+import { BrandKitCard } from "./brand-kit-card";
 
 /** Public SVG logos under `/public/logos/` (Next serves at `/logos/...`). */
 const ENGINE_LOGO_SRC: Record<Engine, string> = {
@@ -372,6 +376,26 @@ export function PromptTracker({
     [search, filterLabel, sortKey],
   );
 
+  // ── Pagination ──────────────────────────────────────────────────────────────
+  // Client-side: tracks are already loaded (one big request) so slicing is
+  // free. Server-side pagination would re-pay cross-region DB latency on each
+  // page change.
+  const PAGE_SIZE = 8;
+  const [page, setPage] = useState(1);
+  const pageCount = Math.max(1, Math.ceil(visibleTracks.length / PAGE_SIZE));
+
+  // Reset to page 1 whenever filtering, sorting or total count changes.
+  useEffect(() => {
+    setPage(1);
+  }, [search, filterLabel, sortKey, visibleTracks.length]);
+
+  // Clamp page if it ever ends up out-of-range (e.g. someone deletes).
+  const safePage = Math.min(page, pageCount);
+  const pagedTracks = useMemo(
+    () => visibleTracks.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [visibleTracks, safePage],
+  );
+
   async function handleAdd(e?: React.FormEvent) {
     e?.preventDefault();
     const trimmed = text.trim();
@@ -618,7 +642,7 @@ export function PromptTracker({
       {/* ── Prompt cards ─────────────────────────────────────────────────── */}
       {visibleTracks.length > 0 && (
         <div className="space-y-1.5">
-          {visibleTracks.map((track) => {
+          {pagedTracks.map((track) => {
             const isExpanded = expandedId === track.id;
             const isRechecking = rechecking[track.id];
             const hasResults = track.results.length > 0;
@@ -777,15 +801,13 @@ export function PromptTracker({
                 {isExpanded &&
                   hasResults &&
                   (expandedMode === "blank" ? (
-                    <div className="border-t border-border bg-muted/20 px-4 py-6">
-                      <div className="rounded-md border border-dashed border-border bg-muted/10 py-8 text-center">
-                        <p className="text-sm font-medium text-foreground">
-                          Actions panel coming soon
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          This collapsible area is intentionally blank for
-                          action implementation.
-                        </p>
+                    <div className="border-t border-border bg-muted/20">
+                      <BrandKitCard slug={slug} />
+                      <div className="border-t border-border">
+                        <BacklinkOpportunitiesPanel slug={slug} trackId={track.id} />
+                      </div>
+                      <div className="border-t border-border">
+                        <CitationAuthorityPanel slug={slug} trackId={track.id} />
                       </div>
                     </div>
                   ) : (
@@ -1195,6 +1217,47 @@ export function PromptTracker({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination controls — only when there's more than one page. */}
+      {visibleTracks.length > PAGE_SIZE && (
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            Showing{" "}
+            <span className="font-medium text-foreground">
+              {(safePage - 1) * PAGE_SIZE + 1}
+              –
+              {Math.min(safePage * PAGE_SIZE, visibleTracks.length)}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium text-foreground">{visibleTracks.length}</span>
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+              className="inline-flex size-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <span className="px-2 text-xs tabular-nums text-muted-foreground">
+              Page <span className="font-medium text-foreground">{safePage}</span>
+              {" "}of{" "}
+              <span className="font-medium text-foreground">{pageCount}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+              disabled={safePage >= pageCount}
+              className="inline-flex size-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-40"
+              aria-label="Next page"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
         </div>
       )}
 

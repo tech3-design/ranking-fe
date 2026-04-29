@@ -46,7 +46,7 @@ export function getDashboardBreadcrumbs(
   }
 
   if (rel.startsWith("/recommendations")) {
-    crumbs.push({ label: "Fixes", href: null });
+    crumbs.push({ label: "Tasks", href: null });
     return crumbs;
   }
   if (rel.startsWith("/visibility/explorer")) {
