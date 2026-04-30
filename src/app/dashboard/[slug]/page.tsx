@@ -32,6 +32,7 @@ import { TopIssuesCard } from "@/components/dashboard/top-issues-card";
 import { VisibilityByPlatformCard } from "@/components/dashboard/visibility-by-platform-card";
 import { CompetitorsCard } from "@/components/dashboard/competitors-card";
 import { PredictionSentimentRow } from "@/components/dashboard/prediction-sentiment-row";
+import { WeeklyPerformanceSection } from "@/components/dashboard/weekly-performance-section";
 
 export default function SignalorDashboard() {
   const { slug } = useParams<{ slug: string }>();
@@ -280,6 +281,10 @@ export default function SignalorDashboard() {
 
       {run && !isRunning && (
         <div className="px-3 pb-4 pt-3 sm:px-4">
+          <WeeklyPerformanceSection
+            scoreHistory={scoreHistory}
+            joinDate={run.created_at}
+          />
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
             <GeoScoreCard
               compositeScore={compositeScore}

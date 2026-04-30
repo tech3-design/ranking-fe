@@ -51,7 +51,7 @@ export function GeoScoreCard({
       {sparkle ? <Sparkles /> : null}
       <div className="flex shrink-0 items-center justify-between mb-0.5">
         <p className="text-sm font-semibold text-foreground">GEO Score</p>
-        <Button
+        {/* <Button
           type="button"
           variant="ghost"
           size="icon-xs"
@@ -59,7 +59,7 @@ export function GeoScoreCard({
           aria-label="GEO score options"
         >
           <MoreHorizontal className="size-4" />
-        </Button>
+        </Button> */}
       </div>
       <p className="mb-2 shrink-0 text-[10px] text-muted-foreground">Composite across pillars</p>
 
