@@ -98,11 +98,11 @@ export default function Home() {
       <LandingHero />
 
       <section
-        className="relative border-t border-border/60 bg-background/80 py-12 backdrop-blur-sm"
+        className="relative  border-t border-border/60 bg-background/80 py-12 backdrop-blur-sm"
         aria-label="Supported AI engines"
       >
         <CornerDiamonds top />
-        <div className="mx-auto max-w-7xl px-6 lg:px-12">
+        <div className=" mx-auto max-w-7xl px-6 lg:px-12">
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
             [ works with every major AI engine ]
           </p>

@@ -117,7 +117,7 @@ export function DashboardAppFrame({
   }, [mobileOpen]);
 
   const topBarShell = cn(
-    "sticky top-0 z-50 shrink-0 border-b border-border/40 bg-white dark:bg-zinc-950",
+    "shrink-0 z-50 border-b border-border/40 bg-white dark:bg-zinc-950",
     DASHBOARD_TOPBAR_H
   );
 
@@ -145,7 +145,7 @@ export function DashboardAppFrame({
   );
 
   return (
-    <div className="flex h-dvh flex-col bg-muted/40 text-foreground dark:bg-background md:h-auto md:min-h-dvh">
+    <div className="flex h-dvh flex-col bg-muted/40 text-foreground dark:bg-background">
 
       <ThemeHotkeyBinder />
 
@@ -188,7 +188,7 @@ export function DashboardAppFrame({
 
       {/* Desktop Layout — min-h-0 so nested overflow + flex stretch match the viewport */}
 
-      <div className="relative hidden min-h-0 flex-1 flex-col md:flex md:min-h-0 md:flex-none">
+      <div className="relative hidden min-h-0 flex-col md:flex md:flex-1 md:overflow-hidden">
 
         {/* Topbar */}
 
@@ -212,11 +212,11 @@ export function DashboardAppFrame({
 
         {/* Body */}
 
-        <div className="flex min-h-0 flex-1 overflow-hidden md:min-h-[calc(100dvh-60px)] md:overflow-visible">
+        <div className="flex min-h-0 flex-1 overflow-hidden">
 
           {/* Sidebar */}
 
-          <aside className="flex min-h-0 w-56 shrink-0 flex-col overflow-hidden border-r border-border/40 bg-white md:sticky md:top-0 md:h-[calc(100dvh-60px)] md:self-start">
+          <aside className="flex w-56 shrink-0 flex-col border-r border-border/40 bg-white">
 
 
             {/* Nav */}
@@ -236,9 +236,9 @@ export function DashboardAppFrame({
 
           {/* Main */}
 
-          <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-muted/40 dark:bg-background/80 md:overflow-visible">
+          <div className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-muted/40 dark:bg-background/80">
 
-            <main className="mx-auto w-full min-h-0 max-w-7xl flex-1 px-4 py-8 sm:py-8 md:flex-none">
+            <main className="mx-auto w-full max-w-7xl px-4 py-8">
               {children}
             </main>
 

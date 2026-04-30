@@ -349,12 +349,14 @@ export default function DashboardSlugLayout({
   const section = sectionForDashboardPath(pathname, basePath);
 
   const sidebarBrand = (
-    <LogoComp
-      size={22}
-      compact
-      animated={false}
-      className="text-sm font-bold tracking-tight text-foreground"
-    />
+    <Link href="/" className="flex items-center">
+      <LogoComp
+        size={22}
+        compact
+        animated={false}
+        className="text-sm font-bold tracking-tight text-foreground"
+      />
+    </Link>
   );
 
   const sidebarBelowHeaderRow =

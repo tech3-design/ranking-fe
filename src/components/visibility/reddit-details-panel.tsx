@@ -3,11 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { RedditDetails } from "@/lib/api/visibility";
-import {
-  ChartContainer,
-  type ChartConfig,
-} from "@/components/ui/chart";
-import { PieChart, Pie, Cell } from "recharts";
+import { BrandDonutChart } from "@/components/ui/vis-charts";
 import { MessageSquare, ArrowUp, MessageCircle, ExternalLink } from "lucide-react";
 
 interface RedditDetailsPanelProps {
@@ -29,11 +25,6 @@ const SENTIMENT_COLORS = {
   neutral: "#94a3b8",
 };
 
-const sentimentConfig: ChartConfig = {
-  positive: { label: "Positive", color: SENTIMENT_COLORS.positive },
-  negative: { label: "Negative", color: SENTIMENT_COLORS.negative },
-  neutral: { label: "Neutral", color: SENTIMENT_COLORS.neutral },
-};
 
 export function RedditDetailsPanel({ details, score, compact = false }: RedditDetailsPanelProps) {
   const sentiment = details.sentiment;
@@ -49,7 +40,7 @@ export function RedditDetailsPanel({ details, score, compact = false }: RedditDe
     : [];
 
   return (
-    <Card className="glass-card h-full border-border">
+    <Card className="glass-card border-border">
       <CardHeader className={cn("pb-3", compact && "pb-2 pt-4")}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -71,6 +62,16 @@ export function RedditDetailsPanel({ details, score, compact = false }: RedditDe
           <p className="text-sm text-destructive">{details.error}</p>
         )}
 
+        {!details.error && (details.total_mentions ?? 0) === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-7 text-center">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-muted/30">
+              <MessageSquare className="size-4 text-muted-foreground/40" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">No Reddit discussions found</p>
+            <p className="text-[11px] text-muted-foreground/60">This brand has no Reddit mentions yet</p>
+          </div>
+        ) : (
+          <>
         {/* Key metrics row */}
         <div className={cn("grid grid-cols-3 gap-2", compact && "gap-1.5")}>
           {[
@@ -114,23 +115,12 @@ export function RedditDetailsPanel({ details, score, compact = false }: RedditDe
             <p className={cn("font-semibold tracking-tight mb-2", compact ? "text-xs" : "text-sm")}>Sentiment</p>
             {sentimentData.length > 0 ? (
               <div className="flex items-center gap-3">
-                <ChartContainer config={sentimentConfig} className="h-16 w-16 shrink-0 !aspect-square">
-                  <PieChart>
-                    <Pie
-                      data={sentimentData}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={18}
-                      outerRadius={28}
-                      strokeWidth={2}
-                      stroke="var(--card)"
-                    >
-                      {sentimentData.map((entry) => (
-                        <Cell key={entry.name} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ChartContainer>
+                <BrandDonutChart
+                  data={sentimentData.map((d) => ({ name: d.name, value: d.value, color: d.fill }))}
+                  size={64}
+                  innerRadius={18}
+                  outerRadius={28}
+                />
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
                   <span className="flex items-center gap-1.5">
                     <span className="size-2 rounded-full bg-emerald-500" />
@@ -213,6 +203,8 @@ export function RedditDetailsPanel({ details, score, compact = false }: RedditDe
               ))}
             </div>
           </div>
+        )}
+          </>
         )}
       </CardContent>
     </Card>
