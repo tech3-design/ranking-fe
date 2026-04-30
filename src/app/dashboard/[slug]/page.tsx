@@ -213,6 +213,10 @@ export default function SignalorDashboard() {
   }
 
   const projectName = run?.display_brand_name?.trim() || run?.brand_name || (run?.url ? normalizeUrl(run.url).split("/")[0] : "Overview");
+  const brandDomain = run?.url ? normalizeUrl(run.url).split("/")[0] : "";
+  const brandFavicon = brandDomain
+    ? `https://www.google.com/s2/favicons?domain=${brandDomain}&sz=128`
+    : "";
   const statusLabel = run?.status === "complete" ? "Active" : run?.status === "failed" ? "Failed" : "Analyzing";
   const statusClasses = run?.status === "complete"
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -224,11 +228,29 @@ export default function SignalorDashboard() {
     <>
       {/* <header className="sticky top-0 z-20 border-b border-border bg-white px-6 py-4"> */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            {brandFavicon ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={brandFavicon}
+                alt={`${projectName} logo`}
+                width={48}
+                height={48}
+                className="size-10 shrink-0 rounded-lg border border-border bg-white object-contain p-1 shadow-sm sm:size-12"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
+              />
+            ) : null}
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-semibold tracking-tight text-foreground capitalize">
+              <h1 className="truncate text-2xl font-bold tracking-tight text-foreground capitalize sm:text-3xl">
                 {projectName}
               </h1>
+              {brandDomain ? (
+                <p className="truncate text-xs text-muted-foreground sm:text-sm">
+                  {brandDomain}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-4 sm:gap-5">

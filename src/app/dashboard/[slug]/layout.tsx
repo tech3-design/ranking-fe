@@ -37,6 +37,8 @@ import {
   Activity,
   Zap,
   History,
+  Link2,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import LogoComp from "@/components/LogoComp";
@@ -50,7 +52,12 @@ import {
 import { CommandPalette } from "@/components/ui/command-palette";
 import { DashboardTopBarActions } from "./_components/dashboard-top-bar-actions";
 
-type MainNavItem = { icon: LucideIcon; label: string; path: string };
+type MainNavItem = {
+  icon: LucideIcon;
+  label: string;
+  path: string;
+  children?: MainNavItem[];
+};
 type MainNavGroup = { heading?: string; items: MainNavItem[] };
 
 const MAIN_NAV_GROUPS: MainNavGroup[] = [
@@ -73,7 +80,15 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
     heading: "Prompts",
     items: [
       { icon: MessageSquare, label: "Tracker", path: "/prompts" },
-      { icon: Zap, label: "Actions", path: "/prompts/actions" },
+      {
+        icon: Zap,
+        label: "Actions",
+        path: "/prompts/actions",
+        children: [
+          { icon: Link2, label: "Backlinks", path: "/prompts/backlinks" },
+          { icon: BookOpen, label: "Wikipedia", path: "/prompts/wikipedia" },
+        ],
+      },
       { icon: History, label: "History", path: "/prompts/history" },
     ],
   },
@@ -129,6 +144,18 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Sitemap",
       hint: "Page-level audit of speed, structure, and AI readiness.",
+    };
+  }
+  if (rel.startsWith("/prompts/backlinks")) {
+    return {
+      title: "Backlinks",
+      hint: "Free submission targets and paid placements via backlink providers.",
+    };
+  }
+  if (rel.startsWith("/prompts/wikipedia")) {
+    return {
+      title: "Wikipedia",
+      hint: "Check brand presence on Wikipedia and assess notability for a draft article.",
     };
   }
   if (rel.startsWith("/prompts/actions")) {
@@ -329,7 +356,9 @@ export default function DashboardSlugLayout({
 
   const isSettingsPage = pathname.startsWith(basePath + "/settings");
 
-  const allNavPaths = MAIN_NAV_GROUPS.flatMap((g) => g.items.map((i) => i.path));
+  const allNavPaths = MAIN_NAV_GROUPS.flatMap((g) =>
+    g.items.flatMap((i) => [i.path, ...((i.children ?? []).map((c) => c.path))]),
+  );
 
   function isActive(navPath: string) {
     if (navPath === "") return pathname === basePath;
@@ -468,22 +497,56 @@ export default function DashboardSlugLayout({
                 </p>
               ) : null}
               {group.items.map((item) => {
-                const active = isActive(item.path);
                 const Icon = item.icon;
+                const active = isActive(item.path);
+                const childActive = (item.children ?? []).some((c) =>
+                  isActive(c.path),
+                );
+                const showChildren = !!item.children?.length && (active || childActive);
                 return (
-                  <Link
-                    key={item.label}
-                    href={basePath + item.path}
-                    className={cn(
-                      "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
-                    {item.label}
-                  </Link>
+                  <div key={item.label} className="flex flex-col gap-0.5">
+                    <Link
+                      href={basePath + item.path}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        active
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : childActive
+                            ? "text-foreground hover:bg-muted"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
+                      {item.label}
+                    </Link>
+
+                    {showChildren ? (
+                      <div className="ml-4 flex flex-col gap-0.5 border-l border-border/60 pl-2">
+                        {item.children!.map((child) => {
+                          const ChildIcon = child.icon;
+                          const childIsActive = isActive(child.path);
+                          return (
+                            <Link
+                              key={child.label}
+                              href={basePath + child.path}
+                              className={cn(
+                                "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors",
+                                childIsActive
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                              )}
+                            >
+                              <ChildIcon
+                                className="size-[15px] shrink-0 opacity-90"
+                                aria-hidden
+                              />
+                              {child.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
                 );
               })}
             </div>
