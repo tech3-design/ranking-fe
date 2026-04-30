@@ -445,9 +445,9 @@ export function BrandVisibilityTab({
 
           {/* Web + (Google/Reddit): Web spans 2 cols, Google+Reddit stack in 1 col */}
           {webMentionsDetails && (googleDetails || redditDetails) ? (
-            <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-3">
-              {/* Left column — Google on top, Reddit below */}
-              <div className="flex flex-col gap-4 lg:col-span-1">
+            <div className="grid grid-cols-1 gap-4 items-stretch lg:grid-cols-3">
+              {/* Left column — Google on top, Reddit below (stretches to match Web height) */}
+              <div className="flex flex-col gap-4 h-full lg:col-span-1">
                 {googleDetails && (
                   <GoogleDetailsPanel
                     details={googleDetails}
@@ -460,11 +460,12 @@ export function BrandVisibilityTab({
                     details={redditDetails}
                     score={visibility.reddit_score ?? null}
                     compact
+                    className="flex-1"
                   />
                 )}
               </div>
               {/* Right column — Web primary, spans 2 cols */}
-              <div className="lg:col-span-2">
+              <div className="h-full lg:col-span-2">
                 <WebMentionsPanel
                   details={webMentionsDetails}
                   score={visibility.web_mentions_score ?? null}

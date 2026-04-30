@@ -11,6 +11,7 @@ interface RedditDetailsPanelProps {
   score: number | null;
   /** Dense layout for bento / above-the-fold grids */
   compact?: boolean;
+  className?: string;
 }
 
 function scoreTone(s: number) {
@@ -26,7 +27,7 @@ const SENTIMENT_COLORS = {
 };
 
 
-export function RedditDetailsPanel({ details, score, compact = false }: RedditDetailsPanelProps) {
+export function RedditDetailsPanel({ details, score, compact = false, className }: RedditDetailsPanelProps) {
   const sentiment = details.sentiment;
   const roundedScore = score != null ? Math.round(score) : 0;
   const tone = scoreTone(roundedScore);
@@ -40,7 +41,7 @@ export function RedditDetailsPanel({ details, score, compact = false }: RedditDe
     : [];
 
   return (
-    <Card className="glass-card border-border">
+    <Card className={cn("glass-card border-border", className)}>
       <CardHeader className={cn("pb-3", compact && "pb-2 pt-4")}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -59,7 +60,10 @@ export function RedditDetailsPanel({ details, score, compact = false }: RedditDe
       </CardHeader>
       <CardContent className={cn("space-y-4", compact && "space-y-3 pb-4 pt-0")}>
         {details.error && (
-          <p className="text-sm text-destructive">{details.error}</p>
+          <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50/70 px-3.5 py-3">
+            <span className="mt-0.5 shrink-0 text-amber-500">⚠</span>
+            <p className="text-[12px] leading-relaxed text-amber-800">{details.error}</p>
+          </div>
         )}
 
         {!details.error && (details.total_mentions ?? 0) === 0 ? (
