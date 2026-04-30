@@ -444,6 +444,7 @@ export const BrandDonutChart = memo(function BrandDonutChart({
             outerRadius={outerRadius}
             paddingAngle={2}
             stroke="none"
+            // @ts-expect-error Recharts Pie supports activeIndex at runtime
             activeIndex={activeIndex ?? undefined}
             activeShape={DonutActiveShape as never}
             onMouseEnter={(data, index) => {
