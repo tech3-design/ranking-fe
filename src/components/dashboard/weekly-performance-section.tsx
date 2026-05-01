@@ -25,15 +25,8 @@ import { CORAL } from "./constants";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const DAY_KEYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
-
-function getMondayOf(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  const dow = d.getDay();
-  d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
-  return d;
-}
+// Sunday-indexed, matching Date.getDay()
+const DAY_ABBREVS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
 function isSameDay(a: Date, b: Date): boolean {
   return (
@@ -110,23 +103,32 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
   scoreHistory: ScoreHistoryPoint[];
   joinDate: string;
 }) {
-  // Build week ranges from join date → today
+  // Build week ranges anchored to the user's actual start date.
+  // Week 1 begins on joinDate (or the earliest scoreHistory point if older).
+  // All subsequent weeks are strict 7-day intervals from that anchor — no
+  // Monday-snapping — so April 30 stays April 30 for existing users and a
+  // new user's first analysis date becomes their personal Week 1 start.
   const weeks = useMemo<WeekRange[]>(() => {
     const origin = new Date(joinDate);
+    origin.setHours(0, 0, 0, 0);
     const today = new Date();
     today.setHours(23, 59, 59, 999);
 
-    // Use earliest history point if it's older than the run itself
-    const earliest =
+    // Pick the earliest of joinDate and the first scoreHistory point
+    const earliestStr =
       scoreHistory.length > 0
         ? scoreHistory.reduce(
             (min, p) => (p.date < min ? p.date : min),
             scoreHistory[0].date,
           )
         : joinDate;
-    const from = new Date(Math.min(new Date(earliest).getTime(), origin.getTime()));
+    const earliest = new Date(earliestStr);
+    earliest.setHours(0, 0, 0, 0);
 
-    const cursor = getMondayOf(from);
+    // Anchor = the real start day (no Monday-snapping)
+    const anchor = earliest < origin ? earliest : origin;
+
+    const cursor = new Date(anchor);
     const result: WeekRange[] = [];
 
     while (cursor <= today) {
@@ -172,11 +174,13 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
 
   const selectedWeek = weeks[selectedIdx];
 
-  // 7-bar chart data for the selected week
+  // 7-bar chart data for the selected week.
+  // Day labels are derived from the actual calendar date so they are always
+  // correct regardless of which weekday the week starts on.
   const chartData = useMemo<DayBar[]>(() => {
     if (!selectedWeek) return [];
     const now = new Date();
-    return DAY_KEYS.map((day, i) => {
+    return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(selectedWeek.start);
       date.setDate(date.getDate() + i);
       const pts = selectedWeek.points.filter((p) =>
@@ -189,7 +193,7 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
             )
           : null;
       return {
-        name: day,
+        name: DAY_ABBREVS[date.getDay()],
         score,
         dateLabel: date.toLocaleDateString("en-US", {
           month: "short",

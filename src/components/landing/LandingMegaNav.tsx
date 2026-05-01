@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
+import { useSession } from "@/lib/auth-client";
 
 type MegaKey = "solutions" | "features" | "freeTools" | "resources";
 
@@ -264,7 +265,7 @@ const LOGIN_LINKS: { label: string; href: string }[] = [
 
 // ─── Resources grid ──────────────────────────────────────────────────────────
 
-function ResourcesMegaGrid({ setOpen }: { setOpen: (v: MegaKey | null) => void }) {
+function ResourcesMegaGrid({ setOpen, isAuthenticated }: { setOpen: (v: MegaKey | null) => void; isAuthenticated: boolean }) {
   const [integ, blog, pricing, customerLogin] = MENUS.resources.items;
   const [hovered, setHovered] = useState<ResourceKey | null>(null);
   const cellRefs = useRef<(HTMLAnchorElement | null)[]>([null, null, null, null]);
@@ -327,6 +328,7 @@ function ResourcesMegaGrid({ setOpen }: { setOpen: (v: MegaKey | null) => void }
         <ResourcePreviewPanel
           hovered={hovered}
           onNavigate={() => setOpen(null)}
+          isAuthenticated={isAuthenticated}
         />
       </motion.div>
     </motion.div>
@@ -405,9 +407,11 @@ function ResourceHoverCell({
 function ResourcePreviewPanel({
   hovered,
   onNavigate,
+  isAuthenticated,
 }: {
   hovered: ResourceKey | null;
   onNavigate: () => void;
+  isAuthenticated: boolean;
 }) {
   const activeKey = hovered ?? "default";
   return (
@@ -428,7 +432,7 @@ function ResourcePreviewPanel({
           ) : hovered === "pricing" ? (
             <PricingPreview onNavigate={onNavigate} />
           ) : hovered === "login" ? (
-            <LoginPreview onNavigate={onNavigate} />
+            <LoginPreview onNavigate={onNavigate} isAuthenticated={isAuthenticated} />
           ) : (
             <DefaultPreview />
           )}
@@ -561,7 +565,7 @@ function PricingPreview({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-function LoginPreview({ onNavigate }: { onNavigate: () => void }) {
+function LoginPreview({ onNavigate, isAuthenticated }: { onNavigate: () => void; isAuthenticated: boolean }) {
   return (
     <>
       <PreviewHeading label="Quick access" />
@@ -588,12 +592,12 @@ function LoginPreview({ onNavigate }: { onNavigate: () => void }) {
         </p>
       </div>
       <Link
-        href="/sign-in"
+        href={isAuthenticated ? "/dashboard" : "/sign-in"}
         className="inline-flex items-center justify-center gap-1 rounded-md bg-primary px-2 py-1.5 text-[12px] font-semibold tracking-tight text-primary-foreground shadow-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
         onClick={onNavigate}
       >
         <LogIn className="h-3 w-3" strokeWidth={2} aria-hidden />
-        Sign in
+        {isAuthenticated ? "Go to Dashboard" : "Sign in"}
       </Link>
     </>
   );
@@ -645,6 +649,8 @@ function DefaultPreview() {
 export function LandingMegaNav() {
   const [open, setOpen] = useState<MegaKey | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
 
   const uid = useId();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -809,7 +815,7 @@ export function LandingMegaNav() {
                 onMouseLeave={scheduleClose}
               >
                 {open === "resources" ? (
-                  <ResourcesMegaGrid setOpen={setOpen} />
+                  <ResourcesMegaGrid setOpen={setOpen} isAuthenticated={isAuthenticated} />
                 ) : (
                   <motion.div
                     className="grid gap-2 rounded-sm border border-black/6 sm:grid-cols-2 sm:gap-x-3 sm:gap-y-1"
@@ -834,14 +840,22 @@ export function LandingMegaNav() {
         </AnimatePresence>
       </div>
 
-      {/* ── Log In / Sign Up ─────────────────────────────────────── */}
+      {/* ── Log In / Sign Up / Dashboard ─────────────────────────── */}
       <div className="hidden shrink-0 items-center gap-2 lg:flex">
-        <Button asChild variant="link" className="px-4 text-neutral-700 hover:text-neutral-900">
-          <Link href="/sign-in">Log In</Link>
-        </Button>
-        <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "px-4")}>
-          <Link href="/sign-up">Sign Up</Link>
-        </Button>
+        {isAuthenticated ? (
+          <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "px-4")}>
+            <Link href="/dashboard">Dashboard</Link>
+          </Button>
+        ) : (
+          <>
+            <Button asChild variant="link" className="px-4 text-neutral-700 hover:text-neutral-900">
+              <Link href="/sign-in">Log In</Link>
+            </Button>
+            <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "px-4")}>
+              <Link href="/sign-up">Sign Up</Link>
+            </Button>
+          </>
+        )}
       </div>
 
       {/* ── Mobile hamburger ─────────────────────────────────────── */}
@@ -910,16 +924,26 @@ export function LandingMegaNav() {
               </nav>
 
               <div className="mt-3 flex flex-col gap-2 border-t border-black/8 pt-3">
-                <Button asChild variant="outline" className="w-full justify-center border-black/12 bg-white">
-                  <Link href="/sign-in" onClick={() => setMobileOpen(false)}>
-                    Log In
-                  </Link>
-                </Button>
-                <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "w-full justify-center")}>
-                  <Link href="/sign-up" onClick={() => setMobileOpen(false)}>
-                    Sign Up
-                  </Link>
-                </Button>
+                {isAuthenticated ? (
+                  <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "w-full justify-center")}>
+                    <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
+                      Dashboard
+                    </Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button asChild variant="outline" className="w-full justify-center border-black/12 bg-white">
+                      <Link href="/sign-in" onClick={() => setMobileOpen(false)}>
+                        Log In
+                      </Link>
+                    </Button>
+                    <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "w-full justify-center")}>
+                      <Link href="/sign-up" onClick={() => setMobileOpen(false)}>
+                        Sign Up
+                      </Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </motion.div>
           </>
