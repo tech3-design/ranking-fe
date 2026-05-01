@@ -228,7 +228,7 @@ export default function SignalorDashboard() {
   return (
     <>
       {/* <header className="sticky top-0 z-20 border-b border-border bg-white px-6 py-4"> */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             {brandFavicon ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -237,7 +237,7 @@ export default function SignalorDashboard() {
                 alt={`${projectName} logo`}
                 width={48}
                 height={48}
-                className="size-10 shrink-0 rounded-lg border border-border bg-white object-contain p-1 shadow-sm sm:size-12"
+                className="size-10 shrink-0 rounded-lg object-contain sm:size-12"
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.display = "none";
                 }}
