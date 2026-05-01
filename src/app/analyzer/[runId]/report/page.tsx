@@ -40,9 +40,9 @@ export default function ReportPage() {
       {mainPage && (
         <div className="my-8">
           <h2 className="text-xl font-bold mb-4">Pillar Breakdown</h2>
-          <div className="flex justify-center">
+          {/* <div className="flex justify-center">
             <PillarBreakdown pageScore={mainPage} />
-          </div>
+          </div> */}
         </div>
       )}
 

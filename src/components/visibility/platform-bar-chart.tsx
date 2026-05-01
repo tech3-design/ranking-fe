@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useMemo } from "react";
+import { BrandBarChart, BRAND_PALETTE, type BarChartDatum } from "@/components/ui/vis-charts";
 
 interface PlatformBarChartProps {
   google: number;
@@ -8,44 +9,27 @@ interface PlatformBarChartProps {
   web?: number;
 }
 
-const PLATFORM_COLORS: Record<string, string> = {
-  Google: "#E04D00",
-  Reddit: "var(--foreground)",
-  "Web Mentions": "#C4BAA8",
-};
-
 export function PlatformBarChart({ google, reddit, web }: PlatformBarChartProps) {
-  const platforms = [
-    { name: "Google", score: google, weight: "44%" },
-    { name: "Reddit", score: reddit, weight: "22%" },
-    { name: "Web Mentions", score: web ?? 0, weight: "34%" },
-  ];
+  const data: BarChartDatum[] = useMemo(
+    () => [
+      { label: "Google", value: google, color: BRAND_PALETTE[0] },
+      { label: "Reddit", value: reddit, color: BRAND_PALETTE[2] },
+      { label: "Web", value: web ?? 0, color: BRAND_PALETTE[4] },
+    ],
+    [google, reddit, web],
+  );
 
   return (
-    <div className="bg-card rounded-2xl p-5 border border-border">
-      <p className="text-sm font-semibold text-foreground mb-4">Platform Comparison</p>
-      <div className="space-y-4">
-        {platforms.map((p, i) => (
-          <div key={p.name} className="space-y-1.5">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-foreground">
-                {p.name}{" "}
-                <span className="text-muted-foreground text-xs">({p.weight})</span>
-              </span>
-              <span className="font-mono font-bold text-foreground">{Math.round(p.score)}</span>
-            </div>
-            <div className="h-2.5 w-full rounded-full overflow-hidden bg-muted">
-              <motion.div
-                className="h-full rounded-full"
-                style={{ backgroundColor: PLATFORM_COLORS[p.name] || "#E04D00" }}
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, p.score)}%` }}
-                transition={{ duration: 0.8, delay: i * 0.15, type: "spring", stiffness: 50 }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="rounded-xl border border-border bg-card p-5">
+      <p className="mb-4 text-sm font-semibold text-foreground">Platform Comparison</p>
+      <BrandBarChart
+        data={data}
+        height={200}
+        yDomain={[0, 100]}
+        yTickFormatter={String}
+        tooltipFormatter={(v, d) => [`${Math.round(v)} / 100`, d.label]}
+        barSize={40}
+      />
     </div>
   );
 }

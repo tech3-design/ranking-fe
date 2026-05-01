@@ -15,7 +15,9 @@ export default function AnalyzerPage() {
       {/* Simple Header */}
       <header className="border-b border-border/50 bg-background/50 backdrop-blur-md sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <LogoComp />
+          <Link href="/" className="transition-opacity hover:opacity-90">
+            <LogoComp />
+          </Link>
           <Link
             href="/"
             className="group flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"

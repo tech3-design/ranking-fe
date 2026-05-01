@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { GoogleDetails } from "@/lib/api/visibility";
 import { CheckCircle2, XCircle, Search, TrendingUp } from "lucide-react";
+import { HorizontalScoreBar } from "@/components/ui/vis-charts";
 
 interface GoogleDetailsPanelProps {
   details: GoogleDetails;
@@ -20,9 +21,9 @@ const METHOD_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 function scoreTone(s: number) {
-  if (s >= 70) return { fill: "hsl(152, 57%, 42%)", text: "text-emerald-600" };
-  if (s >= 40) return { fill: "hsl(38, 92%, 50%)", text: "text-amber-600" };
-  return { fill: "var(--primary)", text: "text-primary" };
+  if (s >= 70) return { text: "text-emerald-600" };
+  if (s >= 40) return { text: "text-amber-600" };
+  return { text: "text-primary" };
 }
 
 export function GoogleDetailsPanel({ details, score, compact = false }: GoogleDetailsPanelProps) {
@@ -31,7 +32,7 @@ export function GoogleDetailsPanel({ details, score, compact = false }: GoogleDe
   const tone = scoreTone(roundedScore);
 
   return (
-    <Card className="glass-card h-full border-border">
+    <Card className="glass-card border-border">
       <CardHeader className={cn("pb-3", compact && "pb-2 pt-4")}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
@@ -139,41 +140,18 @@ export function GoogleDetailsPanel({ details, score, compact = false }: GoogleDe
 
         {/* Sub-scores breakdown with styled bars */}
         {details.sub_scores && (
-          <div className={cn("space-y-2.5", compact && "max-h-[160px] overflow-y-auto pr-1")}>
+          <div className="space-y-2.5">
             <p className={cn("font-semibold tracking-tight", compact ? "text-xs" : "text-sm")}>Breakdown</p>
             <div className="space-y-2">
               {Object.entries(details.sub_scores)
-                .slice(0, compact ? 6 : undefined)
-                .map(([key, value]) => {
-                  const barTone = scoreTone(value);
-                  return (
-                    <div key={key} className="flex items-center gap-2.5">
-                      <span
-                        className={cn(
-                          "w-28 shrink-0 capitalize text-muted-foreground truncate",
-                          compact ? "text-[11px]" : "text-xs",
-                        )}
-                      >
-                        {key.replace(/_/g, " ")}
-                      </span>
-                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted/40">
-                        <div
-                          className="h-full rounded-full transition-all duration-500 ease-out"
-                          style={{
-                            width: `${Math.min(100, value)}%`,
-                            backgroundColor: barTone.fill,
-                          }}
-                        />
-                      </div>
-                      <span className={cn(
-                        "w-8 shrink-0 text-right font-mono font-semibold tabular-nums",
-                        compact ? "text-[11px]" : "text-xs",
-                      )}>
-                        {Math.round(value)}
-                      </span>
-                    </div>
-                  );
-                })}
+                .map(([key, value]) => (
+                  <HorizontalScoreBar
+                    key={key}
+                    label={key}
+                    value={value}
+                    compact={compact}
+                  />
+                ))}
             </div>
           </div>
         )}

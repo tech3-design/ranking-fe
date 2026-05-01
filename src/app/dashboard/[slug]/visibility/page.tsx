@@ -14,7 +14,6 @@ import {
 } from "@/lib/api/integrations";
 import { useRun } from "../_components/run-context";
 import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
-import { ShareOfVoicePanel } from "@/components/analyzer/share-of-voice-panel";
 import { GAPropertySelector } from "@/components/integrations/ga-property-selector";
 import { GATrafficTab } from "@/components/integrations/ga-traffic-tab";
 import { AlertCircle, BarChart3, Loader2, CheckCircle2 } from "lucide-react";
@@ -122,10 +121,9 @@ export default function VisibilityPage() {
             <BrandVisibilityTab
               brandName={run.display_brand_name?.trim() || run.brand_name}
               visibility={brandVis}
+              sov={sov}
             />
           )}
-
-          {sov.length > 0 && <ShareOfVoicePanel data={sov} />}
 
           {!brandVis && sov.length === 0 && (
             <div className="text-center py-16 text-sm text-muted-foreground">

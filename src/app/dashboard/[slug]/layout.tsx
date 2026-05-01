@@ -378,12 +378,14 @@ export default function DashboardSlugLayout({
   const section = sectionForDashboardPath(pathname, basePath);
 
   const sidebarBrand = (
-    <LogoComp
-      size={22}
-      compact
-      animated={false}
-      className="text-sm font-bold tracking-tight text-foreground"
-    />
+    <Link href="/" className="flex items-center">
+      <LogoComp
+        size={22}
+        compact
+        animated={false}
+        className="text-sm font-bold tracking-tight text-foreground"
+      />
+    </Link>
   );
 
   const sidebarBelowHeaderRow =
@@ -657,7 +659,7 @@ export default function DashboardSlugLayout({
             initialMessage={chatInitialMessage}
           /> */}
 
-          {!chatOpen ? (
+          {/* {!chatOpen ? (
             <button
               type="button"
               onClick={() => setChatOpen(true)}
@@ -666,7 +668,7 @@ export default function DashboardSlugLayout({
               <Sparkles className="size-4" />
               <span className="text-xs font-semibold">AI Assistant</span>
             </button>
-          ) : null}
+          ) : null} */}
 
           <CommandPalette
             open={commandPaletteOpen}

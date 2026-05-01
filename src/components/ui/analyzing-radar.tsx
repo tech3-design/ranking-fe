@@ -79,7 +79,6 @@ export function AnalyzingRadar({
       >
         <circle cx="50" cy="50" r="46" fill="none" stroke={dim} strokeWidth="0.4" />
         <circle cx="50" cy="50" r="34" fill="none" stroke={ring} strokeWidth="0.5" />
-        <circle cx="50" cy="50" r="22" fill="none" stroke={dim} strokeWidth="0.5" />
       </svg>
 
       {/* Orbit dots — ring 1 (slow, counter-clockwise) */}
@@ -101,56 +100,6 @@ export function AnalyzingRadar({
         color={color}
         opacity={0.8}
       />
-      {/* Ring 3 (fastest, counter-clockwise) */}
-      <Orbit
-        radius={size * 0.22}
-        count={2}
-        duration={3.5}
-        direction={1}
-        dotSize={2.5}
-        color={color}
-        opacity={0.6}
-      />
-
-      {/* Central core — pulsing + glowing */}
-      <motion.div
-        aria-hidden
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          transform: "translate(-50%, -50%)",
-          width: size * 0.18,
-          height: size * 0.18,
-          borderRadius: "50%",
-          background: `radial-gradient(circle at 35% 30%, ${color}, ${color} 55%, ${color}aa 100%)`,
-          boxShadow: `0 0 ${size * 0.14}px ${color}66, 0 0 ${size * 0.08}px ${color}aa`,
-        }}
-        animate={{
-          scale: [1, 1.12, 1],
-          opacity: [0.9, 1, 0.9],
-        }}
-        transition={{
-          duration: 1.8,
-          ease: "easeInOut",
-          repeat: Infinity,
-        }}
-      >
-        {/* Inner highlight — subtle specular */}
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            top: "18%",
-            left: "22%",
-            width: "30%",
-            height: "22%",
-            borderRadius: "50%",
-            background: "rgba(255, 255, 255, 0.55)",
-            filter: "blur(2px)",
-          }}
-        />
-      </motion.div>
     </div>
   );
 }
