@@ -86,7 +86,7 @@ export default function Home() {
 </DiamondGrid> */}
 
         {/* </section> */}
-
+ 
         <LandingFaq />
 
         <LandingFooter />
