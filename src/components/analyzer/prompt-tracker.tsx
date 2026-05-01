@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Loader2,
@@ -18,6 +18,9 @@ import {
   Plus,
   X,
   Trash2,
+  Globe,
+  Users,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +38,8 @@ import {
   recheckPrompt,
   deletePromptTrack,
   getPromptResultFull,
+  getPromptRank,
+  getBacklinkCatalog,
 } from "@/lib/api/analyzer";
 import {
   PROMPT_INTENT_LABEL,
@@ -45,13 +50,19 @@ import {
   type Sentiment,
   type PromptSearchIntent,
   type PromptSurfaceType,
+  type RankQuery,
+  type RankResult,
+  type RankSurface,
+  type BacklinkProduct,
 } from "@/lib/api/analyzer";
 import { useSession } from "@/lib/auth-client";
 import { getSubscriptionStatus } from "@/lib/api/payments";
 import ActionsDropdown from "./ActionDropdown";
-import { CitationAuthorityPanel } from "./citation-authority-panel";
 import { BacklinkOpportunitiesPanel } from "./backlink-opportunities-panel";
 import { BrandKitCard } from "./brand-kit-card";
+import { BacklinkMarketplacePanel } from "./backlink-marketplace-panel";
+import { WikipediaPromptPanel } from "./wikipedia-prompt-panel";
+import { PromptRankPlanPanel } from "./prompt-rank-plan-panel";
 
 /** Public SVG logos under `/public/logos/` (Next serves at `/logos/...`). */
 const ENGINE_LOGO_SRC: Record<Engine, string> = {
@@ -77,68 +88,6 @@ const ENGINES: Array<{
     { key: "gemini", label: "Gemini", color: "#4285f4", type: "ai" },
     { key: "perplexity", label: "Perplexity", color: "#7c3aed", type: "ai" },
   ];
-
-// ── 5-Factor config (weights for display; styling is neutral in UI) ───────────
-const FACTORS = [
-  {
-    key: "factor_authority" as const,
-    label: "Authority",
-    fullLabel: "Authority & Credibility",
-    weight: "40%",
-    weightNum: 40,
-    description: "Cross-engine citation rate, domain trust signals and E-E-A-T",
-    color: "#171717",
-    bg: "bg-muted/40",
-    text: "text-foreground",
-  },
-  {
-    key: "factor_content_quality" as const,
-    label: "Content",
-    fullLabel: "Content Quality & Utility",
-    weight: "35%",
-    weightNum: 35,
-    description:
-      "Positive sentiment rate, direct-answer mechanism and original data",
-    color: "#171717",
-    bg: "bg-muted/40",
-    text: "text-foreground",
-  },
-  {
-    key: "factor_structural" as const,
-    label: "Structure",
-    fullLabel: "Structural Extractability",
-    weight: "25%",
-    weightNum: 25,
-    description:
-      "Top-3 position rate, NLP-friendly formatting and schema signals",
-    color: "#171717",
-    bg: "bg-muted/40",
-    text: "text-foreground",
-  },
-  {
-    key: "factor_semantic" as const,
-    label: "Semantic",
-    fullLabel: "Semantic Alignment",
-    weight: "Signal",
-    weightNum: 0,
-    description: "Prompt-to-brand relevance: mention rate × confidence",
-    color: "#171717",
-    bg: "bg-muted/50",
-    text: "text-foreground/70",
-  },
-  {
-    key: "factor_third_party" as const,
-    label: "3rd Party",
-    fullLabel: "Third-Party Validation",
-    weight: "Signal",
-    weightNum: 0,
-    description:
-      "Google & Bing presence combined with cross-AI-model citation rate",
-    color: "#171717",
-    bg: "bg-muted/50",
-    text: "text-foreground/70",
-  },
-] as const;
 
 // ── Style helpers ─────────────────────────────────────────────────────────────
 const SENTIMENT_STYLES: Record<Sentiment, { pill: string; dot: string }> = {
@@ -203,7 +152,7 @@ interface PromptTrackerProps {
   onAdded: (track: PromptTrack) => void;
   onRechecked: (trackId: number) => void;
   onDeleted?: (trackId: number) => void;
-  expandedMode?: "full" | "blank";
+  expandedMode?: "full" | "blank" | "backlinks" | "wikipedia";
   /** When set, shows “Recheck all” to the left of the search field (toolbar). */
   onRecheckAll?: () => void | Promise<void>;
   recheckingAll?: boolean;
@@ -239,6 +188,9 @@ export function PromptTracker({
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<Record<number, boolean>>({});
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [promptRanks, setPromptRanks] = useState<Record<number, RankQuery>>({});
+  const [promptRankLoading, setPromptRankLoading] = useState<Record<number, boolean>>({});
+  const promptRankInflightRef = useRef<Set<number>>(new Set());
   const addPromptTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   async function handleDelete(trackId: number) {
@@ -298,6 +250,33 @@ export function PromptTracker({
       .then((s) => setPlanEngines((s.limits.engines as Engine[]) ?? null))
       .catch(() => setPlanEngines(null));
   }, [session?.user?.email]);
+
+  // Lazily fetch top-3 Google/Reddit/Quora ranking for a tracked prompt.
+  // Backend runs the fetch synchronously the first time and caches the
+  // RankQuery, so repeat calls are cheap.
+  const fetchPromptRank = useCallback(
+    async (trackId: number) => {
+      if (!slug) return;
+      if (promptRanks[trackId]) return;
+      if (promptRankInflightRef.current.has(trackId)) return;
+      promptRankInflightRef.current.add(trackId);
+      setPromptRankLoading((p) => ({ ...p, [trackId]: true }));
+      try {
+        const data = await getPromptRank(slug, trackId);
+        setPromptRanks((p) => ({ ...p, [trackId]: data }));
+      } catch {
+        // Silent — the card stays in its loading shape; user can re-expand.
+      } finally {
+        promptRankInflightRef.current.delete(trackId);
+        setPromptRankLoading((p) => {
+          const next = { ...p };
+          delete next[trackId];
+          return next;
+        });
+      }
+    },
+    [slug, promptRanks],
+  );
 
   // Lazy-load the full response_text when a modal opens
   useEffect(() => {
@@ -800,16 +779,16 @@ export function PromptTracker({
                 {/* ── Expanded panel ───────────────────────────────────── */}
                 {isExpanded &&
                   hasResults &&
-                  (expandedMode === "blank" ? (
-                    <div className="border-t border-border bg-muted/20">
-                      <BrandKitCard slug={slug} />
-                      <div className="border-t border-border">
-                        <BacklinkOpportunitiesPanel slug={slug} trackId={track.id} />
-                      </div>
-                      <div className="border-t border-border">
-                        <CitationAuthorityPanel slug={slug} trackId={track.id} />
-                      </div>
-                    </div>
+                  (expandedMode === "backlinks" ? (
+                    <BacklinksTabbedPanel
+                      slug={slug}
+                      trackId={track.id}
+                      promptText={track.prompt_text}
+                    />
+                  ) : expandedMode === "wikipedia" ? (
+                    <WikipediaPromptPanel track={track} />
+                  ) : expandedMode === "blank" ? (
+                    <ActionsTabbedPanel slug={slug} track={track} />
                   ) : (
                     (() => {
                       const allResults = track.results;
@@ -1005,58 +984,137 @@ export function PromptTracker({
                                       negative
                                     </span>
                                   </div>
+
+                                  {/* ── Per-engine breakdown ────────────── */}
+                                  {(() => {
+                                    const rows = enginesForUi
+                                      .map((eng) => {
+                                        const res = allResults.filter(
+                                          (r) => r.engine === eng.key,
+                                        );
+                                        if (!res.length) return null;
+                                        const r = res[0];
+                                        return { eng, r, count: res.length };
+                                      })
+                                      .filter(Boolean) as Array<{
+                                        eng: (typeof enginesForUi)[number];
+                                        r: PromptResult;
+                                        count: number;
+                                      }>;
+                                    if (rows.length === 0) return null;
+                                    return (
+                                      <div className="mt-3 border-t border-border/60 pt-2.5">
+                                        <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                          By engine
+                                        </p>
+                                        <ul className="space-y-1">
+                                          {rows.map(({ eng, r }) => {
+                                            const ss = SENTIMENT_STYLES[r.sentiment as Sentiment];
+                                            return (
+                                              <li
+                                                key={eng.key}
+                                                className="flex min-w-0 items-center gap-2 rounded-md border border-border/50 bg-muted/15 px-2 py-1.5"
+                                              >
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                  src={ENGINE_LOGO_SRC[eng.key]}
+                                                  alt=""
+                                                  className="size-3.5 shrink-0 object-contain"
+                                                />
+                                                <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">
+                                                  {eng.label}
+                                                </span>
+                                                {r.brand_mentioned ? (
+                                                  <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1 py-px text-[9px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                                    Mentioned
+                                                  </span>
+                                                ) : (
+                                                  <span className="rounded border border-border bg-muted/40 px-1 py-px text-[9px] text-muted-foreground">
+                                                    No mention
+                                                  </span>
+                                                )}
+                                                {r.rank_position > 0 ? (
+                                                  <span className="rounded border border-border bg-card px-1 py-px text-[9px] font-medium tabular-nums text-foreground">
+                                                    #{r.rank_position}
+                                                  </span>
+                                                ) : null}
+                                                <span
+                                                  className={`size-2 shrink-0 rounded-full ${ss?.dot ?? "bg-muted-foreground/40"}`}
+                                                  title={r.sentiment}
+                                                />
+                                              </li>
+                                            );
+                                          })}
+                                        </ul>
+                                      </div>
+                                    );
+                                  })()}
+
+                                  {/* ── Top cited domains (from AI citations) ─ */}
+                                  {(() => {
+                                    const domainCounts = new Map<string, { count: number; isBrand: boolean; isCompetitor: boolean; sample: string }>();
+                                    for (const r of allResults) {
+                                      for (const c of r.citations ?? []) {
+                                        if (!c.domain) continue;
+                                        const cur = domainCounts.get(c.domain) ?? {
+                                          count: 0,
+                                          isBrand: false,
+                                          isCompetitor: false,
+                                          sample: c.url,
+                                        };
+                                        cur.count += 1;
+                                        cur.isBrand = cur.isBrand || !!c.is_brand;
+                                        cur.isCompetitor = cur.isCompetitor || !!c.is_competitor;
+                                        domainCounts.set(c.domain, cur);
+                                      }
+                                    }
+                                    const top = Array.from(domainCounts.entries())
+                                      .sort((a, b) => b[1].count - a[1].count)
+                                      .slice(0, 5);
+                                    if (top.length === 0) return null;
+                                    return (
+                                      <div className="mt-3 border-t border-border/60 pt-2.5">
+                                        <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                          Top cited sources
+                                        </p>
+                                        <ul className="space-y-1">
+                                          {top.map(([domain, info]) => (
+                                            <li
+                                              key={domain}
+                                              className="flex min-w-0 items-center gap-2"
+                                            >
+                                              <span className="min-w-0 flex-1 truncate text-[11px] text-foreground">
+                                                {domain}
+                                              </span>
+                                              {info.isBrand ? (
+                                                <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1 py-px text-[9px] font-semibold text-emerald-700 dark:text-emerald-300">
+                                                  You
+                                                </span>
+                                              ) : info.isCompetitor ? (
+                                                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1 py-px text-[9px] font-semibold text-amber-700 dark:text-amber-300">
+                                                  Competitor
+                                                </span>
+                                              ) : null}
+                                              <span className="text-[10px] tabular-nums text-muted-foreground">
+                                                ×{info.count}
+                                              </span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               )}
 
-                              <div
-                                className={`rounded-md border border-border bg-card p-3 ${sentTotal === 0 ? "md:col-span-2" : ""}`}
-                              >
-                                <p className="text-[11px] font-medium text-foreground">
-                                  Ranking factors
-                                </p>
-                                <div className="mt-2.5 space-y-2">
-                                  {FACTORS.map((f) => {
-                                    const val = Math.round(
-                                      ((track[f.key] as number) ?? 0) * 100,
-                                    );
-                                    const isCore = f.weightNum > 0;
-                                    return (
-                                      <div
-                                        key={f.key}
-                                        className="flex min-w-0 items-center gap-2 sm:gap-3"
-                                      >
-                                        <div className="min-w-0 flex-1">
-                                          <div className="flex items-baseline justify-between gap-2">
-                                            <span
-                                              className={`truncate text-[11px] ${isCore ? "font-medium text-foreground" : "text-muted-foreground"}`}
-                                            >
-                                              {f.fullLabel}
-                                            </span>
-                                            <span className="shrink-0 tabular-nums text-[11px] text-muted-foreground">
-                                              <span className="text-[10px]">
-                                                {f.weight}
-                                              </span>
-                                              {" · "}
-                                              <span className="font-medium text-foreground">
-                                                {val}
-                                              </span>
-                                            </span>
-                                          </div>
-                                          <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
-                                            <div
-                                              className={`h-full rounded-full transition-all ${isCore
-                                                ? "bg-orange-500/90 dark:bg-orange-400/75"
-                                                : "bg-muted-foreground/30"
-                                                }`}
-                                              style={{ width: `${val}%` }}
-                                            />
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
+                              <WebRankingCard
+                                query={promptRanks[track.id]}
+                                loading={!!promptRankLoading[track.id]}
+                                trackId={track.id}
+                                slug={slug}
+                                fullWidth={sentTotal === 0 || !promptRanks[track.id]}
+                                onFetch={fetchPromptRank}
+                              />
                             </div>
 
                             {/* ── Brand mention snippets ─────────────────── */}
@@ -1184,6 +1242,13 @@ export function PromptTracker({
                                 </div>
                               </div>
                             )}
+
+                            {/* ── Backlink marketplace ────────────────────── */}
+                            <BacklinkMarketplacePanel
+                              slug={slug}
+                              trackId={track.id}
+                              promptText={track.prompt_text}
+                            />
 
                             {/* ── Danger zone ──────────────────────────────── */}
                             <div className="mt-2 flex items-center justify-between gap-3 border-t border-border/50 pt-4">
@@ -1546,7 +1611,407 @@ export function PromptTracker({
   );
 }
 
+// ── Actions page panel ────────────────────────────────────────────────────────
+// Shows the brand-kit assets plus a live preview of available backlinks. The
+// full Backlinks UI lives on its own dedicated page (linked from the preview).
+
+function BacklinksPreviewCard({ slug }: { slug: string }) {
+  const [products, setProducts] = useState<BacklinkProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    setLoading(true);
+    getBacklinkCatalog(slug)
+      .then((r) => {
+        if (cancelled) return;
+        setProducts(r.products);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setProducts([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  // Pick the three highest-DA listings for the preview.
+  const top = useMemo(
+    () =>
+      [...products]
+        .sort((a, b) => (b.domain_authority ?? 0) - (a.domain_authority ?? 0))
+        .slice(0, 3),
+    [products],
+  );
+
+  const remaining = Math.max(0, products.length - top.length);
+
+  return (
+    <div className="rounded-md border border-orange-500/25 bg-orange-500/5 p-3 dark:border-orange-400/25 dark:bg-orange-400/5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-orange-500/15 text-orange-700 dark:text-orange-300">
+            <Plus className="size-3.5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold text-foreground">
+              Backlinks for this prompt
+            </p>
+            <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+              Top placements available right now — open the full page to filter,
+              compare, and order.
+            </p>
+          </div>
+        </div>
+        <Link
+          href={`/dashboard/${slug}/prompts/backlinks`}
+          className="shrink-0 rounded-md bg-orange-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-500"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Open Backlinks →
+        </Link>
+      </div>
+
+      <div className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+        {loading ? (
+          [1, 2, 3].map((k) => (
+            <div
+              key={k}
+              className="rounded-md border border-border/60 bg-card/60 p-2.5"
+            >
+              <div className="h-3 w-2/3 animate-pulse rounded bg-muted/70" />
+              <div className="mt-1.5 h-2 w-1/3 animate-pulse rounded bg-muted/50" />
+              <div className="mt-2 h-2 w-1/2 animate-pulse rounded bg-muted/40" />
+            </div>
+          ))
+        ) : top.length === 0 ? (
+          <div className="col-span-full rounded-md border border-dashed border-border/60 bg-card/60 px-3 py-3 text-center">
+            <p className="text-[11px] text-muted-foreground">
+              No catalog data yet. Open the Backlinks page to load it.
+            </p>
+          </div>
+        ) : (
+          top.map((p) => (
+            <Link
+              key={p.id}
+              href={`/dashboard/${slug}/prompts/backlinks`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex min-w-0 flex-col gap-1 rounded-md border border-border/60 bg-card/80 p-2.5 transition hover:border-orange-500/50 hover:bg-card"
+            >
+              <div className="flex min-w-0 items-baseline justify-between gap-2">
+                <span className="truncate text-[12px] font-semibold text-foreground">
+                  {p.domain}
+                </span>
+                <span className="shrink-0 text-[11px] font-semibold tabular-nums text-foreground">
+                  {new Intl.NumberFormat(undefined, {
+                    style: "currency",
+                    currency: p.currency || "USD",
+                    maximumFractionDigits: 0,
+                  }).format((p.price_cents || 0) / 100)}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1">
+                {p.domain_authority != null ? (
+                  <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-px text-[9px] font-semibold text-emerald-700 dark:text-emerald-300">
+                    DA {p.domain_authority}
+                  </span>
+                ) : null}
+                <span className="rounded border border-border bg-muted/40 px-1.5 py-px text-[9px] font-medium text-muted-foreground">
+                  {p.link_type.replace("_", " ")}
+                </span>
+                <span className="ml-auto text-[10px] text-muted-foreground">
+                  {p.lead_time_days}d
+                </span>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {!loading && remaining > 0 ? (
+        <p className="mt-2 text-[10px] text-muted-foreground">
+          + {remaining} more listing{remaining === 1 ? "" : "s"} on the Backlinks page
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function ActionsTabbedPanel({
+  slug,
+  track,
+}: {
+  slug: string;
+  track: PromptTrack;
+}) {
+  return (
+    <div className="border-t border-border bg-muted/20">
+      <div className="space-y-3 p-3 sm:p-4">
+        <PromptRankPlanPanel track={track} />
+        <BrandKitCard slug={slug} />
+      </div>
+    </div>
+  );
+}
+
+// ── Backlinks dedicated page ─────────────────────────────────────────────────
+// Sub-tabs: Free opportunities (submit yourself) · Buy backlinks (paid).
+
+type BacklinksSubTab = "free" | "buy";
+
+const BACKLINK_SUBTABS: Array<{
+  key: BacklinksSubTab;
+  label: string;
+  hint: string;
+}> = [
+  { key: "free", label: "Free opportunities", hint: "Submit yourself — no cost" },
+  { key: "buy",  label: "Buy backlinks",      hint: "Paid placements via providers" },
+];
+
+function BacklinksTabbedPanel({
+  slug,
+  trackId,
+  promptText,
+}: {
+  slug: string;
+  trackId: number;
+  promptText: string;
+}) {
+  const [sub, setSub] = useState<BacklinksSubTab>("buy");
+
+  return (
+    <div className="border-t border-border bg-muted/20">
+      <div className="flex flex-wrap items-center gap-1 border-b border-border bg-card/40 px-3 py-2 sm:px-4">
+        {BACKLINK_SUBTABS.map((s) => {
+          const active = s.key === sub;
+          return (
+            <button
+              key={s.key}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSub(s.key);
+              }}
+              className={`inline-flex flex-col items-start rounded-md border px-3 py-1.5 text-left transition ${
+                active
+                  ? "border-orange-500 bg-orange-500/10 text-foreground"
+                  : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              <span className="text-[12px] font-semibold">{s.label}</span>
+              <span className="text-[10px] text-muted-foreground/80">{s.hint}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="p-3 sm:p-4">
+        {sub === "free" ? (
+          <BacklinkOpportunitiesPanel slug={slug} trackId={trackId} />
+        ) : (
+          <BacklinkMarketplacePanel
+            slug={slug}
+            trackId={trackId}
+            promptText={promptText}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Small helper components ───────────────────────────────────────────────────
+
+const WEB_SURFACES: Array<{
+  key: Exclude<RankSurface, "ai">;
+  label: string;
+  Icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { key: "google", label: "Google", Icon: Globe },
+  { key: "reddit", label: "Reddit", Icon: Users },
+  { key: "quora", label: "Quora", Icon: MessageSquare },
+];
+
+function topResultsFor(
+  query: RankQuery | undefined,
+  surface: Exclude<RankSurface, "ai">,
+  limit = 3,
+): RankResult[] {
+  if (!query) return [];
+  return (query.results || [])
+    .filter((r) => r.surface === surface && r.position > 0)
+    .sort((a, b) => a.position - b.position)
+    .slice(0, limit);
+}
+
+function WebRankingCard({
+  query,
+  slug,
+  fullWidth,
+  loading,
+  trackId,
+  onFetch,
+}: {
+  query: RankQuery | undefined;
+  slug: string;
+  fullWidth?: boolean;
+  loading: boolean;
+  trackId: number;
+  onFetch: (trackId: number) => void;
+}) {
+  useEffect(() => {
+    if (!query && !loading) onFetch(trackId);
+  }, [trackId, query, loading, onFetch]);
+
+  const isAuditing = !query && loading;
+  const checkedTimes = (query?.results ?? [])
+    .map((r) => (r.checked_at ? new Date(r.checked_at).getTime() : NaN))
+    .filter((t) => Number.isFinite(t));
+  const lastCheckedTs = checkedTimes.length ? Math.max(...checkedTimes) : null;
+  const lastCheckedLabel = lastCheckedTs
+    ? new Date(lastCheckedTs).toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
+
+  return (
+    <div
+      className={`rounded-md border border-border bg-card p-3 ${fullWidth ? "md:col-span-2" : ""}`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <p className="text-[11px] font-medium text-foreground">Web ranking</p>
+          {!query && isAuditing ? (
+            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+              <Loader2 className="size-3 animate-spin" aria-hidden />
+              Fetching top results…
+            </span>
+          ) : null}
+        </div>
+        {lastCheckedLabel ? (
+          <span
+            className="text-[10px] tabular-nums text-muted-foreground"
+            title={lastCheckedTs ? new Date(lastCheckedTs).toLocaleString() : undefined}
+          >
+            Updated {lastCheckedLabel}
+          </span>
+        ) : !query ? (
+          <Link
+            href={`/dashboard/${slug}/prompts/ranking`}
+            className="text-[10px] font-medium text-orange-600 hover:underline dark:text-orange-400"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Open ranking page →
+          </Link>
+        ) : null}
+      </div>
+
+      {!query ? (
+        <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {WEB_SURFACES.map(({ key, label, Icon }) => (
+            <div
+              key={key}
+              className="min-w-0 rounded-md border border-border/60 bg-muted/10 p-2.5"
+            >
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="text-[11px] font-medium text-foreground">
+                  {label}
+                </span>
+                <span className="ml-auto text-[10px] tabular-nums text-muted-foreground/70">
+                  Top 3
+                </span>
+              </div>
+              <ul className="space-y-1.5">
+                {[1, 2, 3].map((pos) => (
+                  <li key={pos} className="flex min-w-0 items-center gap-1.5">
+                    <span className="inline-flex size-4 shrink-0 items-center justify-center rounded-sm bg-muted/80 text-[9px] font-semibold tabular-nums text-muted-foreground/70">
+                      {pos}
+                    </span>
+                    <div
+                      className={`h-1.5 flex-1 rounded bg-muted/60 ${
+                        isAuditing ? "animate-pulse" : ""
+                      }`}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-2.5 space-y-3">
+          {WEB_SURFACES.map(({ key, label, Icon }) => {
+            const top = topResultsFor(query, key, 3);
+            return (
+              <div key={key} className="min-w-0">
+                <div className="mb-1.5 flex items-center gap-1.5">
+                  <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+                  <span className="text-[11px] font-medium text-foreground">{label}</span>
+                  <span className="text-[10px] tabular-nums text-muted-foreground">
+                    Top {Math.min(top.length, 3)}
+                  </span>
+                </div>
+                {top.length === 0 ? (
+                  <p className="pl-5 text-[10px] text-muted-foreground/70">
+                    No results.
+                  </p>
+                ) : (
+                  <ul className="space-y-1">
+                    {top.map((r) => (
+                      <li
+                        key={r.id}
+                        className="flex min-w-0 items-start gap-2 rounded-md border border-border/60 bg-muted/15 px-2 py-1.5"
+                      >
+                        <span
+                          className={`mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-[10px] font-semibold tabular-nums ${
+                            r.is_brand_mentioned
+                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                              : "bg-muted text-foreground"
+                          }`}
+                        >
+                          {r.position}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <a
+                            href={r.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex min-w-0 items-center gap-1 text-[11px] font-medium text-foreground hover:underline"
+                            title={r.title || r.url}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <span className="truncate">{r.title || r.domain || r.url}</span>
+                            <ExternalLink className="size-3 shrink-0 opacity-60" />
+                          </a>
+                          <p className="truncate text-[10px] text-muted-foreground">
+                            {r.domain}
+                            {r.subreddit ? ` · r/${r.subreddit}` : ""}
+                            {r.upvotes != null ? ` · ${r.upvotes} upvotes` : ""}
+                            {r.is_brand_mentioned ? " · Your brand" : ""}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function EngineStatusIcon({
   engineKey,

@@ -935,3 +935,189 @@ export async function refreshRankQuery(
   );
   return data;
 }
+
+export async function getPromptRank(
+  slug: string,
+  trackId: number,
+  opts?: { refresh?: boolean },
+): Promise<RankQuery> {
+  // Fetches top-3 Google/Reddit/Quora ranking for the tracked prompt's exact
+  // text. Backend runs the fetch synchronously the first time and caches it
+  // on a RankQuery row, so subsequent calls return cached results.
+  const { data } = await apiClientLong.post<RankQuery>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/rank/`,
+    { refresh: opts?.refresh ? 1 : 0 },
+    { timeout: 60_000 },
+  );
+  return data;
+}
+
+// ── Backlink marketplace ─────────────────────────────────────────────────────
+
+export type BacklinkLinkType =
+  | "guest_post" | "niche_edit" | "sponsored" | "citation" | "other";
+
+export type BacklinkOrderStatus =
+  | "draft" | "pending_payment" | "queued" | "in_progress"
+  | "delivered" | "rejected" | "refunded" | "cancelled";
+
+export interface BacklinkProduct {
+  id: number;
+  provider: string;
+  provider_name: string;
+  sku: string;
+  domain: string;
+  title: string;
+  link_type: BacklinkLinkType;
+  domain_authority: number | null;
+  domain_rank: number | null;
+  monthly_traffic: number | null;
+  niche_tags: string[];
+  language: string;
+  country: string;
+  do_follow: boolean;
+  price_cents: number;
+  currency: string;
+  lead_time_days: number;
+}
+
+export interface BacklinkProviderSummary {
+  slug: string;
+  display_name: string;
+}
+
+export interface BacklinkOrder {
+  id: number;
+  status: BacklinkOrderStatus;
+  provider: string;
+  provider_name: string;
+  domain: string;
+  title: string;
+  target_url: string;
+  anchor_text: string;
+  price_cents: number;
+  currency: string;
+  proof_url: string;
+  error_message: string;
+  prompt_track_id: number | null;
+  created_at: string | null;
+  ordered_at: string | null;
+  delivered_at: string | null;
+}
+
+export async function getBacklinkCatalog(
+  slug: string,
+  filters?: { link_type?: BacklinkLinkType; min_da?: number; niche?: string },
+): Promise<{ providers: BacklinkProviderSummary[]; products: BacklinkProduct[] }> {
+  const params: Record<string, string | number> = {};
+  if (filters?.link_type) params.link_type = filters.link_type;
+  if (filters?.min_da) params.min_da = filters.min_da;
+  if (filters?.niche) params.niche = filters.niche;
+  const { data } = await apiClient.get(
+    `/api/analyzer/runs/s/${slug}/backlinks/catalog/`,
+    { params, timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function listBacklinkOrders(
+  slug: string,
+  userEmail?: string,
+): Promise<{ orders: BacklinkOrder[] }> {
+  const params: Record<string, string> = {};
+  if (userEmail) params.user_email = userEmail;
+  const { data } = await apiClient.get(
+    `/api/analyzer/runs/s/${slug}/backlinks/orders/`,
+    { params },
+  );
+  return data;
+}
+
+export async function placeBacklinkOrder(
+  slug: string,
+  body: {
+    product_id: number;
+    target_url: string;
+    anchor_text: string;
+    user_email: string;
+    track_id?: number | null;
+    notes?: string;
+  },
+): Promise<BacklinkOrder> {
+  const { data } = await apiClient.post<BacklinkOrder>(
+    `/api/analyzer/runs/s/${slug}/backlinks/orders/`,
+    body,
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function getBacklinkOrder(
+  slug: string,
+  orderId: number,
+): Promise<BacklinkOrder> {
+  const { data } = await apiClient.get<BacklinkOrder>(
+    `/api/analyzer/runs/s/${slug}/backlinks/orders/${orderId}/`,
+  );
+  return data;
+}
+
+// ── Wikipedia draft generator ─────────────────────────────────────────────────
+
+export interface WikipediaDraftResponse {
+  notability: {
+    verdict: "qualifies" | "borderline" | "needs_more_coverage";
+    score: number;
+    summary: string;
+    missing_evidence: string[];
+  };
+  draft: {
+    title: string;
+    lead: string;
+    sections: Array<{ heading: string; body_markdown: string }>;
+    infobox: Record<string, string>;
+    references_markdown: string;
+  };
+  edit_targets: Array<{
+    title: string;
+    url: string;
+    suggested_edit: string;
+  }>;
+  submit_instructions_markdown: string;
+}
+
+export async function generateWikipediaDraft(
+  slug: string,
+  trackId: number,
+): Promise<WikipediaDraftResponse> {
+  const { data } = await apiClientLong.post<WikipediaDraftResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/wikipedia/draft/`,
+    {},
+    { timeout: 90_000 },
+  );
+  return data;
+}
+
+// ── Per-prompt schema / E-E-A-T generator ────────────────────────────────────
+
+export type PromptSchemaType =
+  | "faq" | "article" | "person" | "organization" | "answer";
+
+export interface PromptSchemaResponse {
+  schema_type: PromptSchemaType;
+  output: string;
+  explanation: string;
+}
+
+export async function generatePromptSchema(
+  slug: string,
+  trackId: number,
+  schemaType: PromptSchemaType,
+): Promise<PromptSchemaResponse> {
+  const { data } = await apiClientLong.post<PromptSchemaResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/schema/`,
+    { schema_type: schemaType },
+    { timeout: 60_000 },
+  );
+  return data;
+}
