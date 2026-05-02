@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { BrandVisibility } from "@/lib/api/analyzer";
 import { WorldPresenceMap, type GACountryEntry } from "@/components/analyzer/world-presence-map";
 import { getGAData, getIntegrationStatus } from "@/lib/api/integrations";
+import { getDomainAnalytics, type DomainAnalyticsCountry } from "@/lib/api/analyzer";
 
 export interface SocialPlatformSnapshot {
   url: string | null;
@@ -154,6 +155,18 @@ const REGION_LABELS: Record<string, string> = {
   sea: "SE Asia",   au: "Oceania",
 };
 
+// Alpha-2 -> region map for the curated DataForSEO country set.
+const ALPHA2_TO_REGION: Record<string, string> = {
+  US: "na", CA: "na", MX: "na",
+  BR: "sa", AR: "sa",
+  GB: "eu", DE: "eu", FR: "eu", ES: "eu", IT: "eu", NL: "eu",
+  AE: "me", SA: "me", TR: "me",
+  ZA: "af", NG: "af", EG: "af",
+  IN: "as", JP: "as",
+  SG: "sea", ID: "sea", MY: "sea",
+  AU: "au", NZ: "au",
+};
+
 export function SocialBrandReachCard({
   slug, brandName, brandUrl = "", details, brandVisibility, coral,
 }: SocialBrandReachCardProps) {
@@ -243,7 +256,28 @@ export function SocialBrandReachCard({
     Object.entries(rawRegionScores).map(([id, v]) => [id, Math.round((v / maxRaw) * 100)])
   );
 
-  const regionData = REGION_IDS.map((id) => ({ id, label: REGION_LABELS[id], score: realRegionScores[id] }));
+  // When DataForSEO geo data is present, region pills should reflect ONLY
+  // regions where the brand has measurable organic traffic — not the
+  // synthetic heuristic that lit every region.
+  function deriveDfsRegionScores(
+    geo: Record<string, DomainAnalyticsCountry> | null,
+  ): Record<string, number> {
+    const empty = Object.fromEntries(REGION_IDS.map((id) => [id, 0]));
+    if (!geo) return empty;
+    let max = 0;
+    for (const v of Object.values(geo)) {
+      if (v.organic_traffic > max) max = v.organic_traffic;
+    }
+    if (max === 0) return empty;
+    const out: Record<string, number> = { ...empty };
+    for (const [alpha2, entry] of Object.entries(geo)) {
+      const region = ALPHA2_TO_REGION[alpha2.toUpperCase()];
+      if (!region) continue;
+      const ratio = entry.organic_traffic / max;
+      out[region] = Math.max(out[region], Math.round(ratio * 100));
+    }
+    return out;
+  }
 
   /* ── GA country data ── */
   const [gaCountries, setGaCountries] = useState<GACountryEntry[] | null>(null);
@@ -264,6 +298,22 @@ export function SocialBrandReachCard({
       })
       .catch(() => {});
   }, [brandUrl]);
+
+  /* ── DataForSEO geo distribution (used when no GA) ── */
+  const [dataforseoGeo, setDataforseoGeo] = useState<Record<string, DomainAnalyticsCountry> | null>(null);
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    getDomainAnalytics(slug)
+      .then((res) => {
+        if (cancelled) return;
+        if (res.geo_distribution && Object.keys(res.geo_distribution).length > 0) {
+          setDataforseoGeo(res.geo_distribution);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [slug]);
 
   const graphLabelH = 14;
 
@@ -388,14 +438,21 @@ export function SocialBrandReachCard({
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 text-[9px] text-muted-foreground">
-            {gaCountries && gaCountries.length > 0 && (
+            {gaCountries && gaCountries.length > 0 ? (
               <span
                 className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold border"
                 style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
               >
                 ✦ GA Live Data
               </span>
-            )}
+            ) : dataforseoGeo && Object.keys(dataforseoGeo).length > 0 ? (
+              <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold border"
+                style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
+              >
+                ✦ DataForSEO
+              </span>
+            ) : null}
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: coral }} />
               Active
@@ -408,23 +465,36 @@ export function SocialBrandReachCard({
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col justify-center py-1">
-          <WorldPresenceMap coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} />
+          <WorldPresenceMap coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} dataforseoGeo={dataforseoGeo} />
         </div>
 
         <div className="mt-2 flex shrink-0 flex-wrap gap-1">
-          {regionData.filter((r) => r.score > 0).sort((a, b) => b.score - a.score).map((r) => (
-            <span
-              key={r.id}
-              className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px]"
-              style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: coral }} />
-              {r.label}
-            </span>
-          ))}
-          {regionData.every((r) => r.score === 0) && (
-            <p className="text-[9px] leading-snug text-muted-foreground">No geographic signals yet — run a visibility check.</p>
-          )}
+          {(() => {
+            // Prefer DataForSEO real-traffic regions; fall back to heuristic.
+            const useDfs = !!dataforseoGeo && Object.keys(dataforseoGeo).length > 0 && !gaCountries;
+            const scores = useDfs ? deriveDfsRegionScores(dataforseoGeo) : realRegionScores;
+            const pills = REGION_IDS
+              .map((id) => ({ id, label: REGION_LABELS[id], score: scores[id] ?? 0 }))
+              .filter((r) => r.score > 0)
+              .sort((a, b) => b.score - a.score);
+            if (pills.length === 0) {
+              return (
+                <p className="text-[9px] leading-snug text-muted-foreground">
+                  No geographic signals yet — run a visibility check.
+                </p>
+              );
+            }
+            return pills.map((r) => (
+              <span
+                key={r.id}
+                className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px]"
+                style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: coral }} />
+                {r.label}
+              </span>
+            ));
+          })()}
         </div>
 
       </div>

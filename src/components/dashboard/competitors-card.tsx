@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ArrowUpRight, Crown, Sparkles, Trophy, Users } from "lucide-react";
+import { ArrowUpRight, Crown, Trophy, Users } from "lucide-react";
 import type { Competitor } from "@/lib/api/analyzer";
 
 type Row = {
@@ -253,12 +253,9 @@ export function CompetitorsCard({
               <Trophy className="h-4 w-4" aria-hidden />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <p className="text-base font-semibold tracking-tight text-foreground">
-                  Competitor Leaderboard
-                </p>
-                <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-              </div>
+              <p className="text-base font-semibold tracking-tight text-foreground">
+                Competitor Leaderboard
+              </p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
                 Live GEO ranking across AI surfaces
               </p>
