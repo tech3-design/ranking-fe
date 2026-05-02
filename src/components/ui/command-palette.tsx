@@ -20,7 +20,7 @@ import {
   Sun,
   LogOut,
   ArrowRight,
-  Sparkles,
+  Crown,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -107,7 +107,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                   desc="Toggle theme"
                   onSelect={() => { setTheme(theme === "dark" ? "light" : "dark"); onClose(); }}
                 />
-                <PaletteItem icon={Sparkles} label="Upgrade to Pro" desc="Unlock all features" onSelect={() => go("/pricing")} />
+                <PaletteItem icon={Crown} label="Upgrade to Pro" desc="Unlock all features" onSelect={() => go("/pricing")} />
               </Command.Group>
             </Command.List>
 

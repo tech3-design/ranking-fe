@@ -33,6 +33,7 @@ import { VisibilityByPlatformCard } from "@/components/dashboard/visibility-by-p
 import { CompetitorsCard } from "@/components/dashboard/competitors-card";
 import { PredictionSentimentRow } from "@/components/dashboard/prediction-sentiment-row";
 import { WeeklyPerformanceSection } from "@/components/dashboard/weekly-performance-section";
+import { DomainAnalyticsPanel } from "@/components/analyzer/domain-analytics-panel";
 
 export default function SignalorDashboard() {
   const { slug } = useParams<{ slug: string }>();
@@ -344,6 +345,10 @@ export default function SignalorDashboard() {
               yourName={projectName}
               yourUrl={run.url}
             />
+          </div>
+
+          <div className="mb-3">
+            <DomainAnalyticsPanel slug={slug} />
           </div>
 
           {(prediction.gain > 0 || sentiment) && (

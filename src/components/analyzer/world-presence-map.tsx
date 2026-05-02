@@ -121,6 +121,12 @@ interface WorldPresenceMapProps {
   coral: string;
   regionScores: Record<string, number>;
   gaCountries?: GACountryEntry[] | null; // real GA data when available
+  /**
+   * DataForSEO per-country organic traffic. Used when GA isn't connected so
+   * the map paints only countries with real ranking presence — never the
+   * synthetic heuristic that lit up every continent.
+   */
+  dataforseoGeo?: Record<string, { organic_traffic: number }> | null;
 }
 
 const W = 800;
@@ -128,7 +134,7 @@ const H = 440;
 // Clip bottom to cut off Antarctica empty space — visible area is top 78%
 const CLIP_H = Math.round(H * 0.78);
 
-export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPresenceMapProps) {
+export function WorldPresenceMap({ coral, regionScores, gaCountries, dataforseoGeo }: WorldPresenceMapProps) {
   const [paths, setPaths] = useState<{ id: number; d: string; region: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const fetchedRef = useRef(false);
@@ -182,11 +188,30 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
     }
   }
 
+  // DataForSEO per-country traffic (used only when no GA data).
+  const dfsNumericScores = new Map<number, number>();
+  if (!gaNumericScores.size && dataforseoGeo) {
+    const maxTraffic = Math.max(
+      ...Object.values(dataforseoGeo).map((c) => c.organic_traffic ?? 0),
+      1,
+    );
+    for (const [alpha2, entry] of Object.entries(dataforseoGeo)) {
+      const numericId = ALPHA2_TO_NUMERIC[alpha2.toUpperCase()];
+      if (numericId && entry.organic_traffic > 0) {
+        dfsNumericScores.set(numericId, entry.organic_traffic / maxTraffic);
+      }
+    }
+  }
+
   const hasGAData = gaNumericScores.size > 0;
+  const hasDfsData = dfsNumericScores.size > 0;
 
   function getCountryFill(id: number, region: string | null): string {
     if (hasGAData) {
       return gaNumericScores.has(id) ? coral : "var(--muted-foreground)";
+    }
+    if (hasDfsData) {
+      return dfsNumericScores.has(id) ? coral : "var(--muted-foreground)";
     }
     if (!region) return "var(--muted-foreground)";
     const score = regionScores[region] ?? 0;
@@ -197,6 +222,10 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
     if (hasGAData) {
       const ratio = gaNumericScores.get(id) ?? 0;
       return ratio === 0 ? 0.1 : 0.15 + ratio * 0.7;
+    }
+    if (hasDfsData) {
+      const ratio = dfsNumericScores.get(id) ?? 0;
+      return ratio === 0 ? 0.1 : 0.2 + ratio * 0.7;
     }
     if (!region) return 0.12;
     const score = regionScores[region] ?? 0;

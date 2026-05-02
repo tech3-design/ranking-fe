@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -14,10 +14,12 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
+  RefreshCw,
   Target,
 } from "lucide-react";
 import {
   generatePromptSchema,
+  listPromptSchemaArtifacts,
   type PromptSchemaResponse,
   type PromptSchemaType,
   type PromptTrack,
@@ -123,18 +125,6 @@ const ACTIONS: ActionDef[] = [
     cta: "See free targets",
   },
   {
-    id: "llms_txt",
-    title: "Add the page targeting this prompt to llms.txt",
-    why: "Emerging AI-only standard. Direct opt-in declaration of canonical content for AI engines that respect the spec.",
-    pillar: "Authority",
-    pillarWeight: "40%",
-    impact: "low",
-    effort: "5 min",
-    kind: "deeplink",
-    href: "/prompts/domain-authority",
-    cta: "Open Domain authority",
-  },
-  {
     id: "wikipedia_targets",
     title: "Find Wikipedia articles where you could be cited as a source",
     why: "Wikipedia drives ~8% of AI citations. Adding your brand as a source citation in an existing article is far easier than getting a new article approved.",
@@ -185,15 +175,43 @@ export function PromptRankPlanPanel({ track }: { track: PromptTrack }) {
 
   const [generated, setGenerated] = useState<Record<string, PromptSchemaResponse>>({});
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  async function runGenerate(action: ActionDef) {
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    listPromptSchemaArtifacts(slug, track.id)
+      .then((r) => {
+        if (cancelled) return;
+        const map: Record<string, PromptSchemaResponse> = {};
+        for (const a of r.artifacts) {
+          const action = ACTIONS.find((x) => x.schemaType === a.schema_type);
+          if (action) {
+            map[action.id] = {
+              schema_type: a.schema_type,
+              output: a.output,
+              explanation: a.explanation,
+              cached: true,
+            };
+          }
+        }
+        setGenerated(map);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, track.id]);
+
+  async function runGenerate(action: ActionDef, force = false) {
     if (!slug || !action.schemaType) return;
-    setLoadingId(action.id);
+    if (force) setRegeneratingId(action.id);
+    else setLoadingId(action.id);
     setErrors((e) => ({ ...e, [action.id]: "" }));
     try {
-      const r = await generatePromptSchema(slug, track.id, action.schemaType);
+      const r = await generatePromptSchema(slug, track.id, action.schemaType, { force });
       setGenerated((g) => ({ ...g, [action.id]: r }));
       setOpenId(action.id);
     } catch (err) {
@@ -203,6 +221,7 @@ export function PromptRankPlanPanel({ track }: { track: PromptTrack }) {
       }));
     } finally {
       setLoadingId(null);
+      setRegeneratingId(null);
     }
   }
 
@@ -307,8 +326,31 @@ export function PromptRankPlanPanel({ track }: { track: PromptTrack }) {
                         <Code2 className="size-3.5 text-orange-600 dark:text-orange-300" />
                       )}
                       Generated artifact
+                      {result.cached ? (
+                        <span className="rounded border border-border bg-muted/30 px-1.5 py-px text-[9px] uppercase text-muted-foreground">
+                          Saved
+                        </span>
+                      ) : null}
                     </div>
-                    <CopyButton text={result.output} />
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          runGenerate(a, true);
+                        }}
+                        disabled={regeneratingId === a.id}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/30 px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted/60 disabled:opacity-60"
+                      >
+                        {regeneratingId === a.id ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <RefreshCw className="size-3" />
+                        )}
+                        {regeneratingId === a.id ? "Regenerating…" : "Regenerate"}
+                      </button>
+                      <CopyButton text={result.output} />
+                    </div>
                   </div>
                   <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
                     {result.explanation}

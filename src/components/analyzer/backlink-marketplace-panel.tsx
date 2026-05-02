@@ -9,11 +9,13 @@ import {
   Clock,
   X,
   AlertCircle,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  confirmBacklinkOrderPayment,
   getBacklinkCatalog,
   listBacklinkOrders,
   placeBacklinkOrder,
@@ -77,10 +79,38 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
   const [anchorText, setAnchorText] = useState("");
   const [orderError, setOrderError] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
+  const [payingOrderId, setPayingOrderId] = useState<number | null>(null);
+  const [payError, setPayError] = useState<{ id: number; msg: string } | null>(null);
+
+  async function payForOrder(order: BacklinkOrder) {
+    setPayingOrderId(order.id);
+    setPayError(null);
+    try {
+      const updated = await confirmBacklinkOrderPayment(slug, order.id);
+      setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    } catch (e) {
+      setPayError({
+        id: order.id,
+        msg: e instanceof Error ? e.message : "Couldn't confirm payment.",
+      });
+    } finally {
+      setPayingOrderId(null);
+    }
+  }
 
   const trackOrders = useMemo(
     () => orders.filter((o) => o.prompt_track_id === trackId),
     [orders, trackId],
+  );
+
+  const unpaidOrders = useMemo(
+    () => trackOrders.filter((o) => o.status === "pending_payment"),
+    [trackOrders],
+  );
+
+  const unpaidTotalCents = useMemo(
+    () => unpaidOrders.reduce((s, o) => s + (o.price_cents || 0), 0),
+    [unpaidOrders],
   );
 
   const refreshOrders = useCallback(async () => {
@@ -203,42 +233,87 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
         ) : null}
       </div>
 
+      {unpaidOrders.length > 0 ? (
+        <div className="mt-2.5 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2">
+          <CreditCard className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-300" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[12px] font-semibold text-amber-800 dark:text-amber-200">
+              {unpaidOrders.length} order{unpaidOrders.length === 1 ? "" : "s"} waiting for payment
+              · {formatPrice(unpaidTotalCents, unpaidOrders[0]?.currency || "USD")}
+            </p>
+            <p className="mt-0.5 text-[11px] leading-snug text-amber-700 dark:text-amber-300/90">
+              Your order isn&apos;t sent to the provider until you click <strong>Pay</strong> on each row below.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {/* Existing orders for this prompt */}
       {trackOrders.length > 0 ? (
         <div className="mt-2.5 space-y-1.5">
           {trackOrders.map((o) => {
             const s = STATUS_STYLES[o.status];
+            const needsPayment = o.status === "pending_payment";
+            const isPaying = payingOrderId === o.id;
+            const rowError = payError && payError.id === o.id ? payError.msg : null;
             return (
               <div
                 key={o.id}
-                className="flex min-w-0 items-center gap-2 rounded-md border border-border bg-muted/15 px-2.5 py-1.5"
+                className="rounded-md border border-border bg-muted/15"
               >
-                {o.status === "delivered" ? (
-                  <CheckCircle2 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                ) : (
-                  <Clock className="size-3.5 shrink-0 text-orange-600 dark:text-orange-400" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[11px] font-medium text-foreground">
-                    {o.title || o.domain}
-                  </p>
-                  <p className="truncate text-[10px] text-muted-foreground">
-                    {o.target_url} · &ldquo;{o.anchor_text}&rdquo;
-                  </p>
+                <div className="flex min-w-0 items-center gap-2 px-2.5 py-1.5">
+                  {o.status === "delivered" ? (
+                    <CheckCircle2 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <Clock className="size-3.5 shrink-0 text-orange-600 dark:text-orange-400" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[11px] font-medium text-foreground">
+                      {o.title || o.domain}
+                    </p>
+                    <p className="truncate text-[10px] text-muted-foreground">
+                      {o.target_url} · &ldquo;{o.anchor_text}&rdquo;
+                    </p>
+                  </div>
+                  <span className={`rounded border px-1.5 py-px text-[9px] font-semibold ${s.cls}`}>
+                    {s.label}
+                  </span>
+                  {needsPayment ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        payForOrder(o);
+                      }}
+                      disabled={isPaying}
+                      className="inline-flex items-center gap-1 rounded-md bg-orange-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-orange-700 disabled:opacity-60"
+                    >
+                      {isPaying ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <CreditCard className="size-3" />
+                      )}
+                      {isPaying
+                        ? "Confirming…"
+                        : `Pay ${formatPrice(o.price_cents, o.currency)}`}
+                    </button>
+                  ) : null}
+                  {o.proof_url ? (
+                    <a
+                      href={o.proof_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-orange-600 hover:text-orange-700 dark:text-orange-400"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="size-3" />
+                    </a>
+                  ) : null}
                 </div>
-                <span className={`rounded border px-1.5 py-px text-[9px] font-semibold ${s.cls}`}>
-                  {s.label}
-                </span>
-                {o.proof_url ? (
-                  <a
-                    href={o.proof_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-orange-600 hover:text-orange-700 dark:text-orange-400"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <ExternalLink className="size-3" />
-                  </a>
+                {rowError ? (
+                  <div className="border-t border-destructive/20 bg-destructive/5 px-2.5 py-1 text-[10px] text-destructive">
+                    {rowError}
+                  </div>
                 ) : null}
               </div>
             );

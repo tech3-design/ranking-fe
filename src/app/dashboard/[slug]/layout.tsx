@@ -35,15 +35,13 @@ import {
   Compass,
   GitFork,
   Activity,
-  Zap,
-  History,
+  Megaphone,
   Link2,
   BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import LogoComp from "@/components/LogoComp";
 import { AiChat } from "@/components/analyzer/ai-chat";
-import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DashboardAppFrame,
@@ -81,7 +79,7 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
     items: [
       { icon: MessageSquare, label: "Tracker", path: "/prompts" },
       {
-        icon: Zap,
+        icon: Megaphone,
         label: "Actions",
         path: "/prompts/actions",
         children: [
@@ -89,7 +87,6 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
           { icon: BookOpen, label: "Wikipedia", path: "/prompts/wikipedia" },
         ],
       },
-      { icon: History, label: "History", path: "/prompts/history" },
     ],
   },
   {
@@ -665,7 +662,7 @@ export default function DashboardSlugLayout({
               onClick={() => setChatOpen(true)}
               className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
             >
-              <Sparkles className="size-4" />
+              <Compass className="size-4" />
               <span className="text-xs font-semibold">AI Assistant</span>
             </button>
           ) : null} */}

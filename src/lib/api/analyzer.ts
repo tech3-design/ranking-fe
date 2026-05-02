@@ -514,6 +514,66 @@ export async function regenerateBrandKit(
   return data;
 }
 
+export interface DomainAnalyticsOverview {
+  organic_keywords: number;
+  organic_traffic: number;
+  organic_value_usd: number;
+  paid_keywords: number;
+  paid_traffic: number;
+  paid_value_usd: number;
+}
+
+export interface DomainAnalyticsKeyword {
+  keyword: string;
+  position: number;
+  search_volume: number;
+  etv: number;
+  url: string;
+}
+
+export interface DomainAnalyticsPage {
+  url: string;
+  organic_traffic: number;
+  organic_keywords: number;
+  value_usd: number;
+}
+
+export interface DomainAnalyticsCountry {
+  organic_traffic: number;
+  organic_keywords: number;
+  organic_value_usd: number;
+}
+
+export interface DomainAnalyticsSnapshot {
+  domain: string;
+  overview: DomainAnalyticsOverview;
+  top_keywords: DomainAnalyticsKeyword[];
+  top_pages: DomainAnalyticsPage[];
+  geo_distribution: Record<string, DomainAnalyticsCountry>;
+  synced_at: string | null;
+  cached: boolean;
+}
+
+export async function getDomainAnalytics(
+  slug: string,
+): Promise<DomainAnalyticsSnapshot> {
+  const { data } = await apiClientLong.get<DomainAnalyticsSnapshot>(
+    `/api/analyzer/runs/s/${slug}/domain-analytics/`,
+  );
+  return data;
+}
+
+export async function refreshDomainAnalytics(
+  slug: string,
+): Promise<DomainAnalyticsSnapshot> {
+  const { data } = await apiClientLong.post<DomainAnalyticsSnapshot>(
+    `/api/analyzer/runs/s/${slug}/domain-analytics/`,
+    {},
+    { timeout: 90_000 },
+  );
+  return data;
+}
+
 export async function recheckAllPrompts(slug: string): Promise<{ count: number }> {
   const { data } = await apiClient.post<{ status: string; count: number }>(
     `/api/analyzer/runs/s/${slug}/recheck-all/`,
@@ -1062,6 +1122,19 @@ export async function getBacklinkOrder(
   return data;
 }
 
+export async function confirmBacklinkOrderPayment(
+  slug: string,
+  orderId: number,
+  paymentIntentId?: string,
+): Promise<BacklinkOrder> {
+  const { data } = await apiClient.post<BacklinkOrder>(
+    `/api/analyzer/runs/s/${slug}/backlinks/orders/${orderId}/confirm-payment/`,
+    { payment_intent_id: paymentIntentId ?? "" },
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
 // ── Wikipedia draft generator ─────────────────────────────────────────────────
 
 export interface WikipediaDraftResponse {
@@ -1107,17 +1180,36 @@ export interface PromptSchemaResponse {
   schema_type: PromptSchemaType;
   output: string;
   explanation: string;
+  cached?: boolean;
+}
+
+export interface PromptSchemaArtifact {
+  schema_type: PromptSchemaType;
+  output: string;
+  explanation: string;
+  updated_at: string | null;
 }
 
 export async function generatePromptSchema(
   slug: string,
   trackId: number,
   schemaType: PromptSchemaType,
+  opts?: { force?: boolean },
 ): Promise<PromptSchemaResponse> {
   const { data } = await apiClientLong.post<PromptSchemaResponse>(
     `/api/analyzer/runs/s/${slug}/prompts/${trackId}/schema/`,
-    { schema_type: schemaType },
+    { schema_type: schemaType, force: opts?.force ? true : false },
     { timeout: 60_000 },
+  );
+  return data;
+}
+
+export async function listPromptSchemaArtifacts(
+  slug: string,
+  trackId: number,
+): Promise<{ artifacts: PromptSchemaArtifact[] }> {
+  const { data } = await apiClient.get<{ artifacts: PromptSchemaArtifact[] }>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/schema/`,
   );
   return data;
 }

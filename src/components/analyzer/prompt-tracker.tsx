@@ -63,16 +63,7 @@ import { BrandKitCard } from "./brand-kit-card";
 import { BacklinkMarketplacePanel } from "./backlink-marketplace-panel";
 import { WikipediaPromptPanel } from "./wikipedia-prompt-panel";
 import { PromptRankPlanPanel } from "./prompt-rank-plan-panel";
-
-/** Public SVG logos under `/public/logos/` (Next serves at `/logos/...`). */
-const ENGINE_LOGO_SRC: Record<Engine, string> = {
-  google: "/logos/google.svg",
-  bing: "/logos/copilot.svg",
-  chatgpt: "/logos/chatgpt.svg",
-  claude: "/logos/claude.svg",
-  gemini: "/logos/gemini.svg",
-  perplexity: "/logos/perplexity.svg",
-};
+import { ENGINE_LOGO_SRC } from "@/lib/engines";
 
 // ── Engine config ─────────────────────────────────────────────────────────────
 const ENGINES: Array<{

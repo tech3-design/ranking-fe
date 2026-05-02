@@ -1,4 +1,5 @@
 
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
@@ -12,6 +13,15 @@ import {
 } from "@/lib/landing-prompt-tracking-content";
 import { PromptTrackingChatAnswerParts } from "@/components/landing/prompt-tracking-chat-answer-parts";
 import { cn } from "@/lib/utils";
+
+const ENGINE_LOGO_BY_NAME: Record<string, string> = {
+  ChatGPT: "/logos/chatgpt.svg",
+  Claude: "/logos/claude.svg",
+  Gemini: "/logos/gemini.svg",
+  Perplexity: "/logos/perplexity.svg",
+  Copilot: "/logos/copilot.svg",
+  "Google AI": "/logos/google.svg",
+};
 
 function dotClass(dot: "emerald" | "amber" | "neutral") {
   if (dot === "emerald") return "bg-emerald-500";
@@ -198,15 +208,26 @@ function FeatureMock({ mock }: { mock: PromptTrackingFeatureMock }) {
             return (
               <div key={e.name} className="rounded-md border border-black/6 bg-neutral-50 p-2">
                 <div className="flex items-center gap-1.5">
-                  <span
-                    className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[10px] font-bold text-white",
-                      e.tone,
-                    )}
-                    aria-hidden
-                  >
-                    {e.initial}
-                  </span>
+                  {ENGINE_LOGO_BY_NAME[e.name] ? (
+                    <Image
+                      src={ENGINE_LOGO_BY_NAME[e.name]}
+                      alt={e.name}
+                      width={16}
+                      height={16}
+                      className="h-4 w-4 shrink-0 rounded-sm"
+                      unoptimized
+                    />
+                  ) : (
+                    <span
+                      className={cn(
+                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[10px] font-bold text-white",
+                        e.tone,
+                      )}
+                      aria-hidden
+                    >
+                      {e.initial}
+                    </span>
+                  )}
                   <span className="truncate text-[11px] font-semibold text-neutral-800">{e.name}</span>
                 </div>
                 <div className="mt-1.5 flex items-baseline justify-between">

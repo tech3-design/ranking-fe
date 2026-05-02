@@ -3,7 +3,7 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import LogoComp from "@/components/LogoComp";
 import Link from "next/link";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -38,7 +38,7 @@ export default function AnalyzerPage() {
         <div className="relative z-10 w-full max-w-4xl text-center">
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary border border-primary/20">
-            <Sparkles className="h-3 w-3" />
+            <Search className="h-3 w-3" />
             Free GEO Audit Tool
           </div>
 
