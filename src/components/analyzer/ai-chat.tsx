@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, Send, Loader2, X, Sparkles, ChevronLeft } from "lucide-react";
+import { MessageSquare, Send, Loader2, X, Compass, ChevronLeft } from "lucide-react";
 import { config } from "@/lib/config";
 
 /** Parse AI reply into formatted React elements — handles **bold**, headings, lists, numbered steps */
@@ -200,7 +200,7 @@ export function AiChat({ slug, brandName, open, onClose, initialMessage }: AiCha
       <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <Compass className="w-3.5 h-3.5 text-primary" />
           </div>
           <div>
             <p className="text-xs font-semibold text-foreground">GEO Assistant</p>

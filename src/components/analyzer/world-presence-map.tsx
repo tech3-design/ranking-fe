@@ -121,6 +121,12 @@ interface WorldPresenceMapProps {
   coral: string;
   regionScores: Record<string, number>;
   gaCountries?: GACountryEntry[] | null; // real GA data when available
+  /**
+   * DataForSEO per-country organic traffic. Used when GA isn't connected so
+   * the map paints only countries with real ranking presence — never the
+   * synthetic heuristic that lit up every continent.
+   */
+  dataforseoGeo?: Record<string, { organic_traffic: number }> | null;
 }
 
 const W = 800;
@@ -128,7 +134,7 @@ const H = 440;
 // Clip bottom to cut off Antarctica empty space — visible area is top 78%
 const CLIP_H = Math.round(H * 0.78);
 
-export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPresenceMapProps) {
+export function WorldPresenceMap({ coral, regionScores, gaCountries, dataforseoGeo }: WorldPresenceMapProps) {
   const [paths, setPaths] = useState<{ id: number; d: string; region: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const fetchedRef = useRef(false);
@@ -182,11 +188,30 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
     }
   }
 
+  // DataForSEO per-country traffic (used only when no GA data).
+  const dfsNumericScores = new Map<number, number>();
+  if (!gaNumericScores.size && dataforseoGeo) {
+    const maxTraffic = Math.max(
+      ...Object.values(dataforseoGeo).map((c) => c.organic_traffic ?? 0),
+      1,
+    );
+    for (const [alpha2, entry] of Object.entries(dataforseoGeo)) {
+      const numericId = ALPHA2_TO_NUMERIC[alpha2.toUpperCase()];
+      if (numericId && entry.organic_traffic > 0) {
+        dfsNumericScores.set(numericId, entry.organic_traffic / maxTraffic);
+      }
+    }
+  }
+
   const hasGAData = gaNumericScores.size > 0;
+  const hasDfsData = dfsNumericScores.size > 0;
 
   function getCountryFill(id: number, region: string | null): string {
     if (hasGAData) {
       return gaNumericScores.has(id) ? coral : "var(--muted-foreground)";
+    }
+    if (hasDfsData) {
+      return dfsNumericScores.has(id) ? coral : "var(--muted-foreground)";
     }
     if (!region) return "var(--muted-foreground)";
     const score = regionScores[region] ?? 0;
@@ -198,6 +223,10 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
       const ratio = gaNumericScores.get(id) ?? 0;
       return ratio === 0 ? 0.1 : 0.15 + ratio * 0.7;
     }
+    if (hasDfsData) {
+      const ratio = dfsNumericScores.get(id) ?? 0;
+      return ratio === 0 ? 0.1 : 0.2 + ratio * 0.7;
+    }
     if (!region) return 0.12;
     const score = regionScores[region] ?? 0;
     if (score === 0) return 0.12;
@@ -206,22 +235,22 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
 
   if (loading) {
     return (
-      <div className="w-full flex items-center justify-center" style={{ aspectRatio: "2/1" }}>
-        <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${coral}40`, borderTopColor: coral }} />
+      <div className="flex w-full items-center justify-center rounded-lg bg-muted/20" style={{ aspectRatio: "5/1", maxHeight: "140px" }}>
+        <div className="h-4 w-4 animate-spin rounded-full border-2" style={{ borderColor: `${coral}40`, borderTopColor: coral }} />
       </div>
     );
   }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: "3/1", background: "transparent" }}>
+    <div className="relative w-full max-h-[min(160px,28vw)] overflow-hidden rounded-lg bg-muted/10" style={{ aspectRatio: "5/1" }}>
       <svg
         viewBox={`0 0 ${W} ${CLIP_H}`}
         className="w-full h-full"
         style={{ display: "block" }}
       >
-        {paths.map((p) => (
+        {paths.map((p, idx) => (
           <path
-            key={p.id}
+            key={`${p.id}-${idx}`}
             d={p.d}
             fill={getCountryFill(p.id, p.region)}
             fillOpacity={getCountryOpacity(p.id, p.region)}

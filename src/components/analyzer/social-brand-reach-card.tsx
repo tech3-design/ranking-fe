@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { BrandVisibility } from "@/lib/api/analyzer";
 import { WorldPresenceMap, type GACountryEntry } from "@/components/analyzer/world-presence-map";
 import { getGAData, getIntegrationStatus } from "@/lib/api/integrations";
+import { getDomainAnalytics, type DomainAnalyticsCountry } from "@/lib/api/analyzer";
 
 export interface SocialPlatformSnapshot {
   url: string | null;
@@ -154,6 +155,18 @@ const REGION_LABELS: Record<string, string> = {
   sea: "SE Asia",   au: "Oceania",
 };
 
+// Alpha-2 -> region map for the curated DataForSEO country set.
+const ALPHA2_TO_REGION: Record<string, string> = {
+  US: "na", CA: "na", MX: "na",
+  BR: "sa", AR: "sa",
+  GB: "eu", DE: "eu", FR: "eu", ES: "eu", IT: "eu", NL: "eu",
+  AE: "me", SA: "me", TR: "me",
+  ZA: "af", NG: "af", EG: "af",
+  IN: "as", JP: "as",
+  SG: "sea", ID: "sea", MY: "sea",
+  AU: "au", NZ: "au",
+};
+
 export function SocialBrandReachCard({
   slug, brandName, brandUrl = "", details, brandVisibility, coral,
 }: SocialBrandReachCardProps) {
@@ -163,8 +176,11 @@ export function SocialBrandReachCard({
   const topError = sp?.error;
 
   /* ── Line graph ── */
-  const graphW = 500; const graphH = 100;
-  const padX = 10; const padTop = 16; const padBot = 0;
+  const graphW = 500;
+  const graphH = 76;
+  const padX = 10;
+  const padTop = 12;
+  const padBot = 0;
   const plotH = graphH - padTop - padBot;
 
   const emptyBv: BrandVisibility = {
@@ -240,7 +256,28 @@ export function SocialBrandReachCard({
     Object.entries(rawRegionScores).map(([id, v]) => [id, Math.round((v / maxRaw) * 100)])
   );
 
-  const regionData = REGION_IDS.map((id) => ({ id, label: REGION_LABELS[id], score: realRegionScores[id] }));
+  // When DataForSEO geo data is present, region pills should reflect ONLY
+  // regions where the brand has measurable organic traffic — not the
+  // synthetic heuristic that lit every region.
+  function deriveDfsRegionScores(
+    geo: Record<string, DomainAnalyticsCountry> | null,
+  ): Record<string, number> {
+    const empty = Object.fromEntries(REGION_IDS.map((id) => [id, 0]));
+    if (!geo) return empty;
+    let max = 0;
+    for (const v of Object.values(geo)) {
+      if (v.organic_traffic > max) max = v.organic_traffic;
+    }
+    if (max === 0) return empty;
+    const out: Record<string, number> = { ...empty };
+    for (const [alpha2, entry] of Object.entries(geo)) {
+      const region = ALPHA2_TO_REGION[alpha2.toUpperCase()];
+      if (!region) continue;
+      const ratio = entry.organic_traffic / max;
+      out[region] = Math.max(out[region], Math.round(ratio * 100));
+    }
+    return out;
+  }
 
   /* ── GA country data ── */
   const [gaCountries, setGaCountries] = useState<GACountryEntry[] | null>(null);
@@ -262,15 +299,33 @@ export function SocialBrandReachCard({
       .catch(() => {});
   }, [brandUrl]);
 
+  /* ── DataForSEO geo distribution (used when no GA) ── */
+  const [dataforseoGeo, setDataforseoGeo] = useState<Record<string, DomainAnalyticsCountry> | null>(null);
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    getDomainAnalytics(slug)
+      .then((res) => {
+        if (cancelled) return;
+        if (res.geo_distribution && Object.keys(res.geo_distribution).length > 0) {
+          setDataforseoGeo(res.geo_distribution);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [slug]);
+
+  const graphLabelH = 14;
+
   return (
-    <div className="col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="col-span-12 grid grid-cols-1 items-stretch gap-3 md:grid-cols-12 md:gap-3">
 
       {/* ── Card 1: Brand Presence Line Graph ── */}
-      <div className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-start justify-between gap-4">
+      <div className="flex h-full min-h-0 flex-col rounded-xl border border-border bg-card p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:col-span-7">
+        <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-foreground">Brand Presence</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="text-sm font-semibold leading-tight text-foreground">Brand Presence</p>
+            <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
               Online footprint of <span className="font-medium text-foreground">{brandName}</span>
               {" · "}
               <Link href={`/dashboard/${slug}/visibility`} className="underline-offset-2 hover:underline" style={{ color: coral }}>
@@ -278,27 +333,27 @@ export function SocialBrandReachCard({
               </Link>
             </p>
           </div>
-          <div className="flex shrink-0 gap-6 text-right">
+          <div className="flex shrink-0 gap-4 text-right">
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Brand Presence</p>
-              <p className="text-2xl font-bold tabular-nums text-foreground leading-none mt-0.5">{Math.round(presence)}</p>
-              <p className="text-[9px] text-muted-foreground">/100</p>
+              <p className="text-[8px] uppercase tracking-wide text-muted-foreground">Brand Presence</p>
+              <p className="text-xl font-bold tabular-nums text-foreground leading-none mt-0.5">{Math.round(presence)}</p>
+              <p className="text-[8px] text-muted-foreground">/100</p>
             </div>
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Market Capture</p>
-              <p className="text-2xl font-bold tabular-nums text-foreground leading-none mt-0.5">{Math.round(capture)}</p>
-              <p className="text-[9px] text-muted-foreground">/100</p>
+              <p className="text-[8px] uppercase tracking-wide text-muted-foreground">Market Capture</p>
+              <p className="text-xl font-bold tabular-nums text-foreground leading-none mt-0.5">{Math.round(capture)}</p>
+              <p className="text-[8px] text-muted-foreground">/100</p>
             </div>
           </div>
         </div>
 
         {hasGraphData ? (
-          <div className="mt-4 relative w-full" style={{ maxHeight: "130px" }}>
+          <div className="relative mx-auto mt-2.5 w-full max-w-lg" style={{ maxHeight: "96px" }}>
             <svg
-              viewBox={`0 0 ${graphW} ${graphH + 18}`}
+              viewBox={`0 0 ${graphW} ${graphH + graphLabelH}`}
               className="w-full h-full"
               preserveAspectRatio="xMidYMid meet"
-              style={{ overflow: "visible", maxHeight: "130px" }}
+              style={{ overflow: "visible", maxHeight: "96px" }}
             >
               {[0, 50, 100].map((v) => {
                 const y = padTop + plotH - (v / 100) * plotH;
@@ -314,47 +369,47 @@ export function SocialBrandReachCard({
               <path d={linePath} fill="none" stroke={coral} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               {points.map((p) => (
                 <g key={p.key}>
-                  <circle cx={p.x} cy={p.y} r="3" fill="var(--card)" stroke={coral} strokeWidth="1.5" />
-                  <text x={p.x} y={p.y - 7} textAnchor="middle" fontSize="7.5" fontWeight="700" fill="var(--foreground)">{p.val}</text>
+                  <circle cx={p.x} cy={p.y} r="2.5" fill="var(--card)" stroke={coral} strokeWidth="1.25" />
+                  <text x={p.x} y={p.y - 6} textAnchor="middle" fontSize="7" fontWeight="700" fill="var(--foreground)">{p.val}</text>
                 </g>
               ))}
               {points.map((p) => (
-                <text key={`l-${p.key}`} x={p.x} y={graphH + 12} textAnchor="middle" fontSize="7.5" fontWeight="500" fill="var(--muted-foreground)">
+                <text key={`l-${p.key}`} x={p.x} y={graphH + 10} textAnchor="middle" fontSize="7" fontWeight="500" fill="var(--muted-foreground)">
                   {p.shortLabel}
                 </text>
               ))}
             </svg>
           </div>
         ) : (
-          <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/10 p-4">
-            <p className="text-xs text-muted-foreground">No presence data yet. Run a new analysis to generate the presence graph.</p>
+          <div className="mt-2.5 rounded-lg border border-dashed border-border bg-muted/10 p-2.5">
+            <p className="text-[11px] leading-snug text-muted-foreground">No presence data yet. Run a new analysis to generate the presence graph.</p>
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
+        <div className="mt-2.5 flex items-center justify-between gap-1.5 flex-wrap border-t border-border/60 pt-2.5">
           {platforms.map((plat) => {
             const found = plat.hasProfile;
             const hasFollowers = plat.followers != null && plat.followers > 0;
             return (
-              <div key={plat.key} className="flex flex-col items-center gap-1 min-w-[52px] flex-1">
+              <div key={plat.key} className="flex min-w-[44px] flex-1 flex-col items-center gap-0.5">
                 <a
                   href={found && plat.url ? plat.url : "#"}
                   target={found ? "_blank" : undefined}
                   rel="noopener noreferrer"
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition ${found ? "hover:scale-110" : "opacity-30 cursor-default"}`}
+                  className={`flex h-7 w-7 items-center justify-center rounded-lg transition ${found ? "hover:scale-105" : "cursor-default opacity-30"}`}
                   style={{ backgroundColor: found ? plat.bgColor : "var(--muted)" }}
                 >
-                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={found ? plat.color : "var(--muted-foreground)"}>
+                  <svg viewBox="0 0 24 24" className="h-3 w-3" fill={found ? plat.color : "var(--muted-foreground)"}>
                     <path d={plat.iconPath} />
                   </svg>
                 </a>
-                <span className={`text-[10px] font-medium ${found ? "text-foreground" : "text-muted-foreground/40"}`}>{plat.label}</span>
+                <span className={`text-[9px] font-medium leading-tight ${found ? "text-foreground" : "text-muted-foreground/40"}`}>{plat.label}</span>
                 {hasFollowers ? (
-                  <span className="text-[10px] font-bold tabular-nums" style={{ color: plat.color }}>{formatFollowers(plat.followers!)}</span>
+                  <span className="text-[9px] font-bold tabular-nums" style={{ color: plat.color }}>{formatFollowers(plat.followers!)}</span>
                 ) : found ? (
-                  <span className="text-[9px] text-muted-foreground/50">{plat.error === "login_wall" ? "private" : "linked"}</span>
+                  <span className="text-[8px] text-muted-foreground/50">{plat.error === "login_wall" ? "private" : "linked"}</span>
                 ) : (
-                  <span className="text-[9px] text-muted-foreground/30">-</span>
+                  <span className="text-[8px] text-muted-foreground/30">-</span>
                 )}
               </div>
             );
@@ -362,11 +417,11 @@ export function SocialBrandReachCard({
         </div>
 
         {topError && (
-          <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
+          <p className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-900 dark:text-amber-100">
             Social metrics unavailable: {topError}
           </p>
         )}
-        <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 line-clamp-2 text-[9px] leading-snug text-muted-foreground">
           {typeof sp?.interpretation === "string" && sp.interpretation
             ? sp.interpretation
             : "Social links discovered from the brand's website. Follower counts are best-effort from public pages."}
@@ -374,23 +429,30 @@ export function SocialBrandReachCard({
       </div>
 
       {/* ── Card 2: World Presence Map ── */}
-      <div className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-start justify-between gap-2 mb-4">
-          <div>
-            <p className="text-sm font-semibold text-foreground">World Presence</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+      <div className="flex h-full min-h-0 flex-col rounded-xl border border-border bg-card p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:col-span-5">
+        <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold leading-tight text-foreground">World Presence</p>
+            <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
               Geographic reach of <span className="font-medium text-foreground">{brandName}</span>
             </p>
           </div>
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground shrink-0 flex-wrap justify-end">
-            {gaCountries && gaCountries.length > 0 && (
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 text-[9px] text-muted-foreground">
+            {gaCountries && gaCountries.length > 0 ? (
               <span
                 className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold border"
                 style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
               >
                 ✦ GA Live Data
               </span>
-            )}
+            ) : dataforseoGeo && Object.keys(dataforseoGeo).length > 0 ? (
+              <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold border"
+                style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
+              >
+                ✦ DataForSEO
+              </span>
+            ) : null}
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: coral }} />
               Active
@@ -402,22 +464,37 @@ export function SocialBrandReachCard({
           </div>
         </div>
 
-        <WorldPresenceMap coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} />
+        <div className="flex min-h-0 flex-1 flex-col justify-center py-1">
+          <WorldPresenceMap coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} dataforseoGeo={dataforseoGeo} />
+        </div>
 
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {regionData.filter((r) => r.score > 0).sort((a, b) => b.score - a.score).map((r) => (
-            <span
-              key={r.id}
-              className="inline-flex items-center gap-1 text-[10px] rounded-full px-2 py-0.5 border"
-              style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: coral }} />
-              {r.label}
-            </span>
-          ))}
-          {regionData.every((r) => r.score === 0) && (
-            <p className="text-[10px] text-muted-foreground">No geographic signals yet — run a visibility check.</p>
-          )}
+        <div className="mt-2 flex shrink-0 flex-wrap gap-1">
+          {(() => {
+            // Prefer DataForSEO real-traffic regions; fall back to heuristic.
+            const useDfs = !!dataforseoGeo && Object.keys(dataforseoGeo).length > 0 && !gaCountries;
+            const scores = useDfs ? deriveDfsRegionScores(dataforseoGeo) : realRegionScores;
+            const pills = REGION_IDS
+              .map((id) => ({ id, label: REGION_LABELS[id], score: scores[id] ?? 0 }))
+              .filter((r) => r.score > 0)
+              .sort((a, b) => b.score - a.score);
+            if (pills.length === 0) {
+              return (
+                <p className="text-[9px] leading-snug text-muted-foreground">
+                  No geographic signals yet — run a visibility check.
+                </p>
+              );
+            }
+            return pills.map((r) => (
+              <span
+                key={r.id}
+                className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px]"
+                style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: coral }} />
+                {r.label}
+              </span>
+            ));
+          })()}
         </div>
 
       </div>

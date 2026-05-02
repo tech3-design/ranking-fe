@@ -16,15 +16,7 @@ import { CitationTrendChart } from "@/components/analyzer/citation-trend-chart";
 import { SentimentBreakdown } from "@/components/analyzer/sentiment-breakdown";
 import { History, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
-
-const ENGINE_LABELS: Record<string, string> = {
-  google: "Google",
-  bing: "Bing",
-  chatgpt: "ChatGPT",
-  claude: "Claude",
-  gemini: "Gemini",
-  perplexity: "Perplexity",
-};
+import { EngineBadge } from "@/components/ui/engine-badge";
 
 export default function PromptsHistoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -157,9 +149,11 @@ export default function PromptsHistoryPage() {
                       key={r.id}
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5 bg-muted/20 border border-border/30 text-[11px] transition hover:border-primary/30 hover:bg-card"
                     >
-                      <span className="text-foreground/80 w-20 shrink-0 font-semibold">
-                        {ENGINE_LABELS[r.engine] ?? r.engine}
-                      </span>
+                      <EngineBadge
+                        engine={r.engine}
+                        size={14}
+                        className="text-foreground/80 w-24 shrink-0 font-semibold"
+                      />
                       {r.brand_mentioned ? (
                         <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                       ) : (

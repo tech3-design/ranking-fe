@@ -71,7 +71,7 @@ export default function RecommendationsPage() {
       {run && !loading && allRecs.length > 0 ? (
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
           <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Recommendations</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Fixes</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               {filtersActive ? (
                 <>
@@ -181,7 +181,7 @@ export default function RecommendationsPage() {
         </div>
       ) : (
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Recommendations</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Fixes</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             {run ? `${run.recommendations.length} items to improve your GEO score` : "Loading…"}
           </p>

@@ -20,7 +20,7 @@ import {
   Sun,
   LogOut,
   ArrowRight,
-  Sparkles,
+  Crown,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -80,11 +80,11 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
               {/* Navigation */}
               <Command.Group heading={<span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-2">Pages</span>}>
                 <PaletteItem icon={LayoutDashboard} label="Overview" desc="Dashboard overview" onSelect={() => go(base)} />
-                <PaletteItem icon={ListChecks} label="Recommendations" desc="GEO improvement actions" onSelect={() => go(`${base}/recommendations`)} />
+                <PaletteItem icon={ListChecks} label="Fixes" desc="GEO improvement actions" onSelect={() => go(`${base}/recommendations`)} />
                 <PaletteItem icon={Eye} label="Visibility" desc="Brand visibility across AI" onSelect={() => go(`${base}/visibility`)} />
                 <PaletteItem icon={MessageSquare} label="Prompts" desc="Quick snapshot & walkthrough" onSelect={() => go(`${base}/prompts`)} />
                 <PaletteItem icon={MessageSquare} label="Prompts — Actions" desc="Add, recheck, and do the work" onSelect={() => go(`${base}/prompts/actions`)} />
-                <PaletteItem icon={MessageSquare} label="Prompts — Recommendations" desc="Rank prompts better + ideas" onSelect={() => go(`${base}/prompts/recommendations`)} />
+                <PaletteItem icon={Eye} label="Visibility — Explorer" desc="Rank prompts better + ideas" onSelect={() => go(`${base}/visibility/explorer`)} />
                 <PaletteItem icon={MessageSquare} label="Prompts — History" desc="Track all engines and results" onSelect={() => go(`${base}/prompts/history`)} />
                 <PaletteItem icon={BarChart3} label="Analytics" desc="Google Analytics integration" onSelect={() => go(`${base}/analytics`)} />
               </Command.Group>
@@ -107,7 +107,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                   desc="Toggle theme"
                   onSelect={() => { setTheme(theme === "dark" ? "light" : "dark"); onClose(); }}
                 />
-                <PaletteItem icon={Sparkles} label="Upgrade to Pro" desc="Unlock all features" onSelect={() => go("/pricing")} />
+                <PaletteItem icon={Crown} label="Upgrade to Pro" desc="Unlock all features" onSelect={() => go("/pricing")} />
               </Command.Group>
             </Command.List>
 

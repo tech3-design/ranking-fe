@@ -3,7 +3,7 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import LogoComp from "@/components/LogoComp";
 import Link from "next/link";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -15,7 +15,9 @@ export default function AnalyzerPage() {
       {/* Simple Header */}
       <header className="border-b border-border/50 bg-background/50 backdrop-blur-md sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <LogoComp />
+          <Link href="/" className="transition-opacity hover:opacity-90">
+            <LogoComp />
+          </Link>
           <Link
             href="/"
             className="group flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -36,7 +38,7 @@ export default function AnalyzerPage() {
         <div className="relative z-10 w-full max-w-4xl text-center">
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary border border-primary/20">
-            <Sparkles className="h-3 w-3" />
+            <Search className="h-3 w-3" />
             Free GEO Audit Tool
           </div>
 
