@@ -4,15 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { PromptTrack, Engine, Sentiment } from "@/lib/api/analyzer";
 import { useSession } from "@/lib/auth-client";
 import { getSubscriptionStatus } from "@/lib/api/payments";
-
-const ENGINE_LABELS: Record<Engine, string> = {
-  google: "Google",
-  bing: "Bing",
-  chatgpt: "ChatGPT",
-  claude: "Claude",
-  gemini: "Gemini",
-  perplexity: "Perplexity",
-};
+import { EngineBadge } from "@/components/ui/engine-badge";
 
 const SENTIMENT_CLASS: Record<Sentiment, string> = {
   positive: "bg-green-500/20 text-green-400 border border-green-500/30",
@@ -88,7 +80,7 @@ export function SentimentBreakdown({ tracks }: SentimentBreakdownProps) {
         if (total === 0) return null;
         return (
           <div key={engine} className="glass-card rounded-xl p-4 space-y-2">
-            <p className="text-sm font-semibold">{ENGINE_LABELS[engine]}</p>
+            <EngineBadge engine={engine} size={18} className="text-sm font-semibold" />
             <div className="flex flex-wrap gap-1.5">
               {sentiments.map((sent) => (
                 <span key={sent} className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs capitalize ${SENTIMENT_CLASS[sent]}`}>

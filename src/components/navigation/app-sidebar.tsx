@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Sparkles,
+  Radar,
   PlugZap,
   ChartNoAxesCombined,
   LayoutDashboard,
@@ -119,7 +119,7 @@ export function AppSidebar() {
           <div className="mb-3 border-b border-border/50 pb-3">
             <div className={cn("flex items-center", open ? "justify-start gap-2" : "justify-center")}>
               <div className="rounded-md bg-primary/20 p-1.5 text-primary">
-                <Sparkles className="h-3.5 w-3.5" />
+                <Radar className="h-3.5 w-3.5" />
               </div>
               {open ? <span className="text-sm font-semibold text-foreground">Signalor GEO</span> : null}
             </div>

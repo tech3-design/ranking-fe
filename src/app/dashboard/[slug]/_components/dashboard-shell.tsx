@@ -10,12 +10,12 @@ import {
   MessageSquare,
   BarChart3,
   ChevronDown,
-  Zap,
+  Radar,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Overview", route: (slug: string) => routes.dashboardProject(slug) },
-  { icon: ListChecks, label: "Recommendations", route: (slug: string) => routes.dashboardProjectRecommendations(slug) },
+  { icon: ListChecks, label: "Fixes", route: (slug: string) => routes.dashboardProjectRecommendations(slug) },
   { icon: Eye, label: "Visibility", route: (slug: string) => routes.dashboardProjectVisibility(slug) },
   { icon: MessageSquare, label: "Prompts", route: (slug: string) => routes.dashboardProjectPrompts(slug) },
   { icon: BarChart3, label: "Analytics", route: (slug: string) => routes.dashboardProjectAnalytics(slug) },
@@ -41,7 +41,7 @@ export function DashboardShell({ slug, activeNav, children }: DashboardShellProp
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-2 mb-8">
           <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
+            <Radar className="w-4 h-4 text-white" />
           </div>
           <span className="text-lg font-semibold tracking-tight text-emerald-600">Signalor</span>
         </div>

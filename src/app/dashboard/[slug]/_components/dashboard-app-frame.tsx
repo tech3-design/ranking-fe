@@ -9,6 +9,10 @@ import { Menu, Moon, Sun, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Diamond } from "@/components/ui/intersection-diamonds";
 import { cn } from "@/lib/utils";
+import {
+  DashboardBreadcrumbNav,
+  type DashboardBreadcrumbItem,
+} from "./dashboard-breadcrumbs";
 
 const DASHBOARD_TOPBAR_H = "h-[60px]";
 
@@ -76,6 +80,7 @@ export type DashboardAppSection = {
 export function DashboardAppFrame({
   children,
   section,
+  breadcrumbs,
   sidebarBrand,
   sidebarBelowHeaderRow,
   sidebarNav,
@@ -85,6 +90,7 @@ export function DashboardAppFrame({
 }: {
   children: React.ReactNode;
   section: DashboardAppSection;
+  breadcrumbs: DashboardBreadcrumbItem[];
   sidebarBrand: React.ReactNode;
   sidebarBelowHeaderRow: React.ReactNode;
   sidebarNav: React.ReactNode;
@@ -111,7 +117,7 @@ export function DashboardAppFrame({
   }, [mobileOpen]);
 
   const topBarShell = cn(
-    "shrink-0 border-b border-border/40 bg-white dark:bg-zinc-950",
+    "shrink-0 z-50 border-b border-border/40 bg-white dark:bg-zinc-950",
     DASHBOARD_TOPBAR_H
   );
 
@@ -122,16 +128,14 @@ export function DashboardAppFrame({
         DASHBOARD_TOPBAR_H
       )}
     >
-      <div className="min-w-0 flex-1 pr-2">
-        <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">
-          {section.title}
-        </h2>
+      {sidebarBelowHeaderRow ? (
+        <div className="hidden shrink-0 items-center pr-3 md:flex md:w-60">
+          {sidebarBelowHeaderRow}
+        </div>
+      ) : null}
 
-        {section.hint ? (
-          <p className="truncate text-xs text-muted-foreground">
-            {section.hint}
-          </p>
-        ) : null}
+      <div className="min-w-0 flex-1 pr-2">
+        <DashboardBreadcrumbNav items={breadcrumbs} className="mb-1" />
       </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -141,7 +145,7 @@ export function DashboardAppFrame({
   );
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-muted/40 text-foreground dark:bg-background">
+    <div className="flex h-dvh flex-col bg-muted/40 text-foreground dark:bg-background">
 
       <ThemeHotkeyBinder />
 
@@ -161,6 +165,7 @@ export function DashboardAppFrame({
         </Button>
 
         <div className="min-w-0 flex-1">
+          <DashboardBreadcrumbNav items={breadcrumbs} className="mb-0.5 max-w-[min(100%,14rem)] sm:max-w-none" />
           <p className="truncate text-sm font-semibold text-foreground">
             {section.title}
           </p>
@@ -183,7 +188,7 @@ export function DashboardAppFrame({
 
       {/* Desktop Layout — min-h-0 so nested overflow + flex stretch match the viewport */}
 
-      <div className="relative hidden min-h-0 flex-1 flex-col md:flex">
+      <div className="relative hidden min-h-0 flex-col md:flex md:flex-1 md:overflow-hidden">
 
         {/* Topbar */}
 
@@ -211,14 +216,8 @@ export function DashboardAppFrame({
 
           {/* Sidebar */}
 
-          <aside className="flex min-h-0 w-56 shrink-0 flex-col self-stretch overflow-hidden border-r border-border/40 bg-white">
+          <aside className="flex w-56 shrink-0 flex-col border-r border-border/40 bg-white">
 
-            {sidebarBelowHeaderRow ? (
-              <div className="relative shrink-0 border-b border-border/40 px-3 py-2.5">
-                {sidebarBelowHeaderRow}
-                <Diamond style={{ bottom: -2.5, right: -2.5 }} />
-              </div>
-            ) : null}
 
             {/* Nav */}
 
@@ -228,7 +227,7 @@ export function DashboardAppFrame({
 
             {/* Bottom User Section */}
 
-            <div className="relative mt-auto shrink-0 border-t border-border/40 px-0.5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] pt-2">
+            <div className="relative mt-auto shrink-0 border-t border-border/40 px-0.5 pb-1 ">
               {sidebarBottom}
               <Diamond style={{ top: -2.5, right: -2.5 }} />
             </div>
@@ -237,9 +236,9 @@ export function DashboardAppFrame({
 
           {/* Main */}
 
-          <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-muted/40 dark:bg-background/80">
+          <div className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-muted/40 dark:bg-background/80">
 
-            <main className="mx-auto w-full max-w-7xl flex-1 overflow-y-auto px-4 py-8 sm:py-8">
+            <main className="mx-auto w-full max-w-7xl px-4 py-8">
               {children}
             </main>
 

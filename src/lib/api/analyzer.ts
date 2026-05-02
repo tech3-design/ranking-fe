@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, apiClientLong } from "./client";
 
 export interface StartAnalysisPayload {
   url: string;
@@ -50,6 +50,11 @@ export interface Competitor {
   name: string;
   url: string;
   industry: string;
+  tier?: string;
+  target_market?: string;
+  geography?: string;
+  pricing_model?: string;
+  positioning?: string;
   composite_score: number | null;
   scored: boolean;
   page_score: PageScore | null;
@@ -157,7 +162,6 @@ export interface AnalysisRunDetail {
   recommendations: Recommendation[];
   ai_probes: AIProbe[];
   brand_visibility: BrandVisibility | null;
-  llm_logs: LLMLog[];
 }
 
 export async function startAnalysis(
@@ -180,14 +184,14 @@ export async function getRunStatus(runId: number): Promise<RunStatus> {
 export async function getRunDetail(
   runId: number,
 ): Promise<AnalysisRunDetail> {
-  const { data } = await apiClient.get<AnalysisRunDetail>(
+  const { data } = await apiClientLong.get<AnalysisRunDetail>(
     `/api/analyzer/runs/${runId}/`,
   );
   return data;
 }
 
 export async function getRunBySlug(slug: string): Promise<AnalysisRunDetail> {
-  const { data } = await apiClient.get<AnalysisRunDetail>(
+  const { data } = await apiClientLong.get<AnalysisRunDetail>(
     `/api/analyzer/runs/s/${slug}/`,
   );
   return data;
@@ -216,21 +220,78 @@ export function getExportPDFUrl(runId: number): string {
 export type Engine = "chatgpt" | "claude" | "gemini" | "perplexity" | "google" | "bing";
 export type Sentiment = "positive" | "neutral" | "negative";
 
+export interface PromptCitation {
+  id: number;
+  url: string;
+  domain: string;
+  title: string;
+  snippet: string;
+  position: number;
+  is_brand: boolean;
+  is_competitor: boolean;
+}
+
 export interface PromptResult {
   id: number;
   engine: Engine;
-  response_text: string;
+  response_text: string; // truncated to 500 chars in list; use getPromptResultFull() for the complete text
   brand_mentioned: boolean;
   sentiment: Sentiment;
   confidence: number;
   rank_position: number;
   checked_at: string;
+  citations?: PromptCitation[];
 }
+
+export interface CitationDomain {
+  domain: string;
+  total: number;
+  is_brand: boolean;
+  is_competitor: boolean;
+  by_engine: Partial<Record<Engine, number>>;
+  sample_url: string;
+}
+
+export interface CitedPage {
+  url: string;
+  title: string;
+  mentions: number;
+  domain?: string;
+}
+
+export interface CitationSourcesResponse {
+  total_citations: number;
+  brand_citations: number;
+  competitor_citations: number;
+  domains: CitationDomain[];
+  your_pages: CitedPage[];
+  rival_pages: CitedPage[];
+}
+
+/** API codes for `intent` — display via `PROMPT_INTENT_LABEL`. */
+export type PromptSearchIntent = "brand" | "informational" | "transactional";
+
+/** API codes for `prompt_type` — display via `PROMPT_SURFACE_TYPE_LABEL`. */
+export type PromptSurfaceType = "organic" | "branded" | "competitive";
+
+export const PROMPT_INTENT_LABEL: Record<PromptSearchIntent, string> = {
+  brand: "Brand",
+  informational: "Information",
+  transactional: "Transactional",
+};
+
+export const PROMPT_SURFACE_TYPE_LABEL: Record<PromptSurfaceType, string> = {
+  organic: "Organic",
+  branded: "Brand",
+  competitive: "Competition",
+};
 
 export interface PromptTrack {
   id: number;
   prompt_text: string;
   is_custom: boolean;
+  intent?: PromptSearchIntent;
+  prompt_type?: PromptSurfaceType;
   score: number;
   created_at: string;
   results: PromptResult[];
@@ -262,7 +323,7 @@ export interface CitationTrendPoint {
 }
 
 export async function getPromptTracks(slug: string): Promise<PromptTrack[]> {
-  const { data } = await apiClient.get<PromptTrack[]>(
+  const { data } = await apiClientLong.get<PromptTrack[]>(
     `/api/analyzer/runs/s/${slug}/prompts/`,
   );
   return data;
@@ -280,15 +341,22 @@ export async function addPromptTrack(
 }
 
 export async function getShareOfVoice(slug: string): Promise<ShareOfVoiceItem[]> {
-  const { data } = await apiClient.get<ShareOfVoiceItem[]>(
+  const { data } = await apiClientLong.get<ShareOfVoiceItem[]>(
     `/api/analyzer/runs/s/${slug}/share-of-voice/`,
   );
   return data;
 }
 
 export async function getCitationTrend(slug: string): Promise<CitationTrendPoint[]> {
-  const { data } = await apiClient.get<CitationTrendPoint[]>(
+  const { data } = await apiClientLong.get<CitationTrendPoint[]>(
     `/api/analyzer/runs/s/${slug}/citation-trend/`,
+  );
+  return data;
+}
+
+export async function getCitationSources(slug: string): Promise<CitationSourcesResponse> {
+  const { data } = await apiClientLong.get<CitationSourcesResponse>(
+    `/api/analyzer/runs/s/${slug}/citations/`,
   );
   return data;
 }
@@ -299,6 +367,211 @@ export async function recheckPrompt(slug: string, trackId: number): Promise<void
 
 export async function deletePromptTrack(slug: string, trackId: number): Promise<void> {
   await apiClient.delete(`/api/analyzer/runs/s/${slug}/prompts/${trackId}/`);
+}
+
+export async function getPromptResultFull(slug: string, trackId: number, resultId: number): Promise<PromptResult> {
+  const { data } = await apiClient.get<PromptResult>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/results/${resultId}/`,
+  );
+  return data;
+}
+
+export interface BacklinkRow {
+  domain: string;
+  is_brand: boolean;
+  is_competitor: boolean;
+  citation_count: number;
+  referring_domains: number;
+  backlinks: number;
+  rank: number;
+  has_data: boolean;
+}
+
+export interface PromptBacklinksResponse {
+  brand_domain: string;
+  rows: BacklinkRow[];
+  api_used: boolean;
+  api_error?: string | null;
+  fetched_at?: string;
+}
+
+export async function getPromptBacklinks(
+  slug: string,
+  trackId: number,
+): Promise<PromptBacklinksResponse> {
+  const { data } = await apiClient.get<PromptBacklinksResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/backlinks/`,
+  );
+  return data;
+}
+
+export type OpportunityCategory =
+  | "directory"
+  | "review"
+  | "press"
+  | "forum"
+  | "resource"
+  | "other";
+
+export type OpportunityStatus =
+  | "suggested"
+  | "submitted"
+  | "live"
+  | "dismissed";
+
+export interface BacklinkOpportunity {
+  id: number;
+  name: string;
+  description: string;
+  rationale: string;
+  submit_url: string;
+  category: OpportunityCategory;
+  /** 1 = high, 2 = medium, 3 = low */
+  priority: number;
+  status: OpportunityStatus;
+  submitted_at: string | null;
+  live_url: string;
+  created_at: string | null;
+}
+
+export interface OpportunitiesResponse {
+  rows: BacklinkOpportunity[];
+  has_generated?: boolean;
+}
+
+export async function getPromptOpportunities(
+  slug: string,
+  trackId: number,
+): Promise<OpportunitiesResponse> {
+  const { data } = await apiClient.get<OpportunitiesResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/`,
+  );
+  return data;
+}
+
+export async function regeneratePromptOpportunities(
+  slug: string,
+  trackId: number,
+): Promise<OpportunitiesResponse> {
+  const { data } = await apiClient.post<OpportunitiesResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/`,
+    {},
+    { timeout: 90_000 },
+  );
+  return data;
+}
+
+export async function updateOpportunityStatus(
+  slug: string,
+  trackId: number,
+  oppId: number,
+  patch: { status?: OpportunityStatus; live_url?: string },
+): Promise<BacklinkOpportunity> {
+  const { data } = await apiClient.patch<BacklinkOpportunity>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/${oppId}/`,
+    patch,
+  );
+  return data;
+}
+
+export async function deleteOpportunity(
+  slug: string,
+  trackId: number,
+  oppId: number,
+): Promise<void> {
+  await apiClient.delete(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/${oppId}/`,
+  );
+}
+
+export interface BrandKit {
+  name: string;
+  url: string;
+  tagline: string;
+  short_description: string;
+  long_description: string;
+  categories: string[];
+  keywords: string[];
+  location: string;
+  contact_email: string;
+}
+
+export async function getBrandKit(slug: string): Promise<{ kit: BrandKit }> {
+  const { data } = await apiClientLong.get<{ kit: BrandKit }>(
+    `/api/analyzer/runs/s/${slug}/brand-kit/`,
+  );
+  return data;
+}
+
+export async function regenerateBrandKit(
+  slug: string,
+): Promise<{ kit: BrandKit }> {
+  const { data } = await apiClientLong.post<{ kit: BrandKit }>(
+    `/api/analyzer/runs/s/${slug}/brand-kit/`,
+    {},
+    { timeout: 90_000 },
+  );
+  return data;
+}
+
+export interface DomainAnalyticsOverview {
+  organic_keywords: number;
+  organic_traffic: number;
+  organic_value_usd: number;
+  paid_keywords: number;
+  paid_traffic: number;
+  paid_value_usd: number;
+}
+
+export interface DomainAnalyticsKeyword {
+  keyword: string;
+  position: number;
+  search_volume: number;
+  etv: number;
+  url: string;
+}
+
+export interface DomainAnalyticsPage {
+  url: string;
+  organic_traffic: number;
+  organic_keywords: number;
+  value_usd: number;
+}
+
+export interface DomainAnalyticsCountry {
+  organic_traffic: number;
+  organic_keywords: number;
+  organic_value_usd: number;
+}
+
+export interface DomainAnalyticsSnapshot {
+  domain: string;
+  overview: DomainAnalyticsOverview;
+  top_keywords: DomainAnalyticsKeyword[];
+  top_pages: DomainAnalyticsPage[];
+  geo_distribution: Record<string, DomainAnalyticsCountry>;
+  synced_at: string | null;
+  cached: boolean;
+}
+
+export async function getDomainAnalytics(
+  slug: string,
+): Promise<DomainAnalyticsSnapshot> {
+  const { data } = await apiClientLong.get<DomainAnalyticsSnapshot>(
+    `/api/analyzer/runs/s/${slug}/domain-analytics/`,
+  );
+  return data;
+}
+
+export async function refreshDomainAnalytics(
+  slug: string,
+): Promise<DomainAnalyticsSnapshot> {
+  const { data } = await apiClientLong.post<DomainAnalyticsSnapshot>(
+    `/api/analyzer/runs/s/${slug}/domain-analytics/`,
+    {},
+    { timeout: 90_000 },
+  );
+  return data;
 }
 
 export async function recheckAllPrompts(slug: string): Promise<{ count: number }> {
@@ -354,12 +627,14 @@ export async function getScoreHistory(
 
 // ── Scheduled Analysis ────────────────────────────────────────────────────
 
+export type ScheduleFrequency = "once" | "weekly" | "monthly";
+
 export interface ScheduledAnalysis {
   id: number;
   email: string;
   url: string;
   brand_name: string;
-  frequency: "weekly" | "monthly";
+  frequency: ScheduleFrequency;
   next_run_at: string;
   last_run_at: string | null;
   last_run_slug: string;
@@ -383,8 +658,10 @@ export async function toggleSchedule(payload: {
   org_id: number;
   url: string;
   brand_name?: string;
-  frequency: "weekly" | "monthly";
+  frequency: ScheduleFrequency;
   is_active: boolean;
+  /** ISO datetime — required when frequency="once", optional otherwise. */
+  run_at?: string;
 }): Promise<ScheduledAnalysis> {
   const { data } = await apiClient.post<ScheduledAnalysis>(
     "/api/analyzer/schedule/",
@@ -474,6 +751,465 @@ export async function verifyFix(
     `/api/analyzer/runs/s/${slug}/auto-fix/verify/`,
     { recommendation_id: recommendationId },
     { timeout: 45_000 },
+  );
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// Sitemap audit
+// ---------------------------------------------------------------------------
+
+export type SitemapAuditStatus = "queued" | "running" | "complete" | "failed";
+export type SitemapPageState = "crawled" | "redirect" | "queued" | "failed";
+export type SitemapPageSeverity = "ok" | "warn" | "fail";
+
+export interface SitemapAuditFinding {
+  code: string;
+  label: string;
+  severity: SitemapPageSeverity;
+}
+
+export interface SitemapAuditSummary {
+  id: number;
+  status: SitemapAuditStatus;
+  progress: number;
+  sitemap_url: string;
+  crawl_limit: number;
+  total_urls: number;
+  indexed_count: number;
+  redirect_count: number;
+  queued_count: number;
+  failed_count: number;
+  avg_lcp_ms: number | null;
+  avg_fcp_ms: number | null;
+  avg_ttfb_ms: number | null;
+  avg_ai_score: number | null;
+  truncated: boolean;
+  discovered_url_count: number;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  error_message: string;
+}
+
+export interface SitemapAuditPage {
+  id: number;
+  url: string;
+  path: string;
+  final_url: string;
+  state: SitemapPageState;
+  status_code: number;
+  redirect_count: number;
+  title: string;
+  meta_description: string;
+  h1_count: number;
+  word_count: number;
+  text_ratio: number;
+  content_length: number;
+  lcp_ms: number | null;
+  fcp_ms: number | null;
+  ttfb_ms: number | null;
+  server_ms: number | null;
+  resource_count: number;
+  resource_bytes: number;
+  link_count_total: number;
+  link_count_internal: number;
+  link_count_external: number;
+  jsonld_count: number;
+  has_canonical: boolean;
+  has_og: boolean;
+  is_noindex: boolean;
+  robots_allows_gptbot: boolean;
+  robots_allows_claudebot: boolean;
+  robots_allows_perplexitybot: boolean;
+  ai_score: number;
+  severity: SitemapPageSeverity;
+  findings: SitemapAuditFinding[];
+  error_message: string;
+  checked_at: string;
+}
+
+export interface SitemapAuditResponse {
+  audit: SitemapAuditSummary | null;
+  pages: SitemapAuditPage[];
+  total: number;
+  page?: number;
+  page_size?: number;
+}
+
+export interface SitemapAuditQuery {
+  state?: SitemapPageState;
+  severity?: SitemapPageSeverity;
+  q?: string;
+  sort?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export async function startSitemapAudit(slug: string): Promise<SitemapAuditSummary> {
+  const { data } = await apiClient.post<SitemapAuditSummary>(
+    `/api/analyzer/runs/s/${slug}/sitemap/start/`,
+    {},
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function getSitemapAudit(
+  slug: string,
+  query: SitemapAuditQuery = {},
+): Promise<SitemapAuditResponse> {
+  const { data } = await apiClient.get<SitemapAuditResponse>(
+    `/api/analyzer/runs/s/${slug}/sitemap/`,
+    { params: query, timeout: 30_000 },
+  );
+  return data;
+}
+
+export interface AgentLogEntry {
+  id: number;
+  bot_name: string;
+  path: string;
+  status_code: number;
+  ts: string;
+  source: "cloudflare" | "vercel" | "manual";
+}
+
+export interface AgentLogIntegration {
+  name: string;
+  key: "cloudflare" | "vercel";
+  connected: boolean;
+  status: "coming_soon" | "ready" | "error";
+}
+
+export interface AgentLogResponse {
+  entries: AgentLogEntry[];
+  integrations: AgentLogIntegration[];
+}
+
+export async function getAgentLog(slug: string): Promise<AgentLogResponse> {
+  const { data } = await apiClient.get<AgentLogResponse>(
+    `/api/analyzer/runs/s/${slug}/agent-log/`,
+    { timeout: 15_000 },
+  );
+  return data;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Rank Tracker — auto-suggested queries + Google/Reddit/Quora rank snapshots
+// ──────────────────────────────────────────────────────────────────────────
+
+export type RankAuditStatus = "queued" | "running" | "complete" | "failed";
+export type RankSurface = "google" | "reddit" | "quora" | "ai";
+export type RankQueryStatus = "queued" | "done" | "failed";
+export type AiEngineKey = "gpt" | "claude" | "gemini" | "perplexity";
+export type RankSentiment = "positive" | "neutral" | "negative";
+
+export interface RankAuditSummary {
+  id: number;
+  status: RankAuditStatus;
+  progress: number;
+  total_queries: number;
+  queries_done: number;
+  avg_brand_mentions: number;
+  avg_top3_brand_rate: number;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  error_message: string;
+}
+
+export interface RankResult {
+  id: number;
+  surface: RankSurface;
+  position: number;
+  url: string;
+  domain: string;
+  title: string;
+  snippet: string;
+  engine: string;
+  response_text: string;
+  sentiment: RankSentiment;
+  is_brand_mentioned: boolean;
+  competitors_mentioned: string[];
+  upvotes: number | null;
+  subreddit: string;
+  checked_at: string | null;
+}
+
+export interface RankQuery {
+  id: number;
+  prompt_text: string;
+  rank: number;
+  brand_mention_count: number;
+  status: RankQueryStatus;
+  error_message: string;
+  results: RankResult[];
+}
+
+export interface RankAuditResponse {
+  audit: RankAuditSummary | null;
+  queries: RankQuery[];
+}
+
+export interface RankAuditQuery {
+  surface?: RankSurface;
+  query_id?: number;
+  q?: string;
+  only_brand?: boolean;
+}
+
+export async function startRankAudit(slug: string): Promise<RankAuditSummary> {
+  const { data } = await apiClient.post<RankAuditSummary>(
+    `/api/analyzer/runs/s/${slug}/rank/start/`,
+    {},
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function getRankAudit(
+  slug: string,
+  query: RankAuditQuery = {},
+): Promise<RankAuditResponse> {
+  const params: Record<string, string | number | boolean> = {};
+  if (query.surface) params.surface = query.surface;
+  if (query.query_id != null) params.query_id = query.query_id;
+  if (query.q) params.q = query.q;
+  if (query.only_brand) params.only_brand = "1";
+  const { data } = await apiClient.get<RankAuditResponse>(
+    `/api/analyzer/runs/s/${slug}/rank/`,
+    { params, timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function refreshRankQuery(
+  slug: string,
+  queryId: number,
+): Promise<RankQuery> {
+  const { data } = await apiClient.post<RankQuery>(
+    `/api/analyzer/runs/s/${slug}/rank/query/${queryId}/refresh/`,
+    {},
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function getPromptRank(
+  slug: string,
+  trackId: number,
+  opts?: { refresh?: boolean },
+): Promise<RankQuery> {
+  // Fetches top-3 Google/Reddit/Quora ranking for the tracked prompt's exact
+  // text. Backend runs the fetch synchronously the first time and caches it
+  // on a RankQuery row, so subsequent calls return cached results.
+  const { data } = await apiClientLong.post<RankQuery>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/rank/`,
+    { refresh: opts?.refresh ? 1 : 0 },
+    { timeout: 60_000 },
+  );
+  return data;
+}
+
+// ── Backlink marketplace ─────────────────────────────────────────────────────
+
+export type BacklinkLinkType =
+  | "guest_post" | "niche_edit" | "sponsored" | "citation" | "other";
+
+export type BacklinkOrderStatus =
+  | "draft" | "pending_payment" | "queued" | "in_progress"
+  | "delivered" | "rejected" | "refunded" | "cancelled";
+
+export interface BacklinkProduct {
+  id: number;
+  provider: string;
+  provider_name: string;
+  sku: string;
+  domain: string;
+  title: string;
+  link_type: BacklinkLinkType;
+  domain_authority: number | null;
+  domain_rank: number | null;
+  monthly_traffic: number | null;
+  niche_tags: string[];
+  language: string;
+  country: string;
+  do_follow: boolean;
+  price_cents: number;
+  currency: string;
+  lead_time_days: number;
+}
+
+export interface BacklinkProviderSummary {
+  slug: string;
+  display_name: string;
+}
+
+export interface BacklinkOrder {
+  id: number;
+  status: BacklinkOrderStatus;
+  provider: string;
+  provider_name: string;
+  domain: string;
+  title: string;
+  target_url: string;
+  anchor_text: string;
+  price_cents: number;
+  currency: string;
+  proof_url: string;
+  error_message: string;
+  prompt_track_id: number | null;
+  created_at: string | null;
+  ordered_at: string | null;
+  delivered_at: string | null;
+}
+
+export async function getBacklinkCatalog(
+  slug: string,
+  filters?: { link_type?: BacklinkLinkType; min_da?: number; niche?: string },
+): Promise<{ providers: BacklinkProviderSummary[]; products: BacklinkProduct[] }> {
+  const params: Record<string, string | number> = {};
+  if (filters?.link_type) params.link_type = filters.link_type;
+  if (filters?.min_da) params.min_da = filters.min_da;
+  if (filters?.niche) params.niche = filters.niche;
+  const { data } = await apiClient.get(
+    `/api/analyzer/runs/s/${slug}/backlinks/catalog/`,
+    { params, timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function listBacklinkOrders(
+  slug: string,
+  userEmail?: string,
+): Promise<{ orders: BacklinkOrder[] }> {
+  const params: Record<string, string> = {};
+  if (userEmail) params.user_email = userEmail;
+  const { data } = await apiClient.get(
+    `/api/analyzer/runs/s/${slug}/backlinks/orders/`,
+    { params },
+  );
+  return data;
+}
+
+export async function placeBacklinkOrder(
+  slug: string,
+  body: {
+    product_id: number;
+    target_url: string;
+    anchor_text: string;
+    user_email: string;
+    track_id?: number | null;
+    notes?: string;
+  },
+): Promise<BacklinkOrder> {
+  const { data } = await apiClient.post<BacklinkOrder>(
+    `/api/analyzer/runs/s/${slug}/backlinks/orders/`,
+    body,
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+export async function getBacklinkOrder(
+  slug: string,
+  orderId: number,
+): Promise<BacklinkOrder> {
+  const { data } = await apiClient.get<BacklinkOrder>(
+    `/api/analyzer/runs/s/${slug}/backlinks/orders/${orderId}/`,
+  );
+  return data;
+}
+
+export async function confirmBacklinkOrderPayment(
+  slug: string,
+  orderId: number,
+  paymentIntentId?: string,
+): Promise<BacklinkOrder> {
+  const { data } = await apiClient.post<BacklinkOrder>(
+    `/api/analyzer/runs/s/${slug}/backlinks/orders/${orderId}/confirm-payment/`,
+    { payment_intent_id: paymentIntentId ?? "" },
+    { timeout: 30_000 },
+  );
+  return data;
+}
+
+// ── Wikipedia draft generator ─────────────────────────────────────────────────
+
+export interface WikipediaDraftResponse {
+  notability: {
+    verdict: "qualifies" | "borderline" | "needs_more_coverage";
+    score: number;
+    summary: string;
+    missing_evidence: string[];
+  };
+  draft: {
+    title: string;
+    lead: string;
+    sections: Array<{ heading: string; body_markdown: string }>;
+    infobox: Record<string, string>;
+    references_markdown: string;
+  };
+  edit_targets: Array<{
+    title: string;
+    url: string;
+    suggested_edit: string;
+  }>;
+  submit_instructions_markdown: string;
+}
+
+export async function generateWikipediaDraft(
+  slug: string,
+  trackId: number,
+): Promise<WikipediaDraftResponse> {
+  const { data } = await apiClientLong.post<WikipediaDraftResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/wikipedia/draft/`,
+    {},
+    { timeout: 90_000 },
+  );
+  return data;
+}
+
+// ── Per-prompt schema / E-E-A-T generator ────────────────────────────────────
+
+export type PromptSchemaType =
+  | "faq" | "article" | "person" | "organization" | "answer";
+
+export interface PromptSchemaResponse {
+  schema_type: PromptSchemaType;
+  output: string;
+  explanation: string;
+  cached?: boolean;
+}
+
+export interface PromptSchemaArtifact {
+  schema_type: PromptSchemaType;
+  output: string;
+  explanation: string;
+  updated_at: string | null;
+}
+
+export async function generatePromptSchema(
+  slug: string,
+  trackId: number,
+  schemaType: PromptSchemaType,
+  opts?: { force?: boolean },
+): Promise<PromptSchemaResponse> {
+  const { data } = await apiClientLong.post<PromptSchemaResponse>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/schema/`,
+    { schema_type: schemaType, force: opts?.force ? true : false },
+    { timeout: 60_000 },
+  );
+  return data;
+}
+
+export async function listPromptSchemaArtifacts(
+  slug: string,
+  trackId: number,
+): Promise<{ artifacts: PromptSchemaArtifact[] }> {
+  const { data } = await apiClient.get<{ artifacts: PromptSchemaArtifact[] }>(
+    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/schema/`,
   );
   return data;
 }
