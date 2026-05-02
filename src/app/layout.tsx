@@ -169,6 +169,19 @@ export default function RootLayout({
     `}
   </Script>
         <Script
+  src="https://www.googletagmanager.com/gtag/js?id=G-5H7J1Q68TR"
+  strategy="afterInteractive"
+/>
+
+<Script id="ga-init" strategy="afterInteractive">
+  {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-5H7J1Q68TR');
+  `}
+</Script>
+        <Script
           id="ld-organization"
           type="application/ld+json"
           strategy="afterInteractive"
