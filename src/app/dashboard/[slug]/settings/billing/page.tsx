@@ -19,9 +19,9 @@ import {
   Rocket,
   AlertTriangle,
 } from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { EngineBadge } from "@/components/ui/engine-badge";
 import { engineLabel } from "@/lib/engines";
+import { BillingSkeleton } from "@/components/dashboard/skeletons";
 import { config } from "@/lib/config";
 
 const PLAN_ICONS: Record<string, typeof Zap> = {
@@ -106,9 +106,7 @@ export default function BillingSettingsPage() {
       </div>
 
       {loading ? (
-        <div className="py-16 flex justify-center">
-          <SignalorLoader label="Loading billing..." />
-        </div>
+        <BillingSkeleton />
       ) : (
         <>
           {/* Subscription status */}

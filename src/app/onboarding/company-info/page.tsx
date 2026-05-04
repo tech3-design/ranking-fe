@@ -77,7 +77,7 @@ const STEP_HERO: Record<Step, { headline: string; sub: string }> = {
 
 /** Nested panels inside the main card (install blocks, prompts list, etc.) */
 const PANEL =
-  "rounded-xl border border-black/8 bg-white shadow-[0_2px_14px_rgba(0,0,0,0.045)]";
+  "rounded-xl border border-black/8 bg-white shadow-[0_2px_14px_rgba(0,0,0,0.045)] isolate";
 
 const ERR_BOX =
   "rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-[12px] font-medium text-destructive";
@@ -132,6 +132,24 @@ type Draft = {
   wpSiteUrl: string; wpApiKey: string; wpStep: number;
   orgId: number | null; prompts: string[]; appInstalled: boolean;
 };
+
+function SiteFavicon({ url }: { url: string }) {
+  const [failed, setFailed] = useState(false);
+  const domain = url.replace(/^https?:\/\//, "").replace(/\/$/, "").split("/")[0];
+  if (failed || !domain) {
+    return <Globe className="inline-block size-3.5 shrink-0 text-muted-foreground/60" />;
+  }
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+      alt=""
+      width={14}
+      height={14}
+      className="inline-block size-3.5 shrink-0 rounded-[3px] object-contain align-middle"
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 export default function CompanyInfoPage() {
   const { data: session, isPending } = useSession();
@@ -821,14 +839,19 @@ export default function CompanyInfoPage() {
               </div>
             ) : (
               <>
-                <div className={`overflow-hidden ${PANEL}`}>
+                <div className={PANEL}>
                   {prompts.map((prompt, idx) => (
                     <div
                       key={idx}
-                      className={`group flex min-h-[44px] items-center gap-3 px-4 py-2.5 transition hover:bg-muted/50 ${idx > 0 ? "border-t border-border" : ""}`}
+                      className={[
+                        "group relative h-[44px]",
+                        idx === 0 ? "rounded-t-xl" : "border-t border-border",
+                        idx === prompts.length - 1 ? "rounded-b-xl" : "",
+                      ].join(" ")}
                     >
                       {editingIdx === idx ? (
-                        <div className="flex flex-1 gap-2">
+                        /* Edit mode */
+                        <div className="flex h-full items-center gap-2 px-4">
                           <Input
                             value={editText}
                             onChange={(e) => setEditText(e.target.value)}
@@ -849,32 +872,52 @@ export default function CompanyInfoPage() {
                         </div>
                       ) : (
                         <>
-                          <span className="w-4 shrink-0 text-right font-mono text-[11px] text-muted-foreground">
-                            {idx + 1}
-                          </span>
-                          <span
-                            className="flex-1 cursor-pointer truncate text-[13px] text-foreground"
-                            onClick={() => editPrompt(idx)}
+                          {/* Idle row — fixed height, single line with ellipsis */}
+                          <div className="flex h-full items-center gap-3 px-4">
+                            <span className="w-4 shrink-0 text-right font-mono text-[11px] text-muted-foreground">
+                              {idx + 1}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate text-[13px] text-foreground">
+                              {prompt}
+                            </span>
+                          </div>
+
+                          {/* Hover card — absolutely positioned, floats over rows, zero layout shift */}
+                          <div
+                            className={[
+                              "absolute inset-x-0 top-0 z-20",
+                              "flex items-start gap-3 px-4 py-3",
+                              "rounded-xl border border-black/8 bg-white",
+                              "shadow-[0_8px_24px_rgba(0,0,0,0.11)]",
+                              "pointer-events-none opacity-0 scale-[0.96] origin-top",
+                              "group-hover:pointer-events-auto group-hover:opacity-100 group-hover:scale-100",
+                              "transition-[opacity,transform] duration-200 ease-out",
+                            ].join(" ")}
                           >
-                            {prompt}
-                          </span>
-                          <div className="flex shrink-0 gap-0 opacity-0 transition group-hover:opacity-100">
-                            <button
-                              type="button"
-                              onClick={() => editPrompt(idx)}
-                              className="p-1 transition hover:bg-muted"
-                              aria-label="Edit prompt"
-                            >
-                              <Pencil className="h-3 w-3 text-muted-foreground" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => rmPrompt(idx)}
-                              className="p-1 transition hover:bg-red-50"
-                              aria-label="Remove prompt"
-                            >
-                              <X className="h-3 w-3 text-muted-foreground" />
-                            </button>
+                            <span className="mt-px w-4 shrink-0 text-right font-mono text-[11px] text-muted-foreground">
+                              {idx + 1}
+                            </span>
+                            <span className="flex-1 text-[13px] leading-snug text-foreground">
+                              {prompt}
+                            </span>
+                            <div className="flex shrink-0 gap-0">
+                              <button
+                                type="button"
+                                onClick={() => editPrompt(idx)}
+                                className="rounded p-1 transition hover:bg-muted"
+                                aria-label="Edit prompt"
+                              >
+                                <Pencil className="h-3 w-3 text-muted-foreground" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => rmPrompt(idx)}
+                                className="rounded p-1 transition hover:bg-red-50"
+                                aria-label="Remove prompt"
+                              >
+                                <X className="h-3 w-3 text-muted-foreground" />
+                              </button>
+                            </div>
                           </div>
                         </>
                       )}
@@ -987,10 +1030,13 @@ export default function CompanyInfoPage() {
         {/* ── Step 7: Launch ── */}
         {step === "launch" && (
           <div className="space-y-3">
-            <p className="text-center text-[12px] text-muted-foreground">
-              Site{" "}
-              <span className="font-medium text-foreground">{siteUrl.replace(/^https?:\/\//, "")}</span>
-            </p>
+            <div className="flex items-center justify-center gap-1.5 text-[12px] text-muted-foreground">
+              <span>Site</span>
+              <SiteFavicon url={siteUrl} />
+              <span className="font-medium text-foreground">
+                {siteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+              </span>
+            </div>
 
             <div className={`mb-2 overflow-hidden ${PANEL}`}>
               {[

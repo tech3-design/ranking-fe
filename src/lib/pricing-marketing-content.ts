@@ -1,5 +1,5 @@
 export const PRICING_STATS = [
-  { label: "Billing", value: "GBP", detail: "Secure checkout via Dodo" },
+  { label: "Billing", value: "EUR", detail: "Secure checkout via Dodo" },
   { label: "Flexibility", value: "Monthly", detail: "Change or cancel when you need" },
   { label: "Core", value: "GEO score", detail: "Every plan includes analysis & fixes" },
 ] as const;
@@ -23,6 +23,6 @@ export const PRICING_FAQ_ITEMS = [
   {
     question: "Is VAT or tax included in the listed price?",
     answer:
-      "Listed amounts are in GBP before any applicable taxes. Your checkout screen shows the final total from the payment provider for your region.",
+      "Listed amounts are in EUR (or an approximate local equivalent) before any applicable taxes. Your checkout screen shows the final EUR total from the payment provider.",
   },
 ] as const;

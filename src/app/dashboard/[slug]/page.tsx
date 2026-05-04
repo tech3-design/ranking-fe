@@ -15,8 +15,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
-import { RotatingGeoFact } from "@/components/ui/rotating-geo-fact";
+import { OverviewSkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -154,12 +153,7 @@ export default function SignalorDashboard() {
   }, [brandVis?.reddit_details, run?.ai_probes]);
 
   if (loading) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-4">
-        <SignalorLoader size="lg" />
-        <RotatingGeoFact intervalMs={4500} className="max-w-lg" />
-      </div>
-    );
+    return <OverviewSkeleton />;
   }
 
   if ((error || reanalyzeError) && !run) {
@@ -229,7 +223,7 @@ export default function SignalorDashboard() {
   return (
     <>
       {/* <header className="sticky top-0 z-20 border-b border-border bg-white px-6 py-4"> */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             {brandFavicon ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -238,7 +232,7 @@ export default function SignalorDashboard() {
                 alt={`${projectName} logo`}
                 width={48}
                 height={48}
-                className="size-10 shrink-0 rounded-lg border border-border bg-white object-contain p-1 shadow-sm sm:size-12"
+                className="size-10 shrink-0 rounded-lg object-contain sm:size-12"
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.display = "none";
                 }}
@@ -304,19 +298,27 @@ export default function SignalorDashboard() {
 
       {run && !isRunning && (
         <div className="px-3 pb-4 pt-3 sm:px-4">
-          <WeeklyPerformanceSection
-            scoreHistory={scoreHistory}
-            joinDate={run.created_at}
-          />
+          {/* GEO Score card (left) + GEO Performance chart (right), equal height */}
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-stretch">
+            <div className="w-full shrink-0 sm:w-56">
+              <GeoScoreCard
+                compositeScore={compositeScore}
+                scoreChange={scoreChange}
+                sparkle={!!scoreBump && scoreBump > 0}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <WeeklyPerformanceSection
+                scoreHistory={scoreHistory}
+                joinDate={run.created_at}
+                className="mb-0 h-full"
+              />
+            </div>
+          </div>
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
-            <GeoScoreCard
-              compositeScore={compositeScore}
-              scoreChange={scoreChange}
-              sparkle={!!scoreBump && scoreBump > 0}
-            />
             <VisibilityByPlatformCard brandVis={brandVis} />
             {/* <GeoScoreHistoryCard scoreHistory={scoreHistory} /> */}
-            <div className="col-span-5 flex min-h-0 h-full flex-col gap-2">
+            <div className="col-span-6 flex min-h-0 h-full flex-col gap-2">
               <div className="min-h-0 flex-1">
                 <PillarBreakdownCard pageScore={pageScore} />
               </div>
