@@ -27,7 +27,6 @@ import type { DashboardSentiment } from "@/components/dashboard/types";
 import { GeoScoreCard } from "@/components/dashboard/geo-score-card";
 import { GeoScoreHistoryCard } from "@/components/dashboard/geo-score-history-card";
 import { PillarBreakdownCard } from "@/components/dashboard/pillar-breakdown-card";
-import { TopIssuesCard } from "@/components/dashboard/top-issues-card";
 import { VisibilityByPlatformCard } from "@/components/dashboard/visibility-by-platform-card";
 import { CompetitorsCard } from "@/components/dashboard/competitors-card";
 import { PredictionSentimentRow } from "@/components/dashboard/prediction-sentiment-row";
@@ -317,13 +316,8 @@ export default function SignalorDashboard() {
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
             <VisibilityByPlatformCard brandVis={brandVis} />
             {/* <GeoScoreHistoryCard scoreHistory={scoreHistory} /> */}
-            <div className="col-span-6 flex min-h-0 h-full flex-col gap-2">
-              <div className="min-h-0 flex-1">
-                <PillarBreakdownCard pageScore={pageScore} />
-              </div>
-              <div className="shrink-0">
-                <TopIssuesCard slug={slug} recommendations={recommendations} />
-              </div>
+            <div className="col-span-8 min-h-0 h-full">
+              <PillarBreakdownCard pageScore={pageScore} />
             </div>
           </div>
 
