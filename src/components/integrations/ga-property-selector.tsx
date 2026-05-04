@@ -3,6 +3,13 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   getGAProperties,
   selectGAProperty,
   syncGAData,
@@ -85,18 +92,18 @@ export function GAPropertySelector({
   return (
     <div className="space-y-3">
       <label className="text-sm font-medium">Select a GA4 property</label>
-      <select
-        value={selectedId}
-        onChange={(e) => setSelectedId(e.target.value)}
-        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-      >
-        <option value="">Choose a property...</option>
-        {properties.map((p) => (
-          <option key={p.property_id} value={p.property_id}>
-            {p.display_name} ({p.account_name})
-          </option>
-        ))}
-      </select>
+      <Select value={selectedId} onValueChange={setSelectedId}>
+        <SelectTrigger className="h-9 w-full border-border bg-background text-sm focus:ring-0 focus:border-border">
+          <SelectValue placeholder="Choose a property..." />
+        </SelectTrigger>
+        <SelectContent>
+          {properties.map((p) => (
+            <SelectItem key={p.property_id} value={p.property_id}>
+              {p.display_name} ({p.account_name})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <Button
         onClick={handleSave}
         disabled={!selectedId || saving}

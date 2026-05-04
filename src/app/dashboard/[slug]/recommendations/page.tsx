@@ -14,7 +14,7 @@ import {
   type RecommendationStatusFilter,
 } from "@/lib/recommendations-filters";
 import { AlertCircle, Search, X } from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { RecommendationsSkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -98,7 +98,7 @@ export default function RecommendationsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search recommendations…"
-                  className="h-9 border border-border/80 bg-white pl-9 pr-9 text-sm text-foreground shadow-sm dark:bg-white dark:text-foreground"
+                  className="h-9 border border-border/80 bg-white pl-9 pr-9 text-sm text-foreground shadow-sm focus-visible:ring-0 focus-visible:border-border dark:bg-white dark:text-foreground"
                   aria-label="Search recommendations"
                 />
                 {searchQuery ? (
@@ -188,11 +188,7 @@ export default function RecommendationsPage() {
         </div>
       )}
 
-      {loading && (
-        <div className="flex items-center justify-center py-24">
-          <SignalorLoader label="Loading recommendations..." />
-        </div>
-      )}
+      {loading && <RecommendationsSkeleton />}
 
       {error && !loading && (
         <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/10 px-5 py-4 text-sm text-primary">

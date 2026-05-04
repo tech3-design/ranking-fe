@@ -1,25 +1,27 @@
-"use client";
-
 import Link from "next/link";
-import { ArrowRight, Clock, Mail } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
 import { HeroBackgroundGrid } from "@/components/landing/hero-background-grid";
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { BlogStackIllustration } from "@/components/blog/blog-stack-illustration";
+import { BlogNewsletterForm } from "@/components/blog/newsletter-form";
 import {
   BLOG_CATEGORIES,
-  BLOG_FEATURED,
   BLOG_NEWSLETTER,
-  BLOG_POSTS,
   BLOG_STATS,
   type BlogPost,
 } from "@/lib/landing-blog-content";
+import { client } from "@/sanity/lib/client";
+import { ALL_POSTS_QUERY } from "@/sanity/lib/queries";
 import { cn } from "@/lib/utils";
 
+export const revalidate = 60;
+
 function formatDate(iso: string) {
-  return new Date(iso + "T00:00:00").toLocaleDateString(undefined, {
+  const normalized = iso.length === 10 ? iso + "T00:00:00" : iso;
+  return new Date(normalized).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -34,7 +36,11 @@ const CATEGORY_TONE: Record<BlogPost["category"], { bg: string; fg: string }> = 
   Guides: { bg: "bg-emerald-100", fg: "text-emerald-700" },
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const displayPosts = await client
+    .fetch<BlogPost[]>(ALL_POSTS_QUERY)
+    .catch(() => [] as BlogPost[]);
+
   return (
     <LandingMarketingShell>
       {/* ─── Hero ─────────────────────────────────────────────────────── */}
@@ -84,55 +90,43 @@ export default function BlogPage() {
 
       <ScreenHR />
 
-      {/* ─── Featured post ───────────────────────────────────────────── */}
-      <section className="relative bg-background px-6 py-14 lg:px-12 lg:py-16">
-        <div className="mx-auto max-w-7xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
-            [ featured ]
-          </p>
-          <h2 className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem]">
-            This week&apos;s{" "}
-            <span className="relative whitespace-nowrap text-[#b45309]">
-              must-read
-              <span
-                className="absolute -bottom-1 left-0 right-0 border-b-2 border-dashed border-[#b45309]/45"
-                aria-hidden
-              />
-            </span>
-          </h2>
-        </div>
-
-        <FeaturedCard post={BLOG_FEATURED} />
-      </section>
-
-      <ScreenHR />
-
-      {/* ─── Posts grid ──────────────────────────────────────────────── */}
-      <section className="relative bg-background px-6 py-14 lg:px-12 lg:py-16">
-        <div className="mx-auto max-w-7xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
-            [ latest posts ]
-          </p>
-          <h2 className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem]">
-            Fresh from the{" "}
-            <span className="relative whitespace-nowrap text-[#b45309]">
-              Signalor studio
-              <span
-                className="absolute -bottom-1 left-0 right-0 border-b-2 border-dashed border-[#b45309]/45"
-                aria-hidden
-              />
-            </span>
-          </h2>
-        </div>
-
-        <div className="mx-auto mt-10 max-w-7xl bg-black-10">
-          <div className="grid grid-cols-1 divide-y divide-black/6 md:grid-cols-3 md:divide-x md:divide-y-0">
-            {BLOG_POSTS.slice(0, 6).map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
+      {displayPosts.length === 0 ? (
+        /* ─── Empty state ──────────────────────────────────────────── */
+        <section className="relative bg-background px-6 py-24 lg:px-12">
+          <div className="mx-auto max-w-7xl text-center">
+            <p className="text-4xl font-bold tracking-tight text-foreground">No blogs yet!</p>
+            <p className="mt-3 text-base font-light text-muted-foreground">
+              Check back soon — posts will appear here once published.
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        /* ─── Posts grid ──────────────────────────────────────────── */
+        <section className="relative bg-background px-6 py-14 lg:px-12 lg:py-16">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
+              [ latest posts ]
+            </p>
+            <h2 className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem]">
+              Fresh from the{" "}
+              <span className="relative whitespace-nowrap text-[#b45309]">
+                Signalor studio
+                <span
+                  className="absolute -bottom-1 left-0 right-0 border-b-2 border-dashed border-[#b45309]/45"
+                  aria-hidden
+                />
+              </span>
+            </h2>
+          </div>
+          <div className="mx-auto mt-10 max-w-7xl bg-black-10">
+            <div className="grid grid-cols-1 divide-y divide-black/6 md:grid-cols-3 md:divide-x md:divide-y-0">
+              {displayPosts.map((post) => (
+                <PostCard key={post.slug} post={post} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <ScreenHR />
 
@@ -193,24 +187,7 @@ export default function BlogPage() {
                 {BLOG_NEWSLETTER.description}
               </p>
             </div>
-            <form
-              className="flex w-full items-center gap-2 rounded-sm border border-[#b45309]/30 bg-white p-1.5 shadow-sm lg:col-span-2"
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <Mail className="ml-2 h-4 w-4 text-muted-foreground" aria-hidden />
-              <input
-                type="email"
-                placeholder="you@domain.com"
-                className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="shrink-0 rounded-sm bg-[#b45309] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:brightness-110"
-              >
-                {BLOG_NEWSLETTER.cta}
-                <ArrowRight className="ml-1.5 inline h-3.5 w-3.5" />
-              </button>
-            </form>
+            <BlogNewsletterForm />
           </div>
         </div>
       </section>
@@ -220,63 +197,9 @@ export default function BlogPage() {
   );
 }
 
-function FeaturedCard({ post }: { post: BlogPost }) {
-  const tone = CATEGORY_TONE[post.category];
-  return (
-    <div className="mx-auto mt-10 max-w-7xl">
-      <Link
-        href={`/blog/${post.slug}`}
-        className="group block overflow-hidden rounded-sm border border-black/6 bg-white shadow-sm transition hover:shadow-md"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-5">
-          <div className="relative flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-amber-100/40 p-8 md:col-span-2 md:p-10">
-            <BlogStackIllustration />
-          </div>
-          <div className="flex flex-col justify-center gap-4 border-t border-black/6 p-8 md:col-span-3 md:border-l md:border-t-0 md:p-10">
-            <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                  tone.bg,
-                  tone.fg,
-                )}
-              >
-                {post.category}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                {post.readingMinutes} min
-              </span>
-              <span className="text-[11px] text-muted-foreground">
-                · {formatDate(post.publishedAt)}
-              </span>
-            </div>
-            <h3 className="text-2xl font-bold leading-tight tracking-tight text-foreground md:text-3xl">
-              {post.title}
-            </h3>
-            <p className="max-w-2xl text-[15px] font-light leading-relaxed text-accent-foreground">
-              {post.excerpt}
-            </p>
-            <div className="mt-2 flex items-center gap-3 border-t border-black/5 pt-4">
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#b45309] to-amber-400" />
-              <div>
-                <p className="text-[13px] font-semibold text-foreground">{post.author}</p>
-                <p className="text-[11px] text-muted-foreground">{post.authorRole}</p>
-              </div>
-              <span className="ml-auto inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#b45309] transition group-hover:translate-x-0.5">
-                Read the playbook
-                <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </div>
-          </div>
-        </div>
-      </Link>
-    </div>
-  );
-}
 
 function PostCard({ post }: { post: BlogPost }) {
-  const tone = CATEGORY_TONE[post.category];
+  const tone = CATEGORY_TONE[post.category] ?? { bg: "bg-neutral-100", fg: "text-neutral-700" };
   return (
     <Link
       href={`/blog/${post.slug}`}

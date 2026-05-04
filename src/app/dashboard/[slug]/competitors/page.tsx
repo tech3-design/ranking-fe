@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RiveLoader } from "@/components/ui/rive-loader";
+import { CompetitorsSkeleton } from "@/components/dashboard/skeletons";
 import { Search, X } from "lucide-react";
 
 export default function CompetitorsPage() {
@@ -26,11 +26,7 @@ export default function CompetitorsPage() {
   const [scoreBand, setScoreBand] = useState<ScoreBandFilter>("all");
 
   if (loading) {
-    return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-2">
-        <RiveLoader size={200} label="Analyzing competitors…" />
-      </div>
-    );
+    return <CompetitorsSkeleton />;
   }
 
   if (error) {
@@ -64,7 +60,7 @@ export default function CompetitorsPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search competitors..."
-                className="h-9 border border-border/80 bg-white pl-9 pr-9 text-sm text-foreground shadow-sm dark:bg-white dark:text-foreground"
+                className="h-9 border border-border/80 bg-white pl-9 pr-9 text-sm text-foreground shadow-sm focus-visible:border-border focus-visible:ring-0 dark:bg-white dark:text-foreground"
                 aria-label="Search competitors"
               />
               {query ? (
