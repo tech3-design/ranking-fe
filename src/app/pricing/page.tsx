@@ -15,10 +15,12 @@ import {
 } from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
 import { Check, Clock, Crown, Rocket, Zap } from "lucide-react";
+import { useCurrency, formatPrice } from "@/lib/hooks/use-currency";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
+import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { PricingHero } from "@/components/pricing/pricing-hero";
 import { PricingStatsSection } from "@/components/pricing/pricing-stats-section";
 import { PRICING_FAQ_ITEMS } from "@/lib/pricing-marketing-content";
@@ -110,16 +112,28 @@ function PricingPageInner() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [checkoutDodoMode, setCheckoutDodoMode] = useState<DodoMode | null>(null);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const { currency, ready: currencyReady } = useCurrency();
 
   useEffect(() => {
-    if (isPending || !session) return;
+    if (isPending || !session) {
+      setCurrentPlanId(null);
+      return;
+    }
     getSubscriptionStatus(session.user.email)
       .then((s) => {
         if (s.is_active) {
-          router.replace(returnTo || routes.dashboard);
+          setCurrentPlanId(s.plan);
+          // Preserve onboarding/setup flows: if the user landed here with a
+          // returnTo, send them onward. Otherwise let them browse pricing.
+          if (returnTo) {
+            router.replace(returnTo);
+          }
+        } else {
+          setCurrentPlanId(null);
         }
       })
-      .catch(() => {});
+      .catch(() => setCurrentPlanId(null));
   }, [isPending, session, router, returnTo]);
 
   const handleSubscribe = useCallback(
@@ -173,8 +187,27 @@ function PricingPageInner() {
         onboardingBanner={returnTo === routes.onboardingCompanyInfo}
       />
 
-      <section className="border-t border-border/60 px-6 py-14 lg:px-12">
-        <div className="mx-auto max-w-6xl">
+      <ScreenHR />
+      <section className="relative bg-background px-6 py-14 lg:px-12 lg:py-16">
+        <div className="mx-auto max-w-7xl">
+          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
+            [ plans ]
+          </p>
+          <h2 className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem]">
+            Pick the plan that{" "}
+            <span className="relative whitespace-nowrap text-primary">
+              matches your team
+              <span
+                className="absolute -bottom-1 left-0 right-0 border-b-2 border-dashed border-primary/45"
+                aria-hidden
+              />
+            </span>
+          </h2>
+          <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
+            Start free, upgrade when your GEO program outgrows the Starter slots—cancel any time.
+          </p>
+
+          <div className="mt-10">
           {error ? (
             <div className="mb-10 max-w-lg mx-auto space-y-2">
               <p className="rounded-lg border border-destructive/25 bg-destructive/5 px-4 py-3 text-center text-sm text-destructive">
@@ -198,108 +231,119 @@ function PricingPageInner() {
             </div>
           ) : null}
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-5">
+          <div className="grid grid-cols-1 gap-0 md:grid-cols-3">
             {PLANS.map((plan) => {
-              const Icon = plan.icon;
               const isLoading = loadingPlan === plan.id;
-              const priceLabel =
-                Math.round(plan.price) === plan.price ? `${plan.price}` : plan.price.toFixed(2);
+              const isCurrent = currentPlanId === plan.id;
+              const priceLabel = currencyReady
+                ? formatPrice(plan.price, currency)
+                : plan.price.toFixed(2);
 
               return (
                 <div
                   key={plan.id}
                   className={cn(
-                    "relative flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-shadow",
-                    plan.popular
-                      ? "border-2 border-[#e04a3d] shadow-md md:scale-[1.02] md:py-7"
-                      : "border-border hover:shadow-md",
+                    "relative flex flex-col px-8 py-10 md:px-10 md:py-12 border border-black/6",
+                    isCurrent
+                      ? "bg-gradient-to-br from-emerald-50 via-white to-emerald-100/60 md:z-10 md:-my-2 md:shadow-[0_12px_40px_-12px_rgba(16,185,129,0.25)] ring-2 ring-emerald-500/40"
+                      : plan.popular
+                      ? "bg-gradient-to-br from-primary/5 via-white to-primary/10 md:z-10 md:-my-2 md:shadow-[0_12px_40px_-12px_rgba(224,74,61,0.25)]"
+                      : "bg-neutral-50/50",
                   )}
                 >
-                  {plan.popular ? (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#e04a3d] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                      Most popular
-                    </div>
-                  ) : null}
-
-                  <div className="mb-5">
-                    <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-black/8 bg-[#e04a3d]/10 px-3 py-1.5 text-xs font-semibold text-[#e04a3d]">
-                      <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-                      {plan.label}
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold tracking-tight text-foreground">
-                        {"\u00A3"}
-                        {priceLabel}
+                  <div className="mb-1 flex items-center gap-2.5">
+                    <h3 className="text-2xl font-bold tracking-tight text-foreground">{plan.label}</h3>
+                    {isCurrent ? (
+                      <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                        Current Plan
                       </span>
-                      <span className="text-sm text-muted-foreground">{plan.period}</span>
-                    </div>
-                    <p className="mt-2 text-xs font-light leading-relaxed text-muted-foreground">
-                      {plan.description}
-                    </p>
+                    ) : plan.popular ? (
+                      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                        Most Popular
+                      </span>
+                    ) : null}
                   </div>
 
-                  <div className="mb-5 h-px w-full bg-border" />
+                  <p className="mt-2 max-w-[260px] text-[13px] font-light leading-relaxed text-muted-foreground">
+                    {plan.description}
+                  </p>
 
-                  <div className="mb-6 flex flex-1 flex-col space-y-3">
+                  <div className="mt-8 flex items-start">
+                    <span className="mt-2 text-xl font-semibold text-foreground">
+                      {currency.symbol}
+                    </span>
+                    <span
+                      className={cn(
+                        "ml-0.5 text-5xl font-bold tracking-tight tabular-nums transition-opacity duration-300",
+                        currencyReady ? "text-foreground opacity-100" : "text-foreground opacity-40",
+                      )}
+                    >
+                      {priceLabel}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Per month{!currencyReady ? "" : currency.code !== "EUR" ? ` \u00B7 approx. in ${currency.code}` : ""}</p>
+
+                  <div className="mt-8 flex flex-1 flex-col gap-3">
                     {plan.features.map((f) => (
                       <div key={f} className="flex items-start gap-2.5">
-                        <span className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[#e04a3d]/12">
-                          <Check className="h-2.5 w-2.5 text-[#e04a3d]" strokeWidth={2.5} aria-hidden />
-                        </span>
-                        <span className="text-sm leading-snug text-foreground/90">{f}</span>
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground" strokeWidth={2.25} aria-hidden />
+                        <span className="text-[13px] leading-snug text-foreground/90">{f}</span>
                       </div>
                     ))}
 
                     {plan.comingSoonFeatures && plan.comingSoonFeatures.length > 0 ? (
-                      <div className="mt-1 border-t border-border pt-4">
-                        <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Coming soon
-                        </p>
-                        <div className="space-y-2.5">
-                          {plan.comingSoonFeatures.map((f) => (
-                            <div key={f} className="flex items-start gap-2.5">
-                              <span className="mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-muted">
-                                <Clock className="h-2.5 w-2.5 text-muted-foreground" aria-hidden />
-                              </span>
-                              <span className="text-sm leading-snug text-muted-foreground">{f}</span>
-                            </div>
-                          ))}
-                        </div>
+                      <div className="mt-2 space-y-2.5">
+                        {plan.comingSoonFeatures.map((f) => (
+                          <div key={f} className="flex items-start gap-2.5">
+                            <Clock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                            <span className="text-[13px] leading-snug text-muted-foreground">{f}</span>
+                          </div>
+                        ))}
                       </div>
                     ) : null}
                   </div>
 
-                  <Button
-                    type="button"
-                    variant={plan.popular ? "default" : "secondary"}
-                    onClick={() => handleSubscribe(plan.id)}
-                    disabled={!!loadingPlan}
-                    className={cn(
-                      "h-11 w-full rounded-lg text-sm font-semibold shadow-sm",
-                      plan.popular && "text-white",
-                      !plan.popular &&
-                        "border-0 bg-neutral-900 text-white hover:bg-neutral-800 hover:text-white",
-                    )}
-                  >
-                    {isLoading ? (
-                      <SignalorLoader size="sm" />
-                    ) : session ? (
-                      <>Get {plan.label}</>
-                    ) : (
-                      <>Sign in to get {plan.label}</>
-                    )}
-                  </Button>
+                  <div className="mt-10">
+                    <Button
+                      type="button"
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={!!loadingPlan || isCurrent}
+                      className={cn(
+                        "h-12 w-full rounded-lg text-sm font-semibold shadow-sm",
+                        isCurrent
+                          ? "bg-emerald-600 text-white hover:brightness-110 disabled:opacity-100"
+                          : plan.popular
+                          ? "bg-primary text-white hover:brightness-110"
+                          : "border border-black/10 bg-white text-foreground hover:bg-neutral-50",
+                      )}
+                    >
+                      {isLoading ? (
+                        <SignalorLoader size="sm" />
+                      ) : isCurrent ? (
+                        <>Current Plan</>
+                      ) : session ? (
+                        <>Subscribe now</>
+                      ) : (
+                        <>Get started</>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               );
             })}
           </div>
 
           <p className="mt-10 text-center text-[11px] font-medium text-muted-foreground">
-            All prices in GBP. Secure payment. Cancel anytime.
+            {currency.code === "EUR"
+              ? "All prices in EUR. Secure payment. Cancel anytime."
+              : `Prices shown in ${currency.code} — indicative only. Charged in EUR at checkout. Cancel anytime.`}
           </p>
+          </div>
         </div>
       </section>
 
+      <ScreenHR />
       <PricingStatsSection />
 
       <LandingFaq

@@ -10,12 +10,13 @@ import {
 } from "@/lib/api/organizations";
 import { useOrgStore } from "@/lib/stores/org-store";
 import { Loader2, Pencil, Trash2, Plus, Camera, AlertTriangle, ShieldX, Clock, LogOut } from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { terminateAccount, cancelTermination, deleteAccount } from "@/lib/api/payments";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/config";
+import { DashboardSettingsNav } from "@/components/settings/dashboard-settings-nav";
 
 export default function ProfileSettingsPage() {
   const { data: session } = useSession();
@@ -139,83 +140,129 @@ export default function ProfileSettingsPage() {
   }
 
   return (
-    <div className="px-2 py-2 space-y-6">
+    <div className="px-2 py-2 space-y-6 font-sans">
+      <DashboardSettingsNav label="Profile" />
       <div>
-        <h2 className="text-2xl font-semibold text-foreground">Profile</h2>
-        <p className="text-xs mt-1 text-muted-foreground">Manage your account and organizations.</p>
+        <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Profile</h2>
+        <p className="mt-1 text-[13px] font-light leading-relaxed text-accent-foreground">
+          Manage your account and organizations.
+        </p>
       </div>
 
       {error && (
-        <div className="rounded-xl bg-primary/10 border border-primary/30 px-4 py-3 text-sm text-primary">{error}</div>
+        <div className="rounded-sm border border-primary/30 bg-primary/10 px-4 py-3 text-[13px] font-semibold tracking-tight text-primary">
+          {error}
+        </div>
       )}
       {notice && (
-        <div className="rounded-xl bg-[#22c55e]/10 border border-[#22c55e]/30 px-4 py-3 text-sm text-[#22c55e]">{notice}</div>
+        <div className="rounded-sm border border-[#22c55e]/30 bg-[#22c55e]/10 px-4 py-3 text-[13px] font-semibold tracking-tight text-[#16a34a]">
+          {notice}
+        </div>
       )}
 
       {/* Profile card */}
-      <div className="bg-card rounded-2xl p-6 border border-border">
-        <p className="text-sm font-semibold text-foreground mb-4">Account</p>
+      <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm">
+        <p className="mb-4 text-[14px] font-semibold tracking-tight text-neutral-900">Account</p>
         <div className="flex items-center gap-5">
-          <div className="relative group">
+          <div className="group relative">
             <UserAvatar src={userImage} initials={userInitials} size={64} />
-            <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-              <Camera className="w-5 h-5 text-white" />
+            <div className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+              <Camera className="h-5 w-5 text-white" strokeWidth={1.75} />
             </div>
           </div>
           <div>
-            <p className="text-base font-semibold text-foreground">{userName}</p>
-            <p className="text-xs text-muted-foreground">{email}</p>
+            <p className="text-[15px] font-semibold tracking-tight text-neutral-900">{userName}</p>
+            <p className="text-[12px] font-light leading-snug text-accent-foreground">{email}</p>
             {userImage && (
-              <p className="text-[10px] text-muted-foreground mt-1">Photo from Google</p>
+              <p className="mt-1 text-[10px] font-light text-accent-foreground">Photo from Google</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Projects */}
-      <div className="bg-card rounded-2xl p-6 border border-border">
-        <p className="text-sm font-semibold text-foreground mb-1">Projects</p>
-        <p className="text-xs text-muted-foreground mb-4">Add, edit, or remove your projects.</p>
+      <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm">
+        <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Projects</p>
+        <p className="mb-4 mt-1 text-[12px] font-light leading-snug text-accent-foreground">
+          Add, edit, or remove your projects.
+        </p>
 
         <button
           onClick={() => router.push("/onboarding/company-info")}
-          className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white bg-primary transition hover:opacity-90 mb-4"
+          className="mb-4 inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-[12px] font-semibold tracking-tight text-primary-foreground shadow-sm transition hover:opacity-90"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="h-3.5 w-3.5" strokeWidth={2} />
           Add New Project
         </button>
 
         {loading ? (
-          <div className="py-8 flex justify-center"><SignalorLoader size="sm" /></div>
+          <div className="space-y-2 py-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between rounded-sm border border-black/8 bg-neutral-50/80 px-4 py-3">
+                <div className="space-y-1">
+                  <Skeleton className="h-[14px] w-32 rounded" />
+                  <Skeleton className="h-[12px] w-44 rounded" />
+                </div>
+                <div className="flex gap-1.5">
+                  <Skeleton className="h-8 w-8 rounded-sm" />
+                  <Skeleton className="h-8 w-8 rounded-sm" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : organizations.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-6">No projects yet.</p>
+          <p className="py-6 text-center text-[12px] font-light text-accent-foreground">No projects yet.</p>
         ) : (
           <div className="space-y-2">
             {organizations.map((org) => {
               const isEditing = editingId === org.id;
               return (
-                <div key={org.id} className="rounded-xl px-4 py-3 bg-background border border-border">
+                <div key={org.id} className="rounded-sm border border-black/8 bg-neutral-50/80 px-4 py-3">
                   {isEditing ? (
                     <div className="flex gap-2">
-                      <input value={editName} onChange={(e) => setEditName(e.target.value)} className="flex-1 bg-card rounded-lg px-3 py-1.5 text-sm border border-border" />
-                      <input value={editUrl} onChange={(e) => setEditUrl(e.target.value)} className="flex-1 bg-card rounded-lg px-3 py-1.5 text-sm border border-border" />
-                      <button onClick={() => handleSave(org.id)} disabled={savingId === org.id} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-primary">
+                      <input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="flex-1 rounded-sm border border-black/8 bg-white px-3 py-1.5 text-[13px] text-neutral-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                      <input
+                        value={editUrl}
+                        onChange={(e) => setEditUrl(e.target.value)}
+                        className="flex-1 rounded-sm border border-black/8 bg-white px-3 py-1.5 text-[13px] text-neutral-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                      <button
+                        onClick={() => handleSave(org.id)}
+                        disabled={savingId === org.id}
+                        className="rounded-sm bg-primary px-3 py-1.5 text-[12px] font-semibold tracking-tight text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50"
+                      >
                         {savingId === org.id ? "..." : "Save"}
                       </button>
-                      <button onClick={() => setEditingId(null)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border">Cancel</button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="rounded-sm border border-black/8 bg-white px-3 py-1.5 text-[12px] font-semibold tracking-tight text-neutral-700 shadow-sm transition hover:bg-neutral-50"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-foreground">{org.name}</p>
-                        <p className="text-xs text-muted-foreground">{org.url || "No URL"}</p>
+                        <p className="text-[14px] font-semibold tracking-tight text-neutral-900">{org.name}</p>
+                        <p className="text-[12px] font-light leading-snug text-accent-foreground">{org.url || "No URL"}</p>
                       </div>
                       <div className="flex gap-1.5">
-                        <button onClick={() => { setEditingId(org.id); setEditName(org.name); setEditUrl(org.url ?? ""); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-card transition border border-border">
-                          <Pencil className="w-3.5 h-3.5" />
+                        <button
+                          onClick={() => { setEditingId(org.id); setEditName(org.name); setEditUrl(org.url ?? ""); }}
+                          className="flex h-8 w-8 items-center justify-center rounded-sm border border-black/8 bg-white text-neutral-700 shadow-sm transition hover:bg-neutral-50"
+                        >
+                          <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
                         </button>
-                        <button onClick={() => { setDeleteOrgId(org.id); setDeleteOrgName(org.name); setDeleteOrgConfirmText(""); }} disabled={deletingId === org.id} className="w-8 h-8 rounded-lg flex items-center justify-center text-primary hover:bg-primary/10 transition border border-primary/30">
-                          <Trash2 className="w-3.5 h-3.5" />
+                        <button
+                          onClick={() => { setDeleteOrgId(org.id); setDeleteOrgName(org.name); setDeleteOrgConfirmText(""); }}
+                          disabled={deletingId === org.id}
+                          className="flex h-8 w-8 items-center justify-center rounded-sm border border-primary/30 bg-white text-primary shadow-sm transition hover:bg-primary/5 disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
                         </button>
                       </div>
                     </div>
@@ -228,29 +275,29 @@ export default function ProfileSettingsPage() {
       </div>
 
       {/* ═══ DANGER ZONE ═══ */}
-      <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle className="w-4 h-4 text-red-500" />
-          <p className="text-sm font-semibold text-red-500">Danger Zone</p>
+      <div className="rounded-sm border border-red-500/20 bg-red-500/[0.04] p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-red-500" strokeWidth={1.75} />
+          <p className="text-[14px] font-semibold tracking-tight text-red-500">Danger Zone</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Pause Account */}
-          <div className="flex items-center justify-between rounded-xl bg-card border border-border p-4">
+          <div className="flex items-center justify-between rounded-sm border border-black/8 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-amber-500" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-sm border border-black/8 bg-white text-amber-500 shadow-sm">
+                <Clock className="h-4 w-4" strokeWidth={1.75} />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">Pause Account</p>
-                <p className="text-[11px] text-muted-foreground">Temporarily pause your account. You can resume anytime.</p>
+                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Pause Account</p>
+                <p className="text-[11px] font-light leading-snug text-accent-foreground">Temporarily pause your account. You can resume anytime.</p>
               </div>
             </div>
 
             {terminateStep === "idle" ? (
               <button
                 onClick={() => setShowTerminateDialog(true)}
-                className="text-xs font-medium px-4 py-2 rounded-lg border border-amber-500/30 text-amber-600 hover:bg-amber-500/10 transition"
+                className="rounded-sm border border-amber-500/30 bg-white px-4 py-2 text-[12px] font-semibold tracking-tight text-amber-600 shadow-sm transition hover:bg-amber-500/10"
               >
                 Pause
               </button>
@@ -258,7 +305,7 @@ export default function ProfileSettingsPage() {
               <button
                 onClick={handleCancelTermination}
                 disabled={cancelling}
-                className="text-xs font-medium px-4 py-2 rounded-lg border border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 transition disabled:opacity-50"
+                className="rounded-sm border border-emerald-500/30 bg-white px-4 py-2 text-[12px] font-semibold tracking-tight text-emerald-600 shadow-sm transition hover:bg-emerald-500/10 disabled:opacity-50"
               >
                 {cancelling ? "Resuming..." : "Resume Account"}
               </button>
@@ -266,34 +313,34 @@ export default function ProfileSettingsPage() {
           </div>
 
           {/* Delete Account */}
-          <div className="flex items-center justify-between rounded-xl bg-card border border-border p-4">
+          <div className="flex items-center justify-between rounded-sm border border-black/8 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <ShieldX className="w-4 h-4 text-red-500" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-sm border border-black/8 bg-white text-red-500 shadow-sm">
+                <ShieldX className="h-4 w-4" strokeWidth={1.75} />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">Delete Account</p>
-                <p className="text-[11px] text-muted-foreground">Permanently delete all data. This cannot be undone.</p>
+                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Delete Account</p>
+                <p className="text-[11px] font-light leading-snug text-accent-foreground">Permanently delete all data. This cannot be undone.</p>
               </div>
             </div>
 
             <button
               onClick={() => setDeleteStep(1)}
-              className="text-xs font-medium px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+              className="rounded-sm bg-red-500 px-4 py-2 text-[12px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-red-600"
             >
               Delete Account
             </button>
           </div>
 
-          {/* Sign out — end session only (does not delete data) */}
-          <div className="flex items-center justify-between rounded-xl bg-card border border-border p-4">
+          {/* Sign out */}
+          <div className="flex items-center justify-between rounded-sm border border-black/8 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-                <LogOut className="w-4 h-4 text-muted-foreground" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-sm border border-black/8 bg-white text-neutral-700 shadow-sm">
+                <LogOut className="h-4 w-4" strokeWidth={1.75} />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">Sign out</p>
-                <p className="text-[11px] text-muted-foreground">End your session on this device. You can sign in again anytime.</p>
+                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Sign out</p>
+                <p className="text-[11px] font-light leading-snug text-accent-foreground">End your session on this device. You can sign in again anytime.</p>
               </div>
             </div>
 
@@ -301,7 +348,7 @@ export default function ProfileSettingsPage() {
               type="button"
               onClick={handleSignOut}
               disabled={signingOut}
-              className="text-xs font-medium px-4 py-2 rounded-lg border border-border text-foreground hover:bg-accent transition disabled:opacity-50"
+              className="rounded-sm border border-black/8 bg-white px-4 py-2 text-[12px] font-semibold tracking-tight text-neutral-900 shadow-sm transition hover:bg-neutral-50 disabled:opacity-50"
             >
               {signingOut ? "Signing out…" : "Sign out"}
             </button>
@@ -312,22 +359,22 @@ export default function ProfileSettingsPage() {
       {/* Delete Organization Dialog */}
       {deleteOrgId !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-sm shadow-xl mx-4 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-red-500" />
+          <div className="mx-4 w-full max-w-sm rounded-sm border border-black/8 bg-white p-6 text-center shadow-[0_24px_64px_-20px_rgba(15,23,42,0.2)]">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-sm border border-black/8 bg-white text-red-500 shadow-sm">
+              <Trash2 className="h-6 w-6" strokeWidth={1.75} />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Delete project</h3>
-            <p className="text-sm text-muted-foreground mb-4 text-left">
-              This will remove all analysis runs and data for this project. Type the project name <strong className="text-foreground">&ldquo;{deleteOrgName}&rdquo;</strong> to confirm.
+            <h3 className="mb-2 text-[16px] font-semibold tracking-tight text-neutral-900">Delete project</h3>
+            <p className="mb-4 text-left text-[13px] font-light leading-relaxed text-accent-foreground">
+              This will remove all analysis runs and data for this project. Type the project name <strong className="font-semibold text-neutral-900">&ldquo;{deleteOrgName}&rdquo;</strong> to confirm.
             </p>
-            <label className="block text-left text-xs font-medium text-muted-foreground mb-1.5">Project name</label>
+            <label className="mb-1.5 block text-left text-[11px] font-semibold tracking-tight text-accent-foreground">Project name</label>
             <input
               type="text"
               value={deleteOrgConfirmText}
               onChange={(e) => setDeleteOrgConfirmText(e.target.value)}
               autoComplete="off"
               placeholder={deleteOrgName}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground mb-4 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="mb-4 w-full rounded-sm border border-black/8 bg-white px-3 py-2.5 text-[13px] text-neutral-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <div className="flex gap-2">
               <button
@@ -339,13 +386,13 @@ export default function ProfileSettingsPage() {
                   setDeleteOrgConfirmText("");
                 }}
                 disabled={deletingId === deleteOrgId || deleteOrgConfirmText.trim() !== deleteOrgName.trim()}
-                className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition disabled:opacity-50"
+                className="flex-1 rounded-sm bg-red-500 py-2.5 text-[13px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-red-600 disabled:opacity-50"
               >
                 {deletingId === deleteOrgId ? "Deleting..." : "Delete project"}
               </button>
               <button
                 onClick={() => { setDeleteOrgId(null); setDeleteOrgName(""); setDeleteOrgConfirmText(""); }}
-                className="flex-1 rounded-xl py-2.5 text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
+                className="flex-1 rounded-sm border border-black/8 bg-white py-2.5 text-[13px] font-semibold tracking-tight text-neutral-700 shadow-sm transition hover:bg-neutral-50"
               >
                 Cancel
               </button>
@@ -357,20 +404,20 @@ export default function ProfileSettingsPage() {
       {/* Pause Account Dialog */}
       {showTerminateDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-md shadow-xl mx-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-amber-500" />
+          <div className="mx-4 w-full max-w-md rounded-sm border border-black/8 bg-white p-6 shadow-[0_24px_64px_-20px_rgba(15,23,42,0.2)]">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-sm border border-black/8 bg-white text-amber-500 shadow-sm">
+                <Clock className="h-5 w-5" strokeWidth={1.75} />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-foreground">Pause Account</h3>
-                <p className="text-xs text-muted-foreground">Temporarily pause your account</p>
+                <h3 className="text-[15px] font-semibold tracking-tight text-neutral-900">Pause Account</h3>
+                <p className="text-[12px] font-light leading-snug text-accent-foreground">Temporarily pause your account</p>
               </div>
             </div>
 
-            <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 p-4 mb-5">
-              <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
-                Your account will be paused. You can <span className="font-bold">resume anytime</span> from this settings page. While paused, scheduled analyses and integrations will be disabled.
+            <div className="mb-5 rounded-sm border border-amber-500/20 bg-amber-500/5 p-4">
+              <p className="text-[12px] font-light leading-relaxed text-amber-600 dark:text-amber-400">
+                Your account will be paused. You can <span className="font-semibold">resume anytime</span> from this settings page. While paused, scheduled analyses and integrations will be disabled.
               </p>
             </div>
 
@@ -378,14 +425,14 @@ export default function ProfileSettingsPage() {
               <button
                 onClick={handleTerminate}
                 disabled={terminating}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 transition disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-sm bg-amber-500 py-2.5 text-[13px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-amber-600 disabled:opacity-50"
               >
-                {terminating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" />}
+                {terminating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" strokeWidth={1.75} />}
                 {terminating ? "Pausing..." : "Pause Account"}
               </button>
               <button
                 onClick={() => setShowTerminateDialog(false)}
-                className="px-5 py-2.5 rounded-xl text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
+                className="rounded-sm border border-black/8 bg-white px-5 py-2.5 text-[13px] font-semibold tracking-tight text-neutral-700 shadow-sm transition hover:bg-neutral-50"
               >
                 Cancel
               </button>
@@ -397,24 +444,24 @@ export default function ProfileSettingsPage() {
       {/* Delete Dialog — Step 1: Are you sure? */}
       {deleteStep === 1 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-sm shadow-xl mx-4 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-              <ShieldX className="w-6 h-6 text-red-500" />
+          <div className="mx-4 w-full max-w-sm rounded-sm border border-black/8 bg-white p-6 text-center shadow-[0_24px_64px_-20px_rgba(15,23,42,0.2)]">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-sm border border-black/8 bg-white text-red-500 shadow-sm">
+              <ShieldX className="h-6 w-6" strokeWidth={1.75} />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Are you sure?</h3>
-            <p className="text-sm text-muted-foreground mb-6">
+            <h3 className="mb-2 text-[16px] font-semibold tracking-tight text-neutral-900">Are you sure?</h3>
+            <p className="mb-6 text-[13px] font-light leading-relaxed text-accent-foreground">
               You&apos;re about to delete your account. This will remove all your data permanently.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleteStep(2)}
-                className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition"
+                className="flex-1 rounded-sm bg-red-500 py-2.5 text-[13px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-red-600"
               >
                 Yes, continue
               </button>
               <button
                 onClick={() => setDeleteStep(0)}
-                className="flex-1 rounded-xl py-2.5 text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
+                className="flex-1 rounded-sm border border-black/8 bg-white py-2.5 text-[13px] font-semibold tracking-tight text-neutral-700 shadow-sm transition hover:bg-neutral-50"
               >
                 No, go back
               </button>
@@ -426,26 +473,26 @@ export default function ProfileSettingsPage() {
       {/* Delete Dialog — Step 2: Type to confirm */}
       {deleteStep === 2 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card rounded-2xl border border-border p-6 w-full max-w-md shadow-xl mx-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
-                <ShieldX className="w-5 h-5 text-red-500" />
+          <div className="mx-4 w-full max-w-md rounded-sm border border-black/8 bg-white p-6 shadow-[0_24px_64px_-20px_rgba(15,23,42,0.2)]">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-sm border border-black/8 bg-white text-red-500 shadow-sm">
+                <ShieldX className="h-5 w-5" strokeWidth={1.75} />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-foreground">Delete Account Permanently</h3>
-                <p className="text-xs text-muted-foreground">This action is irreversible</p>
+                <h3 className="text-[15px] font-semibold tracking-tight text-neutral-900">Delete Account Permanently</h3>
+                <p className="text-[12px] font-light leading-snug text-accent-foreground">This action is irreversible</p>
               </div>
             </div>
 
-            <div className="rounded-xl bg-red-500/5 border border-red-500/20 p-3 mb-4">
-              <p className="text-xs text-red-500 leading-relaxed">
+            <div className="mb-4 rounded-sm border border-red-500/20 bg-red-500/5 p-3">
+              <p className="text-[12px] font-light leading-relaxed text-red-500">
                 This will permanently delete your account, all analysis runs, organizations, subscription data, and everything associated with <span className="font-semibold">{email}</span>. This cannot be undone.
               </p>
             </div>
 
             <div className="mb-4">
-              <label className="text-xs text-muted-foreground mb-1.5 block">
-                Type <span className="font-mono font-semibold text-foreground">delete my account</span> to confirm
+              <label className="mb-1.5 block text-[11px] font-semibold tracking-tight text-accent-foreground">
+                Type <span className="font-mono font-semibold text-neutral-900">delete my account</span> to confirm
               </label>
               <input
                 type="text"
@@ -453,7 +500,7 @@ export default function ProfileSettingsPage() {
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="delete my account"
                 autoFocus
-                className="w-full bg-background rounded-xl px-3 py-2.5 text-sm border border-border focus:outline-none focus:ring-2 focus:ring-red-500/30 font-mono"
+                className="w-full rounded-sm border border-black/8 bg-white px-3 py-2.5 font-mono text-[13px] text-neutral-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/30"
               />
             </div>
 
@@ -461,14 +508,14 @@ export default function ProfileSettingsPage() {
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleting || deleteConfirmText !== "delete my account"}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex flex-1 items-center justify-center gap-2 rounded-sm bg-red-500 py-2.5 text-[13px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" strokeWidth={1.75} />}
                 {deleting ? "Deleting..." : "Delete Forever"}
               </button>
               <button
                 onClick={() => { setDeleteStep(0); setDeleteConfirmText(""); }}
-                className="px-5 py-2.5 rounded-xl text-sm font-medium border border-border text-muted-foreground hover:bg-accent transition"
+                className="rounded-sm border border-black/8 bg-white px-5 py-2.5 text-[13px] font-semibold tracking-tight text-neutral-700 shadow-sm transition hover:bg-neutral-50"
               >
                 Cancel
               </button>

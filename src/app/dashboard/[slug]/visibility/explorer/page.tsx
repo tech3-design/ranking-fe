@@ -13,14 +13,122 @@ import {
 } from "@/lib/api/integrations";
 import { Lightbulb, Loader2, AlertCircle, Plus, Copy, Check, Search } from "lucide-react";
 
+type SuggestionSource = "google" | "duckduckgo";
+type LikelihoodTier = "high" | "medium" | "low";
+
+type RankedSuggestion = {
+  text: string;
+  score: number;
+  sources: SuggestionSource[];
+  tier: LikelihoodTier;
+};
+
 type SearchInsightsResponse = {
   source: string;
   seeds: string[];
   suggestions: string[];
+  rankedSuggestions?: RankedSuggestion[];
   topTopics: Array<{ topic: string; count: number }>;
   improvements: string[];
   brandUrl?: string;
 };
+
+type PromptIdea = {
+  text: string;
+  score: number;
+  tier: LikelihoodTier;
+  origin: "search" | "ai" | "ga";
+  sources: SuggestionSource[];
+};
+
+function tierFromScore(score: number): LikelihoodTier {
+  if (score >= 70) return "high";
+  if (score >= 40) return "medium";
+  return "low";
+}
+
+/**
+ * Merge ideas from all sources and rank by likely search volume.
+ * Search-autocomplete suggestions come pre-scored (0..100); AI and GA
+ * ideas are slotted underneath with a lower default score so they
+ * still appear but don't outrank real-search data.
+ */
+function mergeRankedIdeas(input: {
+  search?: RankedSuggestion[];
+  searchFallback: string[];
+  ai: string[];
+  ga: string[];
+}): PromptIdea[] {
+  const seen = new Map<string, PromptIdea>();
+  const put = (idea: PromptIdea) => {
+    const key = idea.text.toLowerCase().replace(/\s+/g, " ").trim();
+    if (!key) return;
+    const existing = seen.get(key);
+    if (!existing) {
+      seen.set(key, idea);
+      return;
+    }
+    // If the same phrase appears in multiple sources, take the highest score
+    // and mark it as cross-source (boosts credibility).
+    if (idea.score > existing.score) existing.score = idea.score;
+    existing.tier = tierFromScore(existing.score);
+    // Prefer the more authoritative origin
+    if (idea.origin === "search") existing.origin = "search";
+    for (const s of idea.sources) {
+      if (!existing.sources.includes(s)) existing.sources.push(s);
+    }
+  };
+
+  if (input.search && input.search.length > 0) {
+    for (const s of input.search) {
+      put({
+        text: s.text,
+        score: s.score,
+        tier: s.tier,
+        origin: "search",
+        sources: s.sources,
+      });
+    }
+  } else {
+    // Backward-compat: use position-weighted scoring on raw list
+    input.searchFallback.forEach((text, idx) => {
+      const score = Math.max(10, 90 - idx * 3);
+      put({
+        text,
+        score,
+        tier: tierFromScore(score),
+        origin: "search",
+        sources: [],
+      });
+    });
+  }
+
+  // GA-derived prompts: real user intent from your own site, score medium-high
+  input.ga.forEach((text, idx) => {
+    const score = Math.max(35, 75 - idx * 2);
+    put({
+      text,
+      score,
+      tier: tierFromScore(score),
+      origin: "ga",
+      sources: [],
+    });
+  });
+
+  // AI generator: keep at medium-low — ideas, not search evidence
+  input.ai.forEach((text, idx) => {
+    const score = Math.max(15, 55 - idx * 2);
+    put({
+      text,
+      score,
+      tier: tierFromScore(score),
+      origin: "ai",
+      sources: [],
+    });
+  });
+
+  return [...seen.values()].sort((a, b) => b.score - a.score);
+}
 
 function dedupe(values: string[]): string[] {
   const seen = new Set<string>();
@@ -77,7 +185,7 @@ export default function PromptsRecommendationsPage() {
   const brandUrl = run?.url?.trim() || "";
 
   const [insights, setInsights] = useState<SearchInsightsResponse | null>(null);
-  const [ideas, setIdeas] = useState<string[]>([]);
+  const [ideas, setIdeas] = useState<PromptIdea[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [addingIdx, setAddingIdx] = useState<number | null>(null);
@@ -133,7 +241,7 @@ export default function PromptsRecommendationsPage() {
       if (insightsData) {
         setInsights(insightsData);
         if (insightsData.suggestions.length > 0) {
-          sourcesUsed.push(`Internet autocomplete (${insightsData.suggestions.length})`);
+          sourcesUsed.push(`Search autocomplete (${insightsData.suggestions.length})`);
         }
       } else {
         setInsights(null);
@@ -143,11 +251,12 @@ export default function PromptsRecommendationsPage() {
       if (generated.length > 0) sourcesUsed.push(`AI generator (${generated.length})`);
       if (gaPrompts.length > 0) sourcesUsed.push(`Google Analytics pages/sources (${gaPrompts.length})`);
 
-      const merged = dedupe([
-        ...(insightsData?.suggestions ?? []),
-        ...generated,
-        ...gaPrompts,
-      ]);
+      const merged = mergeRankedIdeas({
+        search: insightsData?.rankedSuggestions,
+        searchFallback: insightsData?.suggestions ?? [],
+        ai: generated,
+        ga: gaPrompts,
+      });
 
       setIdeas(merged.slice(0, 40));
       setSourceSummary(sourcesUsed);
@@ -282,49 +391,117 @@ export default function PromptsRecommendationsPage() {
 
       {ideas.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-foreground">Most searched queries to track</h3>
-          {ideas.map((text, idx) => (
-            <div
-              key={`${idx}-${text.slice(0, 24)}`}
-              className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-border bg-background p-4 transition hover:border-primary/30 hover:bg-card"
-            >
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-[11px] font-semibold text-muted-foreground/70 bg-muted px-2 py-0.5 rounded-full shrink-0">
-                  {idx + 1}
-                </span>
-                <p className="text-sm text-foreground flex-1 min-w-0">{text}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => handleCopy(text, idx)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition"
-                >
-                  {copiedIdx === idx ? (
-                    <Check className="w-3.5 h-3.5 text-green-600" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                  {copiedIdx === idx ? "Copied" : "Copy"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleAddToTracker(text, idx)}
-                  disabled={addingIdx !== null}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90 hover:shadow hover:shadow-primary/15 disabled:opacity-50"
-                >
-                  {addingIdx === idx ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Plus className="w-3.5 h-3.5" />
-                  )}
-                  Add to tracker
-                </button>
-              </div>
-            </div>
+          <div className="flex items-end justify-between">
+            <h3 className="text-sm font-semibold text-foreground">
+              Most searched queries to track
+            </h3>
+            <p className="text-[11px] text-muted-foreground">
+              Ranked by real-search popularity (Google + DuckDuckGo autocomplete)
+            </p>
+          </div>
+          {ideas.map((idea, idx) => (
+            <PromptIdeaRow
+              key={`${idx}-${idea.text.slice(0, 24)}`}
+              idx={idx}
+              idea={idea}
+              copying={copiedIdx === idx}
+              adding={addingIdx === idx}
+              disableAdd={addingIdx !== null}
+              onCopy={() => handleCopy(idea.text, idx)}
+              onAdd={() => void handleAddToTracker(idea.text, idx)}
+            />
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function PromptIdeaRow({
+  idx,
+  idea,
+  copying,
+  adding,
+  disableAdd,
+  onCopy,
+  onAdd,
+}: {
+  idx: number;
+  idea: PromptIdea;
+  copying: boolean;
+  adding: boolean;
+  disableAdd: boolean;
+  onCopy: () => void;
+  onAdd: () => void;
+}) {
+  const tierStyle =
+    idea.tier === "high"
+      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+      : idea.tier === "medium"
+        ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+        : "border-neutral-300/60 bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400";
+  const tierLabel =
+    idea.tier === "high" ? "High" : idea.tier === "medium" ? "Medium" : "Low";
+  const originLabel =
+    idea.origin === "search"
+      ? idea.sources.length > 1
+        ? "Google + DuckDuckGo"
+        : idea.sources[0] === "google"
+          ? "Google Suggest"
+          : idea.sources[0] === "duckduckgo"
+            ? "DuckDuckGo"
+            : "Search autocomplete"
+      : idea.origin === "ga"
+        ? "GA signal"
+        : "AI idea";
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 transition hover:border-primary/30 hover:bg-card sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground/70">
+          {idx + 1}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-foreground">{idea.text}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] uppercase tracking-wide">
+            <span
+              className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-semibold ${tierStyle}`}
+            >
+              {tierLabel}
+              <span className="font-mono font-normal normal-case tracking-normal opacity-80">
+                {idea.score}
+              </span>
+            </span>
+            <span className="text-muted-foreground">{originLabel}</span>
+          </div>
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={onCopy}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+        >
+          {copying ? (
+            <Check className="h-3.5 w-3.5 text-green-600" />
+          ) : (
+            <Copy className="h-3.5 w-3.5" />
+          )}
+          {copying ? "Copied" : "Copy"}
+        </button>
+        <button
+          type="button"
+          onClick={onAdd}
+          disabled={disableAdd}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90 hover:shadow hover:shadow-primary/15 disabled:opacity-50"
+        >
+          {adding ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Plus className="h-3.5 w-3.5" />
+          )}
+          Add to tracker
+        </button>
+      </div>
     </div>
   );
 }

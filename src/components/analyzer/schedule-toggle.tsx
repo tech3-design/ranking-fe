@@ -3,6 +3,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   getSchedule,
   toggleSchedule,
   type ScheduledAnalysis,
@@ -27,7 +34,9 @@ export function ScheduleToggle({ email, orgId, url, brandName }: ScheduleToggleP
       .then((s) => {
         if (s) {
           setSchedule(s);
-          setFrequency(s.frequency);
+          if (s.frequency === "weekly" || s.frequency === "monthly") {
+            setFrequency(s.frequency);
+          }
         }
       })
       .catch(() => {});
@@ -79,15 +88,19 @@ export function ScheduleToggle({ email, orgId, url, brandName }: ScheduleToggleP
   return (
     <div className="flex items-center gap-2">
       {isActive && (
-        <select
+        <Select
           value={frequency}
-          onChange={(e) => handleFrequencyChange(e.target.value as "weekly" | "monthly")}
-          className="h-8 rounded-md border border-border/60 bg-background px-2 text-xs"
+          onValueChange={(v) => handleFrequencyChange(v as "weekly" | "monthly")}
           disabled={loading}
         >
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-        </select>
+          <SelectTrigger size="sm" className="h-8 w-28 border-border/80 bg-white text-xs shadow-sm focus:ring-0 focus:border-border">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="weekly">Weekly</SelectItem>
+            <SelectItem value="monthly">Monthly</SelectItem>
+          </SelectContent>
+        </Select>
       )}
       <Button
         variant={isActive ? "default" : "outline"}

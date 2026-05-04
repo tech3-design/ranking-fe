@@ -17,6 +17,8 @@ import {
   LayoutDashboard,
   ListChecks,
   Eye,
+  Map,
+  Users,
   MessageSquare,
   ChevronUp,
   ChevronDown,
@@ -30,6 +32,13 @@ import {
   ChevronsUpDown,
   Check,
   Loader2,
+  Compass,
+  GitFork,
+  Activity,
+  Zap,
+  History,
+  Link2,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import LogoComp from "@/components/LogoComp";
@@ -43,27 +52,50 @@ import {
 import { CommandPalette } from "@/components/ui/command-palette";
 import { DashboardTopBarActions } from "./_components/dashboard-top-bar-actions";
 
-type MainNavItem =
-  | { icon: LucideIcon; label: string; path: string; children?: undefined }
-  | {
-      icon: LucideIcon;
-      label: string;
-      path: string;
-      children: { label: string; path: string }[];
-    };
+type MainNavItem = {
+  icon: LucideIcon;
+  label: string;
+  path: string;
+  children?: MainNavItem[];
+};
+type MainNavGroup = { heading?: string; items: MainNavItem[] };
 
-const MAIN_NAV: MainNavItem[] = [
-  { icon: LayoutDashboard, label: "Overview", path: "" },
-  { icon: ListChecks, label: "Recommendations", path: "/recommendations" },
-  { icon: Eye, label: "Visibility", path: "/visibility" },
+const MAIN_NAV_GROUPS: MainNavGroup[] = [
   {
-    icon: MessageSquare,
-    label: "Prompts",
-    path: "/prompts",
-    children: [
-      { label: "Actions", path: "/prompts/actions" },
-      { label: "Recommendations", path: "/prompts/recommendations" },
-      { label: "History", path: "/prompts/history" },
+    items: [
+      { icon: LayoutDashboard, label: "Overview", path: "" },
+      // { icon: Compass, label: "Explorer", path: "/visibility/explorer" },
+      // { icon: GitFork, label: "Ranking", path: "/prompts/ranking" },
+    ],
+  },
+  {
+    heading: "Monitoring",
+    items: [
+      { icon: Eye, label: "Visibility", path: "/visibility" },
+      { icon: Map, label: "Sitemap", path: "/sitemap" },
+      { icon: Activity, label: "Tasks", path: "/recommendations" },
+    ],
+  },
+  {
+    heading: "Prompts",
+    items: [
+      { icon: MessageSquare, label: "Tracker", path: "/prompts" },
+      {
+        icon: Zap,
+        label: "Actions",
+        path: "/prompts/actions",
+        children: [
+          { icon: Link2, label: "Backlinks", path: "/prompts/backlinks" },
+          { icon: BookOpen, label: "Wikipedia", path: "/prompts/wikipedia" },
+        ],
+      },
+      { icon: History, label: "History", path: "/prompts/history" },
+    ],
+  },
+  {
+    heading: "Sources",
+    items: [
+      { icon: Users, label: "Competitors", path: "/competitors" },
     ],
   },
 ];
@@ -86,8 +118,14 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
   }
   if (rel.startsWith("/recommendations")) {
     return {
-      title: "Recommendations",
-      hint: "Prioritized fixes to improve AI visibility and citations.",
+      title: "Tasks",
+      hint: "Prioritized tasks to improve AI visibility and citations.",
+    };
+  }
+  if (rel.startsWith("/visibility/explorer")) {
+    return {
+      title: "Explorer",
+      hint: "Explore suggested prompt sets for your properties.",
     };
   }
   if (rel.startsWith("/visibility")) {
@@ -96,16 +134,40 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
       hint: "How models and search surfaces see your brand.",
     };
   }
+  if (rel.startsWith("/competitors")) {
+    return {
+      title: "Competitors",
+      hint: "Benchmark rival brands across AI surfaces.",
+    };
+  }
+  if (rel.startsWith("/sitemap")) {
+    return {
+      title: "Sitemap",
+      hint: "Page-level audit of speed, structure, and AI readiness.",
+    };
+  }
+  if (rel.startsWith("/prompts/backlinks")) {
+    return {
+      title: "Backlinks",
+      hint: "Free submission targets and paid placements via backlink providers.",
+    };
+  }
+  if (rel.startsWith("/prompts/wikipedia")) {
+    return {
+      title: "Wikipedia",
+      hint: "Check brand presence on Wikipedia and assess notability for a draft article.",
+    };
+  }
   if (rel.startsWith("/prompts/actions")) {
     return {
       title: "Prompt actions",
       hint: "Tune prompts and automated follow-ups.",
     };
   }
-  if (rel.startsWith("/prompts/recommendations")) {
+  if (rel.startsWith("/prompts/ranking")) {
     return {
-      title: "Prompt recommendations",
-      hint: "Suggested prompt sets for your properties.",
+      title: "Ranking",
+      hint: "What's ranking in Google, Reddit, and Quora for queries tailored to your brand.",
     };
   }
   if (rel.startsWith("/prompts/history")) {
@@ -294,25 +356,36 @@ export default function DashboardSlugLayout({
 
   const isSettingsPage = pathname.startsWith(basePath + "/settings");
 
+  const allNavPaths = MAIN_NAV_GROUPS.flatMap((g) =>
+    g.items.flatMap((i) => [i.path, ...((i.children ?? []).map((c) => c.path))]),
+  );
+
   function isActive(navPath: string) {
     if (navPath === "") return pathname === basePath;
-    return pathname.startsWith(basePath + navPath);
+    const full = basePath + navPath;
+    const matches = pathname === full || pathname.startsWith(`${full}/`);
+    if (!matches) return false;
+    // Defer to a more-specific sibling that also matches (e.g. /visibility vs /visibility/explorer).
+    const moreSpecific = allNavPaths.some(
+      (p) =>
+        p !== navPath &&
+        p.startsWith(navPath + "/") &&
+        (pathname === basePath + p || pathname.startsWith(`${basePath + p}/`)),
+    );
+    return !moreSpecific;
   }
 
-  function isPromptSubActive(subPath: string) {
-    return pathname === basePath + subPath || pathname.startsWith(`${basePath + subPath}/`);
-  }
-
-  const promptsOverviewPath = `${basePath}/prompts`;
   const section = sectionForDashboardPath(pathname, basePath);
 
   const sidebarBrand = (
-    <LogoComp
-      size={22}
-      compact
-      animated={false}
-      className="text-sm font-bold tracking-tight text-foreground"
-    />
+    <Link href="/" className="flex items-center">
+      <LogoComp
+        size={22}
+        compact
+        animated={false}
+        className="text-sm font-bold tracking-tight text-foreground"
+      />
+    </Link>
   );
 
   const sidebarBelowHeaderRow =
@@ -348,7 +421,7 @@ export default function DashboardSlugLayout({
         </button>
 
         {orgDropdownOpen ? (
-          <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-md border border-border/60 bg-white py-1 shadow-md ring-1 ring-black/5  ">
+          <div className="absolute left-0 top-full z-[120] mt-1 w-64 max-h-60 overflow-y-auto rounded-md border border-border/60 bg-white py-1 shadow-lg ring-1 ring-black/5">
             {organizations.map((org) => {
               const orgSelected = org.id === activeOrg?.id;
               return (
@@ -390,78 +463,14 @@ export default function DashboardSlugLayout({
       ) : null} */}
 
       {isSettingsPage ? (
-        <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-          Settings
-        </p>
-      ) : (
-        <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-          Navigation
-        </p>
-      )}
-
-      <nav className="flex flex-col gap-0.5">
-        {isSettingsPage
-          ? SETTINGS_NAV.map((item) => {
+        <>
+          <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            Settings
+          </p>
+          <nav className="flex flex-col gap-0.5">
+            {SETTINGS_NAV.map((item) => {
               const active = isActive(item.path);
               const Icon = item.icon;
-              return (
-                <Link
-                  key={item.label}
-                  href={basePath + item.path}
-                  className={cn(
-                    "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    active
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
-                  {item.label}
-                </Link>
-              );
-            })
-          : MAIN_NAV.map((item) => {
-              const Icon = item.icon;
-              if (item.children && item.children.length > 0) {
-                const parentActive =
-                  pathname === promptsOverviewPath || pathname.startsWith(`${promptsOverviewPath}/`);
-                return (
-                  <div key={item.label} className="flex flex-col gap-0.5">
-                    <Link
-                      href={promptsOverviewPath}
-                      className={cn(
-                        "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                        parentActive
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                    >
-                      <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
-                      {item.label}
-                    </Link>
-                    <div className="ml-2 flex flex-col gap-0.5 border-l border-border/60 pl-2">
-                      {item.children.map((sub) => {
-                        const subActive = isPromptSubActive(sub.path);
-                        return (
-                          <Link
-                            key={sub.path}
-                            href={basePath + sub.path}
-                            className={cn(
-                              "rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
-                              subActive
-                                ? "bg-primary/15 text-primary"
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                            )}
-                          >
-                            {sub.label}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              }
-              const active = isActive(item.path);
               return (
                 <Link
                   key={item.label}
@@ -478,7 +487,74 @@ export default function DashboardSlugLayout({
                 </Link>
               );
             })}
-      </nav>
+          </nav>
+        </>
+      ) : (
+        <nav className="flex flex-col gap-2.5">
+          {MAIN_NAV_GROUPS.map((group, gi) => (
+            <div key={group.heading ?? `group-${gi}`} className="flex flex-col gap-0.5">
+              {group.heading ? (
+                <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {group.heading}
+                </p>
+              ) : null}
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                const childActive = (item.children ?? []).some((c) =>
+                  isActive(c.path),
+                );
+                const showChildren = !!item.children?.length && (active || childActive);
+                return (
+                  <div key={item.label} className="flex flex-col gap-0.5">
+                    <Link
+                      href={basePath + item.path}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        active
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : childActive
+                            ? "text-foreground hover:bg-muted"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
+                      {item.label}
+                    </Link>
+
+                    {showChildren ? (
+                      <div className="ml-4 flex flex-col gap-0.5 border-l border-border/60 pl-2">
+                        {item.children!.map((child) => {
+                          const ChildIcon = child.icon;
+                          const childIsActive = isActive(child.path);
+                          return (
+                            <Link
+                              key={child.label}
+                              href={basePath + child.path}
+                              className={cn(
+                                "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors",
+                                childIsActive
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                              )}
+                            >
+                              <ChildIcon
+                                className="size-[15px] shrink-0 opacity-90"
+                                aria-hidden
+                              />
+                              {child.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+      )}
     </div>
   );
 
@@ -553,6 +629,7 @@ export default function DashboardSlugLayout({
             sidebarNav={sidebarNav}
             sidebarBottom={sidebarBottom}
             topBarActions={topBarActions}
+            breadcrumbs={[]}
           >
             <div className="animate-enter">{children}</div>
             {/* <footer className="mt-10 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border px-0 py-6 text-[11px] text-muted-foreground">
@@ -582,7 +659,7 @@ export default function DashboardSlugLayout({
             initialMessage={chatInitialMessage}
           /> */}
 
-          {!chatOpen ? (
+          {/* {!chatOpen ? (
             <button
               type="button"
               onClick={() => setChatOpen(true)}
@@ -591,7 +668,7 @@ export default function DashboardSlugLayout({
               <Sparkles className="size-4" />
               <span className="text-xs font-semibold">AI Assistant</span>
             </button>
-          ) : null}
+          ) : null} */}
 
           <CommandPalette
             open={commandPaletteOpen}

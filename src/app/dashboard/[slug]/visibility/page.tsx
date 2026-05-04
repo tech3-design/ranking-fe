@@ -14,11 +14,10 @@ import {
 } from "@/lib/api/integrations";
 import { useRun } from "../_components/run-context";
 import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
-import { ShareOfVoicePanel } from "@/components/analyzer/share-of-voice-panel";
 import { GAPropertySelector } from "@/components/integrations/ga-property-selector";
 import { GATrafficTab } from "@/components/integrations/ga-traffic-tab";
 import { AlertCircle, BarChart3, Loader2, CheckCircle2 } from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { VisibilitySkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -27,16 +26,23 @@ export default function VisibilityPage() {
   const { data: session } = useSession();
   const { run, loading, error } = useRun();
   const [sov, setSov] = useState<ShareOfVoiceItem[]>([]);
+  const [sovLoading, setSovLoading] = useState(true);
 
   const email = session?.user?.email ?? "";
   const [integrations, setIntegrations] = useState<IntegrationInfo[]>([]);
   const [gaLoading, setGaLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
+  // Track sov separately so skeleton stays until both run + sov are ready
   useEffect(() => {
     if (!slug) return;
-    getShareOfVoice(slug).catch(() => []).then(setSov);
+    setSovLoading(true);
+    getShareOfVoice(slug)
+      .catch(() => [] as ShareOfVoiceItem[])
+      .then((data) => { setSov(data); setSovLoading(false); });
   }, [slug]);
+
+  const allLoading = loading || sovLoading;
 
   const loadIntegrations = useCallback(async () => {
     if (!email) return;
@@ -104,28 +110,23 @@ export default function VisibilityPage() {
         </div>
       </div>
 
-      {loading && (
-        <div className="flex items-center justify-center py-24">
-          <SignalorLoader label="Loading visibility data..." />
-        </div>
-      )}
+      {allLoading && <VisibilitySkeleton />}
 
-      {error && !loading && (
+      {error && !allLoading && (
         <div className="flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3 text-sm text-primary">
           <AlertCircle className="size-4 shrink-0" /> {error}
         </div>
       )}
 
-      {run && !loading && (
+      {run && !allLoading && (
         <>
           {brandVis && (
             <BrandVisibilityTab
               brandName={run.display_brand_name?.trim() || run.brand_name}
               visibility={brandVis}
+              sov={sov}
             />
           )}
-
-          {sov.length > 0 && <ShareOfVoicePanel data={sov} />}
 
           {!brandVis && sov.length === 0 && (
             <div className="text-center py-16 text-sm text-muted-foreground">

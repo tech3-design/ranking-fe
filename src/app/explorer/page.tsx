@@ -19,7 +19,7 @@ import {
   REPORTING_WHY,
 } from "@/lib/landing-reporting-content";
 
-export default function ReportingPage() {
+export default function ExplorerPage() {
   return (
     <LandingMarketingShell>
       <PromptTrackingHero hero={REPORTING_HERO} cards={REPORTING_HUB_CARDS} />
@@ -27,7 +27,7 @@ export default function ReportingPage() {
         intro={REPORTING_FEATURES_INTRO}
         cells={REPORTING_FEATURE_CELLS}
         footerCtas={REPORTING_FEATURES_FOOTER_CTAS}
-        headingId="discovery-features-heading"
+        headingId="explorer-features-heading"
         theme="violet"
       />
       <PromptTrackingWhySection
