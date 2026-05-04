@@ -6,7 +6,7 @@ import AnalyticsPage from "../../analytics/page";
 export default function IntegrationsSettingsPage() {
   return (
     <div className="px-2 py-2 space-y-6 font-sans">
-      <DashboardSettingsNav />
+      <DashboardSettingsNav label="Integrations" />
       <AnalyticsPage />
     </div>
   );
