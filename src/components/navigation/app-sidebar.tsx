@@ -141,18 +141,16 @@ export function AppSidebar() {
                   type="button"
                   onClick={() => router.push(item.href)}
                   className={cn(
-                    "flex h-10 w-full items-center rounded-lg border transition-colors",
+                    "flex h-10 w-full items-center rounded-md font-medium transition-colors",
                     open ? "justify-start gap-2.5 px-2.5" : "mx-auto size-10 justify-center px-0",
                     item.active
-                      ? "border-primary/60 bg-primary/25 text-primary shadow-sm shadow-primary/10"
-                      : "border-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/40",
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
-                  <Icon className={cn("h-4 w-4 shrink-0", item.active ? "text-primary" : "text-muted-foreground")} />
+                  <Icon className="h-4 w-4 shrink-0" />
                   {open ? (
-                    <span className={cn("text-sm", item.active ? "text-primary" : "text-foreground/85")}>
-                      {item.label}
-                    </span>
+                    <span className="text-sm">{item.label}</span>
                   ) : null}
                 </button>
               );
@@ -166,9 +164,9 @@ export function AppSidebar() {
             onClick={handleSignOut}
             disabled={signingOut}
             className={cn(
-              "flex h-10 w-full items-center rounded-lg border transition-colors",
+              "flex h-10 w-full items-center rounded-md transition-colors",
               open ? "justify-start gap-2.5 px-2.5" : "mx-auto size-10 justify-center px-0",
-              "border-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/40",
+              "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />

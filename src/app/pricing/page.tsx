@@ -15,6 +15,7 @@ import {
 } from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
 import { Check, Clock, Crown, Rocket, Zap } from "lucide-react";
+import { useCurrency, formatPrice } from "@/lib/hooks/use-currency";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
@@ -112,6 +113,7 @@ function PricingPageInner() {
   const [error, setError] = useState("");
   const [checkoutDodoMode, setCheckoutDodoMode] = useState<DodoMode | null>(null);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const { currency, ready: currencyReady } = useCurrency();
 
   useEffect(() => {
     if (isPending || !session) {
@@ -233,8 +235,9 @@ function PricingPageInner() {
             {PLANS.map((plan) => {
               const isLoading = loadingPlan === plan.id;
               const isCurrent = currentPlanId === plan.id;
-              const priceLabel =
-                Math.round(plan.price) === plan.price ? `${plan.price}` : plan.price.toFixed(2);
+              const priceLabel = currencyReady
+                ? formatPrice(plan.price, currency)
+                : plan.price.toFixed(2);
 
               return (
                 <div
@@ -266,12 +269,20 @@ function PricingPageInner() {
                   </p>
 
                   <div className="mt-8 flex items-start">
-                    <span className="mt-2 text-xl font-semibold text-foreground">{"\u00A3"}</span>
-                    <span className="ml-0.5 text-5xl font-bold tracking-tight text-foreground tabular-nums">
+                    <span className="mt-2 text-xl font-semibold text-foreground">
+                      {currency.symbol}
+                    </span>
+                    <span
+                      className={cn(
+                        "ml-0.5 text-5xl font-bold tracking-tight tabular-nums transition-opacity duration-300",
+                        currencyReady ? "text-foreground opacity-100" : "text-foreground opacity-40",
+                      )}
+                    >
                       {priceLabel}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">Per month</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Per month{!currencyReady ? "" : currency.code !== "EUR" ? ` \u00B7 approx. in ${currency.code}` : ""}</p>
 
                   <div className="mt-8 flex flex-1 flex-col gap-3">
                     {plan.features.map((f) => (
@@ -324,7 +335,9 @@ function PricingPageInner() {
           </div>
 
           <p className="mt-10 text-center text-[11px] font-medium text-muted-foreground">
-            All prices in GBP. Secure payment. Cancel anytime.
+            {currency.code === "EUR"
+              ? "All prices in EUR. Secure payment. Cancel anytime."
+              : `Prices shown in ${currency.code} — indicative only. Charged in EUR at checkout. Cancel anytime.`}
           </p>
           </div>
         </div>

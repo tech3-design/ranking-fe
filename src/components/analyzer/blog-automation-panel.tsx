@@ -3,7 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bot, CalendarDays, Copy, Loader2, Play, RefreshCcw, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   type AIBlogDraft,
   type BlogAutomationConfig,
@@ -285,36 +293,38 @@ export function BlogAutomationPanel({ email, runId, analyzedUrl }: BlogAutomatio
         <div className="grid gap-3 rounded-xl border border-border/70 bg-background/60 p-3 md:grid-cols-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Frequency/day</label>
-            <select
-              value={frequencyPerDay}
-              onChange={(e) => setFrequencyPerDay(Number(e.target.value))}
-              className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
-            >
-              <option value={1}>1 per day</option>
-              <option value={2}>2 per day</option>
-              <option value={3}>3 per day</option>
-              <option value={4}>4 per day</option>
-            </select>
+            <Select value={String(frequencyPerDay)} onValueChange={(v) => setFrequencyPerDay(Number(v))}>
+              <SelectTrigger className="h-9 w-full border-border bg-background text-sm focus:ring-0 focus:border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 per day</SelectItem>
+                <SelectItem value="2">2 per day</SelectItem>
+                <SelectItem value="3">3 per day</SelectItem>
+                <SelectItem value="4">4 per day</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Publish time</label>
-            <input
+            <Input
               type="time"
               value={publishTime}
               onChange={(e) => setPublishTime(e.target.value)}
-              className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+              className="h-9 w-full border-border bg-background text-sm focus-visible:ring-0 focus-visible:border-border"
             />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Mode</label>
-            <select
-              value={mode}
-              onChange={(e) => setMode(e.target.value as BlogPublishMode)}
-              className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
-            >
-              <option value="auto_publish">Auto Publish</option>
-              <option value="review_before_publish">Review Before Publish</option>
-            </select>
+            <Select value={mode} onValueChange={(v) => setMode(v as BlogPublishMode)}>
+              <SelectTrigger className="h-9 w-full border-border bg-background text-sm focus:ring-0 focus:border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto_publish">Auto Publish</SelectItem>
+                <SelectItem value="review_before_publish">Review Before Publish</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-end">
             <label className="flex h-9 w-full items-center gap-2 rounded-md border border-border bg-background px-2 text-sm">

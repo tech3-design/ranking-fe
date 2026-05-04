@@ -457,7 +457,7 @@ export function PromptTracker({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search prompts…"
-                  className="h-9 min-h-9 border border-border/80 bg-white pl-9 pr-9 text-sm text-foreground focus-visible:ring-offset-0 dark:bg-white dark:text-foreground shadow-sm"
+                  className="h-9 min-h-9 border border-border/80 bg-white pl-9 pr-9 text-sm text-foreground focus-visible:ring-0 focus-visible:border-border dark:bg-white dark:text-foreground shadow-sm"
                   aria-label="Search prompts"
                 />
                 {search ? (
@@ -1443,7 +1443,7 @@ export function PromptTracker({
               role="dialog"
               aria-modal="true"
               aria-labelledby="prompt-response-modal-title"
-              className="flex max-h-[min(85vh,800px)] w-full min-h-0 max-w-2xl flex-col overflow-hidden rounded-t-lg border border-border border-t-[3px] border-t-orange-500 bg-card shadow-2xl sm:rounded-lg"
+              className="flex max-h-[min(85vh,800px)] w-full min-h-0 max-w-2xl flex-col overflow-hidden rounded-t-lg border border-border bg-card shadow-2xl sm:rounded-lg"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5 sm:py-4">
@@ -1534,7 +1534,7 @@ export function PromptTracker({
               role="dialog"
               aria-modal="true"
               aria-labelledby="prompt-track-add-dialog-title"
-              className="flex w-full max-w-lg flex-col rounded-t-lg border border-border border-t-[3px] border-t-orange-500 bg-card shadow-2xl sm:rounded-lg"
+              className="flex w-full max-w-lg flex-col rounded-t-lg border border-border border-t-[3px]  bg-card shadow-2xl sm:rounded-lg"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5 sm:py-4">

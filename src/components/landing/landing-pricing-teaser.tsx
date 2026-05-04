@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { cn } from "@/lib/utils";
+import { useCurrency, formatPrice } from "@/lib/hooks/use-currency";
 
 // Keep in sync with src/app/pricing/page.tsx PLANS constant.
 const TEASER_PLANS = [
@@ -47,6 +48,9 @@ const TEASER_PLANS = [
 ];
 
 export function LandingPricingTeaser() {
+  const { currency, ready: currencyReady } = useCurrency();
+  const starterLabel = currencyReady ? `${currency.symbol}${formatPrice(19.99, currency)}` : "19.99";
+
   return (
     <section
       className="relative bg-background"
@@ -63,7 +67,7 @@ export function LandingPricingTeaser() {
         >
           Plans from{" "}
           <span className="relative whitespace-nowrap text-primary">
-            £19.99 / month
+            {starterLabel} / month
             <span
               className="absolute -bottom-1 left-0 right-0 border-b-2 border-dashed border-primary/45"
               aria-hidden
@@ -72,7 +76,7 @@ export function LandingPricingTeaser() {
         </h2>
         <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
           Cancel anytime. No setup fees, no seats, no surprise usage bills — just one clear monthly
-          number in GBP.
+          number{currency.code !== "EUR" ? ` (approx. in ${currency.code}, charged in EUR)` : " in EUR"}.
         </p>
       </div>
 
@@ -102,10 +106,13 @@ export function LandingPricingTeaser() {
               </div>
               <div className="flex items-start">
                 <span className="mt-1.5 text-base font-semibold text-foreground">
-                  {"\u00A3"}
+                  {currency.symbol}
                 </span>
-                <span className="ml-0.5 text-4xl font-bold tabular-nums tracking-tight text-foreground">
-                  {p.price}
+                <span className={cn(
+                  "ml-0.5 text-4xl font-bold tabular-nums tracking-tight transition-opacity duration-300",
+                  currencyReady ? "text-foreground opacity-100" : "text-foreground opacity-40",
+                )}>
+                  {currencyReady ? formatPrice(p.price, currency) : p.price.toFixed(2)}
                 </span>
                 <span className="ml-2 mt-4 text-xs font-medium text-muted-foreground">
                   / month

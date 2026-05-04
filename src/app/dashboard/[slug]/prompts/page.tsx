@@ -9,7 +9,7 @@ import {
 } from "@/lib/api/analyzer";
 import { PromptTracker } from "@/components/analyzer/prompt-tracker";
 import { AlertCircle } from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { PromptsSkeleton } from "@/components/dashboard/skeletons";
 
 export default function PromptsOverviewPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -102,11 +102,7 @@ export default function PromptsOverviewPage() {
         </p>
       </div>
 
-      {loading && (
-        <div className="flex items-center justify-center py-24">
-          <SignalorLoader label="Loading prompts…" />
-        </div>
-      )}
+      {loading && <PromptsSkeleton />}
 
       {error && !loading && (
         <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-5 py-4 text-sm text-destructive">

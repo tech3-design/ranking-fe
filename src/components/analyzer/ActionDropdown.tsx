@@ -76,7 +76,7 @@ export default function ActionsDropdown({ prompt }: { prompt: string }) {
     const trigger = triggerWrapRef.current;
     if (!trigger) return;
     const rect = trigger.getBoundingClientRect();
-    const width = Math.min(320, Math.max(200, window.innerWidth - 24));
+    const width = Math.min(200, Math.max(160, window.innerWidth - 24));
     const gap = 4;
     const menuH = menuRef.current?.offsetHeight ?? 280;
     let top = rect.bottom + gap;
@@ -144,7 +144,7 @@ export default function ActionsDropdown({ prompt }: { prompt: string }) {
           width: pos.width,
           zIndex: 300,
         }}
-        className="overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg shadow-black/10"
+        className="overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md shadow-black/8"
       >
         <button
           type="button"
@@ -153,20 +153,13 @@ export default function ActionsDropdown({ prompt }: { prompt: string }) {
             void navigator.clipboard.writeText(prompt);
             setOpen(false);
           }}
-          className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted/70"
+          className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] text-foreground transition-colors hover:bg-muted/70"
         >
-          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background">
-            <Copy className="size-4 text-muted-foreground" aria-hidden />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="flex items-center gap-1 text-sm font-medium text-foreground">
-              Copy prompt
-            </span>
-            <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
-              Copy full text to your clipboard
-            </span>
-          </span>
+          <Copy className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+          Copy prompt
         </button>
+
+        <div className="my-1 h-px bg-border/60" role="separator" />
 
         {EXTERNAL_ACTIONS.map((action) => (
           <button
@@ -174,30 +167,18 @@ export default function ActionsDropdown({ prompt }: { prompt: string }) {
             type="button"
             role="menuitem"
             onClick={() => openLink(action)}
-            className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted/70"
+            className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] text-foreground transition-colors hover:bg-muted/70"
           >
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md border border-border/80 bg-background p-1">
-              <Image
-                src={action.logoSrc}
-                alt=""
-                width={20}
-                height={20}
-                unoptimized
-                className="size-5 object-contain opacity-90 grayscale contrast-125"
-              />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-1 text-sm font-medium text-foreground">
-                {action.title}
-                <ExternalLink
-                  className="size-3.5 shrink-0 text-muted-foreground"
-                  aria-hidden
-                />
-              </span>
-              <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
-                {action.subtitle}
-              </span>
-            </span>
+            <Image
+              src={action.logoSrc}
+              alt=""
+              width={14}
+              height={14}
+              unoptimized
+              className="size-3.5 shrink-0 object-contain"
+            />
+            {action.title}
+            <ExternalLink className="ml-auto size-3 shrink-0 text-muted-foreground" aria-hidden />
           </button>
         ))}
       </div>

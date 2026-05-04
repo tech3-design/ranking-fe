@@ -6,6 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { startAnalysis } from "@/lib/api/analyzer";
 import { routes } from "@/lib/config";
 import { ArrowRight, ArrowLeft, Globe, MapPin, Sparkles } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { RotatingGeoFact } from "@/components/ui/rotating-geo-fact";
 import { Button } from "../ui/button";
@@ -133,16 +140,16 @@ export function HeroAnalyzerForm() {
                   <ArrowLeft className="h-4 w-4" />
                 </button>
                 <MapPin className="h-5 w-5 shrink-0 text-muted-foreground" />
-                <select
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="min-w-[180px] flex-1 cursor-pointer bg-transparent py-2 text-sm text-foreground focus:outline-none"
-                  autoFocus
-                >
-                  {COUNTRY_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
+                <Select value={country} onValueChange={setCountry}>
+                  <SelectTrigger className="min-w-[180px] flex-1 border-0 bg-transparent shadow-none focus:ring-0 text-sm text-foreground px-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <button
                   type="button"
                   onClick={handleAnalyze}

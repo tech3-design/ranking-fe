@@ -2,10 +2,17 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Globe, Lock, Plus, User } from "lucide-react";
+import { Globe, Lock, Plus, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { Competitor } from "@/lib/api/analyzer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type ScoreBandFilter = "all" | "leaders" | "mid" | "low";
 export type ConfidenceFilter = "all" | "scored" | "unscored";
@@ -276,28 +283,36 @@ export function CompetitorTable({
                         My brand
                       </div>
                     ) : (
-                      <div className="relative">
-                        <select
-                          value={rel}
-                          onChange={(e) =>
-                            setRelations((s) => ({
-                              ...s,
-                              [r.key]: e.target.value as Relation,
-                            }))
-                          }
-                          disabled={r.locked}
+                      <Select
+                        value={rel}
+                        onValueChange={(v) =>
+                          setRelations((s) => ({
+                            ...s,
+                            [r.key]: v as Relation,
+                          }))
+                        }
+                        disabled={r.locked}
+                      >
+                        <SelectTrigger
                           className={cn(
-                            "h-9 w-full appearance-none rounded-md border border-border/60 bg-background pl-3 pr-8 text-[13px] font-medium text-foreground transition hover:border-border focus:border-primary focus:outline-none",
+                            "h-9 w-full border border-border/80 bg-white text-[13px] font-medium text-foreground shadow-sm focus:ring-0 focus:border-border dark:bg-white dark:text-foreground dark:hover:bg-neutral-50",
                             rel === "unknown" && "text-muted-foreground",
                           )}
                         >
-                          <option value="unknown">Select relation</option>
-                          <option value="direct">Direct competitors</option>
-                          <option value="indirect">Indirect competitors</option>
-                          <option value="adjacent">Adjacent brand</option>
-                        </select>
-                        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                      </div>
+                          <SelectValue placeholder="Select relation" />
+                        </SelectTrigger>
+                        <SelectContent
+                          position="popper"
+                          side="bottom"
+                          avoidCollisions={false}
+                          sideOffset={4}
+                        >
+                          <SelectItem value="unknown">Select relation</SelectItem>
+                          <SelectItem value="direct">Direct competitors</SelectItem>
+                          <SelectItem value="indirect">Indirect competitors</SelectItem>
+                          <SelectItem value="adjacent">Adjacent brand</SelectItem>
+                        </SelectContent>
+                      </Select>
                     )}
                   </td>
                 </tr>

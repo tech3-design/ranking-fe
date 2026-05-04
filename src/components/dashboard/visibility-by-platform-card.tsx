@@ -77,7 +77,7 @@ export function VisibilityByPlatformCard({ brandVis }: { brandVis: BrandVisibili
   }, [brandVis]);
 
   return (
-    <div className="col-span-4 flex h-full min-h-0 flex-col rounded-xl border border-neutral-100 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <div className="col-span-6 flex h-full min-h-0 flex-col rounded-xl border border-neutral-100 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
       <p className="mb-2 shrink-0 text-sm font-semibold text-foreground">Visibility by Platform</p>
       {visibilityCards.length > 0 ? (
         <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-2">

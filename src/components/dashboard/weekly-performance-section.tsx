@@ -99,9 +99,11 @@ const CHART_CONFIG: ChartConfig = { score: { label: "GEO Score", color: CORAL } 
 export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
   scoreHistory,
   joinDate,
+  className,
 }: {
   scoreHistory: ScoreHistoryPoint[];
   joinDate: string;
+  className?: string;
 }) {
   // Build week ranges anchored to the user's actual start date.
   // Week 1 begins on joinDate (or the earliest scoreHistory point if older).
@@ -230,7 +232,7 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
   if (weeks.length === 0) return null;
 
   return (
-    <div className="mb-3 overflow-hidden rounded-xl border border-neutral-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <div className={cn("mb-3 overflow-hidden rounded-xl border border-neutral-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]", className)}>
       {/* ── Week tabs ─────────────────────────────────────────────────── */}
       <div className="flex items-stretch border-b border-neutral-100">
         {/* Scroll left */}

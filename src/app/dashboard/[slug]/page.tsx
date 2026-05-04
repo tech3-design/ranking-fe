@@ -15,8 +15,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
-import { RotatingGeoFact } from "@/components/ui/rotating-geo-fact";
+import { OverviewSkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -153,12 +152,7 @@ export default function SignalorDashboard() {
   }, [brandVis?.reddit_details, run?.ai_probes]);
 
   if (loading) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-4">
-        <SignalorLoader size="lg" />
-        <RotatingGeoFact intervalMs={4500} className="max-w-lg" />
-      </div>
-    );
+    return <OverviewSkeleton />;
   }
 
   if ((error || reanalyzeError) && !run) {
@@ -303,19 +297,27 @@ export default function SignalorDashboard() {
 
       {run && !isRunning && (
         <div className="px-3 pb-4 pt-3 sm:px-4">
-          <WeeklyPerformanceSection
-            scoreHistory={scoreHistory}
-            joinDate={run.created_at}
-          />
+          {/* GEO Score card (left) + GEO Performance chart (right), equal height */}
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-stretch">
+            <div className="w-full shrink-0 sm:w-56">
+              <GeoScoreCard
+                compositeScore={compositeScore}
+                scoreChange={scoreChange}
+                sparkle={!!scoreBump && scoreBump > 0}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <WeeklyPerformanceSection
+                scoreHistory={scoreHistory}
+                joinDate={run.created_at}
+                className="mb-0 h-full"
+              />
+            </div>
+          </div>
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
-            <GeoScoreCard
-              compositeScore={compositeScore}
-              scoreChange={scoreChange}
-              sparkle={!!scoreBump && scoreBump > 0}
-            />
             <VisibilityByPlatformCard brandVis={brandVis} />
             {/* <GeoScoreHistoryCard scoreHistory={scoreHistory} /> */}
-            <div className="col-span-5 flex min-h-0 h-full flex-col gap-2">
+            <div className="col-span-6 flex min-h-0 h-full flex-col gap-2">
               <div className="min-h-0 flex-1">
                 <PillarBreakdownCard pageScore={pageScore} />
               </div>

@@ -137,7 +137,9 @@ function ScoreComparisonBars({ chartData }: { chartData: ChartDatum[] }) {
   const maxScore = Math.max(...chartData.map((d) => d.score), 1);
 
   return (
-    <div className="space-y-3">
+
+
+<div className="space-y-1.5">
       {chartData.map((d, i) => {
         const pct = animated ? (d.score / maxScore) * 100 : 0;
         const opacity = barOpacity(d.score);
@@ -266,7 +268,7 @@ export function CompetitorsCard({
           aria-hidden
           className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-primary/15 to-transparent blur-2xl"
         />
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
+        <div className="relative flex flex-w<PromptPageSkeletonrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-white shadow-md shadow-primary/20">
               <Trophy className="h-4 w-4" aria-hidden />
