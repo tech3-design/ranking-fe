@@ -171,6 +171,9 @@ useEffect(() => {
                 >
                   Analyzer
                 </Link>
+                <Button variant="outline" asChild>
+                  <Link href={routes.dashboard}>Go to Dashboard</Link>
+                </Button>
               </div>
             </div>
 

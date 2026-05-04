@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -179,13 +180,18 @@ export default function AccountSettingsPage() {
                   Manage your organizations and session.
                 </p>
               </div>
-              <Button
-                variant="destructive"
-                onClick={handleSignOut}
-                disabled={signingOut}
-              >
-                {signingOut ? "Signing Out..." : "Sign Out"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" asChild>
+                  <Link href={routes.dashboard}>Go to Dashboard</Link>
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                >
+                  {signingOut ? "Signing Out..." : "Sign Out"}
+                </Button>
+              </div>
             </div>
 
             {error && (
