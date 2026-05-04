@@ -21,8 +21,9 @@ import {
 } from "lucide-react";
 import { EngineBadge } from "@/components/ui/engine-badge";
 import { engineLabel } from "@/lib/engines";
-import { BillingSkeleton } from "@/components/dashboard/skeletons";
 import { config } from "@/lib/config";
+import { DashboardSettingsNav } from "@/components/settings/dashboard-settings-nav";
+import { BillingSkeleton } from "@/components/dashboard/skeletons";
 
 const PLAN_ICONS: Record<string, typeof Zap> = {
   starter: Zap,
@@ -98,6 +99,7 @@ export default function BillingSettingsPage() {
 
   return (
     <div className="px-2 py-2 space-y-6 font-sans">
+      <DashboardSettingsNav label="Billing" />
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Billing & Usage</h2>
         <p className="mt-1 text-[13px] font-light leading-relaxed text-accent-foreground">

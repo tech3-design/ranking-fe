@@ -25,6 +25,7 @@ import { ShopifyEcommerceTab } from "@/components/integrations/shopify-ecommerce
 import { WordPressConnectForm } from "@/components/integrations/wordpress-connect-form";
 import { WordPressContentTab } from "@/components/integrations/wordpress-content-tab";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
+import { SettingsNav } from "@/components/settings/settings-nav";
 
 function IntegrationsSettingsContent() {
   const searchParams = useSearchParams();
@@ -154,6 +155,7 @@ useEffect(() => {
         <AppSidebar />
         <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
           <div className="space-y-6">
+            <SettingsNav />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h1 className="text-2xl font-bold">Integrations</h1>
