@@ -105,7 +105,7 @@ export default function BillingSettingsPage() {
 
   return (
     <div className="px-2 py-2 space-y-6 font-sans">
-      <DashboardSettingsNav />
+      <DashboardSettingsNav label="Billing" />
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Billing & Usage</h2>
         <p className="mt-1 text-[13px] font-light leading-relaxed text-accent-foreground">
