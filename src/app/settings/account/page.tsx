@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AppSidebar } from "@/components/navigation/app-sidebar";
+import { SettingsNav } from "@/components/settings/settings-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -172,6 +173,7 @@ export default function AccountSettingsPage() {
         <AppSidebar />
         <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
           <div className="space-y-6">
+            <SettingsNav />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h1 className="text-2xl font-bold">Account</h1>

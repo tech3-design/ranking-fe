@@ -12,8 +12,8 @@ import {
   YAxis,
 } from "recharts";
 import { ArrowUpRight, Crown, Trophy, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { Competitor } from "@/lib/api/analyzer";
+import { cn } from "@/lib/utils";
 
 const PRIMARY_HEX = "#FF5A3C";
 
