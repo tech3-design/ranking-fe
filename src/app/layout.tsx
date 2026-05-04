@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, DM_Serif_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { JsonLd } from "@/components/seo/json-ld";
+import { ClarityInit } from "@/components/analytics/clarity";
 import {
   buildMetadata,
   organizationJsonLd,
@@ -70,6 +71,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`signalor-body ${fontSerif.variable} ${fontMono.variable} overflow-x-hidden antialiased`}
       >
+        <ClarityInit />
         {children}
       </body>
     </html>

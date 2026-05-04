@@ -38,6 +38,7 @@ import {
   Megaphone,
   Link2,
   BookOpen,
+  FileText,
   type LucideIcon,
 } from "lucide-react";
 import LogoComp from "@/components/LogoComp";
@@ -95,6 +96,12 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
       { icon: Users, label: "Competitors", path: "/competitors" },
     ],
   },
+  {
+    heading: "Optimisation",
+    items: [
+      { icon: FileText, label: "Content", path: "/optimisation/content" },
+    ],
+  },
 ];
 
 const SETTINGS_NAV = [
@@ -141,6 +148,12 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Sitemap",
       hint: "Page-level audit of speed, structure, and AI readiness.",
+    };
+  }
+  if (rel.startsWith("/optimisation/content")) {
+    return {
+      title: "Content",
+      hint: "Generate, refine, and ship AI-optimised content for your brand.",
     };
   }
   if (rel.startsWith("/prompts/backlinks")) {
