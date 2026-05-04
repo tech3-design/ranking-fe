@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bot, CalendarDays, Copy, Loader2, Play, RefreshCcw, Save, Sparkles } from "lucide-react";
+import { CalendarDays, Copy, FileText, Loader2, PenSquare, Play, RefreshCcw, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -261,7 +261,7 @@ export function BlogAutomationPanel({ email, runId, analyzedUrl }: BlogAutomatio
     <Card className="backdrop-blur-xl border-border/50 bg-card/50">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
-          <Sparkles className="size-4 text-primary" />
+          <PenSquare className="size-4 text-primary" />
           AI Blog Automation
         </CardTitle>
         <p className="text-sm text-muted-foreground">
@@ -378,7 +378,7 @@ export function BlogAutomationPanel({ email, runId, analyzedUrl }: BlogAutomatio
             <p className="text-sm font-medium">Draft generation</p>
             <div className="flex gap-2">
               <Button onClick={() => handleGenerate(false)} disabled={loading} className="gap-2" size="sm">
-                {loading ? <Loader2 className="size-4 animate-spin" /> : <Bot className="size-4" />}
+                {loading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
                 Generate
               </Button>
               <Button onClick={() => handleGenerate(true)} disabled={loading} variant="outline" size="sm">

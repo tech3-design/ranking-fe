@@ -7,11 +7,13 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRight,
   BarChart3,
+  Bell,
   Binary,
   BookOpen,
   Bot,
   Check,
   ChevronDown,
+  Eye,
   FileText,
   LayoutGrid,
   LifeBuoy,
@@ -21,7 +23,6 @@ import {
   Menu,
   Plug,
   Radar,
-  Sparkles,
   Tags,
   Target,
   Users,
@@ -106,7 +107,7 @@ const MENUS: Record<
         href: "/ai-visibility",
         title: "AI visibility",
         desc: "Score how AI engines see, cite, and recommend your brand.",
-        icon: Sparkles,
+        icon: Eye,
       },
       {
         href: "/recommendations",
@@ -606,7 +607,7 @@ function LoginPreview({ onNavigate, isAuthenticated }: { onNavigate: () => void;
 function DefaultPreview() {
   const hints: { icon: LucideIcon; label: string; hint: string }[] = [
     { icon: BookOpen, label: "Playbooks",   hint: "Step-by-step GEO guides"  },
-    { icon: Sparkles, label: "What's new",  hint: "Latest product updates"   },
+    { icon: Bell, label: "What's new",  hint: "Latest product updates"   },
     { icon: LifeBuoy, label: "Help center", hint: "Docs and onboarding"      },
   ];
   return (

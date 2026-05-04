@@ -10,7 +10,7 @@ import {
   MessageSquare,
   BarChart3,
   ChevronDown,
-  Zap,
+  Radar,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -41,7 +41,7 @@ export function DashboardShell({ slug, activeNav, children }: DashboardShellProp
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-2 mb-8">
           <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
+            <Radar className="w-4 h-4 text-white" />
           </div>
           <span className="text-lg font-semibold tracking-tight text-emerald-600">Signalor</span>
         </div>
