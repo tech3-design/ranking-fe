@@ -35,7 +35,7 @@ export function LandingHero() {
 
         {/* <div className="relative z-20 order-last mt-10 flex min-h-0 w-full justify-center lg:order-0 lg:mt-0 lg:min-h-[min(480px,68vh)] lg:items-center lg:justify-end lg:pl-0 xl:min-h-[min(540px,72vh)]">
               <Image
-                src="/carousel1.png"
+                src="/carousel1.jpeg"
                 alt="Signalor dashboard preview"
                 width={2000}
                 height={2000}

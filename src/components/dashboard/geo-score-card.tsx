@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { Sparkles } from "@/components/ui/sparkles";
 import { cn } from "@/lib/utils";
@@ -8,7 +8,6 @@ import { CORAL } from "./constants";
 
 const SEGMENTS = 28;
 
-// Semicircle gauge — center at (110, 110), radius 88, spans 180°
 function buildSegments(score: number) {
   const filled = Math.round((Math.min(100, Math.max(0, score)) / 100) * SEGMENTS);
   const cx = 110, cy = 110, r = 88, barW = 8, barH = 22;
@@ -43,12 +42,45 @@ export function GeoScoreCard({
   sparkle?: boolean;
 }) {
   const gradId = useId().replace(/:/g, "");
-  const rounded = Math.round(compositeScore);
-  const tier = scoreTier(rounded);
-  const segments = buildSegments(compositeScore);
+  const target = Math.round(compositeScore);
+
+  // Animated display score (0 → target on mount / score change)
+  const [displayScore, setDisplayScore] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const fromRef = useRef(0);
+
+  useEffect(() => {
+    const startVal = fromRef.current;
+    const duration = 1300; // ms — ease-out over ~1.3 s
+    const startTime = performance.now();
+
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    function tick(now: number) {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+      const current = Math.round(startVal + (target - startVal) * eased);
+      setDisplayScore(current);
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        fromRef.current = target;
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+
+  const tier = scoreTier(displayScore);
+  const segments = buildSegments(displayScore);
 
   return (
-    <div className="relative col-span-3 flex h-full flex-col rounded-xl border border-neutral-100 bg-white px-4 pb-3 pt-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <div className="relative col-span-3 flex h-full flex-col rounded-xl border border-neutral-100 bg-white px-4 pb-4 pt-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
       {sparkle ? <Sparkles /> : null}
 
       {/* Title */}
@@ -57,50 +89,51 @@ export function GeoScoreCard({
         <p className="mt-0.5 text-[10px] text-muted-foreground">Composite across pillars</p>
       </div>
 
-      {/* Gauge — fills card width, 2:1 aspect ratio for the semicircle */}
-      <div className="relative mt-3 w-full shrink-0" style={{ aspectRatio: "220 / 118" }}>
-        <svg
-          viewBox="0 0 220 118"
-          className="absolute inset-0 h-full w-full"
-          aria-label={`GEO score ${rounded} out of 100`}
-          role="img"
-          aria-hidden
-        >
-          <defs>
-            <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={CORAL} stopOpacity="1" />
-              <stop offset="100%" stopColor={CORAL} stopOpacity="0.8" />
-            </linearGradient>
-          </defs>
-          {segments.map(({ key, x, y, rot, isFilled, barW, barH }) => (
-            <rect
-              key={key}
-              x={-barW / 2}
-              y={-barH / 2}
-              width={barW}
-              height={barH}
-              rx={2.5}
-              fill={isFilled ? `url(#${gradId})` : "var(--border)"}
-              fillOpacity={isFilled ? 1 : 0.35}
-              transform={`translate(${x} ${y}) rotate(${rot})`}
-            />
-          ))}
-        </svg>
+      {/* Gauge — flex-1 so it fills available height, centered */}
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-2">
+        <div className="relative w-full" style={{ aspectRatio: "220 / 118" }}>
+          <svg
+            viewBox="0 0 220 118"
+            className="absolute inset-0 h-full w-full"
+            aria-label={`GEO score ${target} out of 100`}
+            role="img"
+          >
+            <defs>
+              <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={CORAL} stopOpacity="1" />
+                <stop offset="100%" stopColor={CORAL} stopOpacity="0.8" />
+              </linearGradient>
+            </defs>
+            {segments.map(({ key, x, y, rot, isFilled, barW, barH }) => (
+              <rect
+                key={key}
+                x={-barW / 2}
+                y={-barH / 2}
+                width={barW}
+                height={barH}
+                rx={2.5}
+                fill={isFilled ? `url(#${gradId})` : "var(--border)"}
+                fillOpacity={isFilled ? 1 : 0.35}
+                transform={`translate(${x} ${y}) rotate(${rot})`}
+              />
+            ))}
+          </svg>
 
-        {/* Score label — centered in the arc mouth */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center pb-0.5">
-          <p className="tabular-nums text-[28px] font-bold leading-none tracking-tight text-foreground">
-            {rounded}
-            <span className="text-[12px] font-semibold text-muted-foreground">/100</span>
-          </p>
-          <p className={cn("mt-1 text-[10px] font-semibold", tier.color)}>
-            {tier.label}
-          </p>
+          {/* Score label — centered in the arc mouth */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center pb-0.5">
+            <p className="tabular-nums text-[28px] font-bold leading-none tracking-tight text-foreground">
+              {displayScore}
+              <span className="text-[12px] font-semibold text-muted-foreground">/100</span>
+            </p>
+            <p className={cn("mt-1 text-[10px] font-semibold", tier.color)}>
+              {tier.label}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* vs last run badge */}
-      <div className="mt-3 shrink-0">
+      <div className="shrink-0">
         {scoreChange !== null ? (
           <div
             className={cn(
