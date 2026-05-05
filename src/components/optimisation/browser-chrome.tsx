@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, RotateCw, Loader2, Globe2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCw, Loader2, Globe2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ContentPage } from "@/lib/api/content-optimisation";
 
@@ -124,11 +124,27 @@ export function BrowserChrome({
             placeholder="https://your-site.com/page"
             className="flex-1 bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground"
           />
+          {pages.length > 0 ? (
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                setDraftUrl(url);
+                setOpen((v) => !v);
+              }}
+              className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
+              aria-label="Browse sitemap pages"
+              title="Browse sitemap pages"
+            >
+              <span className="font-medium">{pages.length} pages</span>
+              <ChevronDown className={cn("size-3 transition", open && "rotate-180")} />
+            </button>
+          ) : null}
         </div>
 
         {open && filtered.length > 0 ? (
           <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-lg">
-            {filtered.slice(0, 30).map((p) => (
+            {filtered.slice(0, 50).map((p) => (
               <button
                 key={p.url}
                 type="button"
@@ -140,9 +156,11 @@ export function BrowserChrome({
                 )}
               >
                 <span className="truncate font-medium text-foreground">
-                  {p.title || p.path || p.url}
+                  {p.path || "/"}
                 </span>
-                <span className="truncate text-[11px] text-muted-foreground">{p.url}</span>
+                <span className="truncate text-[11px] text-muted-foreground">
+                  {p.title || p.url}
+                </span>
               </button>
             ))}
           </div>

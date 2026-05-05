@@ -24,13 +24,29 @@ export interface ContentSuggestion {
   created_at: string | null;
 }
 
+export interface PreviewElementBBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface PreviewElement {
+  id: number;
+  tag: string;
+  text: string;
+  bbox: PreviewElementBBox;
+}
+
 export interface ContentPageFields {
   url: string;
   title: string;
   meta_description: string;
   body_html: string;
   schema_jsonld: string;
-  preview_html: string;
+  preview_image: string;
+  preview_elements: PreviewElement[];
+  preview_viewport_width: number;
   source: "plugin" | "public" | "empty";
   plugin_connected: boolean;
   plugin_provider: string;
@@ -54,9 +70,11 @@ export async function getContentPageFields(
   slug: string,
   url: string,
 ): Promise<ContentPageFields> {
-  const { data } = await apiClient.get<ContentPageFields>(
+  // Long timeout because the BE renders the URL in headless Chromium to
+  // produce the preview screenshot — typically 4–10s per page.
+  const { data } = await apiClientLong.get<ContentPageFields>(
     `/api/analyzer/runs/s/${slug}/content/page/`,
-    { params: { url } },
+    { params: { url }, timeout: 45_000 },
   );
   return data;
 }
@@ -91,6 +109,34 @@ export async function saveContentPageEdits(
   const { data } = await apiClientLong.post<ContentSaveResult>(
     `/api/analyzer/runs/s/${slug}/content/save/`,
     { url, fields, used_suggestion_ids: usedSuggestionIds },
+    { timeout: 45_000 },
+  );
+  return data;
+}
+
+export async function rewriteElement(
+  slug: string,
+  tag: string,
+  text: string,
+  instruction = "",
+): Promise<string> {
+  const { data } = await apiClientLong.post<{ new_text: string }>(
+    `/api/analyzer/runs/s/${slug}/content/rewrite-element/`,
+    { tag, text, instruction },
+    { timeout: 60_000 },
+  );
+  return data.new_text || "";
+}
+
+export async function applyElementEdit(
+  slug: string,
+  url: string,
+  originalText: string,
+  newText: string,
+): Promise<ContentSaveResult & { noop?: boolean }> {
+  const { data } = await apiClientLong.post<ContentSaveResult & { noop?: boolean }>(
+    `/api/analyzer/runs/s/${slug}/content/apply-element/`,
+    { url, original_text: originalText, new_text: newText },
     { timeout: 45_000 },
   );
   return data;

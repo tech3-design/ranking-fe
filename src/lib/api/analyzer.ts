@@ -461,6 +461,44 @@ export async function regeneratePromptOpportunities(
   return data;
 }
 
+// Site-level free backlink opportunities (no prompt context). Cached on the
+// BE in BrandKit.payload so GET is instant; POST forces a fresh LLM call.
+export interface SiteOpportunity {
+  id: number;
+  name: string;
+  description: string;
+  rationale: string;
+  submit_url: string;
+  category: OpportunityCategory;
+  priority: number;
+}
+
+export interface SiteOpportunitiesResponse {
+  rows: SiteOpportunity[];
+  has_generated: boolean;
+}
+
+export async function getSiteBacklinkOpportunities(
+  slug: string,
+): Promise<SiteOpportunitiesResponse> {
+  const { data } = await apiClient.get<SiteOpportunitiesResponse>(
+    `/api/analyzer/runs/s/${slug}/backlinks/free/`,
+    { timeout: 90_000 },
+  );
+  return data;
+}
+
+export async function regenerateSiteBacklinkOpportunities(
+  slug: string,
+): Promise<SiteOpportunitiesResponse> {
+  const { data } = await apiClient.post<SiteOpportunitiesResponse>(
+    `/api/analyzer/runs/s/${slug}/backlinks/free/`,
+    {},
+    { timeout: 90_000 },
+  );
+  return data;
+}
+
 export async function updateOpportunityStatus(
   slug: string,
   trackId: number,
@@ -1120,6 +1158,15 @@ export async function getBacklinkOrder(
     `/api/analyzer/runs/s/${slug}/backlinks/orders/${orderId}/`,
   );
   return data;
+}
+
+export async function deleteBacklinkOrder(
+  slug: string,
+  orderId: number,
+): Promise<void> {
+  await apiClient.delete(
+    `/api/analyzer/runs/s/${slug}/backlinks/orders/${orderId}/`,
+  );
 }
 
 export async function confirmBacklinkOrderPayment(

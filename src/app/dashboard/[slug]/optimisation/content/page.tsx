@@ -6,20 +6,21 @@ import Link from "next/link";
 import { AlertCircle, ExternalLink } from "lucide-react";
 import { BrowserChrome } from "@/components/optimisation/browser-chrome";
 import { PageIframe } from "@/components/optimisation/page-iframe";
-import { SuggestionsRail } from "@/components/optimisation/suggestions-rail";
+import { ElementEditor } from "@/components/optimisation/element-editor";
+import { useRun } from "../../_components/run-context";
 import {
-  dismissContentSuggestion,
+  applyElementEdit,
   getContentPageFields,
   getContentPages,
-  getContentSuggestions,
-  saveContentPageEdits,
+  rewriteElement,
   type ContentPage,
   type ContentPageFields,
-  type ContentSuggestion,
+  type PreviewElement,
 } from "@/lib/api/content-optimisation";
 
 export default function ContentOptimisationPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { run } = useRun();
 
   const [pages, setPages] = useState<ContentPage[]>([]);
   const [url, setUrl] = useState("");
@@ -27,21 +28,23 @@ export default function ContentOptimisationPage() {
   const [pageLoading, setPageLoading] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
 
-  const [suggestions, setSuggestions] = useState<ContentSuggestion[]>([]);
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
-  const [generating, setGenerating] = useState(false);
-
-  const [applyingId, setApplyingId] = useState<number | null>(null);
-  const [appliedIds, setAppliedIds] = useState<Set<number>>(new Set());
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Cursor-style element-level edit. The right rail only mounts while an
+  // element is selected; otherwise the preview fills the full width.
+  const [selectedElement, setSelectedElement] = useState<PreviewElement | null>(null);
+  const [rewritingElement, setRewritingElement] = useState(false);
+  const [applyingElement, setApplyingElement] = useState(false);
 
   // browser-style history for back/forward
   const [history, setHistory] = useState<string[]>([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
   const navigatingFromHistory = useRef(false);
 
-  // Load pages once per project
+  // Load pages once per project. Falls back to the run's home URL so the
+  // browser always has something to render on first open, even if the
+  // sitemap audit hasn't been run yet.
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
@@ -49,38 +52,88 @@ export default function ContentOptimisationPage() {
       .then((p) => {
         if (cancelled) return;
         setPages(p);
-        if (p.length > 0 && !url) setUrl(p[0].url);
+        if (!url) {
+          const initial = p[0]?.url || run?.url || "";
+          if (initial) setUrl(initial);
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (cancelled) return;
+        if (!url && run?.url) setUrl(run.url);
+      });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [slug, run?.url]);
 
   const loadPage = useCallback(
     async (target: string) => {
       if (!slug || !target) return;
       setPageLoading(true);
       setPageError(null);
-      setAppliedIds(new Set());
       setError(null);
       setNotice(null);
+      setSelectedElement(null);
       try {
         const data = await getContentPageFields(slug, target);
         setPageFields(data);
-        setSuggestions(data.suggestions || []);
       } catch (err: unknown) {
         const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
         setPageError(detail || "Couldn't load this page.");
         setPageFields(null);
-        setSuggestions([]);
       } finally {
         setPageLoading(false);
       }
     },
     [slug],
   );
+
+  async function handleRewriteElement(instruction: string): Promise<string> {
+    if (!selectedElement) return "";
+    setRewritingElement(true);
+    setError(null);
+    try {
+      return await rewriteElement(slug, selectedElement.tag, selectedElement.text, instruction);
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(detail || "Couldn't rewrite this element.");
+      return "";
+    } finally {
+      setRewritingElement(false);
+    }
+  }
+
+  async function handleApplyElement(newText: string) {
+    if (!selectedElement || !url) return;
+    setApplyingElement(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const result = await applyElementEdit(slug, url, selectedElement.text, newText);
+      const ok = (result.saved?.length || 0) > 0 && (result.failed?.length || 0) === 0;
+      if (ok) {
+        setNotice("Applied to live site. Reloading preview…");
+        // Re-fetch so the screenshot reflects the change.
+        const fresh = await getContentPageFields(slug, url);
+        setPageFields(fresh);
+        setSelectedElement(null);
+      } else {
+        const msg = result.failed?.[0]?.message || "Plugin returned an error.";
+        setError(`Couldn't apply edit: ${msg}`);
+      }
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      if (status === 503) {
+        setError(detail || "Connect WordPress or Shopify to apply this change.");
+      } else {
+        setError(detail || "Couldn't apply this edit.");
+      }
+    } finally {
+      setApplyingElement(false);
+    }
+  }
 
   useEffect(() => {
     if (!url) return;
@@ -96,68 +149,6 @@ export default function ContentOptimisationPage() {
     navigatingFromHistory.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
-
-  async function handleGenerateSuggestions() {
-    if (!slug || !url) return;
-    setGenerating(true);
-    setSuggestionsLoading(true);
-    try {
-      const fresh = await getContentSuggestions(slug, url);
-      setSuggestions(fresh);
-      setAppliedIds(new Set());
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(detail || "Couldn't generate suggestions.");
-    } finally {
-      setGenerating(false);
-      setSuggestionsLoading(false);
-    }
-  }
-
-  async function handleApplySuggestion(s: ContentSuggestion) {
-    if (!slug || !url) return;
-    setApplyingId(s.id);
-    setError(null);
-    setNotice(null);
-    try {
-      const result = await saveContentPageEdits(
-        slug,
-        url,
-        { [s.target_field]: s.proposed_value },
-        [s.id],
-      );
-      const ok = result.saved.length > 0 && result.failed.length === 0;
-      if (ok) {
-        setAppliedIds((curr) => new Set(curr).add(s.id));
-        setNotice(`Applied: ${s.title}`);
-        // Re-fetch the live page so the iframe reflects the change.
-        const fresh = await getContentPageFields(slug, url);
-        setPageFields(fresh);
-      } else {
-        const msg = result.failed[0]?.message || "Plugin returned an error.";
-        setError(`Couldn't apply "${s.title}": ${msg}`);
-      }
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      if (status === 503) {
-        setError(detail || "Connect WordPress or Shopify to apply this change.");
-      } else {
-        setError(detail || "Couldn't push the change to the plugin.");
-      }
-    } finally {
-      setApplyingId(null);
-    }
-  }
-
-  async function handleDismissSuggestion(s: ContentSuggestion) {
-    setSuggestions((list) => list.filter((x) => x.id !== s.id));
-    try {
-      await dismissContentSuggestion(slug, s.id);
-    } catch {
-      // best-effort
-    }
-  }
 
   function handleBack() {
     if (historyIdx <= 0) return;
@@ -202,7 +193,7 @@ export default function ContentOptimisationPage() {
             <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
               <AlertCircle className="size-3.5" />
               <span>
-                No plugin connected. AI suggestions will preview here, but applying needs
+                No plugin connected. Click any element to edit, but applying needs
                 WordPress or Shopify.
               </span>
               <Link
@@ -223,29 +214,32 @@ export default function ContentOptimisationPage() {
       )}
 
       <div className="flex min-h-0 flex-1">
-        <div className="flex-1 min-w-0 border-r border-border">
+        <div className={`flex-1 min-w-0 ${selectedElement ? "border-r border-border" : ""}`}>
           <PageIframe
-            previewHtml={pageFields?.preview_html || ""}
+            previewImage={pageFields?.preview_image || ""}
+            previewElements={pageFields?.preview_elements || []}
+            viewportWidth={pageFields?.preview_viewport_width || 1440}
             isLoading={pageLoading}
             emptyMessage={pageError || undefined}
+            selectedElementId={selectedElement?.id ?? null}
+            onSelectElement={setSelectedElement}
           />
         </div>
 
-        <div className="w-[360px] min-w-[300px] shrink-0">
-          <SuggestionsRail
-            suggestions={suggestions}
-            applyingId={applyingId}
-            appliedIds={appliedIds}
-            isLoading={suggestionsLoading}
-            isGenerating={generating}
-            hasPage={!!pageFields}
-            applyDisabled={!pluginConnected}
-            applyDisabledHint={applyDisabledHint}
-            onGenerate={handleGenerateSuggestions}
-            onApply={handleApplySuggestion}
-            onDismiss={handleDismissSuggestion}
-          />
-        </div>
+        {selectedElement ? (
+          <div className="w-[360px] min-w-[300px] shrink-0">
+            <ElementEditor
+              element={selectedElement}
+              applyDisabled={!pluginConnected}
+              applyDisabledHint={applyDisabledHint}
+              isRewriting={rewritingElement}
+              isApplying={applyingElement}
+              onClose={() => setSelectedElement(null)}
+              onRewrite={handleRewriteElement}
+              onApply={handleApplyElement}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );

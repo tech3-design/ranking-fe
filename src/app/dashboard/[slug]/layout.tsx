@@ -14,12 +14,7 @@ import { RunProvider, useRun } from "./_components/run-context";
 import { AnalysisOverlay } from "./_components/analysis-overlay";
 import { ScoreBump } from "./_components/score-bump";
 import {
-  LayoutDashboard,
   ListChecks,
-  Eye,
-  Map,
-  Users,
-  MessageSquare,
   ChevronUp,
   ChevronDown,
   User,
@@ -34,13 +29,19 @@ import {
   Loader2,
   Compass,
   GitFork,
-  Activity,
-  Megaphone,
-  Link2,
-  BookOpen,
-  FileText,
   type LucideIcon,
 } from "lucide-react";
+import {
+  OverviewIcon,
+  VisibilityIcon,
+  SitemapIcon,
+  TasksIcon,
+  TrackerIcon,
+  WikipediaIcon,
+  CompetitorsIcon,
+  ContentIcon,
+  BacklinksIcon,
+} from "@/components/icons/nav";
 import LogoComp from "@/components/LogoComp";
 import { AiChat } from "@/components/analyzer/ai-chat";
 import { cn } from "@/lib/utils";
@@ -52,7 +53,7 @@ import { CommandPalette } from "@/components/ui/command-palette";
 import { DashboardTopBarActions } from "./_components/dashboard-top-bar-actions";
 
 type MainNavItem = {
-  icon: LucideIcon;
+  icon: LucideIcon | React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   label: string;
   path: string;
   children?: MainNavItem[];
@@ -62,7 +63,7 @@ type MainNavGroup = { heading?: string; items: MainNavItem[] };
 const MAIN_NAV_GROUPS: MainNavGroup[] = [
   {
     items: [
-      { icon: LayoutDashboard, label: "Overview", path: "" },
+      { icon: OverviewIcon, label: "Overview", path: "" },
       // { icon: Compass, label: "Explorer", path: "/visibility/explorer" },
       // { icon: GitFork, label: "Ranking", path: "/prompts/ranking" },
     ],
@@ -70,36 +71,29 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
   {
     heading: "Monitoring",
     items: [
-      { icon: Eye, label: "Visibility", path: "/visibility" },
-      { icon: Map, label: "Sitemap", path: "/sitemap" },
-      { icon: Activity, label: "Tasks", path: "/recommendations" },
+      { icon: VisibilityIcon, label: "Visibility", path: "/visibility" },
+      { icon: SitemapIcon, label: "Sitemap", path: "/sitemap" },
+      { icon: TasksIcon, label: "Tasks", path: "/recommendations" },
     ],
   },
   {
     heading: "Prompts",
     items: [
-      { icon: MessageSquare, label: "Tracker", path: "/prompts" },
-      {
-        icon: Megaphone,
-        label: "Actions",
-        path: "/prompts/actions",
-        children: [
-          { icon: Link2, label: "Backlinks", path: "/prompts/backlinks" },
-          { icon: BookOpen, label: "Wikipedia", path: "/prompts/wikipedia" },
-        ],
-      },
+      { icon: TrackerIcon, label: "Tracker", path: "/prompts" },
+      { icon: WikipediaIcon, label: "Wikipedia", path: "/prompts/wikipedia" },
     ],
   },
   {
     heading: "Sources",
     items: [
-      { icon: Users, label: "Competitors", path: "/competitors" },
+      { icon: CompetitorsIcon, label: "Competitors", path: "/competitors" },
     ],
   },
   {
     heading: "Optimisation",
     items: [
-      { icon: FileText, label: "Content", path: "/optimisation/content" },
+      { icon: ContentIcon, label: "Content", path: "/optimisation/content" },
+      { icon: BacklinksIcon, label: "Backlinks", path: "/backlinks" },
     ],
   },
 ];
@@ -154,6 +148,12 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Content",
       hint: "Generate, refine, and ship AI-optimised content for your brand.",
+    };
+  }
+  if (rel.startsWith("/backlinks")) {
+    return {
+      title: "Backlinks",
+      hint: "Earn citations on the open web — free submission targets and paid placements.",
     };
   }
   if (rel.startsWith("/prompts/backlinks")) {

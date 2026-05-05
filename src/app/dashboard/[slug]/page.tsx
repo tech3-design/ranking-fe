@@ -14,7 +14,10 @@ import {
   RefreshCw,
   Loader2,
   AlertCircle,
+  Calendar,
 } from "lucide-react";
+import { useOrgStore } from "@/lib/stores/org-store";
+import { ScheduleAnalysisDialog } from "./_components/schedule-analysis-dialog";
 import { OverviewSkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -41,6 +44,8 @@ export default function SignalorDashboard() {
   const { run, scoreHistory, loading, error, scoreBump } = useRun();
   const [reanalyzing, setReanalyzing] = useState(false);
   const [reanalyzeError, setReanalyzeError] = useState("");
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const { activeOrg } = useOrgStore();
 
   const [greeting, setGreeting] = useState(() => {
     const h = new Date().getHours();
@@ -283,14 +288,36 @@ export default function SignalorDashboard() {
                 type="button"
                 variant="default"
                 size="sm"
+                onClick={() => setScheduleOpen(true)}
+                disabled={!run || isRunning || !session?.user?.email || !activeOrg?.id}
+                className="h-8 gap-1.5 rounded-sm px-3 text-xs font-medium shadow-sm"
+              >
+                <Calendar className="size-3.5" />
+                Schedule analysis
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
                 onClick={handleDownloadPDF}
                 disabled={!run || isRunning}
-                className="h-8 gap-1.5 rounded-sm px-3 text-xs font-medium shadow-sm"
+                className="h-8 gap-1.5 rounded-sm border-border bg-white px-3 text-xs font-medium text-foreground shadow-sm"
               >
                 <Download className="size-3.5" />
                 Export
               </Button>
             </div>
+
+            {run && session?.user?.email && activeOrg?.id ? (
+              <ScheduleAnalysisDialog
+                open={scheduleOpen}
+                onClose={() => setScheduleOpen(false)}
+                email={session.user.email}
+                orgId={activeOrg.id}
+                url={run.url}
+                brandName={run.brand_name || ""}
+              />
+            ) : null}
           </div>
         </div>
       {/* </header> */}
