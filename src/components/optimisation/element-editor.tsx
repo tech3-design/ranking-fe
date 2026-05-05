@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Sparkles, X, Check } from "lucide-react";
+import { Loader2, Sparkles, X, Check } from "@/components/icons";
 import type { PreviewElement } from "@/lib/api/content-optimisation";
 
 type Props = {

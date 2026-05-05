@@ -13,7 +13,7 @@ import {
   RECOMMENDATION_PILLAR_LABELS,
   type RecommendationStatusFilter,
 } from "@/lib/recommendations-filters";
-import { AlertCircle, Search, X } from "lucide-react";
+import { AlertCircle, Search, X } from "@/components/icons";
 import { RecommendationsSkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

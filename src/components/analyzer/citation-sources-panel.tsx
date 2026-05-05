@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExternalLink, Globe, Link2, Loader2, Trophy, Users } from "lucide-react";
+import { ExternalLink, Globe, Link2, Loader2, Trophy, Users } from "@/components/icons";
 
 import {
   getCitationSources,

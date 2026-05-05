@@ -16,7 +16,7 @@ import { useRun } from "../_components/run-context";
 import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
 import { GAPropertySelector } from "@/components/integrations/ga-property-selector";
 import { GATrafficTab } from "@/components/integrations/ga-traffic-tab";
-import { AlertCircle, BarChart3, Loader2, CheckCircle2 } from "lucide-react";
+import { AlertCircle, BarChart3, Loader2, CheckCircle2 } from "@/components/icons";
 import { VisibilitySkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

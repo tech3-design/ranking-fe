@@ -10,7 +10,7 @@ import {
   ArrowLeft,
   User,
   LogOut,
-} from "lucide-react";
+} from "@/components/icons";
 import { Sidebar, SidebarBody } from "@/components/ui/sidebar";
 import { routes } from "@/lib/config";
 import { cn } from "@/lib/utils";

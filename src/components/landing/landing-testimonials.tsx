@@ -1,6 +1,6 @@
 "use client";
 
-import { Quote } from "lucide-react";
+import { Quote } from "@/components/icons";
 
 import { TESTIMONIALS, type Testimonial } from "@/lib/landing-testimonials-content";
 import { ScreenHR } from "@/components/ui/intersection-diamonds";

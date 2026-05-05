@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@/components/icons";
 import { routes } from "@/lib/config";
 import { cn } from "@/lib/utils";
 

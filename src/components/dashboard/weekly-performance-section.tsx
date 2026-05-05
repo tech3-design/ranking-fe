@@ -8,7 +8,7 @@ import {
   TrendingUp,
   Minus,
   BarChart2,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   BarChart,
   Bar,

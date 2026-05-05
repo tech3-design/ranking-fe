@@ -16,7 +16,7 @@ import {
   ChevronUp,
   RefreshCw,
   Target,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   generatePromptSchema,
   listPromptSchemaArtifacts,

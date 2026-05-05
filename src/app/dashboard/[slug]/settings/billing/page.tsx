@@ -18,7 +18,7 @@ import {
   Crown,
   Rocket,
   AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import { EngineBadge } from "@/components/ui/engine-badge";
 import { engineLabel } from "@/lib/engines";
 import { config } from "@/lib/config";

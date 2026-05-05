@@ -12,7 +12,7 @@ import {
 import { useRun } from "../_components/run-context";
 import { GAPropertySelector } from "@/components/integrations/ga-property-selector";
 import { GATrafficTab } from "@/components/integrations/ga-traffic-tab";
-import { Loader2, AlertCircle, Unplug, PlugZap } from "lucide-react";
+import { Loader2, AlertCircle, Unplug, PlugZap } from "@/components/icons";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 
 export default function ProjectAnalyticsPage() {

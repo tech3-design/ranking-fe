@@ -1,4 +1,4 @@
-import { Plug, RefreshCw, Shield } from "lucide-react";
+import { Plug, RefreshCw, Shield } from "@/components/icons";
 
 import { INTEGRATION_HUB_STATS } from "@/lib/landing-integration-content";
 

@@ -1,5 +1,5 @@
-import { Bell, LayoutGrid, Link2, ListChecks } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Bell, LayoutGrid, Link2, ListChecks } from "@/components/icons";
+import type { LucideIcon } from "@/components/icons";
 
 /** Hub + marketing metadata */
 export const PROMPT_TRACKING_SITE = {

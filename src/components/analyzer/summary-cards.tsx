@@ -1,7 +1,7 @@
 "use client";
 
 import type { ScoreHistoryPoint } from "@/lib/api/analyzer";
-import { TrendingUp, TrendingDown, BarChart3, Eye, Bot, Globe } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart3, Eye, Bot, Globe } from "@/components/icons";
 
 interface SummaryCardsProps {
   geoScore: number;

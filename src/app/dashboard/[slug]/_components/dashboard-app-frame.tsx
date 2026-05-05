@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Menu, Moon, Sun, X } from "lucide-react";
+import { Menu, Moon, Sun, X } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { Diamond } from "@/components/ui/intersection-diamonds";

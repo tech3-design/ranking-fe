@@ -9,7 +9,7 @@ import {
   type Organization,
 } from "@/lib/api/organizations";
 import { useOrgStore } from "@/lib/stores/org-store";
-import { Loader2, Pencil, Trash2, Plus, Camera, AlertTriangle, ShieldX, Clock, LogOut } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, Camera, AlertTriangle, ShieldX, Clock, LogOut } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { terminateAccount, cancelTermination, deleteAccount } from "@/lib/api/payments";

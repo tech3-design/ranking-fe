@@ -1,5 +1,5 @@
-import { Plug, Workflow, Zap, LinkIcon } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Plug, Workflow, Zap, LinkIcon } from "@/components/icons";
+import type { LucideIcon } from "@/components/icons";
 
 export const INTEGRATIONS_SITE = {
   title: "Recommendations",

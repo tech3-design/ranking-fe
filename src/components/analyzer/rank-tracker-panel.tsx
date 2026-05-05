@@ -15,7 +15,7 @@ import {
   Sparkles,
   Target,
   Users,
-} from "lucide-react";
+} from "@/components/icons";
 
 import {
   getRankAudit,

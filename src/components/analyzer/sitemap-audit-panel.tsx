@@ -18,7 +18,7 @@ import {
   Timer,
   X,
   XCircle,
-} from "lucide-react";
+} from "@/components/icons";
 
 import {
   getSitemapAudit,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Loader2, Sparkles, X } from "lucide-react";
+import { Check, Loader2, Sparkles, X } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { ContentField, ContentSuggestion } from "@/lib/api/content-optimisation";
 

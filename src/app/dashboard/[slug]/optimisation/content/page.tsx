@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { AlertCircle, ExternalLink } from "lucide-react";
+import { AlertCircle, ExternalLink } from "@/components/icons";
 import { BrowserChrome } from "@/components/optimisation/browser-chrome";
 import { PageIframe } from "@/components/optimisation/page-iframe";
 import { ElementEditor } from "@/components/optimisation/element-editor";

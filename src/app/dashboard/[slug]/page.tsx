@@ -15,7 +15,7 @@ import {
   Loader2,
   AlertCircle,
   Calendar,
-} from "lucide-react";
+} from "@/components/icons";
 import { useOrgStore } from "@/lib/stores/org-store";
 import { ScheduleAnalysisDialog } from "./_components/schedule-analysis-dialog";
 import { OverviewSkeleton } from "@/components/dashboard/skeletons";

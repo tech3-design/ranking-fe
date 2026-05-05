@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Globe, Lock, Loader2, Sparkles } from "lucide-react";
+import { ArrowRight, Globe, Lock, Loader2, Sparkles } from "@/components/icons";
 
 import { useSession } from "@/lib/auth-client";
 import {

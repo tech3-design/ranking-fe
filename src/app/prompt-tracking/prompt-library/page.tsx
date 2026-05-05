@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ListChecks } from "lucide-react";
+import { ListChecks } from "@/components/icons";
 
 import { FeatureDetailHero } from "@/components/landing/feature-detail-hero";
 import { IntegrationDetailCta } from "@/components/landing/integration-detail-cta";

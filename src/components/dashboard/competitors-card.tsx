@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Crown, Sparkles, Trophy, Users } from "lucide-react";
+import { ArrowUpRight, Crown, Sparkles, Trophy, Users } from "@/components/icons";
 import {
   CartesianGrid,
   Line,

@@ -14,7 +14,7 @@ import {
 import { ShareOfVoicePanel } from "@/components/analyzer/share-of-voice-panel";
 import { CitationTrendChart } from "@/components/analyzer/citation-trend-chart";
 import { SentimentBreakdown } from "@/components/analyzer/sentiment-breakdown";
-import { History, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { History, AlertCircle, CheckCircle2, XCircle } from "@/components/icons";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { EngineBadge } from "@/components/ui/engine-badge";
 

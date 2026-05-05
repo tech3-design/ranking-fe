@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { GoogleDetails } from "@/lib/api/visibility";
-import { CheckCircle2, XCircle, Search, TrendingUp } from "lucide-react";
+import { CheckCircle2, XCircle, Search, TrendingUp } from "@/components/icons";
 import { HorizontalScoreBar } from "@/components/ui/vis-charts";
 
 interface GoogleDetailsPanelProps {

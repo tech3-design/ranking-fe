@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { RedditDetails } from "@/lib/api/visibility";
 import { BrandDonutChart } from "@/components/ui/vis-charts";
-import { MessageSquare, ArrowUp, MessageCircle, ExternalLink } from "lucide-react";
+import { MessageSquare, ArrowUp, MessageCircle, ExternalLink } from "@/components/icons";
 
 interface RedditDetailsPanelProps {
   details: RedditDetails;

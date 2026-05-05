@@ -17,7 +17,7 @@ import {
   Link2,
   Layers,
   Hash,
-} from "lucide-react";
+} from "@/components/icons";
 import { HorizontalScoreBar, BRAND_PALETTE } from "@/components/ui/vis-charts";
 
 interface WebMentionsPanelProps {

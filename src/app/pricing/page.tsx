@@ -14,7 +14,7 @@ import {
   safeInternalReturnPath,
 } from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
-import { Check, Clock, Crown, Rocket, Zap } from "lucide-react";
+import { Check, Clock, Crown, Rocket, Zap } from "@/components/icons";
 import { useCurrency, formatPrice } from "@/lib/hooks/use-currency";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { LandingFaq } from "@/components/landing/landing-faq";

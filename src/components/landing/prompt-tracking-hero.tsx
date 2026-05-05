@@ -1,13 +1,13 @@
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import { HeroBackgroundGrid } from "@/components/landing/hero-background-grid";
 import { PROMPT_TRACKING_HERO, PROMPT_TRACKING_HUB_CARDS } from "@/lib/landing-prompt-tracking-content";
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "@/components/icons";
 
 type HeroContent = {
   titleLine1: string;

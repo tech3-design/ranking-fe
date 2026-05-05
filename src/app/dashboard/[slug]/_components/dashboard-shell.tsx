@@ -11,7 +11,7 @@ import {
   BarChart3,
   ChevronDown,
   Radar,
-} from "lucide-react";
+} from "@/components/icons";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Overview", route: (slug: string) => routes.dashboardProject(slug) },

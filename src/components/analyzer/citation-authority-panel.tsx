@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExternalLink, Link2, Loader2, AlertCircle } from "lucide-react";
+import { ExternalLink, Link2, Loader2, AlertCircle } from "@/components/icons";
 import {
   getPromptBacklinks,
   type BacklinkRow,

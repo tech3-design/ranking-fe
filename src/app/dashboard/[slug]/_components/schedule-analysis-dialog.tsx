@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Calendar as CalendarIcon, Clock, Loader2, X } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Loader2, X } from "@/components/icons";
 import { format } from "date-fns";
 import {
   Select,

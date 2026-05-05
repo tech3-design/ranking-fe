@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock } from "@/components/icons";
 
 import { client } from "@/sanity/lib/client";
 import {

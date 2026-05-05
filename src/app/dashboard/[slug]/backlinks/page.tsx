@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { Sparkles, ShoppingBag } from "lucide-react";
+import { Sparkles, ShoppingBag } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { SiteBacklinkOpportunitiesPanel } from "@/components/analyzer/site-backlink-opportunities-panel";
 import { SiteBacklinkMarketplacePanel } from "@/components/analyzer/site-backlink-marketplace-panel";

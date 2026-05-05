@@ -8,7 +8,7 @@ import {
   RefreshCw,
   AlertCircle,
   Briefcase,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getBrandKit,
   regenerateBrandKit,

@@ -32,7 +32,7 @@ import {
   Loader2, ArrowRight, ArrowLeft, ShoppingBag, Globe,
   Plus, X, Pencil, Rocket, Download, ExternalLink,
   CheckCircle2, BarChart3,
-} from "lucide-react";
+} from "@/components/icons";
 
 type Platform = "shopify" | "wordpress";
 type Step = "company" | "platform" | "url" | "install" | "prompts" | "analytics" | "launch";

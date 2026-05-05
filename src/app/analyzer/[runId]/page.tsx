@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 import { ScoreGauge } from "@/components/analyzer/score-gauge";
 import { CompetitorTable } from "@/components/analyzer/competitor-table";
 import { ScoreCard } from "@/components/analyzer/score-card";

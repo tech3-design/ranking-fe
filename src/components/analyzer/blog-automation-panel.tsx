@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarDays, Copy, FileText, Loader2, PenSquare, Play, RefreshCcw, Save } from "lucide-react";
+import { CalendarDays, Copy, FileText, Loader2, PenSquare, Play, RefreshCcw, Save } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

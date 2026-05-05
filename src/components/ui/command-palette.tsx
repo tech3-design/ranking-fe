@@ -21,7 +21,7 @@ import {
   LogOut,
   ArrowRight,
   Crown,
-} from "lucide-react";
+} from "@/components/icons";
 import { useTheme } from "next-themes";
 
 interface CommandPaletteProps {

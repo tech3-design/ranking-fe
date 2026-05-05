@@ -3,7 +3,7 @@
 import { Plus_Jakarta_Sans } from "next/font/google";
 import LogoComp from "@/components/LogoComp";
 import Link from "next/link";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search } from "@/components/icons";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"] });
 

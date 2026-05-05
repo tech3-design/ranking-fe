@@ -11,7 +11,7 @@ import {
   AlertCircle,
   CreditCard,
   Trash2,
-} from "lucide-react";
+} from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {

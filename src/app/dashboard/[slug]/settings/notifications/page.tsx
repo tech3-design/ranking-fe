@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell } from "@/components/icons";
 import { DashboardSettingsNav } from "@/components/settings/dashboard-settings-nav";
 
 export default function NotificationsSettingsPage() {

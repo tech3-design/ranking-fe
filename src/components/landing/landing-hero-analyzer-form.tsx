@@ -1,7 +1,7 @@
 // "use client";
 
 // import React, { useEffect, useRef, useState } from "react";
-// import { Globe, ArrowRight, Loader2, ChevronDown } from "lucide-react";
+// import { Globe, ArrowRight, Loader2, ChevronDown } from "@/components/icons";
 // import { Button } from "@/components/ui/button";
 // import { cn } from "@/lib/utils";
 // import { LANDING_COUNTRY_OPTIONS, LANDING_PRIMARY_CTA_CLASS } from "./constants";

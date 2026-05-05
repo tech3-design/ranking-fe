@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ExternalLink, Github, Linkedin, Twitter, Youtube } from "lucide-react";
+import { ArrowRight, ExternalLink, Github, Linkedin, Twitter, Youtube } from "@/components/icons";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import LogoComp from "@/components/LogoComp";
 import { Button } from "@/components/ui/button";

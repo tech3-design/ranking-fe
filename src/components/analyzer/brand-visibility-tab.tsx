@@ -25,7 +25,7 @@ import {
   Zap,
   TrendingUp,
   Layers,
-} from "lucide-react";
+} from "@/components/icons";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

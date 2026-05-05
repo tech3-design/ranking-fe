@@ -3,7 +3,7 @@
 import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowDownRight, Globe, Loader2, Lock, MoreHorizontal, Plus, Trash2, User } from "lucide-react";
+import { ArrowDownRight, Globe, Loader2, Lock, MoreHorizontal, Plus, Trash2, User } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 import type { Competitor } from "@/lib/api/analyzer";

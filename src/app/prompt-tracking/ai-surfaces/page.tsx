@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid } from "@/components/icons";
 
 import { FeatureDetailHero } from "@/components/landing/feature-detail-hero";
 import { IntegrationDetailCta } from "@/components/landing/integration-detail-cta";

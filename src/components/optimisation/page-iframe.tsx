@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Globe2, Loader2 } from "lucide-react";
+import { Globe2, Loader2 } from "@/components/icons";
 import type { PreviewElement } from "@/lib/api/content-optimisation";
 import { cn } from "@/lib/utils";
 

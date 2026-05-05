@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { startAnalysis } from "@/lib/api/analyzer";
 import { routes } from "@/lib/config";
-import { ArrowRight, ArrowLeft, Globe, MapPin, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, Globe, MapPin, Sparkles } from "@/components/icons";
 import {
   Select,
   SelectContent,

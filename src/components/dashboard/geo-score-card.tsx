@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { Minus, TrendingDown, TrendingUp } from "@/components/icons";
 import { Sparkles } from "@/components/ui/sparkles";
 import { cn } from "@/lib/utils";
 import { CORAL } from "./constants";

@@ -7,7 +7,7 @@ import {
   type PromptTrack,
 } from "@/lib/api/analyzer";
 import { PromptTracker } from "@/components/analyzer/prompt-tracker";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle } from "@/components/icons";
 import { PromptPageSkeleton } from "@/components/dashboard/skeletons";
 
 export default function PromptsBacklinksPage() {

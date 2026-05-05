@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Home, Search } from "lucide-react";
+import { ArrowLeft, Home, Search } from "@/components/icons";
 import LogoComp from "@/components/LogoComp";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/config";

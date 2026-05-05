@@ -1,5 +1,5 @@
-import { BarChart3, FileDown, Presentation, Users } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { BarChart3, FileDown, Presentation, Users } from "@/components/icons";
+import type { LucideIcon } from "@/components/icons";
 
 export const REPORTING_SITE = {
   title: "Explorer",

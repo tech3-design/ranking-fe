@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { CompetitorsSkeleton } from "@/components/dashboard/skeletons";
 import { addCompetitor } from "@/lib/api/analyzer";
-import { Globe, Loader2, Plus, Search, X } from "lucide-react";
+import { Globe, Loader2, Plus, Search, X } from "@/components/icons";
 
 // ─── Add Competitor Modal ─────────────────────────────────────────────────────
 

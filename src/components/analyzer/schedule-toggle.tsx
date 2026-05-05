@@ -14,7 +14,7 @@ import {
   toggleSchedule,
   type ScheduledAnalysis,
 } from "@/lib/api/analyzer";
-import { CalendarClock, Loader2 } from "lucide-react";
+import { CalendarClock, Loader2 } from "@/components/icons";
 
 interface ScheduleToggleProps {
   email: string;

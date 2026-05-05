@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe, Gauge, Link2, Rocket } from "lucide-react";
+import { Globe, Gauge, Link2, Rocket } from "@/components/icons";
 
 import { HOW_IT_WORKS_STEPS, type HowItWorksStep } from "@/lib/landing-how-it-works-content";
 import { ScreenHR } from "@/components/ui/intersection-diamonds";

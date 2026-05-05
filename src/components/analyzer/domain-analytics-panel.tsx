@@ -9,7 +9,7 @@ import {
   Loader2,
   RefreshCw,
   TrendingUp,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getDomainAnalytics,
   refreshDomainAnalytics,

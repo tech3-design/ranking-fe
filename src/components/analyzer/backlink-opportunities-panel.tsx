@@ -8,7 +8,7 @@ import {
   Globe,
   AlertCircle,
   Sparkles,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getPromptOpportunities,
   regeneratePromptOpportunities,

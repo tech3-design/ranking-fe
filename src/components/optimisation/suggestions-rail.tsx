@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, RefreshCcw, Sparkles, FileText } from "lucide-react";
+import { Loader2, RefreshCcw, Sparkles, FileText } from "@/components/icons";
 import { SuggestionCard } from "./suggestion-card";
 import type { ContentSuggestion } from "@/lib/api/content-optimisation";
 

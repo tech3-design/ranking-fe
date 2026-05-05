@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, Send, Loader2, X, Compass, ChevronLeft } from "lucide-react";
+import { MessageSquare, Send, Loader2, X, Compass, ChevronLeft } from "@/components/icons";
 import { config } from "@/lib/config";
 
 /** Parse AI reply into formatted React elements — handles **bold**, headings, lists, numbered steps */

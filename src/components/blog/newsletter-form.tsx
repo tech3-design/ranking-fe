@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Mail } from "lucide-react";
+import { ArrowRight, Mail } from "@/components/icons";
 import { BLOG_NEWSLETTER } from "@/lib/landing-blog-content";
 
 export function BlogNewsletterForm() {

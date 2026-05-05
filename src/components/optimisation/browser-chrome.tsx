@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, RotateCw, Loader2, Globe2, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCw, Loader2, Globe2, ChevronDown } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { ContentPage } from "@/lib/api/content-optimisation";
 

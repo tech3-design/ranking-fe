@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 import { RankTrackerPanel, type RankTrackerMode } from "./rank-tracker-panel";

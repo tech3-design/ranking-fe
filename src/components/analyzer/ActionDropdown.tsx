@@ -3,7 +3,7 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import { Copy, Ellipsis, ExternalLink } from "lucide-react";
+import { Copy, Ellipsis, ExternalLink } from "@/components/icons";
 import { Button } from "../ui/button";
 
 type ExternalAction = {
