@@ -5,7 +5,7 @@ import { CORAL } from "./constants";
 
 export function SentimentAnalysisCard({ sentiment }: { sentiment: DashboardSentiment | null }) {
   return (
-    <div className="col-span-5 bg-white rounded-xl p-6 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <div className="h-full bg-white rounded-xl p-4 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
       <p className="text-sm font-semibold mb-1 text-foreground">Sentiment Analysis</p>
       <p className="text-xs mb-5 text-muted-foreground">What people say about your brand online</p>
 
@@ -40,7 +40,7 @@ export function SentimentAnalysisCard({ sentiment }: { sentiment: DashboardSenti
               <div className="relative h-3 rounded-full bg-muted">
                 <div
                   className="absolute inset-0 rounded-full"
-                  style={{ background: "linear-gradient(to right, #F95C4B, #D97706, #22c55e)" }}
+                  style={{ background: "linear-gradient(to right, #e46055, rgba(228,96,85,0.4), #22c55e)" }}
                 />
                 <div
                   className="absolute -top-2 flex flex-col items-center"

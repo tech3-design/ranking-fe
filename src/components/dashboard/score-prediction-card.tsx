@@ -14,7 +14,7 @@ export function ScorePredictionCard({
   const gradId = useId().replace(/:/g, "");
 
   return (
-    <div className="col-span-7 bg-white rounded-xl p-6 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <div className="col-span-12 bg-white rounded-xl p-6 border border-neutral-100 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
       <div className="flex items-center justify-between mb-5">
         <div>
           <p className="text-sm font-semibold text-foreground">7-Day Score Prediction</p>

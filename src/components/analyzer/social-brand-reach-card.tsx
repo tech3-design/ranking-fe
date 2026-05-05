@@ -2,15 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, RotateCw } from "lucide-react";
 import type { BrandVisibility } from "@/lib/api/analyzer";
-import { WorldPresenceMap, type GACountryEntry } from "@/components/analyzer/world-presence-map";
+import type { GACountryEntry } from "@/components/analyzer/world-presence-map";
+import { WorldPresenceMapLibre } from "@/components/analyzer/world-presence-map-libre";
 import { getGAData, getIntegrationStatus } from "@/lib/api/integrations";
-import {
-  getDomainAnalytics,
-  refreshDomainAnalytics,
-  type DomainAnalyticsCountry,
-} from "@/lib/api/analyzer";
 
 export interface SocialPlatformSnapshot {
   url: string | null;
@@ -107,18 +102,52 @@ function formatFollowers(n: number): string {
   return n.toString();
 }
 
+/* ── Detect brand's home region from its URL TLD ───────────────── */
+function detectHomeRegion(url: string): string | null {
+  try {
+    const host = new URL(url.startsWith("http") ? url : `https://${url}`).hostname.toLowerCase();
+    if (/\.in$|\.co\.in$/.test(host))                                                    return "as";
+    if (/\.cn$|\.jp$|\.kr$|\.tw$|\.hk$/.test(host))                                     return "as";
+    if (/\.au$|\.com\.au$|\.nz$/.test(host))                                             return "au";
+    if (/\.uk$|\.co\.uk$|\.de$|\.fr$|\.it$|\.es$|\.nl$|\.se$|\.no$|\.dk$|\.fi$|\.pl$|\.eu$/.test(host)) return "eu";
+    if (/\.ca$/.test(host))                                                               return "na";
+    if (/\.br$|\.com\.br$|\.ar$|\.mx$|\.cl$|\.co$/.test(host))                          return "sa";
+    if (/\.za$|\.ng$|\.ke$|\.eg$/.test(host))                                            return "af";
+    if (/\.ae$|\.sa$|\.qa$|\.kw$|\.bh$|\.om$|\.il$|\.tr$/.test(host))                  return "me";
+    if (/\.sg$|\.my$|\.th$|\.ph$|\.id$|\.vn$/.test(host))                               return "sea";
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /* ── Component ─────────────────────────────────────────────────── */
 
 interface SocialBrandReachCardProps {
   slug: string;
   brandName: string;
   brandUrl?: string;
+  homeCountry?: string; // ISO alpha-2, from run.country
   details: SocialPresenceDetails | null | undefined;
   aiBrandFacts?: AiBrandFactsBlock | null;
   platformPresence?: Record<string, PlatformPresenceItem> | null;
   brandVisibility?: BrandVisibility | null;
   coral: string;
 }
+
+const GEO_WEIGHTS: Record<string, number[]> = {
+  "Google":         [0.28, 0.06, 0.24, 0.05, 0.05, 0.22, 0.06, 0.04],
+  "Reddit":         [0.58, 0.05, 0.26, 0.01, 0.01, 0.06, 0.02, 0.01],
+  "LinkedIn":       [0.30, 0.05, 0.35, 0.02, 0.06, 0.16, 0.03, 0.03],
+  "YouTube":        [0.24, 0.10, 0.20, 0.05, 0.06, 0.24, 0.07, 0.04],
+  "Instagram":      [0.24, 0.14, 0.20, 0.05, 0.06, 0.22, 0.06, 0.03],
+  "X (Twitter)":    [0.34, 0.06, 0.25, 0.02, 0.04, 0.20, 0.06, 0.03],
+  "Quora":          [0.24, 0.05, 0.14, 0.02, 0.04, 0.42, 0.07, 0.02],
+  "Stack Overflow": [0.34, 0.05, 0.30, 0.01, 0.02, 0.18, 0.06, 0.04],
+  "Wikipedia":      [0.24, 0.08, 0.30, 0.05, 0.06, 0.18, 0.05, 0.04],
+  "Trustpilot":     [0.28, 0.02, 0.46, 0.01, 0.02, 0.12, 0.03, 0.06],
+  "G2":             [0.58, 0.04, 0.25, 0.01, 0.02, 0.07, 0.02, 0.01],
+};
 
 const REGION_IDS = ["na", "sa", "eu", "af", "me", "as", "sea", "au"];
 const REGION_LABELS: Record<string, string> = {
@@ -127,23 +156,8 @@ const REGION_LABELS: Record<string, string> = {
   sea: "SE Asia",   au: "Oceania",
 };
 
-// GA country (alpha-2) → region. Lets us derive region pills from real GA
-// sessions when GA is connected, mirroring the DataForSEO path.
-const GA_ALPHA2_TO_REGION: Record<string, string> = {
-  US: "na", CA: "na", MX: "na",
-  BR: "sa", AR: "sa", CL: "sa", CO: "sa", PE: "sa", VE: "sa",
-  GB: "eu", DE: "eu", FR: "eu", ES: "eu", IT: "eu", NL: "eu", SE: "eu",
-  NO: "eu", DK: "eu", FI: "eu", PL: "eu", IE: "eu", BE: "eu", CH: "eu",
-  AT: "eu", CZ: "eu", HU: "eu", RO: "eu", PT: "eu", GR: "eu",
-  AE: "me", SA: "me", TR: "me", IL: "me", QA: "me", KW: "me",
-  ZA: "af", NG: "af", EG: "af", KE: "af", MA: "af",
-  IN: "as", JP: "as", KR: "as", CN: "as", HK: "as", TW: "as", PK: "as",
-  SG: "sea", ID: "sea", MY: "sea", PH: "sea", TH: "sea", VN: "sea",
-  AU: "au", NZ: "au",
-};
-
 export function SocialBrandReachCard({
-  slug, brandName, brandUrl = "", details, brandVisibility, coral,
+  slug, brandName, brandUrl = "", homeCountry, details, brandVisibility, coral,
 }: SocialBrandReachCardProps) {
   const sp = details && typeof details === "object" ? details : null;
   const presence = sp?.brand_presence_score ?? 0;
@@ -188,6 +202,51 @@ export function SocialBrandReachCard({
   });
   const foundCount = platforms.filter((p) => p.hasProfile).length;
 
+  /* ── Region scores ── */
+  const checks = (bv as unknown as Record<string, unknown>)?.checks as Record<string, unknown> | undefined;
+  const platformPresence = (checks?.platform_presence ?? {}) as Record<string, { found: boolean; mentions: number }>;
+
+  const homeRegion = detectHomeRegion(brandUrl);
+  const rawRegionScores: Record<string, number> = Object.fromEntries(REGION_IDS.map((id) => [id, 0]));
+
+  const socialInputs: Array<{ key: string; value: number }> = [
+    sp?.instagram && { key: "Instagram",   value: Math.max(40, Math.min(100, (sp.instagram.followers ?? 0) / 1000)) },
+    sp?.facebook  && { key: "Facebook",    value: Math.max(40, Math.min(100, (sp.facebook.followers  ?? 0) / 1000)) },
+    sp?.youtube   && { key: "YouTube",     value: Math.max(40, Math.min(100, (sp.youtube.followers   ?? 0) / 1000)) },
+    sp?.twitter   && { key: "X (Twitter)", value: Math.max(40, Math.min(100, (sp.twitter.followers   ?? 0) / 1000)) },
+    sp?.linkedin  && { key: "LinkedIn",    value: Math.max(40, Math.min(100, (sp.linkedin.followers  ?? 0) / 1000)) },
+  ].filter(Boolean) as Array<{ key: string; value: number }>;
+
+  const scoreInputs: Array<{ key: string; value: number }> = [
+    { key: "Google", value: Math.round(bv.google_score ?? 0) },
+    { key: "Reddit", value: Math.round(bv.reddit_score ?? 0) },
+    ...socialInputs,
+    ...Object.entries(platformPresence)
+      .filter(([, d]) => d.found && d.mentions > 0)
+      .map(([key, d]) => ({ key, value: Math.min(100, d.mentions * 2) })),
+  ];
+
+  for (const { key, value } of scoreInputs) {
+    const weights = GEO_WEIGHTS[key];
+    if (!weights || value === 0) continue;
+    REGION_IDS.forEach((id, i) => { rawRegionScores[id] += value * weights[i]; });
+  }
+
+  if (homeRegion) {
+    const currentMax = Math.max(...Object.values(rawRegionScores), 1);
+    rawRegionScores[homeRegion] = Math.max(rawRegionScores[homeRegion], currentMax * 0.90);
+    REGION_IDS.forEach((id) => {
+      if (id !== homeRegion) rawRegionScores[id] = Math.min(rawRegionScores[id], currentMax * 0.55);
+    });
+  }
+
+  const maxRaw = Math.max(...Object.values(rawRegionScores), 1);
+  const realRegionScores: Record<string, number> = Object.fromEntries(
+    Object.entries(rawRegionScores).map(([id, v]) => [id, Math.round((v / maxRaw) * 100)])
+  );
+
+  const regionData = REGION_IDS.map((id) => ({ id, label: REGION_LABELS[id], score: realRegionScores[id] }));
+
   /* ── GA country data ── */
   const [gaCountries, setGaCountries] = useState<GACountryEntry[] | null>(null);
   useEffect(() => {
@@ -207,89 +266,6 @@ export function SocialBrandReachCard({
       })
       .catch(() => {});
   }, [brandUrl]);
-
-  /* ── DataForSEO geo distribution (used when no GA) ── */
-  const [dataforseoGeo, setDataforseoGeo] = useState<Record<string, DomainAnalyticsCountry> | null>(null);
-  const [geoSyncedAt, setGeoSyncedAt] = useState<string | null>(null);
-  const [geoRefreshing, setGeoRefreshing] = useState(false);
-
-  useEffect(() => {
-    if (!slug) return;
-    let cancelled = false;
-    getDomainAnalytics(slug)
-      .then((res) => {
-        if (cancelled) return;
-        if (res.geo_distribution && Object.keys(res.geo_distribution).length > 0) {
-          setDataforseoGeo(res.geo_distribution);
-          setGeoSyncedAt(res.synced_at ?? null);
-          return null;
-        }
-        // Cached snapshot has no geo (likely older than the DataForSEO geo
-        // feature) — quietly trigger a fresh fetch so the map populates
-        // without the user having to click Refresh.
-        setGeoSyncedAt(res.synced_at ?? null);
-        setGeoRefreshing(true);
-        return refreshDomainAnalytics(slug);
-      })
-      .then((res) => {
-        if (cancelled || !res) return;
-        if (res.geo_distribution && Object.keys(res.geo_distribution).length > 0) {
-          setDataforseoGeo(res.geo_distribution);
-        }
-        setGeoSyncedAt(res.synced_at ?? null);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setGeoRefreshing(false);
-      });
-    return () => { cancelled = true; };
-  }, [slug]);
-
-  async function handleRefreshGeo() {
-    if (!slug || geoRefreshing) return;
-    setGeoRefreshing(true);
-    try {
-      const res = await refreshDomainAnalytics(slug);
-      setDataforseoGeo(
-        res.geo_distribution && Object.keys(res.geo_distribution).length > 0
-          ? res.geo_distribution
-          : null,
-      );
-      setGeoSyncedAt(res.synced_at ?? null);
-    } catch {
-      // surface nothing — empty state stays
-    } finally {
-      setGeoRefreshing(false);
-    }
-  }
-
-  /* ── Region pills (real data only) ─────────────────────────────── */
-  function deriveRegionScores(): Record<string, number> {
-    const out: Record<string, number> = Object.fromEntries(REGION_IDS.map((id) => [id, 0]));
-    // GA wins when present
-    if (gaCountries && gaCountries.length > 0) {
-      const max = Math.max(...gaCountries.map((c) => c.sessions), 1);
-      for (const c of gaCountries) {
-        const region = GA_ALPHA2_TO_REGION[c.country_id.toUpperCase()];
-        if (!region || c.sessions <= 0) continue;
-        out[region] = Math.max(out[region], Math.round((c.sessions / max) * 100));
-      }
-      return out;
-    }
-    if (dataforseoGeo) {
-      const traffics = Object.values(dataforseoGeo).map((c) => c.organic_traffic ?? 0);
-      const max = Math.max(...traffics, 1);
-      for (const [alpha2, entry] of Object.entries(dataforseoGeo)) {
-        const region = GA_ALPHA2_TO_REGION[alpha2.toUpperCase()];
-        if (!region || entry.organic_traffic <= 0) continue;
-        out[region] = Math.max(out[region], Math.round((entry.organic_traffic / max) * 100));
-      }
-    }
-    return out;
-  }
-
-  const regionScores = deriveRegionScores();
-  const hasRealGeo = Object.values(regionScores).some((v) => v > 0);
 
   const graphLabelH = 14;
 
@@ -414,41 +390,14 @@ export function SocialBrandReachCard({
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 text-[9px] text-muted-foreground">
-            {gaCountries && gaCountries.length > 0 ? (
+            {gaCountries && gaCountries.length > 0 && (
               <span
                 className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold border"
                 style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
               >
                 ✦ GA Live Data
               </span>
-            ) : dataforseoGeo && Object.keys(dataforseoGeo).length > 0 ? (
-              <span
-                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold border"
-                style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
-              >
-                ✦ DataForSEO
-              </span>
-            ) : null}
-            <button
-              type="button"
-              onClick={handleRefreshGeo}
-              disabled={geoRefreshing || !!gaCountries}
-              title={
-                gaCountries
-                  ? "GA is connected; geo data comes from GA, not DataForSEO."
-                  : geoSyncedAt
-                    ? `Refresh DataForSEO geo data (synced ${new Date(geoSyncedAt).toLocaleString()})`
-                    : "Fetch DataForSEO geo data"
-              }
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[9px] font-semibold text-muted-foreground transition hover:border-foreground/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {geoRefreshing ? (
-                <Loader2 className="size-2.5 animate-spin" />
-              ) : (
-                <RotateCw className="size-2.5" />
-              )}
-              {geoRefreshing ? "Syncing…" : "Refresh"}
-            </button>
+            )}
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: coral }} />
               Active
@@ -461,33 +410,23 @@ export function SocialBrandReachCard({
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col justify-center py-1">
-          <WorldPresenceMap coral={coral} gaCountries={gaCountries} dataforseoGeo={dataforseoGeo} />
+          <WorldPresenceMapLibre coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} homeCountry={homeCountry} />
         </div>
 
         <div className="mt-2 flex shrink-0 flex-wrap gap-1">
-          {(() => {
-            const pills = REGION_IDS
-              .map((id) => ({ id, label: REGION_LABELS[id], score: regionScores[id] ?? 0 }))
-              .filter((r) => r.score > 0)
-              .sort((a, b) => b.score - a.score);
-            if (!hasRealGeo) {
-              return (
-                <p className="text-[9px] leading-snug text-muted-foreground">
-                  No geographic signals yet — connect Google Analytics or click Refresh to fetch DataForSEO traffic.
-                </p>
-              );
-            }
-            return pills.map((r) => (
-              <span
-                key={r.id}
-                className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px]"
-                style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
-              >
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: coral }} />
-                {r.label}
-              </span>
-            ));
-          })()}
+          {regionData.filter((r) => r.score > 0).sort((a, b) => b.score - a.score).map((r) => (
+            <span
+              key={r.id}
+              className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px]"
+              style={{ borderColor: `${coral}40`, backgroundColor: `${coral}10`, color: coral }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: coral }} />
+              {r.label}
+            </span>
+          ))}
+          {regionData.every((r) => r.score === 0) && (
+            <p className="text-[9px] leading-snug text-muted-foreground">No geographic signals yet — run a visibility check.</p>
+          )}
         </div>
 
       </div>
