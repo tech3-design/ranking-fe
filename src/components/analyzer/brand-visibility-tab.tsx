@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { BrandVisibility, ShareOfVoiceItem } from "@/lib/api/analyzer";
 import type { GoogleDetails, RedditDetails, WebMentionsDetails } from "@/lib/api/visibility";
 import { GoogleDetailsPanel } from "@/components/visibility/google-details-panel";
 import { RedditDetailsPanel } from "@/components/visibility/reddit-details-panel";
 import { WebMentionsPanel } from "@/components/visibility/web-mentions-panel";
 import {
-  ScoreGauge,
   BrandBarChart,
   BrandDonutChart,
   BRAND_COLOR,
@@ -118,6 +117,58 @@ const ENGINE_ORDER = ["google", "chatgpt", "perplexity", "gemini", "claude", "bi
 
 // ─── ① Executive KPI Strip ───────────────────────────────────────────────────
 
+/** SVG ring that animates from empty → filled on mount via stroke-dashoffset. */
+function AnimatedRing({
+  value, color, size = 72,
+}: { value: number; color: string; size?: number }) {
+  const strokeWidth = 7;
+  const r = (size - strokeWidth * 2) / 2;
+  const circ = 2 * Math.PI * r;
+  const targetOffset = circ - (Math.min(100, Math.max(0, value)) / 100) * circ;
+
+  // Start fully empty; after first paint, transition to the real value
+  const [offset, setOffset] = useState(circ);
+  useEffect(() => {
+    const id = setTimeout(() => setOffset(targetOffset), 40);
+    return () => clearTimeout(id);
+  }, [targetOffset]);
+
+  const cx = size / 2;
+  const cy = size / 2;
+
+  return (
+    <svg
+      width={size} height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      aria-hidden
+      className="shrink-0"
+    >
+      {/* Track */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeOpacity={0.12}
+      />
+      {/* Progress arc */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circ}
+        strokeDashoffset={offset}
+        transform={`rotate(-90 ${cx} ${cy})`}
+        style={{
+          transition: "stroke-dashoffset 1.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        }}
+      />
+    </svg>
+  );
+}
+
 function OverallScoreCard({
   overall, brandName, foundCount, totalChecked,
 }: {
@@ -128,17 +179,21 @@ function OverallScoreCard({
       className="flex h-full items-center gap-4 rounded-xl border px-5 py-4"
       style={{ backgroundColor: `${BRAND_COLOR}08`, borderColor: `${BRAND_COLOR}28` }}
     >
-      <ScoreGauge value={overall} size={76} color={BRAND_COLOR} />
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: BRAND_COLOR }}>
+      {/* Ring — no number inside; score lives solely on the right */}
+      <AnimatedRing value={overall} color={BRAND_COLOR} size={68} />
+
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: BRAND_COLOR }}>
           Overall Visibility
         </p>
-        <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{brandName}</p>
-        <div className="flex items-baseline gap-0.5">
-          <span className="text-3xl font-bold tabular-nums text-foreground">{overall}</span>
-          <span className="text-xs text-muted-foreground">/100</span>
+        <p className="truncate text-[11px] text-muted-foreground">{brandName}</p>
+        <div className="flex items-baseline gap-1 pt-0.5">
+          <span className="text-[32px] font-bold tabular-nums leading-none text-foreground">
+            {overall}
+          </span>
+          <span className="text-xs font-medium text-muted-foreground">/100</span>
         </div>
-        <p className="mt-1 text-[11px] text-muted-foreground">
+        <p className="pt-1 text-[11px] text-muted-foreground">
           {foundCount} of {totalChecked} platforms detected
         </p>
       </div>

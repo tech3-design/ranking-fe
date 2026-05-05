@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { BrandVisibility } from "@/lib/api/analyzer";
-import { WorldPresenceMap, type GACountryEntry } from "@/components/analyzer/world-presence-map";
+import type { GACountryEntry } from "@/components/analyzer/world-presence-map";
+import { WorldPresenceMapLibre } from "@/components/analyzer/world-presence-map-libre";
 import { getGAData, getIntegrationStatus } from "@/lib/api/integrations";
 
 export interface SocialPlatformSnapshot {
@@ -126,6 +127,7 @@ interface SocialBrandReachCardProps {
   slug: string;
   brandName: string;
   brandUrl?: string;
+  homeCountry?: string; // ISO alpha-2, from run.country
   details: SocialPresenceDetails | null | undefined;
   aiBrandFacts?: AiBrandFactsBlock | null;
   platformPresence?: Record<string, PlatformPresenceItem> | null;
@@ -155,7 +157,7 @@ const REGION_LABELS: Record<string, string> = {
 };
 
 export function SocialBrandReachCard({
-  slug, brandName, brandUrl = "", details, brandVisibility, coral,
+  slug, brandName, brandUrl = "", homeCountry, details, brandVisibility, coral,
 }: SocialBrandReachCardProps) {
   const sp = details && typeof details === "object" ? details : null;
   const presence = sp?.brand_presence_score ?? 0;
@@ -408,7 +410,7 @@ export function SocialBrandReachCard({
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col justify-center py-1">
-          <WorldPresenceMap coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} />
+          <WorldPresenceMapLibre coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} homeCountry={homeCountry} />
         </div>
 
         <div className="mt-2 flex shrink-0 flex-wrap gap-1">

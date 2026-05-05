@@ -30,6 +30,7 @@ import { PillarBreakdownCard } from "@/components/dashboard/pillar-breakdown-car
 import { VisibilityByPlatformCard } from "@/components/dashboard/visibility-by-platform-card";
 import { CompetitorsCard } from "@/components/dashboard/competitors-card";
 import { PredictionSentimentRow } from "@/components/dashboard/prediction-sentiment-row";
+import { SentimentAnalysisCard } from "@/components/dashboard/sentiment-analysis-card";
 import { WeeklyPerformanceSection } from "@/components/dashboard/weekly-performance-section";
 
 export default function SignalorDashboard() {
@@ -316,8 +317,11 @@ export default function SignalorDashboard() {
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
             <VisibilityByPlatformCard brandVis={brandVis} />
             {/* <GeoScoreHistoryCard scoreHistory={scoreHistory} /> */}
-            <div className="col-span-8 min-h-0 h-full">
+            <div className="col-span-3 min-h-0 h-full">
               <PillarBreakdownCard pageScore={pageScore} />
+            </div>
+            <div className="col-span-5 min-h-0 h-full">
+              <SentimentAnalysisCard sentiment={sentiment} />
             </div>
           </div>
 
@@ -326,6 +330,7 @@ export default function SignalorDashboard() {
               slug={slug}
               brandName={projectName}
               brandUrl={run.url ?? ""}
+              homeCountry={run.country ?? undefined}
               details={brandVis?.social_presence_details as SocialPresenceDetails | undefined}
               brandVisibility={brandVis}
               coral={CORAL}
@@ -339,6 +344,7 @@ export default function SignalorDashboard() {
               yourScore={compositeScore}
               yourName={projectName}
               yourUrl={run.url}
+              yourPageScore={pageScore}
             />
           </div>
 
