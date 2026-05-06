@@ -81,7 +81,8 @@ export function WikipediaPromptPanel({ track }: { track: PromptTrack }) {
       setData(r);
       setShowDraft(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't generate draft.");
+      const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(detail ?? (e instanceof Error ? e.message : "Couldn't generate draft."));
     } finally {
       setLoading(false);
     }
