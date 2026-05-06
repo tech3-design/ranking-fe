@@ -1,6 +1,6 @@
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
@@ -12,7 +12,7 @@ import {
   PROMPT_TRACKING_PROOF_METRICS,
   PROMPT_TRACKING_WHY,
 } from "@/lib/landing-prompt-tracking-content";
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "@/components/icons";
 
 /**
  * Same structural pattern as {@link LandingWhySignalor}: eyebrow, headline with dashed primary span,

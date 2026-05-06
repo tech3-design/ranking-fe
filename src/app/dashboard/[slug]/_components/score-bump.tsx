@@ -2,7 +2,7 @@
 
 import { useRun } from "./run-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkle, TrendingUp } from "lucide-react";
+import { Sparkle, TrendingUp } from "@/components/icons";
 
 export function ScoreBump() {
   const { scoreBump } = useRun();

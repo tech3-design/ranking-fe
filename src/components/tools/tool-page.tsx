@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Lock } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
 

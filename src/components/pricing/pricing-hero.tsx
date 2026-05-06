@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 
 import { HeroBackgroundGrid } from "@/components/landing/hero-background-grid";
 import { routes } from "@/lib/config";

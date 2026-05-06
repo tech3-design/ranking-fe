@@ -8,9 +8,8 @@ import {
   type PromptTrack,
 } from "@/lib/api/analyzer";
 import { PromptTracker } from "@/components/analyzer/prompt-tracker";
-import { CitationSourcesPanel } from "@/components/analyzer/citation-sources-panel";
-import { AlertCircle } from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { AlertCircle } from "@/components/icons";
+import { PromptsSkeleton } from "@/components/dashboard/skeletons";
 
 export default function PromptsOverviewPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -103,11 +102,7 @@ export default function PromptsOverviewPage() {
         </p>
       </div>
 
-      {loading && (
-        <div className="flex items-center justify-center py-24">
-          <SignalorLoader label="Loading prompts…" />
-        </div>
-      )}
+      {loading && <PromptsSkeleton />}
 
       {error && !loading && (
         <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-5 py-4 text-sm text-destructive">
@@ -117,31 +112,15 @@ export default function PromptsOverviewPage() {
       )}
 
       {!loading && !error && (
-        <>
-          <PromptTracker
-            slug={slug}
-            tracks={tracks}
-            onAdded={(track) => setTracks((prev) => [track, ...prev])}
-            onRechecked={() => fetchData()}
-            onDeleted={(trackId) => setTracks((prev) => prev.filter((t) => t.id !== trackId))}
-            onRecheckAll={handleRecheckAll}
-            recheckingAll={recheckingAll}
-          />
-          {tracks.length > 0 && (
-            <div className="mt-6 space-y-3">
-              <div>
-                <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
-                  Citation sources
-                </h2>
-                <p className="mt-0.5 text-[12px] text-muted-foreground">
-                  URLs AI engines and search surfaces cite for your tracked prompts —
-                  the pages AI loves, and the rival URLs you need to beat.
-                </p>
-              </div>
-              <CitationSourcesPanel slug={slug} />
-            </div>
-          )}
-        </>
+        <PromptTracker
+          slug={slug}
+          tracks={tracks}
+          onAdded={(track) => setTracks((prev) => [track, ...prev])}
+          onRechecked={() => fetchData()}
+          onDeleted={(trackId) => setTracks((prev) => prev.filter((t) => t.id !== trackId))}
+          onRecheckAll={handleRecheckAll}
+          recheckingAll={recheckingAll}
+        />
       )}
     </div>
   );

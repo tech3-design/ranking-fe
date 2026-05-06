@@ -18,22 +18,17 @@ import {
   Crown,
   Rocket,
   AlertTriangle,
-} from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
+} from "@/components/icons";
+import { EngineBadge } from "@/components/ui/engine-badge";
+import { engineLabel } from "@/lib/engines";
 import { config } from "@/lib/config";
+import { DashboardSettingsNav } from "@/components/settings/dashboard-settings-nav";
+import { BillingSkeleton } from "@/components/dashboard/skeletons";
 
 const PLAN_ICONS: Record<string, typeof Zap> = {
   starter: Zap,
   pro: Crown,
   business: Rocket,
-};
-
-const ENGINE_LABELS: Record<string, string> = {
-  gemini: "Gemini",
-  google: "Google",
-  chatgpt: "ChatGPT",
-  perplexity: "Perplexity",
-  claude: "Claude",
 };
 
 function UsageBar({
@@ -104,6 +99,7 @@ export default function BillingSettingsPage() {
 
   return (
     <div className="px-2 py-2 space-y-6 font-sans">
+      <DashboardSettingsNav label="Billing" />
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Billing & Usage</h2>
         <p className="mt-1 text-[13px] font-light leading-relaxed text-accent-foreground">
@@ -112,9 +108,7 @@ export default function BillingSettingsPage() {
       </div>
 
       {loading ? (
-        <div className="py-16 flex justify-center">
-          <SignalorLoader label="Loading billing..." />
-        </div>
+        <BillingSkeleton />
       ) : (
         <>
           {/* Subscription status */}
@@ -200,7 +194,7 @@ export default function BillingSettingsPage() {
                     return (
                       <span
                         key={eng}
-                        className="rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-tight"
+                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-tight"
                         style={{
                           backgroundColor: allowed ? "#22c55e18" : "#00000008",
                           color: allowed ? "#16a34a" : "#00000040",
@@ -208,7 +202,7 @@ export default function BillingSettingsPage() {
                           textDecoration: allowed ? "none" : "line-through",
                         }}
                       >
-                        {ENGINE_LABELS[eng]}
+                        <EngineBadge engine={eng} size={14} />
                         {!allowed && " (upgrade)"}
                       </span>
                     );
@@ -233,7 +227,7 @@ export default function BillingSettingsPage() {
                 {[
                   `${sub.limits.max_projects} project${sub.limits.max_projects > 1 ? "s" : ""}`,
                   `Up to ${sub.limits.max_prompts} tracked prompts`,
-                  `Engines: ${sub.limits.engines.map((e: string) => ENGINE_LABELS[e] || e).join(", ")}`,
+                  `Engines: ${sub.limits.engines.map((e: string) => engineLabel(e)).join(", ")}`,
                   ...(sub.limits.features ?? []).filter(
                     (f: string) =>
                       !f.toLowerCase().startsWith("up to") &&

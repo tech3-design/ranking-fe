@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Check, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Check, Plus, Trash2 } from "@/components/icons";
 import { createPortal } from "react-dom";
 import { useOrgStore } from "@/lib/stores/org-store";
 import type { Organization } from "@/lib/api/organizations";

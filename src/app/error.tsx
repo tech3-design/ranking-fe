@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Home, RefreshCw } from "lucide-react";
+import { ArrowLeft, Home, RefreshCw } from "@/components/icons";
 import LogoComp from "@/components/LogoComp";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/config";

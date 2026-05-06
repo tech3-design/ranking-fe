@@ -20,8 +20,8 @@ import {
   Sun,
   LogOut,
   ArrowRight,
-  Sparkles,
-} from "lucide-react";
+  Crown,
+} from "@/components/icons";
 import { useTheme } from "next-themes";
 
 interface CommandPaletteProps {
@@ -58,8 +58,8 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Dialog */}
-      <div className="relative flex items-start justify-center pt-[20vh]">
-        <div className="w-full max-w-lg bg-card border border-border rounded-md shadow-2xl overflow-hidden">
+      <div className="relative flex items-start justify-center pt-[20vh]" onClick={onClose}>
+        <div className="w-full max-w-lg bg-card border border-border rounded-md shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
           <Command label="Command palette" className="flex flex-col">
             {/* Search input */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
@@ -107,7 +107,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                   desc="Toggle theme"
                   onSelect={() => { setTheme(theme === "dark" ? "light" : "dark"); onClose(); }}
                 />
-                <PaletteItem icon={Sparkles} label="Upgrade to Pro" desc="Unlock all features" onSelect={() => go("/pricing")} />
+                <PaletteItem icon={Crown} label="Upgrade to Pro" desc="Unlock all features" onSelect={() => go("/pricing")} />
               </Command.Group>
             </Command.List>
 

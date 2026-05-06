@@ -1,38 +1,35 @@
 "use client";
 
-import { useId } from "react";
-import { Minus, MoreHorizontal, TrendingDown, TrendingUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useId, useRef, useState } from "react";
+import { Minus, TrendingDown, TrendingUp } from "@/components/icons";
 import { Sparkles } from "@/components/ui/sparkles";
 import { cn } from "@/lib/utils";
 import { CORAL } from "./constants";
 
-const GEO_SCORE_GAUGE_SEGMENTS = 25;
+const SEGMENTS = 28;
 
-function getGeoScoreGaugeRects(score: number) {
-  const total = GEO_SCORE_GAUGE_SEGMENTS;
-  const filled = Math.round((Math.min(100, Math.max(0, score)) / 100) * total);
-  const cx = 90;
-  const cy = 94;
-  const r = 68;
-  const barW = 7;
-  const barH = 20;
-  return Array.from({ length: total }, (_, i) => {
-    const angleDeg = 180 - (i / (total - 1)) * 180;
+function buildSegments(score: number) {
+  const filled = Math.round((Math.min(100, Math.max(0, score)) / 100) * SEGMENTS);
+  const cx = 110, cy = 110, r = 88, barW = 8, barH = 22;
+  return Array.from({ length: SEGMENTS }, (_, i) => {
+    const angleDeg = 180 - (i / (SEGMENTS - 1)) * 180;
     const rad = (angleDeg * Math.PI) / 180;
-    const x = cx + r * Math.cos(rad);
-    const y = cy - r * Math.sin(rad);
-    const rot = 90 - angleDeg;
     return {
       key: i,
-      x,
-      y,
-      rot,
+      x: cx + r * Math.cos(rad),
+      y: cy - r * Math.sin(rad),
+      rot: 90 - angleDeg,
       isFilled: i < filled,
       barW,
       barH,
     };
   });
+}
+
+function scoreTier(s: number) {
+  if (s >= 70) return { label: "Strong",   color: "text-emerald-600" };
+  if (s >= 40) return { label: "Moderate", color: "text-amber-600" };
+  return              { label: "Low",      color: "text-rose-500" };
 }
 
 export function GeoScoreCard({
@@ -45,70 +42,103 @@ export function GeoScoreCard({
   sparkle?: boolean;
 }) {
   const gradId = useId().replace(/:/g, "");
+  const target = Math.round(compositeScore);
+
+  // Animated display score (0 → target on mount / score change)
+  const [displayScore, setDisplayScore] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const fromRef = useRef(0);
+
+  useEffect(() => {
+    const startVal = fromRef.current;
+    const duration = 1300; // ms — ease-out over ~1.3 s
+    const startTime = performance.now();
+
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    function tick(now: number) {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+      const current = Math.round(startVal + (target - startVal) * eased);
+      setDisplayScore(current);
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        fromRef.current = target;
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+
+  const tier = scoreTier(displayScore);
+  const segments = buildSegments(displayScore);
 
   return (
-    <div className="relative col-span-3 flex h-full min-h-0 flex-col rounded-xl border border-neutral-100 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <div className="relative col-span-3 flex h-full flex-col rounded-xl border border-neutral-100 bg-white px-4 pb-4 pt-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
       {sparkle ? <Sparkles /> : null}
-      <div className="flex shrink-0 items-center justify-between mb-0.5">
-        <p className="text-sm font-semibold text-foreground">GEO Score</p>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          className="text-muted-foreground"
-          aria-label="GEO score options"
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
-      </div>
-      <p className="mb-2 shrink-0 text-[10px] text-muted-foreground">Composite across pillars</p>
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1.5">
-        <div
-          className="relative mx-auto w-[148px] shrink-0"
-          style={{ height: 92 }}
-          role="img"
-          aria-label={`GEO score ${Math.round(compositeScore)} out of 100`}
-        >
-          <svg viewBox="0 0 180 108" className="absolute inset-0 size-full" aria-hidden>
+      {/* Title */}
+      <div className="shrink-0">
+        <p className="text-sm font-semibold text-foreground">GEO Score</p>
+        <p className="mt-0.5 text-[10px] text-muted-foreground">Composite across pillars</p>
+      </div>
+
+      {/* Gauge — flex-1 so it fills available height, centered */}
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-2">
+        <div className="relative w-full" style={{ aspectRatio: "220 / 118" }}>
+          <svg
+            viewBox="0 0 220 118"
+            className="absolute inset-0 h-full w-full"
+            aria-label={`GEO score ${target} out of 100`}
+            role="img"
+          >
             <defs>
               <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor={CORAL} stopOpacity="1" />
-                <stop offset="100%" stopColor={CORAL} stopOpacity="0.85" />
+                <stop offset="100%" stopColor={CORAL} stopOpacity="0.8" />
               </linearGradient>
             </defs>
-            {getGeoScoreGaugeRects(compositeScore).map(
-              ({ key, x, y, rot, isFilled, barW, barH }) => (
-                <rect
-                  key={key}
-                  x={-barW / 2}
-                  y={-barH / 2}
-                  width={barW}
-                  height={barH}
-                  rx={2.5}
-                  fill={isFilled ? `url(#${gradId})` : "var(--border)"}
-                  fillOpacity={isFilled ? 1 : 0.35}
-                  transform={`translate(${x} ${y}) rotate(${rot})`}
-                />
-              ),
-            )}
+            {segments.map(({ key, x, y, rot, isFilled, barW, barH }) => (
+              <rect
+                key={key}
+                x={-barW / 2}
+                y={-barH / 2}
+                width={barW}
+                height={barH}
+                rx={2.5}
+                fill={isFilled ? `url(#${gradId})` : "var(--border)"}
+                fillOpacity={isFilled ? 1 : 0.35}
+                transform={`translate(${x} ${y}) rotate(${rot})`}
+              />
+            ))}
           </svg>
-          <div className="pointer-events-none absolute left-1/2 top-[70%] flex w-full -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5">
-            <p className="tabular-nums text-[22px] font-bold leading-none tracking-tight text-foreground">
-              {Math.round(compositeScore)}
-              <span className="text-[10px] font-semibold text-muted-foreground">/100</span>
+
+          {/* Score label — centered in the arc mouth */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center pb-0.5">
+            <p className="tabular-nums text-[28px] font-bold leading-none tracking-tight text-foreground">
+              {displayScore}
+              <span className="text-[12px] font-semibold text-muted-foreground">/100</span>
+            </p>
+            <p className={cn("mt-1 text-[10px] font-semibold", tier.color)}>
+              {tier.label}
             </p>
           </div>
         </div>
-
       </div>
 
-      <div className="shrink-0 border-t border-neutral-100 pt-2">
+      {/* vs last run badge */}
+      <div className="shrink-0">
         {scoreChange !== null ? (
           <div
             className={cn(
-              "flex w-full items-center justify-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-semibold",
-              scoreChange > 0 && "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+              "flex w-full items-center justify-center gap-1 rounded-full border px-2 py-1 text-[10px] font-semibold",
+              scoreChange > 0 && "border-emerald-500/25 bg-emerald-500/10 text-emerald-700",
               scoreChange < 0 && "border-primary/20 bg-primary/10 text-primary",
               scoreChange === 0 && "border-border bg-muted/40 text-muted-foreground",
             )}
@@ -126,7 +156,9 @@ export function GeoScoreCard({
             </span>
           </div>
         ) : (
-          <p className="text-center text-[9px] leading-snug text-muted-foreground">First analysis — trend after next run</p>
+          <p className="text-center text-[9px] leading-snug text-muted-foreground">
+            First analysis — trend after next run
+          </p>
         )}
       </div>
     </div>

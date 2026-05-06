@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
 

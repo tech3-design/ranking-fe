@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Gauge, Layers, Link2, ListChecks } from "lucide-react";
+import { ArrowRight, Gauge, Layers, Link2, ListChecks } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { LANDING_PRIMARY_CTA_CLASS } from "./constants";
 import { ScreenHR } from "@/components/ui/intersection-diamonds";

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Lock } from "@/components/icons";
 
 import { useSession } from "@/lib/auth-client";
 import { getSubscriptionStatus } from "@/lib/api/payments";

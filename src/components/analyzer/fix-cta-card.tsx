@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Wrench, Loader2, CheckCircle2 } from "lucide-react";
+import { Wrench, Loader2, CheckCircle2 } from "@/components/icons";
 import { applyAutoFix, getAutoFixStatus, type Recommendation } from "@/lib/api/analyzer";
 
 interface FixCTACardProps {

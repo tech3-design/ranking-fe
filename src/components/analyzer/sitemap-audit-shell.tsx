@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Map, Radio } from "lucide-react";
+import { Map, Radio } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 import { SitemapAuditPanel } from "./sitemap-audit-panel";

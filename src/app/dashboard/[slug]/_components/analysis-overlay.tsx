@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Globe } from "lucide-react";
+import { Globe } from "@/components/icons";
 
 import { useRun } from "./run-context";
 import { AnalyzingRadar } from "@/components/ui/analyzing-radar";

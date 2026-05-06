@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, type LucideIcon } from "lucide-react";
+import { ArrowLeft, type LucideIcon } from "@/components/icons";
 
 import { HeroBackgroundGrid } from "@/components/landing/hero-background-grid";
 import type { IntegrationPlatformCopy } from "@/components/landing/integration-platform-hero";
