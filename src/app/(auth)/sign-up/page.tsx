@@ -74,14 +74,14 @@ function SignUpContent() {
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
+  // Initialise store once on mount only — must not re-run on session refetch
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { reset(); setAuthMode("sign-up"); }, []);
+
+  // Redirect when a valid session is detected (e.g. after OTP verify)
   useEffect(() => {
-    if (!isPending && session) {
-      router.replace(routes.dashboard);
-      return;
-    }
-    reset();
-    setAuthMode("sign-up");
-  }, [reset, setAuthMode, isPending, session, router]);
+    if (!isPending && session) router.replace(routes.dashboard);
+  }, [isPending, session, router]);
 
   const { title, description } =
     STEP_CONTENT[step] ?? STEP_CONTENT["auth-method"];
