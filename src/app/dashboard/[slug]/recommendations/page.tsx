@@ -69,7 +69,10 @@ export default function RecommendationsPage() {
   return (
     <div className="space-y-6 px-2 py-2">
       {run && !loading && allRecs.length > 0 ? (
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
+        <div
+          className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6"
+          data-tour-card="tasks-toolbar"
+        >
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">Fixes</h2>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -197,15 +200,17 @@ export default function RecommendationsPage() {
       )}
 
       {run && !loading && allRecs.length > 0 && (
-        <RecommendationsPanel
-          recommendations={filteredRecommendations}
-          allRecommendations={allRecs}
-          slug={slug}
-          email={email}
-          platform={platform}
-          initialFixResults={fixResults}
-          onFixResult={setFixResult}
-        />
+        <div data-tour-card="tasks-list">
+          <RecommendationsPanel
+            recommendations={filteredRecommendations}
+            allRecommendations={allRecs}
+            slug={slug}
+            email={email}
+            platform={platform}
+            initialFixResults={fixResults}
+            onFixResult={setFixResult}
+          />
+        </div>
       )}
 
       {run && !loading && allRecs.length === 0 && (

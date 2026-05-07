@@ -711,6 +711,7 @@ export function RecommendationsPanel({
                       isVerified && "bg-emerald-500/4",
                     )}
                     data-state={isExpanded ? "selected" : undefined}
+                    data-tour-card={index === 0 ? "tasks-row" : undefined}
                     onClick={() => setExpandedId(isExpanded ? null : rec.id)}
                   >
                     <TableCell className="pl-4 align-middle">

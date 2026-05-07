@@ -41,7 +41,7 @@ export function RedditDetailsPanel({ details, score, compact = false, className 
     : [];
 
   return (
-    <Card className={cn("glass-card border-border", className)}>
+    <Card className={cn("glass-card border-border", className)} data-tour-card="visibility-reddit">
       <CardHeader className={cn("pb-3", compact && "pb-2 pt-4")}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">

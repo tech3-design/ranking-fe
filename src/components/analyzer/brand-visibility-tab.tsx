@@ -178,6 +178,7 @@ function OverallScoreCard({
     <div
       className="flex h-full items-center gap-4 rounded-xl border px-5 py-4"
       style={{ backgroundColor: `${BRAND_COLOR}08`, borderColor: `${BRAND_COLOR}28` }}
+      data-tour-card="visibility-overall"
     >
       {/* Ring — no number inside; score lives solely on the right */}
       <AnimatedRing value={overall} color={BRAND_COLOR} size={68} />
@@ -281,7 +282,10 @@ function InsightsRow({
   );
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none">
+    <div
+      className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none"
+      data-tour-card="visibility-insights"
+    >
       {/* ── Unified header ── */}
       <div className="flex items-center gap-3 border-b border-border/60 px-5 py-3">
         <TrendingUp className="size-3.5 shrink-0" style={{ color: BRAND_COLOR }} />
@@ -526,10 +530,18 @@ export function BrandVisibilityTab({
             totalChecked={totalChecked}
           />
         </div>
-        <KPITile label="Google Score"  value={googleScore}    icon={<Search className="size-3.5" />} />
-        <KPITile label="Reddit Score"  value={redditScore}    icon={<MessageSquare className="size-3.5" />} />
-        <KPITile label="Web Score"     value={webScore}       icon={<Globe className="size-3.5" />} />
-        <KPITile label="Coverage"      value={marketCoverage} suffix="%" icon={<Zap className="size-3.5" />} />
+        <div data-tour-card="visibility-kpi-google">
+          <KPITile label="Google Score" value={googleScore} icon={<Search className="size-3.5" />} />
+        </div>
+        <div data-tour-card="visibility-kpi-reddit">
+          <KPITile label="Reddit Score" value={redditScore} icon={<MessageSquare className="size-3.5" />} />
+        </div>
+        <div data-tour-card="visibility-kpi-web">
+          <KPITile label="Web Score" value={webScore} icon={<Globe className="size-3.5" />} />
+        </div>
+        <div data-tour-card="visibility-kpi-coverage">
+          <KPITile label="Coverage" value={marketCoverage} suffix="%" icon={<Zap className="size-3.5" />} />
+        </div>
       </div>
 
       {/* ─── ② Unified Insights Row ─────────────────────────────────────── */}

@@ -55,16 +55,18 @@ export default function WikipediaPage() {
       )}
 
       {!loading && !error && (
-        <PromptTracker
-          slug={slug}
-          tracks={tracks}
-          onAdded={(track) => setTracks((prev) => [track, ...prev])}
-          onRechecked={() => fetchData()}
-          onDeleted={(trackId) =>
-            setTracks((prev) => prev.filter((t) => t.id !== trackId))
-          }
-          expandedMode="wikipedia"
-        />
+        <div data-tour-card="wikipedia-panel">
+          <PromptTracker
+            slug={slug}
+            tracks={tracks}
+            onAdded={(track) => setTracks((prev) => [track, ...prev])}
+            onRechecked={() => fetchData()}
+            onDeleted={(trackId) =>
+              setTracks((prev) => prev.filter((t) => t.id !== trackId))
+            }
+            expandedMode="wikipedia"
+          />
+        </div>
       )}
     </div>
   );

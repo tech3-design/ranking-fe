@@ -399,7 +399,10 @@ export function PromptTracker({
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="space-y-2.5">
-      <div className="flex w-full min-w-0 shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div
+        className="flex w-full min-w-0 shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+        data-tour-card="tracker-toolbar"
+      >
         <p className="min-w-0 text-xs text-muted-foreground sm:max-w-[min(100%,24rem)]">
           {tracks.length === 0 ? (
             <>Track prompts to score visibility across AI and search.</>
@@ -530,7 +533,10 @@ export function PromptTracker({
         </div>
       </div>
       {/* ── Single control surface: KPIs · add prompt · filters · upsell ─── */}
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <div
+        className="overflow-hidden rounded-lg border border-border bg-card"
+        data-tour-card="tracker-stats"
+      >
         <div
           className={
             tracks.length > 0
@@ -612,7 +618,7 @@ export function PromptTracker({
       {/* ── Prompt cards ─────────────────────────────────────────────────── */}
       {visibleTracks.length > 0 && (
         <div className="space-y-1.5">
-          {pagedTracks.map((track) => {
+          {pagedTracks.map((track, trackIdx) => {
             const isExpanded = expandedId === track.id;
             const isRechecking = rechecking[track.id];
             const hasResults = track.results.length > 0;
@@ -623,6 +629,7 @@ export function PromptTracker({
             return (
               <div
                 key={track.id}
+                data-tour-card={trackIdx === 0 ? "tracker-row" : undefined}
                 className={`overflow-hidden rounded-md border bg-card transition-colors ${isExpanded
                   ? "border-border shadow-sm"
                   : "border-border/80 hover:border-border"

@@ -177,7 +177,10 @@ export default function CompetitorsPage() {
 
   return (
     <div className="space-y-6 px-2 py-2 sm:px-0">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
+      <div
+        className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6"
+        data-tour-card="competitors-toolbar"
+      >
         <div className="min-w-0 flex-1">
           <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             Competitors
@@ -272,17 +275,19 @@ export default function CompetitorsPage() {
       </div>
 
       {competitors.length || run?.url ? (
-        <CompetitorTable
-          competitors={competitors}
-          yourScore={run?.composite_score ?? null}
-          yourName={run?.display_brand_name || run?.brand_name || undefined}
-          yourUrl={run?.url}
-          query={query}
-          confidence={confidence}
-          scoreBand={scoreBand}
-          slug={slug}
-          onDelete={() => void refetch()}
-        />
+        <div data-tour-card="competitors-table">
+          <CompetitorTable
+            competitors={competitors}
+            yourScore={run?.composite_score ?? null}
+            yourName={run?.display_brand_name || run?.brand_name || undefined}
+            yourUrl={run?.url}
+            query={query}
+            confidence={confidence}
+            scoreBand={scoreBand}
+            slug={slug}
+            onDelete={() => void refetch()}
+          />
+        </div>
       ) : (
         <div className="rounded-lg border border-border/60 bg-card/65 p-8 text-center">
           <p className="text-sm text-muted-foreground">
