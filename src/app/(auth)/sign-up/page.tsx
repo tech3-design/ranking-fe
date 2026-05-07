@@ -19,6 +19,9 @@ import {
 } from "@/lib/stores/onboarding-store";
 import { useSession } from "@/lib/auth-client";
 import { routes } from "@/lib/config";
+import { redeemReferralCode } from "@/lib/api/referrals";
+
+const REFERRAL_PENDING_KEY = "signalor.referral.pendingCode";
 
 const STEP_CONTENT: Record<string, { title: string; description: string }> = {
   "auth-method": {
@@ -74,8 +77,34 @@ function SignUpContent() {
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
+  // Capture ?ref=CODE on first mount so we can redeem after sign-up completes.
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref && typeof window !== "undefined") {
+      localStorage.setItem(REFERRAL_PENDING_KEY, ref);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (!isPending && session) {
+      // Sign-up complete — if we stashed a referral code, redeem it before
+      // redirecting. Failures are non-blocking; the user still gets to the dashboard.
+      const email = session.user?.email;
+      const pending =
+        typeof window !== "undefined"
+          ? localStorage.getItem(REFERRAL_PENDING_KEY)
+          : null;
+      if (email && pending) {
+        redeemReferralCode(pending, email)
+          .catch(() => {})
+          .finally(() => {
+            try {
+              localStorage.removeItem(REFERRAL_PENDING_KEY);
+            } catch {}
+            router.replace(routes.dashboard);
+          });
+        return;
+      }
       router.replace(routes.dashboard);
       return;
     }

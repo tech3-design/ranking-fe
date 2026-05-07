@@ -29,6 +29,7 @@ import {
   Loader2,
   Compass,
   GitFork,
+  Gift,
   type LucideIcon,
 } from "@/components/icons";
 import {
@@ -103,6 +104,7 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
 const SETTINGS_NAV = [
   { icon: User, label: "Profile", path: "/settings/profile" },
   { icon: CreditCard, label: "Billing", path: "/settings/billing" },
+  { icon: Gift, label: "Referrals", path: "/settings/referrals" },
   { icon: PlugZap, label: "Integrations", path: "/settings/integrations" },
   { icon: Bell, label: "Notifications", path: "/settings/notifications" },
 ];
@@ -228,6 +230,12 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Integrations",
       hint: "Workspace connections and API access.",
+    };
+  }
+  if (rel.startsWith("/settings/referrals")) {
+    return {
+      title: "Referrals",
+      hint: "Refer friends and earn discounts on your subscription.",
     };
   }
   if (rel.startsWith("/settings/notifications")) {

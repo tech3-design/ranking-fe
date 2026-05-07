@@ -167,6 +167,9 @@ export const Compass: LucideIcon = (p) => (
 export const Copy: LucideIcon = (p) => (
   <svg {...base(p)}><rect width="14" height="14" x="8" y="8" rx="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />{dot(8, 8)}</svg>
 );
+export const Gift: LucideIcon = (p) => (
+  <svg {...base(p)}><path d="M20 12v10H4V12" /><path d="M2 7h20v5H2z" /><path d="M12 22V7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7" /></svg>
+);
 export const CreditCard: LucideIcon = (p) => (
   <svg {...base(p)}><rect width="20" height="14" x="2" y="5" rx="2" /><path d="M2 10h20" />{dot(6, 16)}</svg>
 );
