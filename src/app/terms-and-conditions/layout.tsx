@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { buildMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Terms and conditions",
@@ -9,5 +10,16 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default function TermsLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <JsonLd
+        id="ld-terms-breadcrumb"
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Terms and conditions", path: "/terms-and-conditions" },
+        ])}
+      />
+      {children}
+    </>
+  );
 }

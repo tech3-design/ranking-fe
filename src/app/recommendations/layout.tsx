@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
+import { INTEGRATIONS_FAQ } from "@/lib/landing-integrations-feature-content";
 
 export const metadata: Metadata = buildMetadata({
   title: "Recommendations — prioritized GEO fixes",
@@ -19,6 +20,7 @@ export default function RecommendationsLayout({ children }: { children: React.Re
           { name: "Recommendations", path: "/recommendations" },
         ])}
       />
+      <JsonLd id="ld-recommendations-faq" data={faqJsonLd([...INTEGRATIONS_FAQ])} />
       {children}
     </>
   );

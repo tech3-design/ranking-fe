@@ -146,6 +146,18 @@ function renderSpan(
   return node;
 }
 
+function slugifyHeading(block: PTBlock): string | undefined {
+  const text = (block.children ?? []).map((c) => c.text ?? "").join(" ").trim();
+  if (!text) return undefined;
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
+}
+
 function renderBlock(block: PTBlock, idx: number): React.ReactNode {
   const markDefs = block.markDefs ?? [];
   const children = (block.children ?? []).map((span, i) =>
@@ -160,15 +172,17 @@ function renderBlock(block: PTBlock, idx: number): React.ReactNode {
     );
   }
 
+  const headingId = slugifyHeading(block);
+
   switch (block.style) {
     case "h1":
-      return <h1 key={block._key ?? idx} className="mt-10 mb-4 text-3xl font-bold tracking-tight text-foreground">{children}</h1>;
+      return <h1 key={block._key ?? idx} id={headingId} className="mt-10 mb-4 text-3xl font-bold tracking-tight text-foreground scroll-mt-24">{children}</h1>;
     case "h2":
-      return <h2 key={block._key ?? idx} className="mt-8 mb-3 text-2xl font-bold tracking-tight text-foreground">{children}</h2>;
+      return <h2 key={block._key ?? idx} id={headingId} className="mt-8 mb-3 text-2xl font-bold tracking-tight text-foreground scroll-mt-24">{children}</h2>;
     case "h3":
-      return <h3 key={block._key ?? idx} className="mt-6 mb-2.5 text-xl font-semibold tracking-tight text-foreground">{children}</h3>;
+      return <h3 key={block._key ?? idx} id={headingId} className="mt-6 mb-2.5 text-xl font-semibold tracking-tight text-foreground scroll-mt-24">{children}</h3>;
     case "h4":
-      return <h4 key={block._key ?? idx} className="mt-5 mb-2 text-lg font-semibold text-foreground">{children}</h4>;
+      return <h4 key={block._key ?? idx} id={headingId} className="mt-5 mb-2 text-lg font-semibold text-foreground scroll-mt-24">{children}</h4>;
     case "blockquote":
       return (
         <blockquote

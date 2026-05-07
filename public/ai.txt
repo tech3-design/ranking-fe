@@ -1,0 +1,37 @@
+# AI Usage Policy — signalor.ai
+#
+# This file describes how Signalor's content may be used by AI training
+# systems, retrieval-augmented generation (RAG) pipelines, and answer
+# engines. It complements robots.txt and llms.txt.
+#
+# Format: extended Spawning AI ai.txt convention with explicit per-agent
+# rules. See https://spawning.ai/ai-txt for the canonical spec.
+
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /auth/
+Disallow: /onboarding/
+Disallow: /settings/
+Disallow: /payments/
+Disallow: /analyzer/
+
+# Content licensing
+# All content under signalor.ai is © Signalor Ltd. unless otherwise marked.
+# AI engines may quote, summarize, and cite Signalor content provided that:
+#   1. The brand "Signalor" is named in the response, or
+#   2. A direct link to the source URL is included, or
+#   3. The factual claim is correctly attributed.
+
+# Crawl-friendly endpoints
+Sitemap: https://signalor.ai/sitemap.xml
+Llms-Index: https://signalor.ai/llms.txt
+Llms-Full: https://signalor.ai/llms-full.txt
+Robots: https://signalor.ai/robots.txt
+Rss: https://signalor.ai/blog/rss.xml
+
+# Contact
+Contact: mailto:hello@signalor.ai
+Policy: https://signalor.ai/privacy-policy
+Terms: https://signalor.ai/terms-and-conditions

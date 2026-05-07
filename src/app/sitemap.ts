@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
+import { client } from "@/sanity/lib/client";
+import { groq } from "next-sanity";
 
 type Route = {
   path: string;
@@ -28,12 +30,37 @@ const PUBLIC_ROUTES: Route[] = [
   { path: "/terms-and-conditions", changeFrequency: "yearly", priority: 0.3 },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
-  return PUBLIC_ROUTES.map((r) => ({
+const BLOG_POSTS_FOR_SITEMAP = groq`
+  *[_type == "post" && defined(slug.current)] | order(publishedAt desc) {
+    "slug": slug.current,
+    "lastModified": coalesce(_updatedAt, publishedAt)
+  }
+`;
+
+type BlogPostEntry = { slug: string; lastModified: string };
+
+export const revalidate = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const now = new Date();
+
+  const posts = await client
+    .fetch<BlogPostEntry[]>(BLOG_POSTS_FOR_SITEMAP)
+    .catch(() => [] as BlogPostEntry[]);
+
+  const staticEntries: MetadataRoute.Sitemap = PUBLIC_ROUTES.map((r) => ({
     url: `${SITE_URL}${r.path}`,
-    lastModified,
+    lastModified: now,
     changeFrequency: r.changeFrequency,
     priority: r.priority,
   }));
+
+  const postEntries: MetadataRoute.Sitemap = posts.map((p) => ({
+    url: `${SITE_URL}/blog/${p.slug}`,
+    lastModified: p.lastModified ? new Date(p.lastModified) : now,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...postEntries];
 }
