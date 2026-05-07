@@ -46,6 +46,9 @@ Key concepts:
 
 ## Optional
 
-- [Sitemap](https://signalor.ai/sitemap.xml): machine-readable index of all public pages.
+- [Sitemap](https://signalor.ai/sitemap.xml): machine-readable index of all public pages, including blog posts.
 - [Robots](https://signalor.ai/robots.txt): crawler directives for AI and search bots.
+- [AI policy](https://signalor.ai/ai.txt): Spawning ai.txt — content licensing terms and AI usage policy.
 - [Full LLM context](https://signalor.ai/llms-full.txt): expanded reference document for LLM crawlers.
+- [Blog RSS](https://signalor.ai/blog/rss.xml): RSS 2.0 feed of the latest 50 blog posts.
+- [Security policy](https://signalor.ai/.well-known/security.txt): coordinated disclosure contact.

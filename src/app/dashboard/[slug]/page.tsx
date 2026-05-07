@@ -228,7 +228,10 @@ export default function SignalorDashboard() {
   return (
     <>
       {/* <header className="sticky top-0 z-20 border-b border-border bg-white px-6 py-4"> */}
-        <div className="flex flex-col gap-4 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+        <div
+          className="flex flex-col gap-4 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+          data-tour-card="overview-header"
+        >
           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             {brandFavicon ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -327,14 +330,14 @@ export default function SignalorDashboard() {
         <div className="px-3 pb-4 pt-3 sm:px-4">
           {/* GEO Score card (left) + GEO Performance chart (right), equal height */}
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-stretch">
-            <div className="w-full shrink-0 sm:w-56">
+            <div className="w-full shrink-0 sm:w-56" data-tour-card="overview-score">
               <GeoScoreCard
                 compositeScore={compositeScore}
                 scoreChange={scoreChange}
                 sparkle={!!scoreBump && scoreBump > 0}
               />
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1" data-tour-card="overview-performance">
               <WeeklyPerformanceSection
                 scoreHistory={scoreHistory}
                 joinDate={run.created_at}
@@ -343,17 +346,22 @@ export default function SignalorDashboard() {
             </div>
           </div>
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
-            <VisibilityByPlatformCard brandVis={brandVis} />
+            <div className="col-span-4 min-h-0 h-full" data-tour-card="overview-platforms">
+              <VisibilityByPlatformCard brandVis={brandVis} />
+            </div>
             {/* <GeoScoreHistoryCard scoreHistory={scoreHistory} /> */}
-            <div className="col-span-3 min-h-0 h-full">
+            <div className="col-span-3 min-h-0 h-full" data-tour-card="overview-pillars">
               <PillarBreakdownCard pageScore={pageScore} />
             </div>
-            <div className="col-span-5 min-h-0 h-full">
+            <div className="col-span-5 min-h-0 h-full" data-tour-card="overview-sentiment">
               <SentimentAnalysisCard sentiment={sentiment} />
             </div>
           </div>
 
-          <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
+          <div
+            className="grid grid-cols-12 items-stretch gap-3 mb-3"
+            data-tour-card="overview-reach"
+          >
             <SocialBrandReachCard
               slug={slug}
               brandName={projectName}

@@ -300,7 +300,7 @@ export function articleJsonLd(opts: {
 }) {
   return {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     headline: opts.title,
     description: opts.description,
     mainEntityOfPage: {
@@ -314,6 +314,16 @@ export function articleJsonLd(opts: {
       "@type": opts.author ? "Person" : "Organization",
       name: opts.author || SITE_LEGAL_NAME,
     },
-    publisher: { "@id": `${SITE_URL}#organization` },
+    publisher: {
+      "@id": `${SITE_URL}#organization`,
+      "@type": "Organization",
+      name: SITE_LEGAL_NAME,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/icon.svg`,
+        width: 512,
+        height: 512,
+      },
+    },
   };
 }

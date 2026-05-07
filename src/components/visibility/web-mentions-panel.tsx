@@ -73,7 +73,7 @@ export function WebMentionsPanel({ details, score, compact = false }: WebMention
   );
 
   return (
-    <Card className="glass-card">
+    <Card className="glass-card" data-tour-card="visibility-web">
       <CardHeader className={cn("pb-3", compact && "pb-2 pt-4")}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">

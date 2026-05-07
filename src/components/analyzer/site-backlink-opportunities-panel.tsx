@@ -124,7 +124,10 @@ export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
   const isEmpty = rows.length === 0;
 
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-5">
+    <div
+      className="rounded-xl border border-border bg-card px-4 py-5"
+      data-tour-card="backlinks-free-panel"
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Globe className="size-4 text-muted-foreground" />
@@ -189,8 +192,12 @@ export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
         </div>
       ) : (
         <ul className="space-y-2">
-          {rows.map((opp) => (
-            <OpportunityRow key={opp.id} opp={opp} />
+          {rows.map((opp, oppIdx) => (
+            <OpportunityRow
+              key={opp.id}
+              opp={opp}
+              dataTour={oppIdx === 0 ? "backlinks-free-row" : undefined}
+            />
           ))}
         </ul>
       )}
@@ -203,9 +210,12 @@ export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
   );
 }
 
-function OpportunityRow({ opp }: { opp: SiteOpportunity }) {
+function OpportunityRow({ opp, dataTour }: { opp: SiteOpportunity; dataTour?: string }) {
   return (
-    <li className="rounded-md border border-border bg-background px-3 py-2.5">
+    <li
+      className="rounded-md border border-border bg-background px-3 py-2.5"
+      data-tour-card={dataTour}
+    >
       <div className="flex flex-wrap items-center gap-2">
         <a
           href={opp.submit_url}

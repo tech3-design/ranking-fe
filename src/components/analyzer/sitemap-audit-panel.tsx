@@ -374,7 +374,10 @@ function HeaderBar({
   onStart: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div
+      className="flex flex-wrap items-center justify-between gap-3"
+      data-tour-card="sitemap-header"
+    >
       <div className="flex min-w-0 items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
           <Layers className="h-4 w-4" />
@@ -428,28 +431,36 @@ function HeaderBar({
 function StatTiles({ audit }: { audit: SitemapAuditSummary }) {
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-      <IndexedTile audit={audit} />
-      <VitalTile
-        label="Avg LCP"
-        value={audit.avg_lcp_ms}
-        unit="ms"
-        thresholds={[2500, 4000]}
-        icon={<Timer className="h-3.5 w-3.5" />}
-      />
-      <VitalTile
-        label="Avg FCP"
-        value={audit.avg_fcp_ms}
-        unit="ms"
-        thresholds={[1800, 3000]}
-        icon={<Sparkles className="h-3.5 w-3.5" />}
-      />
-      <VitalTile
-        label="Avg TTFB"
-        value={audit.avg_ttfb_ms}
-        unit="ms"
-        thresholds={[800, 1800]}
-        icon={<Gauge className="h-3.5 w-3.5" />}
-      />
+      <div data-tour-card="sitemap-stat-indexed">
+        <IndexedTile audit={audit} />
+      </div>
+      <div data-tour-card="sitemap-stat-lcp">
+        <VitalTile
+          label="Avg LCP"
+          value={audit.avg_lcp_ms}
+          unit="ms"
+          thresholds={[2500, 4000]}
+          icon={<Timer className="h-3.5 w-3.5" />}
+        />
+      </div>
+      <div data-tour-card="sitemap-stat-fcp">
+        <VitalTile
+          label="Avg FCP"
+          value={audit.avg_fcp_ms}
+          unit="ms"
+          thresholds={[1800, 3000]}
+          icon={<Sparkles className="h-3.5 w-3.5" />}
+        />
+      </div>
+      <div data-tour-card="sitemap-stat-ttfb">
+        <VitalTile
+          label="Avg TTFB"
+          value={audit.avg_ttfb_ms}
+          unit="ms"
+          thresholds={[800, 1800]}
+          icon={<Gauge className="h-3.5 w-3.5" />}
+        />
+      </div>
     </div>
   );
 }
@@ -564,7 +575,10 @@ function StateTabs({
     { key: "failed", label: "Failed", count: audit.failed_count },
   ];
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
+    <div
+      className="flex flex-wrap items-center justify-between gap-2"
+      data-tour-card="sitemap-state-tabs"
+    >
       <div>
         {/* <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">Sitemap</p> */}
         <h2 className="text-2xl font-semibold tracking-tight text-foreground">Sitemap Audit</h2>
@@ -614,7 +628,10 @@ function Toolbar({
   onSeverity: (v: SeverityFilter) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-3">
+    <div
+      className="flex flex-wrap items-center justify-end gap-3"
+      data-tour-card="sitemap-toolbar"
+    >
       <div className="relative min-w-[220px] flex-1 md:flex-initial md:w-80">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -725,8 +742,8 @@ function PagesTable({
           </tr>
         </thead>
         <tbody>
-          {pages.map((p) => (
-            <PageRow key={p.id} page={p} />
+          {pages.map((p, i) => (
+            <PageRow key={p.id} page={p} dataTour={i === 0 ? "sitemap-row" : undefined} />
           ))}
         </tbody>
       </table>
@@ -739,7 +756,7 @@ function PagesTable({
   );
 }
 
-function PageRow({ page }: { page: SitemapAuditPage }) {
+function PageRow({ page, dataTour }: { page: SitemapAuditPage; dataTour?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -749,6 +766,7 @@ function PageRow({ page }: { page: SitemapAuditPage }) {
           open ? "bg-muted/30" : "",
         )}
         onClick={() => setOpen((v) => !v)}
+        data-tour-card={dataTour}
       >
         <td className="px-4 py-3 align-top">
           <div className="flex items-start gap-2">

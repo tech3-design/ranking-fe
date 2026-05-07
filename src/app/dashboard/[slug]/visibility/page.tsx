@@ -73,7 +73,10 @@ export default function VisibilityPage() {
 
   return (
     <div className="space-y-6 px-2 py-2 sm:px-0">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div
+        className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+        data-tour-card="visibility-header"
+      >
         <div className="min-w-0">
           <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Brand presence</h2>
           <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
@@ -121,11 +124,13 @@ export default function VisibilityPage() {
       {run && !allLoading && (
         <>
           {brandVis && (
-            <BrandVisibilityTab
-              brandName={run.display_brand_name?.trim() || run.brand_name}
-              visibility={brandVis}
-              sov={sov}
-            />
+            <div data-tour-card="visibility-brand">
+              <BrandVisibilityTab
+                brandName={run.display_brand_name?.trim() || run.brand_name}
+                visibility={brandVis}
+                sov={sov}
+              />
+            </div>
           )}
 
           {!brandVis && sov.length === 0 && (
@@ -136,7 +141,10 @@ export default function VisibilityPage() {
 
           {/* GA Traffic Data (if connected) */}
           {gaIntegration && !gaLoading && (
-            <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none sm:p-6">
+            <div
+              className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none sm:p-6"
+              data-tour-card="visibility-ga"
+            >
               {!hasProperty ? (
                 <GAPropertySelector email={email} onPropertySelected={loadIntegrations} />
               ) : (

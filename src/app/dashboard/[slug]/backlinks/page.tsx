@@ -25,7 +25,10 @@ export default function BacklinksPage() {
         </p>
       </div>
 
-      <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit">
+      <div
+        className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit"
+        data-tour-card="backlinks-tabs"
+      >
         <TabButton
           active={tab === "free"}
           onClick={() => setTab("free")}

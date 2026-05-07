@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
+import { CONTENT_SIGNALS_FAQ } from "@/lib/landing-content-signals-content";
 
 export const metadata: Metadata = buildMetadata({
   title: "AI visibility tracking",
@@ -19,6 +20,7 @@ export default function AiVisibilityLayout({ children }: { children: React.React
           { name: "AI visibility", path: "/ai-visibility" },
         ])}
       />
+      <JsonLd id="ld-ai-visibility-faq" data={faqJsonLd([...CONTENT_SIGNALS_FAQ])} />
       {children}
     </>
   );

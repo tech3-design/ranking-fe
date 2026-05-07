@@ -23,7 +23,7 @@ import { routes } from "@/lib/config";
 const STEP_CONTENT: Record<string, { title: string; description: string }> = {
   "auth-method": {
     title: "Create your account",
-    description: "Use your work email or continue with Google.",
+    description: "Continue with Google or use your work email.",
   },
   "otp-verify": {
     title: "",

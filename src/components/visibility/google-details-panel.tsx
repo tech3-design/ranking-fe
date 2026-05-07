@@ -32,7 +32,7 @@ export function GoogleDetailsPanel({ details, score, compact = false }: GoogleDe
   const tone = scoreTone(roundedScore);
 
   return (
-    <Card className="glass-card border-border">
+    <Card className="glass-card border-border" data-tour-card="visibility-google">
       <CardHeader className={cn("pb-3", compact && "pb-2 pt-4")}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">

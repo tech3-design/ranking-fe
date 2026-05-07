@@ -102,11 +102,11 @@ export default function Home() {
         aria-label="Supported AI engines"
       >
         <CornerDiamonds top />
-        <div className=" mx-auto max-w-7xl px-6 lg:px-12">
-          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
+        <div className="mx-auto max-w-7xl px-6 lg:px-12">
+          <p className="text-center text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
             [ works with every major AI engine ]
           </p>
-          <ul className="mt-6 flex flex-wrap items-center gap-x-12 gap-y-8 md:gap-x-16">
+          <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-12 gap-y-8 md:gap-x-16">
             {LLM_LOGOS.map(({ name, src }) => (
               <li
                 key={name}

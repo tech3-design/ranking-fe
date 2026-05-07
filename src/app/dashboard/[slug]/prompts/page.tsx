@@ -94,7 +94,7 @@ export default function PromptsOverviewPage() {
           </div>
         )}
       </div> */}
-      <div className="min-w-0">
+      <div className="min-w-0" data-tour-card="tracker-header">
         <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Prompt Tracking</h2>
         <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
           See how AI models and search engines respond to queries about your brand.
@@ -112,15 +112,17 @@ export default function PromptsOverviewPage() {
       )}
 
       {!loading && !error && (
-        <PromptTracker
-          slug={slug}
-          tracks={tracks}
-          onAdded={(track) => setTracks((prev) => [track, ...prev])}
-          onRechecked={() => fetchData()}
-          onDeleted={(trackId) => setTracks((prev) => prev.filter((t) => t.id !== trackId))}
-          onRecheckAll={handleRecheckAll}
-          recheckingAll={recheckingAll}
-        />
+        <div data-tour-card="tracker-panel">
+          <PromptTracker
+            slug={slug}
+            tracks={tracks}
+            onAdded={(track) => setTracks((prev) => [track, ...prev])}
+            onRechecked={() => fetchData()}
+            onDeleted={(trackId) => setTracks((prev) => prev.filter((t) => t.id !== trackId))}
+            onRecheckAll={handleRecheckAll}
+            recheckingAll={recheckingAll}
+          />
+        </div>
       )}
     </div>
   );

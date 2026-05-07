@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Crown, Trophy, Users } from "@/components/icons";
+import { ArrowUpRight, Crown, Trophy, Users } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -134,7 +134,7 @@ function BrandLogo({ name, url, size = 24 }: { name: string; url?: string; size?
 
 // ─── Score comparison: multi-line time-series chart ────────────────────────────
 
-function ScoreComparisonLines({ ranked, unscored }: { ranked: Row[]; unscored: { name: string; url?: string }[] }) {
+function ScoreComparisonLines({ ranked }: { ranked: Row[] }) {
   const top = ranked.slice(0, 6);
   const months = useMemo(() => getLast6Months(), []);
 
@@ -262,29 +262,6 @@ function ScoreComparisonLines({ ranked, unscored }: { ranked: Row[]; unscored: {
             </a>
           ) : <span key={r.key}>{inner}</span>;
         })}
-
-        {/* Unscored competitors — pending badge */}
-        {unscored.map((c) => {
-          const href = externalHref(c.url);
-          const inner = (
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-3.5 shrink-0 rounded-full bg-neutral-300" />
-              <BrandLogo name={c.name} url={c.url} size={14} />
-              <span className="text-[10px] font-medium text-muted-foreground">
-                {c.name.length > 22 ? c.name.slice(0, 21) + "…" : c.name}
-              </span>
-              <span className="rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-semibold text-amber-600">
-                Pending
-              </span>
-            </span>
-          );
-          return href ? (
-            <a key={c.name} href={href} target="_blank" rel="noopener noreferrer"
-              className="transition-opacity hover:opacity-70">
-              {inner}
-            </a>
-          ) : <span key={c.name}>{inner}</span>;
-        })}
       </div>
     </div>
   );
@@ -307,11 +284,6 @@ export function CompetitorsCard({
   yourUrl?: string;
   yourPageScore?: PageScore | null;
 }) {
-  const unscoredCompetitors = useMemo(
-    () => competitors.filter((c) => !c.scored || c.composite_score === null).map((c) => ({ name: c.name, url: c.url })),
-    [competitors],
-  );
-
   const { ranked, totalScored, yourRank, leader, leaderGap, avgScore } = useMemo(() => {
     const scored = competitors.filter((c) => c.scored && c.composite_score !== null);
     const list: Row[] = scored
@@ -472,7 +444,7 @@ export function CompetitorsCard({
                   </p>
                 </div>
               </div>
-              <ScoreComparisonLines ranked={ranked} unscored={unscoredCompetitors} />
+              <ScoreComparisonLines ranked={ranked} />
             </div>
           </div>
         </div>

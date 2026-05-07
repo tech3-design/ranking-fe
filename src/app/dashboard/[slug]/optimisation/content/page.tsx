@@ -175,17 +175,19 @@ export default function ContentOptimisationPage() {
 
   return (
     <div className="flex h-[calc(100vh-72px)] min-h-0 flex-col">
-      <BrowserChrome
-        url={url}
-        pages={pages}
-        canGoBack={historyIdx > 0}
-        canGoForward={historyIdx >= 0 && historyIdx < history.length - 1}
-        isLoading={pageLoading}
-        onUrlChange={(next) => setUrl(next)}
-        onBack={handleBack}
-        onForward={handleForward}
-        onRefresh={handleRefresh}
-      />
+      <div data-tour-card="content-chrome">
+        <BrowserChrome
+          url={url}
+          pages={pages}
+          canGoBack={historyIdx > 0}
+          canGoForward={historyIdx >= 0 && historyIdx < history.length - 1}
+          isLoading={pageLoading}
+          onUrlChange={(next) => setUrl(next)}
+          onBack={handleBack}
+          onForward={handleForward}
+          onRefresh={handleRefresh}
+        />
+      </div>
 
       {(error || notice || (!pluginConnected && pageFields)) && (
         <div className="flex flex-col gap-1 border-b border-border bg-muted/15 px-3 py-2">
@@ -214,7 +216,10 @@ export default function ContentOptimisationPage() {
       )}
 
       <div className="flex min-h-0 flex-1">
-        <div className={`flex-1 min-w-0 ${selectedElement ? "border-r border-border" : ""}`}>
+        <div
+          className={`flex-1 min-w-0 ${selectedElement ? "border-r border-border" : ""}`}
+          data-tour-card="content-iframe"
+        >
           <PageIframe
             previewImage={pageFields?.preview_image || ""}
             previewElements={pageFields?.preview_elements || []}
