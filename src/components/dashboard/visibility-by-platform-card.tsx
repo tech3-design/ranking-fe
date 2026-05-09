@@ -122,7 +122,7 @@ export function VisibilityByPlatformCard({ brandVis }: { brandVis: BrandVisibili
                         ? { backgroundColor: isPositive ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)", color: "white" }
                         : isPositive
                           ? { backgroundColor: "rgba(34,197,94,0.1)", color: "#16a34a" }
-                          : { backgroundColor: "rgba(228,96,85,0.1)", color: FEATURE_COLORS.orange }}
+                          : { backgroundColor: "rgba(224,74,61,0.1)", color: "#e04a3d" }}
                     >
                       {isPositive ? "↑" : "↓"} {deltaPct}%
                     </span>

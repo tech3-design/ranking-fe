@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   ExternalLink,
-  Loader2,
   RefreshCw,
   Globe,
   AlertCircle,
@@ -16,6 +15,7 @@ import {
   type OpportunityCategory,
 } from "@/lib/api/analyzer";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface BacklinkOpportunitiesPanelProps {
@@ -116,19 +116,48 @@ export function BacklinkOpportunitiesPanel({
     }
   };
 
-  if (loading) {
+  const isEmpty = rows.length === 0;
+  const showRefresh = !isEmpty || hasGenerated;
+
+  if (loading || regenerating) {
     return (
-      <div className="px-4 py-8">
-        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          Loading…
+      <div className="px-4 py-5">
+        {/* Header skeleton */}
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Skeleton className="size-4 rounded" />
+            <Skeleton className="h-[14px] w-36 rounded" />
+          </div>
+          {showRefresh && (
+            <Skeleton className="h-7 w-20 rounded-md" />
+          )}
         </div>
+
+        {/* Card skeletons */}
+        <ul className="space-y-2">
+          {[68, 52, 80, 44, 60].map((namePct, i) => (
+            <li
+              key={i}
+              className="rounded-md border border-border bg-background px-3 py-2.5"
+            >
+              {/* Name + badges row */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Skeleton className="h-[14px] rounded" style={{ width: `${namePct * 1.4}px` }} />
+                <Skeleton className="h-[18px] w-14 rounded-full" />
+                <Skeleton className="h-[18px] w-12 rounded-full" />
+              </div>
+              {/* Description line */}
+              <Skeleton className="mt-1.5 h-[11px] rounded" style={{ width: `${75 + (i % 3) * 8}%` }} />
+              {/* Rationale line */}
+              <Skeleton className="mt-1 h-[10px] rounded opacity-70" style={{ width: `${55 + (i % 4) * 7}%` }} />
+            </li>
+          ))}
+        </ul>
+
+        <Skeleton className="mt-3 h-[10px] w-4/5 rounded opacity-50" />
       </div>
     );
   }
-
-  const isEmpty = rows.length === 0;
-  const showRefresh = !isEmpty || hasGenerated;
 
   return (
     <div className="px-4 py-5">
@@ -149,13 +178,10 @@ export function BacklinkOpportunitiesPanel({
             variant="ghost"
             size="sm"
             onClick={handleRegenerate}
-            disabled={regenerating}
             className="h-7 gap-1.5 text-xs"
           >
-            <RefreshCw
-              className={cn("size-3.5", regenerating && "animate-spin")}
-            />
-            {regenerating ? "Regenerating…" : "Refresh"}
+            <RefreshCw className="size-3.5" />
+            Refresh
           </Button>
         )}
       </div>
@@ -180,20 +206,10 @@ export function BacklinkOpportunitiesPanel({
             variant="default"
             size="sm"
             onClick={handleRegenerate}
-            disabled={regenerating}
             className="mt-4 h-8 gap-1.5 text-xs"
           >
-            {regenerating ? (
-              <>
-                <Loader2 className="size-3.5 animate-spin" />
-                Generating…
-              </>
-            ) : (
-              <>
-                <Sparkles className="size-3.5" />
-                Generate suggestions
-              </>
-            )}
+            <Sparkles className="size-3.5" />
+            Generate suggestions
           </Button>
         </div>
       ) : (

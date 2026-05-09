@@ -13,7 +13,7 @@ import {
   RECOMMENDATION_PILLAR_LABELS,
   type RecommendationStatusFilter,
 } from "@/lib/recommendations-filters";
-import { AlertCircle, Search, X } from "@/components/icons";
+import { AlertCircle, Info, Search, X } from "@/components/icons";
 import { RecommendationsSkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,22 +70,25 @@ export default function RecommendationsPage() {
     <div className="space-y-6 px-2 py-2">
       {run && !loading && allRecs.length > 0 ? (
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Fixes</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {filtersActive ? (
-                <>
-                  Showing{" "}
-                  <span className="font-medium text-foreground">{filteredRecommendations.length}</span>
-                  {" of "}
-                  {allRecs.length} items to improve your GEO score
-                </>
-              ) : (
-                <>
-                  {allRecs.length} item{allRecs.length !== 1 ? "s" : ""} to improve your GEO score
-                </>
-              )}
-            </p>
+          <div className="flex min-w-0 flex-1 items-start gap-2">
+            <div className="min-w-0">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">Fixes</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {filtersActive ? (
+                  <>
+                    Showing{" "}
+                    <span className="font-medium text-foreground">{filteredRecommendations.length}</span>
+                    {" of "}
+                    {allRecs.length} items to improve your GEO score
+                  </>
+                ) : (
+                  <>
+                    {allRecs.length} item{allRecs.length !== 1 ? "s" : ""} to improve your GEO score
+                  </>
+                )}
+              </p>
+            </div>
+         
           </div>
           <div className="flex w-full min-w-0 shrink-0 md:w-auto md:max-w-[min(100%,52rem)] lg:max-w-none">
             <div className="flex w-full min-w-0 flex-nowrap items-center gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:justify-end">
@@ -160,6 +163,15 @@ export default function RecommendationsPage() {
                   <SelectItem value="action">Needs attention</SelectItem>
                 </SelectContent>
               </Select>
+                 <a
+              href="https://docs.signalor.ai/tasks"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View documentation"
+              className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground"
+            >
+              <Info className="size-4" />
+            </a>
               {filtersActive ? (
                 <Button
                   type="button"

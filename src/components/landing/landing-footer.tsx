@@ -62,10 +62,10 @@ const FOOTER_COLUMNS: FooterColumn[] = [
 ];
 
 const SOCIAL = [
-  { href: "https://twitter.com", label: "X (Twitter)", icon: Twitter },
-  { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin },
-  { href: "https://youtube.com", label: "YouTube", icon: Youtube },
-  { href: "https://github.com", label: "GitHub", icon: Github },
+  { href: "https://x.com/SignalorAI", label: "X (Twitter)", icon: Twitter },
+  // { href: "https://linkedin.com/in/signalor-ai", label: "LinkedIn", icon: Linkedin },
+  // { href: "https://youtube.com/SignalorAI", label: "YouTube", icon: Youtube },
+  // { href: "https://github.com/SignalorAI", label: "GitHub", icon: Github },
 ] as const;
 
 function FooterLinkRow({ href, label, external }: FooterLink) {
@@ -221,13 +221,13 @@ export function LandingFooter() {
                 aria-label="Legal"
                 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-neutral-600"
               >
-                <Link href="/privacy-policy" className="transition-colors hover:text-neutral-900">
+                <Link href="/policy" className="transition-colors hover:text-neutral-900">
                   Privacy policy
                 </Link>
                 <span className="text-neutral-300" aria-hidden>
                   ·
                 </span>
-                <Link href="/terms-and-conditions" className="transition-colors hover:text-neutral-900">
+                <Link href="/terms" className="transition-colors hover:text-neutral-900">
                   Terms of service
                 </Link>
                 <span className="text-neutral-300" aria-hidden>
@@ -239,7 +239,7 @@ export function LandingFooter() {
                 <span className="text-neutral-300" aria-hidden>
                   ·
                 </span>
-                <Link href="/about" className="transition-colors hover:text-neutral-900">
+                <Link href="/about-us" className="transition-colors hover:text-neutral-900">
                   About
                 </Link>
                 <span className="text-neutral-300" aria-hidden>

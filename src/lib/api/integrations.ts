@@ -284,11 +284,13 @@ export async function connectWordPress(
   siteUrl: string,
   apiKey: string,
   returnTo?: string,
+  username?: string,
 ): Promise<{ oauth_url?: string; status?: string; site_name?: string; message?: string }> {
   const res = await apiClient.post("/api/integrations/wordpress/connect/", {
     email,
     site_url: siteUrl,
     api_key: apiKey || undefined,
+    username: username || undefined,
     return_to: returnTo || "/dashboard",
     frontend_base: window.location.origin,
   });

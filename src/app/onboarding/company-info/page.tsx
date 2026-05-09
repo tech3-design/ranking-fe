@@ -348,12 +348,12 @@ export default function CompanyInfoPage() {
     try {
       const sub = await getSubscriptionStatus(session.user.email);
       if (!sub.is_active) {
-        storePendingAnalysisAfterPayment({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId, prompts: promptList });
+        storePendingAnalysisAfterPayment({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId, prompts: promptList, storefront_password: storePassword || undefined });
         setStatusMsg(""); setLoading(false);
         router.push(`/pricing?returnTo=${encodeURIComponent(routes.onboardingCompanyInfo)}`); return;
       }
       setStatusMsg("Starting analysis...");
-      const a = await startAnalysis({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId, verify_org_workspace: true, prompts: promptList });
+      const a = await startAnalysis({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId, verify_org_workspace: true, prompts: promptList, storefront_password: storePassword || undefined });
       try { sessionStorage.removeItem(ONBOARDING_DRAFT_KEY); } catch { /**/ }
       router.push(routes.dashboardProject(a.slug));
     } catch (err) { setError(fmtErr(err)); setStatusMsg(""); setLoading(false); }

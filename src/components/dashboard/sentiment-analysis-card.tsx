@@ -40,7 +40,7 @@ export function SentimentAnalysisCard({ sentiment }: { sentiment: DashboardSenti
               <div className="relative h-3 rounded-full bg-muted">
                 <div
                   className="absolute inset-0 rounded-full"
-                  style={{ background: "linear-gradient(to right, #e46055, rgba(228,96,85,0.4), #22c55e)" }}
+                  style={{ background: "linear-gradient(to right, #e04a3d, rgba(224,74,61,0.4), #22c55e)" }}
                 />
                 <div
                   className="absolute -top-2 flex flex-col items-center"

@@ -9,6 +9,30 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(process.cwd()),
   },
+  async redirects() {
+    return [
+      {
+        source: "/terms-and-conditions",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/terms-and-consition",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/terms-and-condition",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/privacy-policy",
+        destination: "/policy",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

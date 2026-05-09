@@ -39,6 +39,7 @@ export type PendingAnalysisAfterPaymentV2 = {
   brand_name: string;
   org_id: number;
   prompts: string[];
+  storefront_password?: string;
 };
 
 export type PendingAnalysisAfterPayment =
@@ -68,7 +69,8 @@ export function readPendingAnalysisAfterPayment(): PendingAnalysisAfterPayment |
         ? promptsRaw.filter((p): p is string => typeof p === "string").map((p) => p.trim()).filter(Boolean)
         : [];
       if (prompts.length < 1) return null;
-      return { v: 2, url, run_type, email, brand_name, org_id, prompts };
+      const storefront_password = typeof rec.storefront_password === "string" ? rec.storefront_password : undefined;
+      return { v: 2, url, run_type, email, brand_name, org_id, prompts, storefront_password };
     }
     if (rec.v === 1) {
       return { v: 1, url, run_type, email, brand_name, org_id };

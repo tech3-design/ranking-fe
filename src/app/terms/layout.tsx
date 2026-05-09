@@ -5,9 +5,9 @@ export const metadata: Metadata = buildMetadata({
   title: "Terms and conditions",
   description:
     "The terms of service governing the use of Signalor.ai, including subscription, acceptable use, and liability terms.",
-  path: "/terms-and-condition",
+  path: "/terms",
 });
 
-export default function TermsAltLayout({ children }: { children: React.ReactNode }) {
+export default function TermsLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

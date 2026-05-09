@@ -7,7 +7,7 @@ import {
   type PromptTrack,
 } from "@/lib/api/analyzer";
 import { PromptTracker } from "@/components/analyzer/prompt-tracker";
-import { AlertCircle } from "@/components/icons";
+import { AlertCircle, Info } from "@/components/icons";
 import { PromptPageSkeleton } from "@/components/dashboard/skeletons";
 
 export default function WikipediaPage() {
@@ -35,14 +35,25 @@ export default function WikipediaPage() {
 
   return (
     <div className="space-y-4">
-      <div className="min-w-0">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-          Wikipedia per prompt
-        </h2>
-        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-          Pick a prompt to see which Wikipedia articles AI engines reach for and
-          how to earn a citation in them.
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            Wikipedia per prompt
+          </h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+            Pick a prompt to see which Wikipedia articles AI engines reach for and
+            how to earn a citation in them.
+          </p>
+        </div>
+        <a
+          href="https://docs.signalor.ai/wikipedia"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View documentation"
+          className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground"
+        >
+          <Info className="size-4" />
+        </a>
       </div>
 
       {loading && <PromptPageSkeleton />}

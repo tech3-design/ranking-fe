@@ -280,7 +280,7 @@ export default async function BlogPostPage({
       {/* ─── Hero ───────────────────────────────────────────────────── */}
       <section className="relative bg-background px-6 pb-12 pt-14 lg:px-12 lg:pb-14 lg:pt-16">
         <HeroBackgroundGrid />
-        <div className="relative z-10 mx-auto max-w-3xl">
+        <div className="relative z-10 mx-auto max-w-4xl">
           <Link
             href="/blog"
             className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground"
@@ -330,7 +330,7 @@ export default async function BlogPostPage({
 
       {/* ─── Body ───────────────────────────────────────────────────── */}
       <section className="bg-background px-6 py-12 lg:px-12 lg:py-14">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-4xl">
           {post.coverImage?.url && (
             <figure className="mb-10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -356,7 +356,7 @@ export default async function BlogPostPage({
 
       {/* ─── Back link ──────────────────────────────────────────────── */}
       <section className="bg-background px-6 pb-14 lg:px-12">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-4xl">
           <Link
             href="/blog"
             className="inline-flex items-center gap-1.5 rounded-sm border border-black/10 bg-white px-4 py-2 text-[12px] font-semibold text-foreground shadow-sm transition hover:bg-neutral-50"

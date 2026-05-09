@@ -105,8 +105,8 @@ export function DashboardShell({ slug, activeNav, children }: DashboardShellProp
         {/* <footer className="px-6 py-4 flex items-center justify-between text-[11px] text-gray-400 border-t border-gray-200/60">
           <p>Copyright &copy; 2026 Signalor Ltd.</p>
           <div className="flex items-center gap-4">
-            <a href="/privacy-policy" className="hover:text-gray-600 transition">Privacy Policy</a>
-            <a href="/terms-and-conditions" className="hover:text-gray-600 transition">Terms & conditions</a>
+            <a href="/policy" className="hover:text-gray-600 transition">Privacy Policy</a>
+            <a href="/terms" className="hover:text-gray-600 transition">Terms & conditions</a>
             <a href="#" className="hover:text-gray-600 transition">Contact</a>
           </div>
           <div className="flex items-center gap-2 text-gray-400">

@@ -75,6 +75,7 @@ function ThemeHotkeyBinder() {
 export type DashboardAppSection = {
   title: string;
   hint: string;
+  docsUrl?: string;
 };
 
 export function DashboardAppFrame({

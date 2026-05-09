@@ -454,6 +454,7 @@ export function CompetitorTable({
                               side="bottom"
                               avoidCollisions={false}
                               sideOffset={4}
+                              className="w-[var(--radix-select-trigger-width)]"
                             >
                               <SelectItem value="unknown">Select relation</SelectItem>
                               <SelectItem value="direct">Direct competitors</SelectItem>

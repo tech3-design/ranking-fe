@@ -24,8 +24,8 @@ const PUBLIC_ROUTES: Route[] = [
   { path: "/tools/llms-check", changeFrequency: "weekly", priority: 0.7 },
   { path: "/tools/schema-validator", changeFrequency: "weekly", priority: 0.7 },
   { path: "/tools/url-analyzer", changeFrequency: "weekly", priority: 0.7 },
-  { path: "/privacy-policy", changeFrequency: "yearly", priority: 0.3 },
-  { path: "/terms-and-conditions", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/policy", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

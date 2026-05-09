@@ -11,6 +11,7 @@ import { useRun } from "./_components/run-context";
 import { config, routes } from "@/lib/config";
 import {
   Download,
+  Info,
   RefreshCw,
   Loader2,
   AlertCircle,
@@ -28,7 +29,6 @@ import {
 import { CORAL } from "@/components/dashboard/constants";
 import type { DashboardSentiment } from "@/components/dashboard/types";
 import { GeoScoreCard } from "@/components/dashboard/geo-score-card";
-import { GeoScoreHistoryCard } from "@/components/dashboard/geo-score-history-card";
 import { PillarBreakdownCard } from "@/components/dashboard/pillar-breakdown-card";
 import { VisibilityByPlatformCard } from "@/components/dashboard/visibility-by-platform-card";
 import { CompetitorsCard } from "@/components/dashboard/competitors-card";
@@ -307,6 +307,15 @@ export default function SignalorDashboard() {
                 <Download className="size-3.5" />
                 Export
               </Button>
+              <a
+                href="https://docs.signalor.ai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View documentation"
+                className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground"
+              >
+                <Info className="size-4" />
+              </a>
             </div>
 
             {run && session?.user?.email && activeOrg?.id ? (

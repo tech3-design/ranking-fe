@@ -90,6 +90,7 @@ export default function PaymentSuccessPage() {
                 ? {
                     verify_org_workspace: true,
                     prompts: pending.prompts,
+                    storefront_password: pending.storefront_password,
                   }
                 : {}),
             });

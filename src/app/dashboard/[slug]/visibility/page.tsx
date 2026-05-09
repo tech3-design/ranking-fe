@@ -16,7 +16,7 @@ import { useRun } from "../_components/run-context";
 import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
 import { GAPropertySelector } from "@/components/integrations/ga-property-selector";
 import { GATrafficTab } from "@/components/integrations/ga-traffic-tab";
-import { AlertCircle, BarChart3, Loader2, CheckCircle2 } from "@/components/icons";
+import { AlertCircle, BarChart3, Info, Loader2, CheckCircle2 } from "@/components/icons";
 import { VisibilitySkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -107,6 +107,15 @@ export default function VisibilityPage() {
               <CheckCircle2 className="size-3.5 shrink-0" /> GA connected
             </span>
           ) : null}
+          <a
+            href="https://docs.signalor.ai/visibility"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View documentation"
+            className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground"
+          >
+            <Info className="size-4" />
+          </a>
         </div>
       </div>
 

@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { Competitor, PageScore } from "@/lib/api/analyzer";
 
-const CORAL = "#e46055";
+const CORAL = "#e04a3d";
 const PALETTE = [CORAL, "#3b82f6", "#f59e0b", "#10b981", "#6b7280", "#8b5cf6"];
 
 type Row = {

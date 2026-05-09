@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { Sparkles, ShoppingBag } from "@/components/icons";
+import { Info, Sparkles, ShoppingBag } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { SiteBacklinkOpportunitiesPanel } from "@/components/analyzer/site-backlink-opportunities-panel";
 import { SiteBacklinkMarketplacePanel } from "@/components/analyzer/site-backlink-marketplace-panel";
@@ -15,14 +15,25 @@ export default function BacklinksPage() {
 
   return (
     <div className="space-y-4">
-      <div className="min-w-0">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-          Backlinks
-        </h2>
-        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-          Earn citations on the open web. Free shows submission targets you can
-          act on yourself; Paid lists vetted placement marketplaces.
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            Backlinks
+          </h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+            Earn citations on the open web. Free shows submission targets you can
+            act on yourself; Paid lists vetted placement marketplaces.
+          </p>
+        </div>
+        <a
+          href="https://docs.signalor.ai/backlinks"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View documentation"
+          className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground"
+        >
+          <Info className="size-4" />
+        </a>
       </div>
 
       <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit">

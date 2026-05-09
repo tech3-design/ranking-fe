@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import { getSubscriptionStatus } from "@/lib/api/payments";
 import { getOrganizations, type Organization } from "@/lib/api/organizations";
 import { getRunList } from "@/lib/api/analyzer";
 import { useOrgStore } from "@/lib/stores/org-store";
@@ -14,21 +13,17 @@ import { RunProvider, useRun } from "./_components/run-context";
 import { AnalysisOverlay } from "./_components/analysis-overlay";
 import { ScoreBump } from "./_components/score-bump";
 import {
-  ListChecks,
   ChevronUp,
   ChevronDown,
   User,
   Settings,
   CreditCard,
   PlugZap,
-  ArrowLeft,
   Bell,
   Building2,
   ChevronsUpDown,
   Check,
   Loader2,
-  Compass,
-  GitFork,
   type LucideIcon,
 } from "@/components/icons";
 import {
@@ -41,9 +36,9 @@ import {
   CompetitorsIcon,
   ContentIcon,
   BacklinksIcon,
+  BlogAgentIcon,
 } from "@/components/icons/nav";
 import LogoComp from "@/components/LogoComp";
-import { AiChat } from "@/components/analyzer/ai-chat";
 import { cn } from "@/lib/utils";
 import {
   DashboardAppFrame,
@@ -51,7 +46,6 @@ import {
 } from "./_components/dashboard-app-frame";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { DashboardTopBarActions } from "./_components/dashboard-top-bar-actions";
-
 type MainNavItem = {
   icon: LucideIcon | React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   label: string;
@@ -94,6 +88,7 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
     items: [
       { icon: ContentIcon, label: "Content", path: "/optimisation/content" },
       { icon: BacklinksIcon, label: "Backlinks", path: "/backlinks" },
+      { icon: BlogAgentIcon, label: "Blog Agent", path: "/blog-agent" },
     ],
   },
 ];
@@ -130,42 +125,56 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Visibility",
       hint: "How models and search surfaces see your brand.",
+      docsUrl: "https://docs.signalor.ai/visibility",
     };
   }
   if (rel.startsWith("/competitors")) {
     return {
       title: "Competitors",
       hint: "Benchmark rival brands across AI surfaces.",
+      docsUrl: "https://docs.signalor.ai/competitors",
     };
   }
   if (rel.startsWith("/sitemap")) {
     return {
       title: "Sitemap",
       hint: "Page-level audit of speed, structure, and AI readiness.",
+      docsUrl: "https://docs.signalor.ai/sitemap",
     };
   }
   if (rel.startsWith("/optimisation/content")) {
     return {
       title: "Content",
       hint: "Generate, refine, and ship AI-optimised content for your brand.",
+      docsUrl: "https://docs.signalor.ai/content",
     };
   }
   if (rel.startsWith("/backlinks")) {
     return {
       title: "Backlinks",
       hint: "Earn citations on the open web — free submission targets and paid placements.",
+      docsUrl: "https://docs.signalor.ai/backlinks",
+    };
+  }
+  if (rel.startsWith("/blog-agent")) {
+    return {
+      title: "Blog Agent",
+      hint: "Generate and publish GEO-optimized blog content automatically.",
+      docsUrl: "https://docs.signalor.ai/blog-agent",
     };
   }
   if (rel.startsWith("/prompts/backlinks")) {
     return {
       title: "Backlinks",
       hint: "Free submission targets and paid placements via backlink providers.",
+      docsUrl: "https://docs.signalor.ai/backlinks",
     };
   }
   if (rel.startsWith("/prompts/wikipedia")) {
     return {
       title: "Wikipedia",
       hint: "Check brand presence on Wikipedia and assess notability for a draft article.",
+      docsUrl: "https://docs.signalor.ai/wikipedia",
     };
   }
   if (rel.startsWith("/prompts/actions")) {
@@ -196,6 +205,7 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Prompts",
       hint: "Actions, recommendations, and history for AI prompts.",
+      docsUrl: "https://docs.signalor.ai/tracker",
     };
   }
   if (rel.startsWith("/analytics")) {
@@ -267,20 +277,7 @@ export default function DashboardSlugLayout({
 
   const router = useRouter();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatInitialMessage, setChatInitialMessage] = useState<string | undefined>();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-
-  // Listen for "open-ai-chat" events from child components
-  useEffect(() => {
-    function handleOpenChat(e: Event) {
-      const detail = (e as CustomEvent).detail;
-      if (detail?.message) setChatInitialMessage(detail.message);
-      setChatOpen(true);
-    }
-    window.addEventListener("open-ai-chat", handleOpenChat);
-    return () => window.removeEventListener("open-ai-chat", handleOpenChat);
-  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -292,7 +289,6 @@ export default function DashboardSlugLayout({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
-  const [isPro, setIsPro] = useState(false);
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
   const [switchingOrg, setSwitchingOrg] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -316,14 +312,6 @@ export default function DashboardSlugLayout({
     if (userMenuOpen) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [userMenuOpen]);
-
-  // Check subscription
-  useEffect(() => {
-    if (!userEmail) return;
-    getSubscriptionStatus(userEmail)
-      .then((s) => setIsPro(s.is_active))
-      .catch(() => { });
-  }, [userEmail]);
 
   // Load orgs
   useEffect(() => {
@@ -609,18 +597,6 @@ export default function DashboardSlugLayout({
         </button>
       </div>
 
-      {!isPro ? (
-        <div className="rounded-md border border-border bg-background p-3">
-          <p className="mb-0.5 text-[13px] font-semibold text-foreground">Boost Your AI Visibility</p>
-          <p className="mb-2.5 text-[11px] text-muted-foreground">Elevate Your Site&apos;s Authority</p>
-          <Link
-            href="/pricing"
-            className="block w-full bg-primary py-2 text-center text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
-          >
-            Get Signalor Pro
-          </Link>
-        </div>
-      ) : null}
     </div>
   );
 
@@ -645,10 +621,10 @@ export default function DashboardSlugLayout({
             {/* <footer className="mt-10 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border px-0 py-6 text-[11px] text-muted-foreground">
               <p>Copyright &copy; 2026 Signalor Ltd.</p>
               <div className="flex flex-wrap items-center gap-4">
-                <a href="/privacy-policy" className="transition hover:text-foreground">
+                <a href="/policy" className="transition hover:text-foreground">
                   Privacy Policy
                 </a>
-                <a href="/terms-and-conditions" className="transition hover:text-foreground">
+                <a href="/terms" className="transition hover:text-foreground">
                   Terms & conditions
                 </a>
                 <a href="#" className="transition hover:text-foreground">

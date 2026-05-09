@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { AlertCircle, ExternalLink } from "@/components/icons";
+import { AlertCircle, ExternalLink, Info } from "@/components/icons";
 import { BrowserChrome } from "@/components/optimisation/browser-chrome";
 import { PageIframe } from "@/components/optimisation/page-iframe";
 import { ElementEditor } from "@/components/optimisation/element-editor";
@@ -174,7 +174,27 @@ export default function ContentOptimisationPage() {
     : "Connect WordPress or Shopify in Settings → Integrations to apply changes.";
 
   return (
-    <div className="flex h-[calc(100vh-72px)] min-h-0 flex-col">
+    <div className="flex min-h-0 flex-col gap-3">
+      <div className="flex items-start justify-between gap-2 px-2 sm:px-0">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            Content
+          </h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+            Generate, refine, and ship AI-optimised content for your brand.
+          </p>
+        </div>
+        <a
+          href="https://docs.signalor.ai/content"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View documentation"
+          className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground"
+        >
+          <Info className="size-4" />
+        </a>
+      </div>
+    <div className="flex h-[calc(100vh-72px-64px)] min-h-0 flex-col">
       <BrowserChrome
         url={url}
         pages={pages}
@@ -241,6 +261,7 @@ export default function ContentOptimisationPage() {
           </div>
         ) : null}
       </div>
+    </div>
     </div>
   );
 }

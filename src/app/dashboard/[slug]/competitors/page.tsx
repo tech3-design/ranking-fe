@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { CompetitorsSkeleton } from "@/components/dashboard/skeletons";
 import { addCompetitor } from "@/lib/api/analyzer";
-import { Globe, Loader2, Plus, Search, X } from "@/components/icons";
+import { Globe, Info, Loader2, Plus, Search, X } from "@/components/icons";
 
 // ─── Add Competitor Modal ─────────────────────────────────────────────────────
 
@@ -178,13 +178,16 @@ export default function CompetitorsPage() {
   return (
     <div className="space-y-6 px-2 py-2 sm:px-0">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-            Competitors
-          </h2>
-          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-            Benchmark rival brands across AI surfaces.
-          </p>
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          <div className="min-w-0">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+              Competitors
+            </h2>
+            <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+              Benchmark rival brands across AI surfaces.
+            </p>
+          </div>
+      
         </div>
 
         <div className="flex w-full min-w-0 shrink-0 md:w-auto md:max-w-[min(100%,52rem)] lg:max-w-none">
@@ -222,7 +225,7 @@ export default function CompetitorsPage() {
               >
                 <SelectValue placeholder="Confidence" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" className="w-[var(--radix-select-trigger-width)]">
                 <SelectItem value="all">All confidence</SelectItem>
                 <SelectItem value="scored">Scored</SelectItem>
                 <SelectItem value="unscored">Low confidence</SelectItem>
@@ -237,7 +240,7 @@ export default function CompetitorsPage() {
               >
                 <SelectValue placeholder="Score" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" className="w-[var(--radix-select-trigger-width)]">
                 <SelectItem value="all">All scores</SelectItem>
                 <SelectItem value="leaders">Leaders (70+)</SelectItem>
                 <SelectItem value="mid">Mid (40-69)</SelectItem>
@@ -267,6 +270,15 @@ export default function CompetitorsPage() {
             >
               <Plus className="h-4 w-4" />
             </button>
+                <a
+            href="https://docs.signalor.ai/competitors"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View documentation"
+            className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground"
+          >
+            <Info className="size-4" />
+          </a>
           </div>
         </div>
       </div>
