@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { LandingMegaNav } from "@/components/landing/LandingMegaNav";
 import LogoComp from "@/components/LogoComp";
 import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
@@ -12,7 +13,9 @@ export function LandingMarketingShell({ children }: { children: React.ReactNode 
           <CornerDiamonds bottom />
           <div className="relative flex w-full items-center justify-between gap-4 px-6 py-3.5 lg:px-10">
             <div className="shrink-0">
-              <LogoComp />
+              <Link href="/" className="transition-opacity hover:opacity-90">
+                <LogoComp />
+              </Link>
             </div>
             <LandingMegaNav />
           </div>

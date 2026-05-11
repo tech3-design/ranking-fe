@@ -1,14 +1,25 @@
 import type { Metadata } from "next";
-
-import { buildMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Terms and Conditions",
+  title: "Terms and conditions",
   description:
-    "The terms governing your use of Signalor's GEO and AI visibility platform, products, and services.",
+    "The terms of service governing the use of Signalor.ai, including subscription, acceptable use, and liability terms.",
   path: "/terms-and-conditions",
 });
 
 export default function TermsLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <JsonLd
+        id="ld-terms-breadcrumb"
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Terms and conditions", path: "/terms-and-conditions" },
+        ])}
+      />
+      {children}
+    </>
+  );
 }

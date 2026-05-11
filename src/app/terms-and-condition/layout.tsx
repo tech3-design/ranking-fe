@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Terms and Conditions",
+  title: "Terms and conditions",
   description:
-    "The terms governing your use of Signalor's GEO and AI visibility platform, products, and services.",
-  // Canonical points to /terms-and-conditions to avoid duplicate-content split.
-  path: "/terms-and-conditions",
+    "The terms of service governing the use of Signalor.ai, including subscription, acceptable use, and liability terms.",
+  path: "/terms-and-condition",
 });
 
-export default function TermsAliasLayout({ children }: { children: React.ReactNode }) {
+export default function TermsAltLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

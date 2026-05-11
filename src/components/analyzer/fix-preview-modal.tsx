@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Loader2, Eye, ShieldCheck } from "lucide-react";
+import { X, Loader2, Eye, ShieldCheck } from "@/components/icons";
 import type { FixPreview } from "@/lib/api/analyzer";
 
 /** Fix types where preview contains code/tags, not renderable HTML */

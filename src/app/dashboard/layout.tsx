@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
-
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Dashboard",
-  path: "/dashboard",
+  description: "Signalor workspace dashboard.",
   noindex: true,
 });
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardRootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return children;
 }

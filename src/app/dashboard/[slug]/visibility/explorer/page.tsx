@@ -11,7 +11,7 @@ import {
   getIntegrationStatus,
   type GADataSnapshot,
 } from "@/lib/api/integrations";
-import { Lightbulb, Loader2, AlertCircle, Plus, Copy, Check, Search } from "lucide-react";
+import { Lightbulb, Loader2, AlertCircle, Plus, Copy, Check, Search } from "@/components/icons";
 
 type SuggestionSource = "google" | "duckduckgo";
 type LikelihoodTier = "high" | "medium" | "low";

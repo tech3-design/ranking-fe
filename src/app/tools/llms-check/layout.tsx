@@ -1,25 +1,40 @@
 import type { Metadata } from "next";
-
-import { buildMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbJsonLd, buildMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Free LLM Readiness Checker",
+  title: "Free llms.txt checker — LLM readiness score",
   description:
-    "Check llms.txt, AI-bot rules in robots.txt, sitemap reachability, and on-page schema. Get a free LLM-readiness score for any domain.",
+    "Enter a domain and Signalor checks llms.txt, robots.txt rules for GPTBot, ClaudeBot, PerplexityBot, Google-Extended, sitemap, and on-page schema — an honest LLM-readiness score.",
   path: "/tools/llms-check",
-  keywords: [
-    "llms.txt",
-    "LLM readiness",
-    "AI crawler check",
-    "GPTBot",
-    "ClaudeBot",
-    "PerplexityBot",
-    "Google-Extended",
-    "robots.txt AI",
-    "free SEO tool",
-  ],
 });
 
+const llmsCheckJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Signalor llms.txt Checker",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  url: `${SITE_URL}/tools/llms-check`,
+  description:
+    "Free llms.txt validator. Verifies the llms.txt manifest, AI crawler rules in robots.txt (GPTBot, ClaudeBot, PerplexityBot, Google-Extended), sitemap presence, and on-page schema.",
+  publisher: { "@id": `${SITE_URL}#organization` },
+};
+
 export default function LlmsCheckLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <JsonLd
+        id="ld-llms-check-breadcrumb"
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Tools", path: "/tools/llms-check" },
+          { name: "llms.txt checker", path: "/tools/llms-check" },
+        ])}
+      />
+      <JsonLd id="ld-llms-check-tool" data={llmsCheckJsonLd} />
+      {children}
+    </>
+  );
 }

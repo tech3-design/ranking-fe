@@ -19,7 +19,7 @@ import { routes } from "@/lib/config";
 const STEP_CONTENT: Record<string, { title: string; description: string }> = {
   "auth-method": {
     title: "Sign in",
-    description: "Work email or Google.",
+    description: "Continue with Google or your work email.",
   },
   "otp-verify": {
     title: "",
@@ -33,7 +33,7 @@ const STEP_HERO: Record<
 > = {
   "auth-method": {
     headline: "Sign in",
-    sub: "Welcome back, use your email or Google.",
+    sub: "Welcome back — continue with Google or use your email.",
     badge: "Sign in",
   },
   "otp-verify": {

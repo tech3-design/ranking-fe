@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ChevronDown, ChevronUp, Settings } from "lucide-react";
+import { ChevronDown, ChevronUp, Settings } from "@/components/icons";
 import { useSession } from "@/lib/auth-client";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn } from "@/lib/utils";

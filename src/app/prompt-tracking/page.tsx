@@ -7,15 +7,26 @@ import { PromptTrackingFeaturesGrid } from "@/components/landing/prompt-tracking
 import { PromptTrackingHero } from "@/components/landing/prompt-tracking-hero";
 import { PromptTrackingWhySection } from "@/components/landing/prompt-tracking-why-section";
 import { PROMPT_TRACKING_HUB_FAQ, PROMPT_TRACKING_SITE } from "@/lib/landing-prompt-tracking-content";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: PROMPT_TRACKING_SITE.title,
   description: PROMPT_TRACKING_SITE.description,
-};
+  path: "/prompt-tracking",
+});
 
 export default function PromptTrackingPage() {
   return (
     <LandingMarketingShell>
+      <JsonLd
+        id="ld-prompt-tracking-breadcrumb"
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Prompt tracking", path: "/prompt-tracking" },
+        ])}
+      />
+      <JsonLd id="ld-prompt-tracking-faq" data={faqJsonLd([...PROMPT_TRACKING_HUB_FAQ])} />
       <PromptTrackingHero />
       <PromptTrackingFeaturesGrid />
       <PromptTrackingWhySection />

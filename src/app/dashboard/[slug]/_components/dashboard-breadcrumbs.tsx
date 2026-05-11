@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@/components/icons";
 import { routes } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,7 @@ export function getDashboardBreadcrumbs(
   }
 
   if (rel.startsWith("/recommendations")) {
-    crumbs.push({ label: "Fixes", href: null });
+    crumbs.push({ label: "Tasks", href: null });
     return crumbs;
   }
   if (rel.startsWith("/visibility/explorer")) {

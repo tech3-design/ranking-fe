@@ -55,6 +55,18 @@ export function AuthMethodForm() {
 
   return (
     <div className="space-y-5">
+      <div className="space-y-2">
+        <OAuthButton provider="google" />
+      </div>
+
+      <div className="relative py-0.5">
+        <div className="relative flex justify-center">
+          <span className="bg-white px-2 text-[11px] text-muted-foreground lg:bg-transparent">
+            or continue with email
+          </span>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="space-y-1.5">
           <Label htmlFor="email" className="text-[12px] font-medium text-foreground">
@@ -87,19 +99,6 @@ export function AuthMethodForm() {
           {loading ? "Sending…" : isSignUp ? "Sign Up" : "Sign In"}
         </Button>
       </form>
-
-      <div className="relative py-0.5">
-        {/* <div className="absolute inset-x-0 top-1/2 h-px bg-border" aria-hidden /> */}
-        <div className="relative flex justify-center">
-          <span className="bg-white px-2 text-[11px] text-muted-foreground lg:bg-transparent">
-            or continue with
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <OAuthButton provider="google" />
-      </div>
     </div>
   );
 }

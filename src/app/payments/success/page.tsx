@@ -14,7 +14,7 @@ import {
 } from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
 import Link from "next/link";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "@/components/icons";
 
 /** Read and remove post-checkout redirect (same as before, exported for reuse). */
 function consumePostCheckoutPath(): string {

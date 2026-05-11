@@ -37,6 +37,10 @@ yarn-error.log*
 .env*
 .env.*.local
 
+# Per-environment config (env/ folder is committed; actual values are not)
+env/*.env
+!env/example.env
+
 # vercel
 .vercel
 

@@ -1,5 +1,5 @@
-import { FileCheck2, Sparkles, Binary, LinkIcon } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { FileCheck2, Sparkles, Binary, LinkIcon } from "@/components/icons";
+import type { LucideIcon } from "@/components/icons";
 
 export const CONTENT_SIGNALS_SITE = {
   title: "AI visibility",

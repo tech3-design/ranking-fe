@@ -1,9 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, DM_Serif_Display, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
+import { Inter, DM_Serif_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-
-import { siteConfig } from "@/lib/seo";
+import { Suspense } from "react";
+import { JsonLd } from "@/components/seo/json-ld";
+import { ClarityInit } from "@/components/analytics/clarity";
+import { ReferralCapture } from "@/components/analytics/referral-capture";
+import { AffiliateCapture } from "@/components/analytics/affiliate-capture";
+import {
+  buildMetadata,
+  organizationJsonLd,
+  softwareApplicationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -23,118 +32,26 @@ const fontMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  ...buildMetadata({
+    title: undefined,
+    description:
+      "Signalor is the GEO + AEO platform that scores, monitors, and improves how ChatGPT, Claude, Gemini, Perplexity, and Google AI cite your brand.",
+    path: "/",
+  }),
   title: {
-    default: siteConfig.fullName,
-    template: `%s · ${siteConfig.fullName}`,
+    default: "Signalor.ai — AI search visibility & GEO platform",
+    template: "%s | Signalor.ai",
   },
-  description: siteConfig.description,
-  applicationName: siteConfig.fullName,
-  generator: "Next.js",
-  referrer: "origin-when-cross-origin",
-  keywords: [...siteConfig.keywords],
-  authors: [{ name: siteConfig.fullName, url: siteConfig.url }],
-  creator: siteConfig.fullName,
-  publisher: siteConfig.fullName,
-  category: "technology",
-  formatDetection: { email: false, address: false, telephone: false },
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    type: "website",
-    url: siteConfig.url,
-    siteName: siteConfig.fullName,
-    title: siteConfig.fullName,
-    description: siteConfig.description,
-    images: [
-      {
-        url: siteConfig.ogImage,
-        width: 1200,
-        height: 630,
-        alt: siteConfig.fullName,
-      },
-    ],
-    locale: "en_US",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.fullName,
-    description: siteConfig.description,
-    images: [siteConfig.ogImage],
-    creator: siteConfig.twitter,
-    site: siteConfig.twitter,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-    ],
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
-  },
-  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 5,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
   ],
-  colorScheme: "light",
-};
-
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: siteConfig.fullName,
-  url: siteConfig.url,
-  logo: `${siteConfig.url}/icon.svg`,
-  email: `mailto:${siteConfig.email}`,
-  description: siteConfig.description,
-  sameAs: [] as string[],
-};
-
-const websiteJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: siteConfig.fullName,
-  url: siteConfig.url,
-  description: siteConfig.description,
-  potentialAction: {
-    "@type": "SearchAction",
-    target: `${siteConfig.url}/blog?q={search_term_string}`,
-    "query-input": "required name=search_term_string",
-  },
-};
-
-const softwareJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: siteConfig.fullName,
-  applicationCategory: "BusinessApplication",
-  operatingSystem: "Web",
-  url: siteConfig.url,
-  description: siteConfig.description,
-  offers: {
-    "@type": "Offer",
-    url: `${siteConfig.url}/pricing`,
-    priceCurrency: "GBP",
-  },
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -148,57 +65,36 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="alternate" type="application/rss+xml" title="Signalor Blog" href="/blog/rss.xml" />
+        <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+        <JsonLd id="ld-organization" data={organizationJsonLd()} />
+        <JsonLd id="ld-website" data={websiteJsonLd()} />
+        <JsonLd id="ld-software" data={softwareApplicationJsonLd()} />
       </head>
       <body
         suppressHydrationWarning
         className={`signalor-body ${fontSerif.variable} ${fontMono.variable} overflow-x-hidden antialiased`}
       >
+        <ClarityInit />
+        <Suspense fallback={null}>
+          <ReferralCapture />
+          <AffiliateCapture />
+        </Suspense>
         {children}
         <Script
-    src="https://www.googletagmanager.com/gtag/js?id=G-5H7J1Q68TR"
-    strategy="afterInteractive"
-  />
-  <Script id="google-analytics" strategy="afterInteractive">
-    {`
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-5H7J1Q68TR', {
-        page_path: window.location.pathname,
-      });
-    `}
-  </Script>
-        <Script
-  src="https://www.googletagmanager.com/gtag/js?id=G-5H7J1Q68TR"
-  strategy="afterInteractive"
-/>
-
-<Script id="ga-init" strategy="afterInteractive">
-  {`
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-5H7J1Q68TR');
-  `}
-</Script>
-        <Script
-          id="ld-organization"
-          type="application/ld+json"
+          src="https://www.googletagmanager.com/gtag/js?id=G-5H7J1Q68TR"
           strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
-        <Script
-          id="ld-website"
-          type="application/ld+json"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
-        <Script
-          id="ld-software"
-          type="application/ld+json"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareJsonLd) }}
-        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-5H7J1Q68TR', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Search, Slack, Zap } from "lucide-react";
+import { BarChart3, Search, Slack, Zap } from "@/components/icons";
 
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { cn } from "@/lib/utils";

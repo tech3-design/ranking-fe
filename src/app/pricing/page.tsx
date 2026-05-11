@@ -6,15 +6,18 @@ import { useSession } from "@/lib/auth-client";
 import {
   CheckoutSessionError,
   createCheckoutSession,
+  getPlanPrices,
   getSubscriptionStatus,
   type DodoMode,
+  type DodoPlanPrice,
 } from "@/lib/api/payments";
 import {
   POST_CHECKOUT_REDIRECT_KEY,
   safeInternalReturnPath,
 } from "@/lib/internal-nav";
 import { routes } from "@/lib/config";
-import { Check, Clock, Crown, Rocket, Zap } from "lucide-react";
+import { Check, Clock, Crown, Rocket, Zap } from "@/components/icons";
+import { useCurrency, formatPrice } from "@/lib/hooks/use-currency";
 import { SignalorLoader } from "@/components/ui/signalor-loader";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
@@ -25,6 +28,11 @@ import { PricingStatsSection } from "@/components/pricing/pricing-stats-section"
 import { PRICING_FAQ_ITEMS } from "@/lib/pricing-marketing-content";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$", EUR: "€", GBP: "£", INR: "₹", AUD: "A$", CAD: "C$", JPY: "¥",
+  SGD: "S$", AED: "AED ", BRL: "R$", MXN: "MX$", ZAR: "R",
+};
 
 interface PlanConfig {
   id: string;
@@ -47,7 +55,7 @@ const PLANS: PlanConfig[] = [
     description: "Perfect for solo brands getting started with GEO.",
     icon: Zap,
     features: [
-      "1 project",
+      "2 projects",
       "Up to 25 prompts",
       "Gemini & Google prompt visibility",
       "GEO analysis & scoring",
@@ -112,6 +120,18 @@ function PricingPageInner() {
   const [error, setError] = useState("");
   const [checkoutDodoMode, setCheckoutDodoMode] = useState<DodoMode | null>(null);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [livePrices, setLivePrices] = useState<Record<string, DodoPlanPrice | null> | null>(null);
+  const { currency, ready: currencyReady, country: detectedCountry } = useCurrency();
+
+  useEffect(() => {
+    getPlanPrices()
+      .then((res) => {
+        if (res.source === "dodo") {
+          setLivePrices({ starter: res.starter, pro: res.pro, business: res.business });
+        }
+      })
+      .catch(() => { /* graceful: keep static fallback */ });
+  }, []);
 
   useEffect(() => {
     if (isPending || !session) {
@@ -152,7 +172,10 @@ function PricingPageInner() {
             /* ignore */
           }
         }
-        const { checkout_url } = await createCheckoutSession(session.user.email, planId);
+        const { checkout_url } = await createCheckoutSession(session.user.email, planId, {
+          country: detectedCountry ?? undefined,
+          currency: currency.code,
+        });
         window.location.href = checkout_url;
       } catch (e) {
         if (e instanceof CheckoutSessionError) {
@@ -165,7 +188,7 @@ function PricingPageInner() {
         setLoadingPlan(null);
       }
     },
-    [session, loadingPlan, router, returnTo],
+    [session, loadingPlan, router, returnTo, detectedCountry, currency.code],
   );
 
   if (isPending) {
@@ -233,8 +256,40 @@ function PricingPageInner() {
             {PLANS.map((plan) => {
               const isLoading = loadingPlan === plan.id;
               const isCurrent = currentPlanId === plan.id;
-              const priceLabel =
-                Math.round(plan.price) === plan.price ? `${plan.price}` : plan.price.toFixed(2);
+
+              // Prefer Dodo's real prices when the live fetch succeeded; otherwise
+              // fall back to the EUR-rate approximation so the page still renders
+              // if the backend is unreachable.
+              const live = livePrices?.[plan.id] ?? null;
+              let displaySymbol: string;
+              let displayCurrencyCode: string | null;
+              let priceLabel: string;
+              let isApprox: boolean;
+
+              if (live) {
+                // Prefer the localized estimate if the user's detected currency
+                // is in the FX-converted map. Fall back to Dodo's base currency.
+                const userCcy = currencyReady ? currency.code : null;
+                const localized = userCcy && live.prices_by_currency
+                  ? live.prices_by_currency[userCcy]
+                  : undefined;
+
+                const useLocal = localized !== undefined && userCcy && userCcy !== live.currency.toUpperCase();
+                const ccy = useLocal ? userCcy! : live.currency.toUpperCase();
+                const amount = useLocal ? localized! : live.amount;
+
+                displaySymbol = CURRENCY_SYMBOLS[ccy] ?? ccy + " ";
+                displayCurrencyCode = ccy;
+                priceLabel = ccy === "INR" || ccy === "JPY"
+                  ? Math.round(amount).toLocaleString()
+                  : amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                isApprox = useLocal; // localized total is an FX estimate
+              } else {
+                displaySymbol = currency.symbol;
+                displayCurrencyCode = currency.code;
+                priceLabel = currencyReady ? formatPrice(plan.price, currency) : plan.price.toFixed(2);
+                isApprox = currencyReady && currency.code !== "EUR";
+              }
 
               return (
                 <div
@@ -266,12 +321,26 @@ function PricingPageInner() {
                   </p>
 
                   <div className="mt-8 flex items-start">
-                    <span className="mt-2 text-xl font-semibold text-foreground">{"\u00A3"}</span>
-                    <span className="ml-0.5 text-5xl font-bold tracking-tight text-foreground tabular-nums">
+                    <span className="mt-2 text-xl font-semibold text-foreground">
+                      {displaySymbol}
+                    </span>
+                    <span
+                      className={cn(
+                        "ml-0.5 text-5xl font-bold tracking-tight tabular-nums transition-opacity duration-300",
+                        (live || currencyReady) ? "text-foreground opacity-100" : "text-foreground opacity-40",
+                      )}
+                    >
                       {priceLabel}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">Per month</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Per month
+                    {live && isApprox
+                      ? ` \u00B7 approx. \u2014 billed in ${live.currency.toUpperCase()}`
+                      : isApprox && displayCurrencyCode
+                      ? ` \u00B7 approx. in ${displayCurrencyCode}`
+                      : ""}
+                  </p>
 
                   <div className="mt-8 flex flex-1 flex-col gap-3">
                     {plan.features.map((f) => (
@@ -324,7 +393,9 @@ function PricingPageInner() {
           </div>
 
           <p className="mt-10 text-center text-[11px] font-medium text-muted-foreground">
-            All prices in GBP. Secure payment. Cancel anytime.
+            {currency.code === "EUR"
+              ? "All prices in EUR. Secure payment. Cancel anytime."
+              : `Prices shown in ${currency.code} — indicative only. Charged in EUR at checkout. Cancel anytime.`}
           </p>
           </div>
         </div>

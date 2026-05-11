@@ -55,11 +55,12 @@ export interface SubscriptionStatus {
 export async function createCheckoutSession(
   email: string,
   plan: string = "starter",
+  opts: { country?: string; currency?: string } = {},
 ): Promise<{ checkout_url: string }> {
   try {
     const { data } = await apiClient.post<{ checkout_url: string; error?: string }>(
       "/api/payments/create-checkout/",
-      { email, plan },
+      { email, plan, country: opts.country, currency: opts.currency },
     );
     return data;
   } catch (err: unknown) {
@@ -106,6 +107,29 @@ export async function cancelTermination(
   email: string,
 ): Promise<{ message: string }> {
   const { data } = await apiClient.post("/api/account/cancel-termination/", { email });
+  return data;
+}
+
+export interface DodoPlanPrice {
+  currency: string;
+  amount_minor: number;
+  amount: number;
+  interval: string;
+  interval_count: number;
+  prices_by_currency?: Record<string, number>;
+}
+
+export interface PlanPricesResponse {
+  starter: DodoPlanPrice | null;
+  pro: DodoPlanPrice | null;
+  business: DodoPlanPrice | null;
+  source: "dodo" | "fallback";
+}
+
+export async function getPlanPrices(): Promise<PlanPricesResponse> {
+  const { data } = await apiClient.get<PlanPricesResponse>(
+    "/api/payments/plan-prices/",
+  );
   return data;
 }
 

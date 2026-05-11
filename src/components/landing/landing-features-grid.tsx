@@ -1,5 +1,6 @@
 "use client";
 
+import { AiChip } from "@/components/ui/ai-chip";
 import { ScreenHR, GridDividerDiamonds } from "@/components/ui/intersection-diamonds";
 
 export function LandingFeaturesGrid() {
@@ -18,8 +19,8 @@ export function LandingFeaturesGrid() {
           className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem] xl:text-5xl"
         >
           Everything you need to{" "}
-          <span className="relative whitespace-nowrap text-primary">
-            win in AI search
+          <span className="relative inline-flex items-center gap-2 whitespace-nowrap text-primary align-middle">
+            win in <AiChip /> search
             <span
               className="absolute -bottom-1 left-0 right-0 border-b-2 border-dashed border-primary/45"
               aria-hidden

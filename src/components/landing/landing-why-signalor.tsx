@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Gauge, Layers, Link2, ListChecks } from "lucide-react";
+import { ArrowRight, Gauge, Layers, Link2, ListChecks } from "@/components/icons";
+import { AiChip } from "@/components/ui/ai-chip";
 import { Button } from "@/components/ui/button";
 import { LANDING_PRIMARY_CTA_CLASS } from "./constants";
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
@@ -54,8 +55,8 @@ export function LandingWhySignalor() {
           className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem] xl:text-5xl"
         >
           SEO got your site on Google. GEO gets you into{" "}
-          <span className="relative whitespace-nowrap text-primary">
-            AI answers
+          <span className="relative inline-flex items-center gap-2 whitespace-nowrap text-primary align-middle">
+            <AiChip /> answers
             <span
               className="absolute -bottom-1 left-0 right-0 border-b-2 border-dashed border-primary/45"
               aria-hidden

@@ -18,7 +18,7 @@ import {
   Timer,
   X,
   XCircle,
-} from "lucide-react";
+} from "@/components/icons";
 
 import {
   getSitemapAudit,
@@ -32,6 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type StateTab = "crawled" | "redirect" | "queued" | "failed";
 type SeverityFilter = SitemapPageSeverity | "all";
@@ -119,12 +120,7 @@ export function SitemapAuditPanel({ slug }: { slug: string }) {
   }
 
   if (loading && !data) {
-    return (
-      <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-5 py-6 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Loading sitemap audit…
-      </div>
-    );
+    return <SitemapAuditSkeleton />;
   }
 
   // No audit yet — empty state
@@ -175,6 +171,147 @@ export function SitemapAuditPanel({ slug }: { slug: string }) {
           lifting this cap is on the roadmap. Contact sales for full-site scans.
         </div>
       ) : null}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Loading skeleton
+// ---------------------------------------------------------------------------
+
+function SitemapAuditSkeleton() {
+  return (
+    <div className="flex flex-col gap-5">
+      {/* Header bar skeleton */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-9 w-9 rounded-md" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-[10px] w-14 rounded" />
+            <Skeleton className="h-[13px] w-48 rounded" />
+          </div>
+        </div>
+        <Skeleton className="h-9 w-28 rounded-md" />
+      </div>
+
+      {/* 4 stat tiles */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {/* Indexed Pages tile */}
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-[10px] w-24 rounded" />
+            <Skeleton className="h-3.5 w-3.5 rounded-full" />
+          </div>
+          <Skeleton className="mt-2 h-9 w-28 rounded" />
+          <Skeleton className="mt-3 h-1.5 w-full rounded-full" />
+          <Skeleton className="mt-1.5 h-[10px] w-24 rounded" />
+          <Skeleton className="mt-3 h-1 w-full rounded-full" />
+          <Skeleton className="mt-1 h-[10px] w-32 rounded" />
+        </div>
+
+        {/* 3 vital tiles (Avg LCP, FCP, TTFB) */}
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-[10px] w-16 rounded" />
+              <Skeleton className="h-3.5 w-3.5 rounded" />
+            </div>
+            <Skeleton className="mt-2 h-9 w-24 rounded" />
+            {/* tri-colour band */}
+            <div className="relative mt-4 h-1.5 overflow-hidden rounded-full bg-neutral-200">
+              <Skeleton className="absolute inset-0 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Section heading + state-tab buttons */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="space-y-1.5">
+          <Skeleton className="h-7 w-36 rounded" />
+          <Skeleton className="h-[11px] w-80 rounded" />
+        </div>
+        <div className="flex items-center gap-2">
+          {[88, 72, 64, 60].map((w, i) => (
+            <Skeleton key={i} className="h-8 rounded-md" style={{ width: w }} />
+          ))}
+        </div>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <Skeleton className="h-9 flex-1 rounded-md md:w-80 md:flex-initial" />
+        <Skeleton className="h-9 w-36 shrink-0 rounded-md" />
+        <Skeleton className="h-9 w-36 shrink-0 rounded-md" />
+      </div>
+
+      {/* Table skeleton */}
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        {/* thead */}
+        <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-4 py-3">
+          {[
+            "30%", "6%", "10%", "6%", "6%", "6%", "6%", "8%", "8%", "10%", "8%",
+          ].map((w, i) => (
+            <Skeleton
+              key={i}
+              className="h-[9px] shrink-0 rounded"
+              style={{ width: `calc(${w} - 8px)` }}
+            />
+          ))}
+        </div>
+
+        {/* rows */}
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <div
+            key={i}
+            className="flex items-center gap-2 border-b border-border/60 px-4 py-3 last:border-0"
+          >
+            {/* URL col — path + title */}
+            <div className="shrink-0 space-y-1" style={{ width: "calc(30% - 8px)" }}>
+              <Skeleton className="h-[12px] w-4/5 rounded" />
+              <Skeleton className="h-[10px] w-3/5 rounded" />
+            </div>
+            {/* Status pill */}
+            <Skeleton className="h-5 w-8 shrink-0 rounded-full" style={{ minWidth: "calc(6% - 8px)" }} />
+            {/* Content words + ratio */}
+            <div className="shrink-0 space-y-1" style={{ width: "calc(10% - 8px)" }}>
+              <Skeleton className="h-[11px] w-full rounded" />
+              <Skeleton className="h-[10px] w-3/4 rounded" />
+            </div>
+            {/* LCP / FCP / TTFB / Server — single line each */}
+            {[1, 2, 3, 4].map((j) => (
+              <Skeleton
+                key={j}
+                className="h-[11px] shrink-0 rounded"
+                style={{ width: "calc(6% - 8px)" }}
+              />
+            ))}
+            {/* Resources */}
+            <div className="shrink-0 space-y-1" style={{ width: "calc(8% - 8px)" }}>
+              <Skeleton className="h-[11px] w-full rounded" />
+              <Skeleton className="h-[10px] w-3/4 rounded" />
+            </div>
+            {/* Links */}
+            <div className="shrink-0 space-y-1" style={{ width: "calc(8% - 8px)" }}>
+              <Skeleton className="h-[11px] w-full rounded" />
+              <Skeleton className="h-[10px] w-3/4 rounded" />
+            </div>
+            {/* AI score bar + chip */}
+            <div className="shrink-0 flex items-center gap-1.5" style={{ width: "calc(10% - 8px)" }}>
+              <div className="min-w-0 flex-1 space-y-1">
+                <Skeleton className="h-[11px] w-8 rounded" />
+                <Skeleton className="h-1.5 w-full rounded-full" />
+              </div>
+              <Skeleton className="h-4 w-7 shrink-0 rounded-full" />
+            </div>
+            {/* Crawled date */}
+            <Skeleton
+              className="h-[10px] shrink-0 rounded"
+              style={{ width: "calc(8% - 8px)" }}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -237,7 +374,10 @@ function HeaderBar({
   onStart: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div
+      className="flex flex-wrap items-center justify-between gap-3"
+      data-tour-card="sitemap-header"
+    >
       <div className="flex min-w-0 items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
           <Layers className="h-4 w-4" />
@@ -291,28 +431,36 @@ function HeaderBar({
 function StatTiles({ audit }: { audit: SitemapAuditSummary }) {
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-      <IndexedTile audit={audit} />
-      <VitalTile
-        label="Avg LCP"
-        value={audit.avg_lcp_ms}
-        unit="ms"
-        thresholds={[2500, 4000]}
-        icon={<Timer className="h-3.5 w-3.5" />}
-      />
-      <VitalTile
-        label="Avg FCP"
-        value={audit.avg_fcp_ms}
-        unit="ms"
-        thresholds={[1800, 3000]}
-        icon={<Sparkles className="h-3.5 w-3.5" />}
-      />
-      <VitalTile
-        label="Avg TTFB"
-        value={audit.avg_ttfb_ms}
-        unit="ms"
-        thresholds={[800, 1800]}
-        icon={<Gauge className="h-3.5 w-3.5" />}
-      />
+      <div data-tour-card="sitemap-stat-indexed">
+        <IndexedTile audit={audit} />
+      </div>
+      <div data-tour-card="sitemap-stat-lcp">
+        <VitalTile
+          label="Avg LCP"
+          value={audit.avg_lcp_ms}
+          unit="ms"
+          thresholds={[2500, 4000]}
+          icon={<Timer className="h-3.5 w-3.5" />}
+        />
+      </div>
+      <div data-tour-card="sitemap-stat-fcp">
+        <VitalTile
+          label="Avg FCP"
+          value={audit.avg_fcp_ms}
+          unit="ms"
+          thresholds={[1800, 3000]}
+          icon={<Sparkles className="h-3.5 w-3.5" />}
+        />
+      </div>
+      <div data-tour-card="sitemap-stat-ttfb">
+        <VitalTile
+          label="Avg TTFB"
+          value={audit.avg_ttfb_ms}
+          unit="ms"
+          thresholds={[800, 1800]}
+          icon={<Gauge className="h-3.5 w-3.5" />}
+        />
+      </div>
     </div>
   );
 }
@@ -427,7 +575,10 @@ function StateTabs({
     { key: "failed", label: "Failed", count: audit.failed_count },
   ];
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
+    <div
+      className="flex flex-wrap items-center justify-between gap-2"
+      data-tour-card="sitemap-state-tabs"
+    >
       <div>
         {/* <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">Sitemap</p> */}
         <h2 className="text-2xl font-semibold tracking-tight text-foreground">Sitemap Audit</h2>
@@ -477,7 +628,10 @@ function Toolbar({
   onSeverity: (v: SeverityFilter) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-3">
+    <div
+      className="flex flex-wrap items-center justify-end gap-3"
+      data-tour-card="sitemap-toolbar"
+    >
       <div className="relative min-w-[220px] flex-1 md:flex-initial md:w-80">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -588,8 +742,8 @@ function PagesTable({
           </tr>
         </thead>
         <tbody>
-          {pages.map((p) => (
-            <PageRow key={p.id} page={p} />
+          {pages.map((p, i) => (
+            <PageRow key={p.id} page={p} dataTour={i === 0 ? "sitemap-row" : undefined} />
           ))}
         </tbody>
       </table>
@@ -602,7 +756,7 @@ function PagesTable({
   );
 }
 
-function PageRow({ page }: { page: SitemapAuditPage }) {
+function PageRow({ page, dataTour }: { page: SitemapAuditPage; dataTour?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -612,6 +766,7 @@ function PageRow({ page }: { page: SitemapAuditPage }) {
           open ? "bg-muted/30" : "",
         )}
         onClick={() => setOpen((v) => !v)}
+        data-tour-card={dataTour}
       >
         <td className="px-4 py-3 align-top">
           <div className="flex items-start gap-2">

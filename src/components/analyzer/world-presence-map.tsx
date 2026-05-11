@@ -59,7 +59,6 @@ function buildPath(arcIndices: unknown, decoded: [number, number][][], w: number
     for (let i = 0; i < ring.length; i++) {
       const [lon, lat] = ring[i];
       const [px, py] = mercator(lon, lat, w, h);
-      // Break path on antimeridian crossings (large x jump > 30% of width)
       if (prevX !== null && Math.abs(px - prevX) > w * 0.3) {
         cmds.push(`M${px.toFixed(1)},${py.toFixed(1)}`);
       } else {
@@ -97,18 +96,6 @@ const ALPHA2_TO_NUMERIC: Record<string, number> = {
   US:840, UY:858, UZ:860, VU:548, VE:862, VN:704, YE:887, ZM:894, ZW:716,
 };
 
-/* ─── Region → ISO numeric country IDs mapping (fallback when no GA data) */
-const REGION_COUNTRIES: Record<string, number[]> = {
-  na:  [840, 124, 484, 192, 214, 332, 388, 320, 222, 558, 340, 188, 591, 862, 780, 28, 44, 52],
-  sa:  [76, 32, 152, 170, 604, 858, 600, 218, 68, 740, 328, 630],
-  eu:  [276, 250, 826, 380, 724, 752, 578, 208, 246, 372, 528, 56, 756, 40, 203, 348, 616, 642, 100, 688, 191, 705, 703, 804, 498, 112, 233, 428, 440, 442, 470, 352, 643],
-  me:  [682, 784, 368, 364, 760, 400, 422, 376, 275, 887, 512, 48, 414],
-  af:  [12, 818, 504, 716, 710, 404, 566, 288, 231, 144, 466, 706, 108, 646, 800, 180, 894, 454, 516, 686, 624],
-  as:  [156, 356, 392, 410, 360, 764, 704, 458, 566, 50, 524, 144, 104, 418, 116, 496],
-  sea: [360, 764, 704, 458, 608, 418, 116, 104, 96, 626],
-  au:  [36, 554, 242, 598, 90, 548, 184, 570],
-};
-
 /* ─── Component ──────────────────────────────────────────────────────── */
 
 export interface GACountryEntry {
@@ -119,17 +106,21 @@ export interface GACountryEntry {
 
 interface WorldPresenceMapProps {
   coral: string;
-  regionScores: Record<string, number>;
-  gaCountries?: GACountryEntry[] | null; // real GA data when available
+  /** GA per-country sessions when the GA integration is connected. */
+  gaCountries?: GACountryEntry[] | null;
+  /**
+   * DataForSEO per-country organic traffic. Used when GA isn't connected so
+   * the map paints only countries with measurable real ranking presence.
+   */
+  dataforseoGeo?: Record<string, { organic_traffic: number }> | null;
 }
 
 const W = 800;
 const H = 440;
-// Clip bottom to cut off Antarctica empty space — visible area is top 78%
 const CLIP_H = Math.round(H * 0.78);
 
-export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPresenceMapProps) {
-  const [paths, setPaths] = useState<{ id: number; d: string; region: string | null }[]>([]);
+export function WorldPresenceMap({ coral, gaCountries, dataforseoGeo }: WorldPresenceMapProps) {
+  const [paths, setPaths] = useState<{ id: number; d: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const fetchedRef = useRef(false);
 
@@ -143,12 +134,6 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
         const decoded = decodeArcs(topo);
         const geometries = topo.objects.countries?.geometries ?? [];
 
-        // Build country id → region lookup
-        const idToRegion: Record<number, string> = {};
-        for (const [region, ids] of Object.entries(REGION_COUNTRIES)) {
-          for (const id of ids) idToRegion[id] = region;
-        }
-
         const result = geometries
           .filter((geo) => {
             const id = typeof geo.id === "string" ? parseInt(geo.id, 10) : (geo.id ?? 0);
@@ -159,7 +144,7 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
             const d = geo.type === "Polygon" || geo.type === "MultiPolygon"
               ? buildPath((geo as unknown as { arcs: unknown }).arcs, decoded, W, H)
               : "";
-            return { id, d, region: idToRegion[id] ?? null };
+            return { id, d };
           }).filter((p) => p.d.length > 0);
 
         setPaths(result);
@@ -168,40 +153,38 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
       .catch(() => setLoading(false));
   }, []);
 
-  const maxScore = Math.max(...Object.values(regionScores), 1);
+  // Per-country score map (numeric ID → 0-1 ratio). GA wins over DataForSEO.
+  const numericScores = new Map<number, number>();
 
-  // Build per-country score map from GA data (numeric ID → normalised 0-1)
-  const gaNumericScores = new Map<number, number>();
   if (gaCountries && gaCountries.length > 0) {
     const maxSessions = Math.max(...gaCountries.map((c) => c.sessions), 1);
     for (const entry of gaCountries) {
       const numericId = ALPHA2_TO_NUMERIC[entry.country_id.toUpperCase()];
-      if (numericId) {
-        gaNumericScores.set(numericId, entry.sessions / maxSessions);
+      if (numericId && entry.sessions > 0) {
+        numericScores.set(numericId, entry.sessions / maxSessions);
+      }
+    }
+  } else if (dataforseoGeo) {
+    const traffics = Object.values(dataforseoGeo).map((c) => c.organic_traffic ?? 0);
+    const maxTraffic = Math.max(...traffics, 1);
+    for (const [alpha2, entry] of Object.entries(dataforseoGeo)) {
+      const numericId = ALPHA2_TO_NUMERIC[alpha2.toUpperCase()];
+      if (numericId && entry.organic_traffic > 0) {
+        numericScores.set(numericId, entry.organic_traffic / maxTraffic);
       }
     }
   }
 
-  const hasGAData = gaNumericScores.size > 0;
+  const hasRealData = numericScores.size > 0;
 
-  function getCountryFill(id: number, region: string | null): string {
-    if (hasGAData) {
-      return gaNumericScores.has(id) ? coral : "var(--muted-foreground)";
-    }
-    if (!region) return "var(--muted-foreground)";
-    const score = regionScores[region] ?? 0;
-    return score === 0 ? "var(--muted-foreground)" : coral;
+  function getCountryFill(id: number): string {
+    return numericScores.has(id) ? coral : "var(--muted-foreground)";
   }
 
-  function getCountryOpacity(id: number, region: string | null): number {
-    if (hasGAData) {
-      const ratio = gaNumericScores.get(id) ?? 0;
-      return ratio === 0 ? 0.1 : 0.15 + ratio * 0.7;
-    }
-    if (!region) return 0.12;
-    const score = regionScores[region] ?? 0;
-    if (score === 0) return 0.12;
-    return 0.2 + (score / maxScore) * 0.65;
+  function getCountryOpacity(id: number): number {
+    const ratio = numericScores.get(id) ?? 0;
+    if (ratio === 0) return 0.08;
+    return 0.2 + ratio * 0.7;
   }
 
   if (loading) {
@@ -223,14 +206,21 @@ export function WorldPresenceMap({ coral, regionScores, gaCountries }: WorldPres
           <path
             key={`${p.id}-${idx}`}
             d={p.d}
-            fill={getCountryFill(p.id, p.region)}
-            fillOpacity={getCountryOpacity(p.id, p.region)}
+            fill={getCountryFill(p.id)}
+            fillOpacity={getCountryOpacity(p.id)}
             stroke="var(--background)"
             strokeWidth="0.5"
             strokeOpacity="0.6"
           />
         ))}
       </svg>
+      {!hasRealData ? (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <p className="rounded-full border border-border bg-background/85 px-2.5 py-1 text-[10px] font-medium text-muted-foreground backdrop-blur">
+            No traffic data yet
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

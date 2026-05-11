@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons";
 
+import { AiChip } from "@/components/ui/ai-chip";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
@@ -23,7 +24,7 @@ export function IntegrationHero() {
                 in
               </span>
             </span>{" "}
-            your stack — make AI see{" "}
+            your stack — make <AiChip /> see{" "}
             <span className="relative whitespace-nowrap text-[#e04a3d]">
               the same truth
               <span

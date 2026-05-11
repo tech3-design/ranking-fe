@@ -19,11 +19,17 @@ import {
 } from "@/lib/stores/onboarding-store";
 import { useSession } from "@/lib/auth-client";
 import { routes } from "@/lib/config";
+import { redeemReferralCode } from "@/lib/api/referrals";
+import { attributePartner } from "@/lib/api/partners";
+
+const REFERRAL_PENDING_KEY = "signalor.referral.pendingCode";
+const AFFILIATE_KEY = "signalor.partner.code";
+const AFFILIATE_EXPIRES_KEY = "signalor.partner.expiresAt";
 
 const STEP_CONTENT: Record<string, { title: string; description: string }> = {
   "auth-method": {
     title: "Create your account",
-    description: "Use your work email or continue with Google.",
+    description: "Continue with Google or use your work email.",
   },
   "otp-verify": {
     title: "",
@@ -74,9 +80,74 @@ function SignUpContent() {
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
+  // Capture ?ref=CODE / ?aff=CODE on first mount.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const ref = searchParams.get("ref");
+    if (ref) {
+      localStorage.setItem(REFERRAL_PENDING_KEY, ref);
+    }
+    const aff = searchParams.get("aff");
+    if (aff) {
+      const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem(AFFILIATE_KEY, aff);
+      localStorage.setItem(AFFILIATE_EXPIRES_KEY, String(expiresAt));
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (!isPending && session) {
-      router.replace(routes.dashboard);
+      // Sign-up complete — fire any pending referral redeem AND affiliate
+      // attribution in parallel. Failures are non-blocking; the user still
+      // reaches the dashboard.
+      const email = session.user?.email;
+      if (!email) {
+        router.replace(routes.dashboard);
+        return;
+      }
+
+      const pendingReferral =
+        typeof window !== "undefined"
+          ? localStorage.getItem(REFERRAL_PENDING_KEY)
+          : null;
+
+      const affiliateCode =
+        typeof window !== "undefined"
+          ? localStorage.getItem(AFFILIATE_KEY)
+          : null;
+      const affiliateExpiresAt =
+        typeof window !== "undefined"
+          ? Number(localStorage.getItem(AFFILIATE_EXPIRES_KEY) ?? "0")
+          : 0;
+      const affiliateActive =
+        affiliateCode && affiliateExpiresAt > Date.now();
+
+      const tasks: Promise<unknown>[] = [];
+      if (pendingReferral) {
+        tasks.push(
+          redeemReferralCode(pendingReferral, email)
+            .catch(() => {})
+            .finally(() => {
+              try {
+                localStorage.removeItem(REFERRAL_PENDING_KEY);
+              } catch {}
+            }),
+        );
+      }
+      if (affiliateActive && affiliateCode) {
+        tasks.push(
+          attributePartner(affiliateCode, email).catch(() => {}),
+        );
+      }
+
+      if (tasks.length === 0) {
+        router.replace(routes.dashboard);
+        return;
+      }
+
+      Promise.allSettled(tasks).finally(() => {
+        router.replace(routes.dashboard);
+      });
       return;
     }
     reset();

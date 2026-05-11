@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { BrandVisibility } from "@/lib/api/analyzer";
-import { WorldPresenceMap, type GACountryEntry } from "@/components/analyzer/world-presence-map";
+import type { GACountryEntry } from "@/components/analyzer/world-presence-map";
+import { WorldPresenceMapLibre } from "@/components/analyzer/world-presence-map-libre";
 import { getGAData, getIntegrationStatus } from "@/lib/api/integrations";
 
 export interface SocialPlatformSnapshot {
@@ -101,19 +102,54 @@ function formatFollowers(n: number): string {
   return n.toString();
 }
 
-/* ── Detect brand's home region from its URL TLD ───────────────── */
-function detectHomeRegion(url: string): string | null {
+/* Country-name → ISO alpha-2 fallback for free-text run.country values
+ * like "India", "United States", "USA". Only the most common entries — for
+ * everything else we rely on the TLD detector or fall back to the empty state. */
+const COUNTRY_NAME_TO_ALPHA2: Record<string, string> = {
+  india: "IN", "united states": "US", usa: "US", "u.s.a.": "US", "u.s.": "US", america: "US",
+  "united kingdom": "GB", uk: "GB", "great britain": "GB", england: "GB",
+  canada: "CA", australia: "AU", "new zealand": "NZ", germany: "DE", france: "FR",
+  italy: "IT", spain: "ES", netherlands: "NL", sweden: "SE", norway: "NO",
+  denmark: "DK", finland: "FI", ireland: "IE", belgium: "BE", switzerland: "CH",
+  austria: "AT", poland: "PL", portugal: "PT", greece: "GR", russia: "RU", ukraine: "UA",
+  china: "CN", japan: "JP", "south korea": "KR", korea: "KR", taiwan: "TW",
+  "hong kong": "HK", singapore: "SG", malaysia: "MY", indonesia: "ID", philippines: "PH",
+  thailand: "TH", vietnam: "VN", pakistan: "PK", bangladesh: "BD",
+  brazil: "BR", mexico: "MX", argentina: "AR", chile: "CL", colombia: "CO", peru: "PE",
+  uae: "AE", "united arab emirates": "AE", "saudi arabia": "SA", israel: "IL", turkey: "TR",
+  "south africa": "ZA", nigeria: "NG", kenya: "KE", egypt: "EG", morocco: "MA",
+};
+
+function normalizeHomeCountry(raw?: string): string | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  if (!s) return null;
+  if (/^[a-z]{2}$/i.test(s)) return s.toUpperCase();
+  return COUNTRY_NAME_TO_ALPHA2[s.toLowerCase()] ?? null;
+}
+
+/* ── Detect brand's home country from its URL TLD ─────────────────
+ * Returns ISO alpha-2 when the TLD/SLD uniquely identifies a country.
+ * Generic TLDs (.com, .org, .net, .io, etc.) → null. */
+function detectHomeCountryFromUrl(url: string): string | null {
   try {
     const host = new URL(url.startsWith("http") ? url : `https://${url}`).hostname.toLowerCase();
-    if (/\.in$|\.co\.in$/.test(host))                                                    return "as";
-    if (/\.cn$|\.jp$|\.kr$|\.tw$|\.hk$/.test(host))                                     return "as";
-    if (/\.au$|\.com\.au$|\.nz$/.test(host))                                             return "au";
-    if (/\.uk$|\.co\.uk$|\.de$|\.fr$|\.it$|\.es$|\.nl$|\.se$|\.no$|\.dk$|\.fi$|\.pl$|\.eu$/.test(host)) return "eu";
-    if (/\.ca$/.test(host))                                                               return "na";
-    if (/\.br$|\.com\.br$|\.ar$|\.mx$|\.cl$|\.co$/.test(host))                          return "sa";
-    if (/\.za$|\.ng$|\.ke$|\.eg$/.test(host))                                            return "af";
-    if (/\.ae$|\.sa$|\.qa$|\.kw$|\.bh$|\.om$|\.il$|\.tr$/.test(host))                  return "me";
-    if (/\.sg$|\.my$|\.th$|\.ph$|\.id$|\.vn$/.test(host))                               return "sea";
+    const map: Array<[RegExp, string]> = [
+      [/\.co\.in$|\.in$/, "IN"], [/\.com\.au$|\.au$/, "AU"], [/\.co\.nz$|\.nz$/, "NZ"],
+      [/\.co\.uk$|\.uk$/, "GB"], [/\.co\.jp$|\.jp$/, "JP"], [/\.co\.kr$|\.kr$/, "KR"],
+      [/\.com\.br$|\.br$/, "BR"], [/\.com\.mx$|\.mx$/, "MX"], [/\.com\.sg$|\.sg$/, "SG"],
+      [/\.com\.my$|\.my$/, "MY"], [/\.com\.ph$|\.ph$/, "PH"], [/\.com\.tw$|\.tw$/, "TW"],
+      [/\.com\.hk$|\.hk$/, "HK"], [/\.com\.tr$|\.tr$/, "TR"], [/\.co\.za$|\.za$/, "ZA"],
+      [/\.cn$/, "CN"], [/\.de$/, "DE"], [/\.fr$/, "FR"], [/\.it$/, "IT"], [/\.es$/, "ES"],
+      [/\.nl$/, "NL"], [/\.se$/, "SE"], [/\.no$/, "NO"], [/\.dk$/, "DK"], [/\.fi$/, "FI"],
+      [/\.pl$/, "PL"], [/\.pt$/, "PT"], [/\.ie$/, "IE"], [/\.be$/, "BE"], [/\.ch$/, "CH"],
+      [/\.at$/, "AT"], [/\.cz$/, "CZ"], [/\.gr$/, "GR"], [/\.ru$/, "RU"], [/\.ua$/, "UA"],
+      [/\.ca$/, "CA"], [/\.ar$/, "AR"], [/\.cl$/, "CL"], [/\.pe$/, "PE"], [/\.co$/, "CO"],
+      [/\.ng$/, "NG"], [/\.ke$/, "KE"], [/\.eg$/, "EG"], [/\.ma$/, "MA"],
+      [/\.ae$/, "AE"], [/\.sa$/, "SA"], [/\.qa$/, "QA"], [/\.kw$/, "KW"], [/\.il$/, "IL"],
+      [/\.th$/, "TH"], [/\.id$/, "ID"], [/\.vn$/, "VN"], [/\.pk$/, "PK"], [/\.bd$/, "BD"],
+    ];
+    for (const [re, code] of map) if (re.test(host)) return code;
     return null;
   } catch {
     return null;
@@ -126,26 +162,13 @@ interface SocialBrandReachCardProps {
   slug: string;
   brandName: string;
   brandUrl?: string;
+  homeCountry?: string; // ISO alpha-2, from run.country
   details: SocialPresenceDetails | null | undefined;
   aiBrandFacts?: AiBrandFactsBlock | null;
   platformPresence?: Record<string, PlatformPresenceItem> | null;
   brandVisibility?: BrandVisibility | null;
   coral: string;
 }
-
-const GEO_WEIGHTS: Record<string, number[]> = {
-  "Google":         [0.28, 0.06, 0.24, 0.05, 0.05, 0.22, 0.06, 0.04],
-  "Reddit":         [0.58, 0.05, 0.26, 0.01, 0.01, 0.06, 0.02, 0.01],
-  "LinkedIn":       [0.30, 0.05, 0.35, 0.02, 0.06, 0.16, 0.03, 0.03],
-  "YouTube":        [0.24, 0.10, 0.20, 0.05, 0.06, 0.24, 0.07, 0.04],
-  "Instagram":      [0.24, 0.14, 0.20, 0.05, 0.06, 0.22, 0.06, 0.03],
-  "X (Twitter)":    [0.34, 0.06, 0.25, 0.02, 0.04, 0.20, 0.06, 0.03],
-  "Quora":          [0.24, 0.05, 0.14, 0.02, 0.04, 0.42, 0.07, 0.02],
-  "Stack Overflow": [0.34, 0.05, 0.30, 0.01, 0.02, 0.18, 0.06, 0.04],
-  "Wikipedia":      [0.24, 0.08, 0.30, 0.05, 0.06, 0.18, 0.05, 0.04],
-  "Trustpilot":     [0.28, 0.02, 0.46, 0.01, 0.02, 0.12, 0.03, 0.06],
-  "G2":             [0.58, 0.04, 0.25, 0.01, 0.02, 0.07, 0.02, 0.01],
-};
 
 const REGION_IDS = ["na", "sa", "eu", "af", "me", "as", "sea", "au"];
 const REGION_LABELS: Record<string, string> = {
@@ -154,8 +177,41 @@ const REGION_LABELS: Record<string, string> = {
   sea: "SE Asia",   au: "Oceania",
 };
 
+/* ISO alpha-2 → region bucket. Used to roll GA per-country sessions up into
+ * region chips and to map the analysis target country to its region. */
+const COUNTRY_TO_REGION: Record<string, string> = {
+  // North America
+  US:"na", CA:"na", MX:"na", CU:"na", DO:"na", HT:"na", JM:"na", GT:"na",
+  HN:"na", NI:"na", CR:"na", PA:"na", SV:"na", BZ:"na", BS:"na", BB:"na",
+  TT:"na", AG:"na",
+  // L. America
+  BR:"sa", AR:"sa", CL:"sa", CO:"sa", PE:"sa", UY:"sa", PY:"sa", EC:"sa",
+  BO:"sa", VE:"sa", SR:"sa", GY:"sa",
+  // Europe
+  GB:"eu", DE:"eu", FR:"eu", IT:"eu", ES:"eu", SE:"eu", NO:"eu", DK:"eu",
+  FI:"eu", IE:"eu", NL:"eu", BE:"eu", CH:"eu", AT:"eu", CZ:"eu", HU:"eu",
+  PL:"eu", RO:"eu", BG:"eu", RS:"eu", HR:"eu", SI:"eu", SK:"eu", UA:"eu",
+  MD:"eu", BY:"eu", EE:"eu", LV:"eu", LT:"eu", LU:"eu", MT:"eu", IS:"eu",
+  RU:"eu", PT:"eu", GR:"eu", AL:"eu", BA:"eu",
+  // Middle East
+  SA:"me", AE:"me", IQ:"me", IR:"me", SY:"me", JO:"me", LB:"me", IL:"me",
+  PS:"me", YE:"me", OM:"me", BH:"me", KW:"me", QA:"me", TR:"me",
+  // Africa
+  DZ:"af", EG:"af", MA:"af", ZW:"af", ZA:"af", KE:"af", NG:"af", GH:"af",
+  ET:"af", LK:"af", ML:"af", SO:"af", BI:"af", RW:"af", UG:"af", CD:"af",
+  NA:"af", SN:"af", GW:"af", TN:"af", LY:"af", AO:"af", MZ:"af", MW:"af",
+  // Asia
+  CN:"as", IN:"as", JP:"as", KR:"as", TW:"as", HK:"as", PK:"as", BD:"as",
+  NP:"as", MN:"as", KZ:"as",
+  // SE Asia
+  ID:"sea", TH:"sea", VN:"sea", MY:"sea", PH:"sea", LA:"sea", KH:"sea",
+  MM:"sea", BN:"sea", SG:"sea", TL:"sea",
+  // Oceania
+  AU:"au", NZ:"au", FJ:"au", PG:"au",
+};
+
 export function SocialBrandReachCard({
-  slug, brandName, brandUrl = "", details, brandVisibility, coral,
+  slug, brandName, brandUrl = "", homeCountry, details, brandVisibility, coral,
 }: SocialBrandReachCardProps) {
   const sp = details && typeof details === "object" ? details : null;
   const presence = sp?.brand_presence_score ?? 0;
@@ -200,51 +256,6 @@ export function SocialBrandReachCard({
   });
   const foundCount = platforms.filter((p) => p.hasProfile).length;
 
-  /* ── Region scores ── */
-  const checks = (bv as unknown as Record<string, unknown>)?.checks as Record<string, unknown> | undefined;
-  const platformPresence = (checks?.platform_presence ?? {}) as Record<string, { found: boolean; mentions: number }>;
-
-  const homeRegion = detectHomeRegion(brandUrl);
-  const rawRegionScores: Record<string, number> = Object.fromEntries(REGION_IDS.map((id) => [id, 0]));
-
-  const socialInputs: Array<{ key: string; value: number }> = [
-    sp?.instagram && { key: "Instagram",   value: Math.max(40, Math.min(100, (sp.instagram.followers ?? 0) / 1000)) },
-    sp?.facebook  && { key: "Facebook",    value: Math.max(40, Math.min(100, (sp.facebook.followers  ?? 0) / 1000)) },
-    sp?.youtube   && { key: "YouTube",     value: Math.max(40, Math.min(100, (sp.youtube.followers   ?? 0) / 1000)) },
-    sp?.twitter   && { key: "X (Twitter)", value: Math.max(40, Math.min(100, (sp.twitter.followers   ?? 0) / 1000)) },
-    sp?.linkedin  && { key: "LinkedIn",    value: Math.max(40, Math.min(100, (sp.linkedin.followers  ?? 0) / 1000)) },
-  ].filter(Boolean) as Array<{ key: string; value: number }>;
-
-  const scoreInputs: Array<{ key: string; value: number }> = [
-    { key: "Google", value: Math.round(bv.google_score ?? 0) },
-    { key: "Reddit", value: Math.round(bv.reddit_score ?? 0) },
-    ...socialInputs,
-    ...Object.entries(platformPresence)
-      .filter(([, d]) => d.found && d.mentions > 0)
-      .map(([key, d]) => ({ key, value: Math.min(100, d.mentions * 2) })),
-  ];
-
-  for (const { key, value } of scoreInputs) {
-    const weights = GEO_WEIGHTS[key];
-    if (!weights || value === 0) continue;
-    REGION_IDS.forEach((id, i) => { rawRegionScores[id] += value * weights[i]; });
-  }
-
-  if (homeRegion) {
-    const currentMax = Math.max(...Object.values(rawRegionScores), 1);
-    rawRegionScores[homeRegion] = Math.max(rawRegionScores[homeRegion], currentMax * 0.90);
-    REGION_IDS.forEach((id) => {
-      if (id !== homeRegion) rawRegionScores[id] = Math.min(rawRegionScores[id], currentMax * 0.55);
-    });
-  }
-
-  const maxRaw = Math.max(...Object.values(rawRegionScores), 1);
-  const realRegionScores: Record<string, number> = Object.fromEntries(
-    Object.entries(rawRegionScores).map(([id, v]) => [id, Math.round((v / maxRaw) * 100)])
-  );
-
-  const regionData = REGION_IDS.map((id) => ({ id, label: REGION_LABELS[id], score: realRegionScores[id] }));
-
   /* ── GA country data ── */
   const [gaCountries, setGaCountries] = useState<GACountryEntry[] | null>(null);
   useEffect(() => {
@@ -264,6 +275,53 @@ export function SocialBrandReachCard({
       })
       .catch(() => {});
   }, [brandUrl]);
+
+  /* ── Region & top-country rollup (Similarweb pattern) ──
+   * Only show regions where we have real evidence:
+   *   • GA: roll per-country sessions up to regions, ranked by share.
+   *   • No GA: only the brand's home region (from run.country, or TLD fallback).
+   * Avoids the previous behaviour where a small Google footprint lit up all 8 regions. */
+  const tldCountry = detectHomeCountryFromUrl(brandUrl);
+  const normalizedHome = normalizeHomeCountry(homeCountry);
+  const resolvedHomeAlpha2 = normalizedHome || tldCountry || null;
+  const homeRegion = resolvedHomeAlpha2 ? (COUNTRY_TO_REGION[resolvedHomeAlpha2] ?? null) : null;
+
+  let regionData: Array<{ id: string; label: string; score: number; share?: number }> = [];
+  let topCountries: Array<{ name: string; alpha2: string; share: number; sessions: number }> = [];
+
+  if (gaCountries && gaCountries.length > 0) {
+    const totalSessions = gaCountries.reduce((s, c) => s + (c.sessions || 0), 0) || 1;
+    const regionSessions: Record<string, number> = Object.fromEntries(REGION_IDS.map((id) => [id, 0]));
+    for (const c of gaCountries) {
+      const region = COUNTRY_TO_REGION[(c.country_id || "").toUpperCase()];
+      if (region) regionSessions[region] += c.sessions || 0;
+    }
+    const maxRegion = Math.max(...Object.values(regionSessions), 1);
+    regionData = REGION_IDS
+      .map((id) => ({
+        id,
+        label: REGION_LABELS[id],
+        score: Math.round((regionSessions[id] / maxRegion) * 100),
+        share: regionSessions[id] / totalSessions,
+      }))
+      .filter((r) => r.score > 0);
+
+    topCountries = [...gaCountries]
+      .sort((a, b) => (b.sessions || 0) - (a.sessions || 0))
+      .slice(0, 5)
+      .map((c) => ({
+        name: c.country,
+        alpha2: c.country_id,
+        share: (c.sessions || 0) / totalSessions,
+        sessions: c.sessions || 0,
+      }));
+  } else if (homeRegion) {
+    regionData = [{ id: homeRegion, label: REGION_LABELS[homeRegion], score: 100 }];
+  }
+
+  const realRegionScores: Record<string, number> = Object.fromEntries(
+    REGION_IDS.map((id) => [id, regionData.find((r) => r.id === id)?.score ?? 0])
+  );
 
   const graphLabelH = 14;
 
@@ -407,12 +465,51 @@ export function SocialBrandReachCard({
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col justify-center py-1">
-          <WorldPresenceMap coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} />
+        <div className="relative flex min-h-0 flex-1 flex-col justify-center py-1">
+          <WorldPresenceMapLibre coral={coral} regionScores={realRegionScores} gaCountries={gaCountries} homeCountry={resolvedHomeAlpha2 ?? undefined} />
+          {!gaCountries && !resolvedHomeAlpha2 && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-3">
+              <div
+                className="pointer-events-auto rounded-lg border bg-background/95 px-3 py-2 text-center shadow-sm backdrop-blur-sm"
+                style={{ borderColor: `${coral}40` }}
+              >
+                <p className="text-[11px] font-semibold text-foreground">No country-level signal yet</p>
+                <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
+                  Connect{" "}
+                  <Link href="/settings/integrations" className="font-medium underline-offset-2 hover:underline" style={{ color: coral }}>
+                    Google Analytics
+                  </Link>{" "}
+                  to map traffic by country.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="mt-2 flex shrink-0 flex-wrap gap-1">
-          {regionData.filter((r) => r.score > 0).sort((a, b) => b.score - a.score).map((r) => (
+        {topCountries.length > 0 && (
+          <div className="mt-2 shrink-0">
+            <p className="mb-1 text-[9px] uppercase tracking-wide text-muted-foreground">Top countries</p>
+            <div className="flex flex-col gap-0.5">
+              {topCountries.map((c) => (
+                <div key={c.alpha2} className="flex items-center gap-2 text-[10px]">
+                  <span className="w-20 shrink-0 truncate font-medium text-foreground">{c.name}</span>
+                  <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${Math.max(c.share * 100, 2)}%`, backgroundColor: coral }}
+                    />
+                  </div>
+                  <span className="w-10 shrink-0 text-right tabular-nums font-semibold" style={{ color: coral }}>
+                    {(c.share * 100).toFixed(1)}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-2 flex shrink-0 flex-wrap items-center gap-1">
+          {regionData.sort((a, b) => b.score - a.score).map((r) => (
             <span
               key={r.id}
               className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px]"
@@ -420,10 +517,18 @@ export function SocialBrandReachCard({
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: coral }} />
               {r.label}
+              {typeof r.share === "number" && (
+                <span className="tabular-nums opacity-80">{(r.share * 100).toFixed(0)}%</span>
+              )}
             </span>
           ))}
-          {regionData.every((r) => r.score === 0) && (
+          {regionData.length === 0 && (
             <p className="text-[9px] leading-snug text-muted-foreground">No geographic signals yet — run a visibility check.</p>
+          )}
+          {!gaCountries && regionData.length > 0 && (
+            <span className="ml-1 text-[9px] leading-snug text-muted-foreground">
+              Connect Google Analytics for country-level reach.
+            </span>
           )}
         </div>
 

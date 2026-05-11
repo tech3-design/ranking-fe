@@ -14,7 +14,6 @@ export interface BlogPost {
   publishedAt: string;
   author: string;
   authorRole: string;
-  heroAccent: "orange" | "blue" | "emerald" | "violet" | "amber";
 }
 
 export const BLOG_CATEGORIES: BlogCategory[] = [
@@ -35,7 +34,6 @@ export const BLOG_FEATURED: BlogPost = {
   publishedAt: "2026-04-18",
   author: "Arkit K",
   authorRole: "Signalor Studio",
-  heroAccent: "amber",
 };
 
 export const BLOG_POSTS: BlogPost[] = [
@@ -49,8 +47,7 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: "2026-04-14",
     author: "Signalor Research",
     authorRole: "Data team",
-    heroAccent: "blue",
-  },
+    },
   {
     slug: "llms-txt-what-it-is",
     title: "llms.txt: what it is, who honors it, and what to publish",
@@ -61,8 +58,7 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: "2026-04-10",
     author: "Arkit K",
     authorRole: "Signalor Studio",
-    heroAccent: "emerald",
-  },
+    },
   {
     slug: "five-factor-ai-visibility",
     title: "The 5-factor AI visibility framework, explained",
@@ -73,8 +69,7 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: "2026-04-06",
     author: "Signalor Research",
     authorRole: "Data team",
-    heroAccent: "violet",
-  },
+    },
   {
     slug: "schema-that-moves-the-needle",
     title: "The 4 JSON-LD schemas that actually move the GEO needle",
@@ -85,8 +80,7 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: "2026-04-03",
     author: "Arkit K",
     authorRole: "Signalor Studio",
-    heroAccent: "orange",
-  },
+    },
   {
     slug: "citation-source-attribution-shipped",
     title: "New: Citation source attribution (Phase 1 + 2 shipped)",
@@ -97,8 +91,7 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: "2026-04-21",
     author: "Arkit K",
     authorRole: "Signalor Studio",
-    heroAccent: "amber",
-  },
+    },
   {
     slug: "perplexity-vs-chatgpt-visibility",
     title: "Perplexity vs ChatGPT: why your visibility split is wider than you think",
@@ -109,8 +102,7 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: "2026-03-30",
     author: "Signalor Research",
     authorRole: "Data team",
-    heroAccent: "blue",
-  },
+    },
 ];
 
 export const BLOG_STATS = [

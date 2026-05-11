@@ -9,7 +9,7 @@ import {
   Loader2, Eye, ChevronDown, ChevronRight, Copy, Check,
   AlertTriangle, ArrowUp, Minus, ShieldCheck, Clock, Zap,
   XCircle, RefreshCw, ShoppingBag, Globe, MessageSquare, Search, Tag,
-} from "lucide-react";
+} from "@/components/icons";
 import type { PlatformStepInfo } from "@/lib/api/analyzer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -711,6 +711,7 @@ export function RecommendationsPanel({
                       isVerified && "bg-emerald-500/4",
                     )}
                     data-state={isExpanded ? "selected" : undefined}
+                    data-tour-card={index === 0 ? "tasks-row" : undefined}
                     onClick={() => setExpandedId(isExpanded ? null : rec.id)}
                   >
                     <TableCell className="pl-4 align-middle">

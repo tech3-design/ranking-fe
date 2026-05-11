@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Map, Radio } from "lucide-react";
+import { Map, Radio } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 import { SitemapAuditPanel } from "./sitemap-audit-panel";
@@ -30,7 +30,10 @@ export function SitemapAuditShell({ slug }: { slug: string }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center gap-1 border-b border-border">
+      <div
+        className="flex flex-wrap items-center gap-1 border-b border-border"
+        data-tour-card="sitemap-tabs"
+      >
         <TabButton
           active={tab === "sitemap"}
           onClick={() => switchTab("sitemap")}

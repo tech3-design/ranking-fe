@@ -9,13 +9,14 @@ import {
   type Organization,
 } from "@/lib/api/organizations";
 import { useOrgStore } from "@/lib/stores/org-store";
-import { Loader2, Pencil, Trash2, Plus, Camera, AlertTriangle, ShieldX, Clock, LogOut } from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
+import { Loader2, Pencil, Trash2, Plus, Camera, AlertTriangle, ShieldX, Clock, LogOut } from "@/components/icons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { terminateAccount, cancelTermination, deleteAccount } from "@/lib/api/payments";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { routes } from "@/lib/config";
+import { DashboardSettingsNav } from "@/components/settings/dashboard-settings-nav";
 
 export default function ProfileSettingsPage() {
   const { data: session } = useSession();
@@ -140,6 +141,7 @@ export default function ProfileSettingsPage() {
 
   return (
     <div className="px-2 py-2 space-y-6 font-sans">
+      <DashboardSettingsNav label="Profile" />
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-neutral-900">Profile</h2>
         <p className="mt-1 text-[13px] font-light leading-relaxed text-accent-foreground">
@@ -194,7 +196,20 @@ export default function ProfileSettingsPage() {
         </button>
 
         {loading ? (
-          <div className="flex justify-center py-8"><SignalorLoader size="sm" /></div>
+          <div className="space-y-2 py-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between rounded-sm border border-black/8 bg-neutral-50/80 px-4 py-3">
+                <div className="space-y-1">
+                  <Skeleton className="h-[14px] w-32 rounded" />
+                  <Skeleton className="h-[12px] w-44 rounded" />
+                </div>
+                <div className="flex gap-1.5">
+                  <Skeleton className="h-8 w-8 rounded-sm" />
+                  <Skeleton className="h-8 w-8 rounded-sm" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : organizations.length === 0 ? (
           <p className="py-6 text-center text-[12px] font-light text-accent-foreground">No projects yet.</p>
         ) : (

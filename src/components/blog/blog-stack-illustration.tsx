@@ -1,4 +1,4 @@
-import { BookOpen, Feather, Quote } from "lucide-react";
+import { BookOpen, Feather, Quote } from "@/components/icons";
 
 /**
  * Signature illustration for the blog hero — three stacked "article" cards

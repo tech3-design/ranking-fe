@@ -12,5 +12,9 @@ export default async function SitemapPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  return <SitemapAuditShell slug={slug} />;
+  return (
+    <div data-tour-card="sitemap-shell">
+      <SitemapAuditShell slug={slug} />
+    </div>
+  );
 }

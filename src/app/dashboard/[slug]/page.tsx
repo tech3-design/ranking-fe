@@ -14,9 +14,11 @@ import {
   RefreshCw,
   Loader2,
   AlertCircle,
-} from "lucide-react";
-import { SignalorLoader } from "@/components/ui/signalor-loader";
-import { RotatingGeoFact } from "@/components/ui/rotating-geo-fact";
+  Calendar,
+} from "@/components/icons";
+import { useOrgStore } from "@/lib/stores/org-store";
+import { ScheduleAnalysisDialog } from "./_components/schedule-analysis-dialog";
+import { OverviewSkeleton } from "@/components/dashboard/skeletons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -28,11 +30,12 @@ import type { DashboardSentiment } from "@/components/dashboard/types";
 import { GeoScoreCard } from "@/components/dashboard/geo-score-card";
 import { GeoScoreHistoryCard } from "@/components/dashboard/geo-score-history-card";
 import { PillarBreakdownCard } from "@/components/dashboard/pillar-breakdown-card";
-import { TopIssuesCard } from "@/components/dashboard/top-issues-card";
 import { VisibilityByPlatformCard } from "@/components/dashboard/visibility-by-platform-card";
-import { AiEngineProbesCard } from "@/components/dashboard/ai-engine-probes-card";
 import { CompetitorsCard } from "@/components/dashboard/competitors-card";
 import { PredictionSentimentRow } from "@/components/dashboard/prediction-sentiment-row";
+import { SentimentAnalysisCard } from "@/components/dashboard/sentiment-analysis-card";
+import { WeeklyPerformanceSection } from "@/components/dashboard/weekly-performance-section";
+import { DomainAnalyticsPanel } from "@/components/analyzer/domain-analytics-panel";
 
 export default function SignalorDashboard() {
   const { slug } = useParams<{ slug: string }>();
@@ -42,6 +45,8 @@ export default function SignalorDashboard() {
   const { run, scoreHistory, loading, error, scoreBump } = useRun();
   const [reanalyzing, setReanalyzing] = useState(false);
   const [reanalyzeError, setReanalyzeError] = useState("");
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const { activeOrg } = useOrgStore();
 
   const [greeting, setGreeting] = useState(() => {
     const h = new Date().getHours();
@@ -153,12 +158,7 @@ export default function SignalorDashboard() {
   }, [brandVis?.reddit_details, run?.ai_probes]);
 
   if (loading) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-4">
-        <SignalorLoader size="lg" />
-        <RotatingGeoFact intervalMs={4500} className="max-w-lg" />
-      </div>
-    );
+    return <OverviewSkeleton />;
   }
 
   if ((error || reanalyzeError) && !run) {
@@ -214,6 +214,10 @@ export default function SignalorDashboard() {
   }
 
   const projectName = run?.display_brand_name?.trim() || run?.brand_name || (run?.url ? normalizeUrl(run.url).split("/")[0] : "Overview");
+  const brandDomain = run?.url ? normalizeUrl(run.url).split("/")[0] : "";
+  const brandFavicon = brandDomain
+    ? `https://www.google.com/s2/favicons?domain=${brandDomain}&sz=128`
+    : "";
   const statusLabel = run?.status === "complete" ? "Active" : run?.status === "failed" ? "Failed" : "Analyzing";
   const statusClasses = run?.status === "complete"
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -224,12 +228,33 @@ export default function SignalorDashboard() {
   return (
     <>
       {/* <header className="sticky top-0 z-20 border-b border-border bg-white px-6 py-4"> */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
+        <div
+          className="flex flex-col gap-4 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+          data-tour-card="overview-header"
+        >
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            {brandFavicon ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={brandFavicon}
+                alt={`${projectName} logo`}
+                width={48}
+                height={48}
+                className="size-10 shrink-0 rounded-lg object-contain sm:size-12"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
+              />
+            ) : null}
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-semibold tracking-tight text-foreground capitalize">
+              <h1 className="truncate text-2xl font-bold tracking-tight text-foreground capitalize sm:text-3xl">
                 {projectName}
               </h1>
+              {brandDomain ? (
+                <p className="truncate text-xs text-muted-foreground sm:text-sm">
+                  {brandDomain}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-4 sm:gap-5">
@@ -267,51 +292,85 @@ export default function SignalorDashboard() {
                 type="button"
                 variant="default"
                 size="sm"
+                onClick={() => setScheduleOpen(true)}
+                disabled={!run || isRunning || !session?.user?.email || !activeOrg?.id}
+                className="h-8 gap-1.5 rounded-sm px-3 text-xs font-medium shadow-sm"
+              >
+                <Calendar className="size-3.5" />
+                Schedule analysis
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
                 onClick={handleDownloadPDF}
                 disabled={!run || isRunning}
-                className="h-8 gap-1.5 rounded-sm px-3 text-xs font-medium shadow-sm"
+                className="h-8 gap-1.5 rounded-sm border-border bg-white px-3 text-xs font-medium text-foreground shadow-sm"
               >
                 <Download className="size-3.5" />
                 Export
               </Button>
             </div>
+
+            {run && session?.user?.email && activeOrg?.id ? (
+              <ScheduleAnalysisDialog
+                open={scheduleOpen}
+                onClose={() => setScheduleOpen(false)}
+                email={session.user.email}
+                orgId={activeOrg.id}
+                url={run.url}
+                brandName={run.brand_name || ""}
+              />
+            ) : null}
           </div>
         </div>
       {/* </header> */}
 
       {run && !isRunning && (
         <div className="px-3 pb-4 pt-3 sm:px-4">
+          {/* GEO Score card (left) + GEO Performance chart (right), equal height */}
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-stretch">
+            <div className="w-full shrink-0 sm:w-56" data-tour-card="overview-score">
+              <GeoScoreCard
+                compositeScore={compositeScore}
+                scoreChange={scoreChange}
+                sparkle={!!scoreBump && scoreBump > 0}
+              />
+            </div>
+            <div className="min-w-0 flex-1" data-tour-card="overview-performance">
+              <WeeklyPerformanceSection
+                scoreHistory={scoreHistory}
+                joinDate={run.created_at}
+                className="mb-0 h-full"
+              />
+            </div>
+          </div>
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
-            <GeoScoreCard
-              compositeScore={compositeScore}
-              scoreChange={scoreChange}
-              sparkle={!!scoreBump && scoreBump > 0}
-            />
-            <VisibilityByPlatformCard brandVis={brandVis} />
+            <div className="col-span-4 min-h-0 h-full" data-tour-card="overview-platforms">
+              <VisibilityByPlatformCard brandVis={brandVis} />
+            </div>
             {/* <GeoScoreHistoryCard scoreHistory={scoreHistory} /> */}
-            <div className="col-span-5 flex min-h-0 h-full flex-col gap-2">
-              <div className="min-h-0 flex-1">
-                <PillarBreakdownCard pageScore={pageScore} />
-              </div>
-              <div className="shrink-0">
-                <TopIssuesCard slug={slug} recommendations={recommendations} />
-              </div>
+            <div className="col-span-3 min-h-0 h-full" data-tour-card="overview-pillars">
+              <PillarBreakdownCard pageScore={pageScore} />
+            </div>
+            <div className="col-span-5 min-h-0 h-full" data-tour-card="overview-sentiment">
+              <SentimentAnalysisCard sentiment={sentiment} />
             </div>
           </div>
 
-          <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
+          <div
+            className="grid grid-cols-12 items-stretch gap-3 mb-3"
+            data-tour-card="overview-reach"
+          >
             <SocialBrandReachCard
               slug={slug}
               brandName={projectName}
               brandUrl={run.url ?? ""}
+              homeCountry={run.country ?? undefined}
               details={brandVis?.social_presence_details as SocialPresenceDetails | undefined}
               brandVisibility={brandVis}
               coral={CORAL}
             />
-          </div>
-
-          <div className="grid grid-cols-12 items-start gap-3 mb-3">
-            <AiEngineProbesCard sentiment={sentiment} />
           </div>
 
           <div className="grid grid-cols-12 items-stretch gap-3 mb-3">
@@ -321,7 +380,12 @@ export default function SignalorDashboard() {
               yourScore={compositeScore}
               yourName={projectName}
               yourUrl={run.url}
+              yourPageScore={pageScore}
             />
+          </div>
+
+          <div className="mb-3">
+            <DomainAnalyticsPanel slug={slug} />
           </div>
 
           {(prediction.gain > 0 || sentiment) && (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw } from "@/components/icons";
 
 /**
  * Root-level error UI when the root layout fails. Must define <html> and <body>.

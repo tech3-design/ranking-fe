@@ -88,47 +88,45 @@ export function VisibilityByPlatformCard({ brandVis }: { brandVis: BrandVisibili
             return (
               <div
                 key={card.label}
-                className="relative flex min-h-0 flex-col overflow-hidden rounded-lg border border-black/6 p-2.5"
+                className="relative flex min-h-0 flex-col overflow-hidden rounded-lg border p-2.5"
                 style={
                   card.featured
                     ? {
-                        backgroundImage: `linear-gradient(
-                            to bottom,
-                            ${FEATURE_COLORS.orange},
-                            color-mix(in srgb, ${FEATURE_COLORS.orange} 88%, black),
-                            color-mix(in srgb, ${FEATURE_COLORS.orange} 62%, black)
-                          )`,
+                        backgroundImage: `linear-gradient(to bottom, ${FEATURE_COLORS.orange}, color-mix(in srgb, ${FEATURE_COLORS.orange} 82%, black), color-mix(in srgb, ${FEATURE_COLORS.orange} 58%, black))`,
+                        borderColor: "transparent",
                       }
-                    : undefined
+                    : { backgroundColor: "#ffffff", borderColor: "#f0f0f0" }
                 }
               >
-                <div className={card.featured ? "relative z-10 flex min-h-0 flex-1 flex-col" : "flex min-h-0 flex-1 flex-col"}>
+                <div className="flex min-h-0 flex-1 flex-col">
                   <div className="mb-2 flex shrink-0 items-center justify-between">
                     <p className={card.featured ? "text-xs font-medium text-white" : "text-xs font-medium text-foreground/80"}>
                       {card.label}
                     </p>
-                    <span className={card.featured ? "rounded-full border border-white/35 bg-white/20 p-0.5 text-white" : "rounded-full border border-black/10 bg-black/5 p-0.5 text-foreground/60"}>
+                    <span
+                      className="rounded-full p-0.5"
+                      style={card.featured
+                        ? { border: "1px solid rgba(255,255,255,0.35)", backgroundColor: "rgba(255,255,255,0.2)" }
+                        : { border: "1px solid #e5e7eb", backgroundColor: "#f9fafb" }}
+                    >
                       {card.icon}
                     </span>
                   </div>
-                  <p className={card.featured ? "text-[26px] font-bold leading-none tracking-tight text-white" : "text-[26px] font-bold leading-none tracking-tight text-foreground"}>
+                  <p className={`text-[26px] font-bold leading-none tracking-tight ${card.featured ? "text-white" : "text-foreground"}`}>
                     {card.value}
                   </p>
                   <div className="mt-auto flex shrink-0 flex-wrap items-center gap-1 pt-1.5">
                     <span
-                      className={
-                        isPositive
-                          ? card.featured
-                            ? "rounded-full bg-white/25 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm shadow-black/10"
-                            : "rounded-full bg-emerald-500/12 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-600"
-                          : card.featured
-                            ? "rounded-full bg-black/25 px-1.5 py-0.5 text-[9px] font-semibold text-white shadow-sm shadow-black/10"
-                            : "rounded-full bg-rose-500/12 px-1.5 py-0.5 text-[9px] font-semibold text-rose-600"
-                      }
+                      className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold"
+                      style={card.featured
+                        ? { backgroundColor: isPositive ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)", color: "white" }
+                        : isPositive
+                          ? { backgroundColor: "rgba(34,197,94,0.1)", color: "#16a34a" }
+                          : { backgroundColor: "rgba(228,96,85,0.1)", color: FEATURE_COLORS.orange }}
                     >
                       {isPositive ? "↑" : "↓"} {deltaPct}%
                     </span>
-                    <span className={card.featured ? "text-[10px] font-medium text-white" : "text-[10px] text-muted-foreground"}>
+                    <span className={card.featured ? "text-[10px] font-medium text-white/80" : "text-[10px] text-muted-foreground"}>
                       Visibility score
                     </span>
                   </div>

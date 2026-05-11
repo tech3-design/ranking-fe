@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { ArrowRight, Globe, Loader2, Users } from "lucide-react";
+import { ArrowRight, Globe, Loader2, Users } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { ToolGateCard } from "@/components/tools/tool-gate-card";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Cloud, Loader2, Radio, Triangle } from "lucide-react";
+import { Cloud, Loader2, Radio, Triangle } from "@/components/icons";
 
 import { getAgentLog, type AgentLogResponse } from "@/lib/api/analyzer";
 import { cn } from "@/lib/utils";
