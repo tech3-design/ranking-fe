@@ -7,31 +7,16 @@
  * https://github.com/sanity-io/next-sanity
  */
 
-import { NextStudio } from 'next-sanity/studio'
-import config from '../../../../sanity.config'
-import { sanityConfigured, sanityConfigError } from '../../../sanity/env'
+import { StudioClient } from "./studio-client";
 
-// Studio is an interactive CMS dashboard — render it dynamically on every
-// request rather than trying to prerender. force-static + a catch-all
-// route was producing build artefacts that 500'd at runtime on Vercel.
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+// Studio is interactive — no SSR. Client component loads via next/dynamic
+// with ssr:false to avoid the "window is not defined" crash during the
+// default Next.js server render pass for Client Components.
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export { metadata, viewport } from 'next-sanity/studio'
+export { metadata, viewport } from "next-sanity/studio";
 
 export default function StudioPage() {
-  if (!sanityConfigured) {
-    return (
-      <main style={{ padding: 48, fontFamily: 'system-ui, sans-serif', lineHeight: 1.5 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
-          Sanity Studio is not configured
-        </h1>
-        <p style={{ marginBottom: 8, color: '#475569' }}>{sanityConfigError}</p>
-        <p style={{ fontSize: 14, color: '#64748b' }}>
-          Set the env vars in Vercel project settings and redeploy without build cache.
-        </p>
-      </main>
-    )
-  }
-  return <NextStudio config={config} />
+  return <StudioClient />;
 }
