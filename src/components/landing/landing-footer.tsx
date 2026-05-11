@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, ExternalLink, Github, Linkedin, Twitter, Youtube } from "@/components/icons";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import LogoComp from "@/components/LogoComp";
+import { AiChip } from "@/components/ui/ai-chip";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
@@ -108,13 +109,7 @@ export function LandingFooter() {
                 Get started
               </p>
               <h2 className="mt-3 font-sans text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.35rem] xl:text-5xl">
-                Turn{" "}
-                <span className="inline-flex items-center gap-1.5 align-middle">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-neutral-900 text-[11px] font-bold text-white sm:h-8 sm:w-8 sm:text-xs">
-                    AI
-                  </span>
-                </span>{" "}
-                search into your{" "}
+                Turn <AiChip /> search into your{" "}
                 <span className="whitespace-nowrap text-primary">highest-intent pipeline</span>
               </h2>
               <p className="mt-4 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base">

@@ -1,17 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check } from "@/components/icons";
 
-import { Button } from "@/components/ui/button";
-import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { cn } from "@/lib/utils";
 import { useCurrency, formatPrice } from "@/lib/hooks/use-currency";
+import { getPlanPrices, type DodoPlanPrice } from "@/lib/api/payments";
 
-// Keep in sync with src/app/pricing/page.tsx PLANS constant.
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$", EUR: "€", GBP: "£", INR: "₹", AUD: "A$", CAD: "C$", JPY: "¥",
+  SGD: "S$", AED: "AED ", BRL: "R$", MXN: "MX$", ZAR: "R",
+};
+
+// Plan ids must match the backend keys in /api/payments/plan-prices/.
 const TEASER_PLANS = [
   {
+    id: "starter",
     label: "Starter",
     price: 19.99,
     tagline: "Solo brands getting started with GEO.",
@@ -23,6 +29,7 @@ const TEASER_PLANS = [
     ],
   },
   {
+    id: "pro",
     label: "Pro",
     price: 49.99,
     tagline: "Growing teams tracking multiple brands.",
@@ -35,6 +42,7 @@ const TEASER_PLANS = [
     ],
   },
   {
+    id: "business",
     label: "Max",
     price: 59.99,
     tagline: "Full power for agencies and operators.",
@@ -47,9 +55,53 @@ const TEASER_PLANS = [
   },
 ];
 
+function formatLiveAmount(amount: number, ccy: string): string {
+  if (ccy === "INR" || ccy === "JPY") return Math.round(amount).toLocaleString();
+  return amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function localizedPrice(
+  live: DodoPlanPrice | null | undefined,
+  userCcy: string | null,
+): { ccy: string; amount: number; symbol: string; isApprox: boolean } | null {
+  if (!live) return null;
+  const baseCcy = live.currency.toUpperCase();
+  const useLocal = !!userCcy && userCcy !== baseCcy && live.prices_by_currency?.[userCcy] !== undefined;
+  const ccy = useLocal ? userCcy! : baseCcy;
+  const amount = useLocal ? live.prices_by_currency![userCcy!] : live.amount;
+  return {
+    ccy,
+    amount,
+    symbol: CURRENCY_SYMBOLS[ccy] ?? `${ccy} `,
+    isApprox: useLocal,
+  };
+}
+
 export function LandingPricingTeaser() {
   const { currency, ready: currencyReady } = useCurrency();
-  const starterLabel = currencyReady ? `${currency.symbol}${formatPrice(19.99, currency)}` : "19.99";
+  const [livePrices, setLivePrices] = useState<Record<string, DodoPlanPrice | null> | null>(null);
+
+  useEffect(() => {
+    getPlanPrices()
+      .then((res) => {
+        if (res.source === "dodo") {
+          setLivePrices({ starter: res.starter, pro: res.pro, business: res.business });
+        }
+      })
+      .catch(() => { /* graceful: fall back to static EUR-rate display */ });
+  }, []);
+
+  const userCcy = currencyReady ? currency.code : null;
+  const starterLive = livePrices?.starter ?? null;
+  const starterLocalized = localizedPrice(starterLive, userCcy);
+
+  const starterLabel = starterLocalized
+    ? `${starterLocalized.symbol}${formatLiveAmount(starterLocalized.amount, starterLocalized.ccy)}`
+    : currencyReady
+    ? `${currency.symbol}${formatPrice(19.99, currency)}`
+    : "19.99";
+
+  const baseCcy = livePrices ? (livePrices.starter?.currency || livePrices.pro?.currency || livePrices.business?.currency || "GBP").toUpperCase() : null;
 
   return (
     <section
@@ -76,7 +128,15 @@ export function LandingPricingTeaser() {
         </h2>
         <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
           Cancel anytime. No setup fees, no seats, no surprise usage bills — just one clear monthly
-          number{currency.code !== "EUR" ? ` (approx. in ${currency.code}, charged in EUR)` : " in EUR"}.
+          number
+          {baseCcy
+            ? userCcy && userCcy !== baseCcy
+              ? ` (approx. in ${userCcy}, billed in ${baseCcy})`
+              : ` in ${baseCcy}`
+            : currency.code !== "EUR"
+            ? ` (approx. in ${currency.code})`
+            : ""}
+          .
         </p>
       </div>
 
@@ -84,7 +144,17 @@ export function LandingPricingTeaser() {
 
       <div className="mx-auto max-w-7xl bg-black-10">
         <div className="grid grid-cols-1 divide-y divide-black/6 md:grid-cols-3 md:divide-x md:divide-y-0">
-          {TEASER_PLANS.map((p) => (
+          {TEASER_PLANS.map((p) => {
+            const live = livePrices?.[p.id] ?? null;
+            const localized = localizedPrice(live, userCcy);
+            const symbol = localized?.symbol ?? currency.symbol;
+            const amountLabel = localized
+              ? formatLiveAmount(localized.amount, localized.ccy)
+              : currencyReady
+              ? formatPrice(p.price, currency)
+              : p.price.toFixed(2);
+
+            return (
             <div
               key={p.label}
               className={cn(
@@ -106,13 +176,13 @@ export function LandingPricingTeaser() {
               </div>
               <div className="flex items-start">
                 <span className="mt-1.5 text-base font-semibold text-foreground">
-                  {currency.symbol}
+                  {symbol}
                 </span>
                 <span className={cn(
                   "ml-0.5 text-4xl font-bold tabular-nums tracking-tight transition-opacity duration-300",
-                  currencyReady ? "text-foreground opacity-100" : "text-foreground opacity-40",
+                  (localized || currencyReady) ? "text-foreground opacity-100" : "text-foreground opacity-40",
                 )}>
-                  {currencyReady ? formatPrice(p.price, currency) : p.price.toFixed(2)}
+                  {amountLabel}
                 </span>
                 <span className="ml-2 mt-4 text-xs font-medium text-muted-foreground">
                   / month
@@ -144,30 +214,11 @@ export function LandingPricingTeaser() {
                 <ArrowRight className="h-3 w-3" aria-hidden />
               </Link>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      <div className="mx-auto mt-10 flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 pb-14 lg:px-12 lg:pb-16">
-        <p className="text-sm font-medium text-muted-foreground">
-          Need a custom plan, agency seats, or annual billing?
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <Button asChild className={`${LANDING_PRIMARY_CTA_CLASS} h-10 px-5`}>
-            <Link href="/pricing">
-              Compare plans
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="h-10 border-black/15 bg-background px-5 text-sm font-semibold shadow-sm hover:bg-muted/50"
-          >
-            <a href="mailto:hello@signalor.ai?subject=Talk%20to%20sales">Talk to sales</a>
-          </Button>
-        </div>
-      </div>
     </section>
   );
 }

@@ -26,17 +26,6 @@ const ALPHA2_TO_NUMERIC: Record<string, number> = {
   US:840,UY:858,UZ:860,VU:548,VE:862,VN:704,YE:887,ZM:894,ZW:716,
 };
 
-const REGION_COUNTRIES: Record<string, number[]> = {
-  na:  [840,124,484,192,214,332,388,320,222,558,340,188,591,862,780,28,44,52],
-  sa:  [76,32,152,170,604,858,600,218,68,740,328,630],
-  eu:  [276,250,826,380,724,752,578,208,246,372,528,56,756,40,203,348,616,642,100,688,191,705,703,804,498,112,233,428,440,442,470,352,643],
-  me:  [682,784,368,364,760,400,422,376,275,887,512,48,414],
-  af:  [12,818,504,716,710,404,566,288,231,144,466,706,108,646,800,180,894,454,516,686,624],
-  as:  [156,356,392,410,360,764,704,458,566,50,524,144,104,418,116,496],
-  sea: [360,764,704,458,608,418,116,104,96,626],
-  au:  [36,554,242,598,90,548,184,570],
-};
-
 const NUMERIC_TO_NAME: Record<number, string> = {
   4:"Afghanistan",8:"Albania",12:"Algeria",24:"Angola",32:"Argentina",36:"Australia",
   40:"Austria",50:"Bangladesh",56:"Belgium",68:"Bolivia",76:"Brazil",100:"Bulgaria",
@@ -121,8 +110,13 @@ function toGeoJSON(topo: TopoJson, scoreMap: Map<number, number>) {
 }
 
 /* ─── Score map ──────────────────────────────────────────────────────── */
+// Following SEMrush / Similarweb: only paint countries we have real data for.
+// Without GA per-country sessions, the only confirmed signal is the brand's
+// declared home country. Broadcasting platform weights across every member
+// country of a region (as a previous version did) misleadingly lights up the
+// whole globe from a small Google footprint.
 function buildScoreMap(
-  regionScores: Record<string, number>,
+  _regionScores: Record<string, number>,
   gaCountries?: GACountryEntry[] | null,
   homeCountry?: string,
 ) {
@@ -134,13 +128,6 @@ function buildScoreMap(
     for (const e of gaCountries) {
       const id = ALPHA2_TO_NUMERIC[e.country_id.toUpperCase()];
       if (id) map.set(id, Math.round((e.sessions / maxS) * 100));
-    }
-  } else {
-    // Estimated from platform visibility analysis
-    const maxScore = Math.max(...Object.values(regionScores), 1);
-    for (const [region, ids] of Object.entries(REGION_COUNTRIES)) {
-      const score = Math.round(((regionScores[region] ?? 0) / maxScore) * 100);
-      for (const id of ids) map.set(id, score);
     }
   }
 

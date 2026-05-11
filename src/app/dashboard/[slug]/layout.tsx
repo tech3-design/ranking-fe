@@ -75,8 +75,8 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
     heading: "Monitoring",
     items: [
       { icon: VisibilityIcon, label: "Visibility", path: "/visibility" },
+            { icon: TasksIcon, label: "Tasks", path: "/recommendations" },
       { icon: SitemapIcon, label: "Sitemap", path: "/sitemap" },
-      { icon: TasksIcon, label: "Tasks", path: "/recommendations" },
     ],
   },
   {
