@@ -274,7 +274,7 @@ function PricingPageInner() {
                   ? live.prices_by_currency[userCcy]
                   : undefined;
 
-                const useLocal = localized !== undefined && userCcy && userCcy !== live.currency.toUpperCase();
+                const useLocal = Boolean(localized !== undefined && userCcy && userCcy !== live.currency.toUpperCase());
                 const ccy = useLocal ? userCcy! : live.currency.toUpperCase();
                 const amount = useLocal ? localized! : live.amount;
 
