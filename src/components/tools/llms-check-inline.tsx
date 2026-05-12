@@ -5,6 +5,7 @@ import { ArrowRight, CircleCheck, CircleX, Globe, Loader2, MinusCircle } from "@
 
 import { Button } from "@/components/ui/button";
 import { ToolGateCard } from "@/components/tools/tool-gate-card";
+import { SignupGateOverlay } from "@/components/tools/signup-gate-modal";
 import { cn } from "@/lib/utils";
 
 interface LlmsResult {
@@ -109,7 +110,15 @@ export function LlmsCheckInline() {
         </div>
       )}
 
-      {state.kind === "done" && <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />}
+      <SignupGateOverlay
+        when={state.kind === "done"}
+        title="Sign up to see your AI readiness check"
+        body="Your llms.txt + robots + schema check is ready. Create a free Signalor account or log in to view the full breakdown."
+      >
+        {state.kind === "done" && (
+          <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />
+        )}
+      </SignupGateOverlay>
     </div>
   );
 }
@@ -126,10 +135,15 @@ function BotChip({ bot, allowed }: { bot: string; allowed: boolean | null }) {
     allowed === true
       ? "border-emerald-200 bg-emerald-50 text-emerald-700"
       : allowed === false
-      ? "border-red-200 bg-red-50 text-red-700"
-      : "border-neutral-200 bg-neutral-50 text-neutral-600";
+        ? "border-red-200 bg-red-50 text-red-700"
+        : "border-neutral-200 bg-neutral-50 text-neutral-600";
   return (
-    <div className={cn("flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium", tone)}>
+    <div
+      className={cn(
+        "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium",
+        tone,
+      )}
+    >
       {allowed === true && <CircleCheck className="h-3 w-3" />}
       {allowed === false && <CircleX className="h-3 w-3" />}
       {allowed === null && <MinusCircle className="h-3 w-3" />}
@@ -189,9 +203,11 @@ function ResultView({ data, onReset }: { data: LlmsResult; onReset: () => void }
             : "No robots.txt found — bots will crawl by default."}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {data.robots.aiBots.length === 0
-            ? <p className="text-[12px] text-muted-foreground">No rules to display.</p>
-            : data.robots.aiBots.map((b) => <BotChip key={b.bot} bot={b.bot} allowed={b.allowed} />)}
+          {data.robots.aiBots.length === 0 ? (
+            <p className="text-[12px] text-muted-foreground">No rules to display.</p>
+          ) : (
+            data.robots.aiBots.map((b) => <BotChip key={b.bot} bot={b.bot} allowed={b.allowed} />)
+          )}
         </div>
       </div>
 
