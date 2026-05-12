@@ -330,13 +330,6 @@ export default async function BlogPostPage({
             {post.excerpt}
           </p>
 
-          <div className="mt-8 flex items-center gap-3 border-t border-black/6 pt-6">
-            <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-[#b45309] to-amber-400" />
-            <div>
-              <p className="text-[13px] font-semibold text-foreground">{post.author}</p>
-              <p className="text-[11px] text-muted-foreground">{post.authorRole}</p>
-            </div>
-          </div>
         </div>
       </section>
 
