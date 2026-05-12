@@ -80,10 +80,7 @@ export function AiRecommendationCard({ slug }: { slug: string }) {
           <>
             {/* Headline */}
             <div className="flex items-baseline gap-2">
-              <span
-                className="text-3xl font-bold tabular-nums"
-                style={{ color: CORAL }}
-              >
+              <span className="text-3xl font-bold tabular-nums" style={{ color: CORAL }}>
                 {data.recommendation_pct}%
               </span>
               <span className="text-[11px] text-muted-foreground">
@@ -128,27 +125,21 @@ export function AiRecommendationCard({ slug }: { slug: string }) {
                   className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground"
                 >
                   <ChevronDown
-                    className={cn(
-                      "h-3 w-3 transition-transform",
-                      showSamples && "rotate-180",
-                    )}
+                    className={cn("h-3 w-3 transition-transform", showSamples && "rotate-180")}
                   />
-                  {showSamples ? "Hide quotes" : `View ${data.samples.length} sample quote${data.samples.length === 1 ? "" : "s"}`}
+                  {showSamples
+                    ? "Hide quotes"
+                    : `View ${data.samples.length} sample quote${data.samples.length === 1 ? "" : "s"}`}
                 </button>
                 {showSamples && (
                   <div className="mt-2 space-y-2">
                     {data.samples.map((s, i) => (
-                      <div
-                        key={i}
-                        className="rounded-md border border-neutral-200 bg-white p-2"
-                      >
+                      <div key={i} className="rounded-md border border-neutral-200 bg-white p-2">
                         <div className="mb-1 flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
                           <Quote className="h-2.5 w-2.5" />
                           <span>{ENGINE_LABEL[s.engine] ?? s.engine}</span>
                         </div>
-                        <p className="text-[11px] leading-snug text-foreground/80">
-                          {s.quote}
-                        </p>
+                        <p className="text-[11px] leading-snug text-foreground/80">{s.quote}</p>
                       </div>
                     ))}
                   </div>
@@ -162,42 +153,20 @@ export function AiRecommendationCard({ slug }: { slug: string }) {
   );
 }
 
-function StatChip({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-}) {
+function StatChip({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className="rounded-md border border-neutral-200 bg-white px-2.5 py-1.5">
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className="text-base font-semibold tabular-nums text-foreground">
-        {value}
-      </p>
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-base font-semibold tabular-nums text-foreground">{value}</p>
       <p className="text-[10px] text-muted-foreground">{sub}</p>
     </div>
   );
 }
 
-function EngineRow({
-  label,
-  pct,
-  sub,
-}: {
-  label: string;
-  pct: number;
-  sub: string;
-}) {
+function EngineRow({ label, pct, sub }: { label: string; pct: number; sub: string }) {
   return (
     <div className="grid grid-cols-12 items-center gap-2">
-      <span className="col-span-3 truncate text-[11px] text-muted-foreground">
-        {label}
-      </span>
+      <span className="col-span-3 truncate text-[11px] text-muted-foreground">{label}</span>
       <div className="col-span-7 h-1.5 overflow-hidden rounded-full bg-neutral-200">
         <div
           className="h-full rounded-full"
@@ -208,8 +177,7 @@ function EngineRow({
         />
       </div>
       <span className="col-span-2 text-right text-[11px] tabular-nums text-foreground">
-        {pct}%
-        <span className="ml-1 text-[10px] text-muted-foreground">{sub}</span>
+        {pct}%<span className="ml-1 text-[10px] text-muted-foreground">{sub}</span>
       </span>
     </div>
   );

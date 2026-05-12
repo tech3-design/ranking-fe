@@ -283,7 +283,7 @@ function PricingPageInner() {
                 priceLabel = ccy === "INR" || ccy === "JPY"
                   ? Math.round(amount).toLocaleString()
                   : amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                isApprox = useLocal; // localized total is an FX estimate
+                isApprox = Boolean(useLocal); // localized total is an FX estimate
               } else {
                 displaySymbol = currency.symbol;
                 displayCurrencyCode = currency.code;

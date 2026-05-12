@@ -164,50 +164,29 @@ export interface AnalysisRunDetail {
   brand_visibility: BrandVisibility | null;
 }
 
-export async function startAnalysis(
-  payload: StartAnalysisPayload,
-): Promise<StartAnalysisResponse> {
-  const { data } = await apiClient.post<StartAnalysisResponse>(
-    "/api/analyzer/analyze/",
-    payload,
-  );
+export async function startAnalysis(payload: StartAnalysisPayload): Promise<StartAnalysisResponse> {
+  const { data } = await apiClient.post<StartAnalysisResponse>("/api/analyzer/analyze/", payload);
   return data;
 }
 
 export async function getRunStatus(runId: number): Promise<RunStatus> {
-  const { data } = await apiClient.get<RunStatus>(
-    `/api/analyzer/runs/${runId}/status/`,
-  );
+  const { data } = await apiClient.get<RunStatus>(`/api/analyzer/runs/${runId}/status/`);
   return data;
 }
 
-export async function getRunDetail(
-  runId: number,
-): Promise<AnalysisRunDetail> {
-  const { data } = await apiClientLong.get<AnalysisRunDetail>(
-    `/api/analyzer/runs/${runId}/`,
-  );
+export async function getRunDetail(runId: number): Promise<AnalysisRunDetail> {
+  const { data } = await apiClientLong.get<AnalysisRunDetail>(`/api/analyzer/runs/${runId}/`);
   return data;
 }
 
 export async function getRunBySlug(slug: string): Promise<AnalysisRunDetail> {
-  const { data } = await apiClientLong.get<AnalysisRunDetail>(
-    `/api/analyzer/runs/s/${slug}/`,
-  );
+  const { data } = await apiClientLong.get<AnalysisRunDetail>(`/api/analyzer/runs/s/${slug}/`);
   return data;
 }
 
-export async function getRunList(
-  email: string,
-  orgId?: number,
-): Promise<AnalysisRunList[]> {
-  const params: Record<string, string | number> = orgId
-    ? { org_id: orgId }
-    : { email };
-  const { data } = await apiClient.get<AnalysisRunList[]>(
-    "/api/analyzer/runs/",
-    { params },
-  );
+export async function getRunList(email: string, orgId?: number): Promise<AnalysisRunList[]> {
+  const params: Record<string, string | number> = orgId ? { org_id: orgId } : { email };
+  const { data } = await apiClient.get<AnalysisRunList[]>("/api/analyzer/runs/", { params });
   return data;
 }
 
@@ -351,20 +330,14 @@ export interface AiRecommendationSummary {
 }
 
 export async function getPromptTracks(slug: string): Promise<PromptTrack[]> {
-  const { data } = await apiClientLong.get<PromptTrack[]>(
-    `/api/analyzer/runs/s/${slug}/prompts/`,
-  );
+  const { data } = await apiClientLong.get<PromptTrack[]>(`/api/analyzer/runs/s/${slug}/prompts/`);
   return data;
 }
 
-export async function addPromptTrack(
-  slug: string,
-  prompt_text: string,
-): Promise<PromptTrack> {
-  const { data } = await apiClient.post<PromptTrack>(
-    `/api/analyzer/runs/s/${slug}/prompts/`,
-    { prompt_text },
-  );
+export async function addPromptTrack(slug: string, prompt_text: string): Promise<PromptTrack> {
+  const { data } = await apiClient.post<PromptTrack>(`/api/analyzer/runs/s/${slug}/prompts/`, {
+    prompt_text,
+  });
   return data;
 }
 
@@ -389,9 +362,7 @@ export async function getCitationSources(slug: string): Promise<CitationSourcesR
   return data;
 }
 
-export async function getAiRecommendationSummary(
-  slug: string,
-): Promise<AiRecommendationSummary> {
+export async function getAiRecommendationSummary(slug: string): Promise<AiRecommendationSummary> {
   const { data } = await apiClientLong.get<AiRecommendationSummary>(
     `/api/analyzer/runs/s/${slug}/ai-recommendation-summary/`,
   );
@@ -406,7 +377,11 @@ export async function deletePromptTrack(slug: string, trackId: number): Promise<
   await apiClient.delete(`/api/analyzer/runs/s/${slug}/prompts/${trackId}/`);
 }
 
-export async function getPromptResultFull(slug: string, trackId: number, resultId: number): Promise<PromptResult> {
+export async function getPromptResultFull(
+  slug: string,
+  trackId: number,
+  resultId: number,
+): Promise<PromptResult> {
   const { data } = await apiClient.get<PromptResult>(
     `/api/analyzer/runs/s/${slug}/prompts/${trackId}/results/${resultId}/`,
   );
@@ -442,19 +417,9 @@ export async function getPromptBacklinks(
   return data;
 }
 
-export type OpportunityCategory =
-  | "directory"
-  | "review"
-  | "press"
-  | "forum"
-  | "resource"
-  | "other";
+export type OpportunityCategory = "directory" | "review" | "press" | "forum" | "resource" | "other";
 
-export type OpportunityStatus =
-  | "suggested"
-  | "submitted"
-  | "live"
-  | "dismissed";
+export type OpportunityStatus = "suggested" | "submitted" | "live" | "dismissed";
 
 export interface BacklinkOpportunity {
   id: number;
@@ -554,9 +519,7 @@ export async function deleteOpportunity(
   trackId: number,
   oppId: number,
 ): Promise<void> {
-  await apiClient.delete(
-    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/${oppId}/`,
-  );
+  await apiClient.delete(`/api/analyzer/runs/s/${slug}/prompts/${trackId}/opportunities/${oppId}/`);
 }
 
 export interface BrandKit {
@@ -578,9 +541,7 @@ export async function getBrandKit(slug: string): Promise<{ kit: BrandKit }> {
   return data;
 }
 
-export async function regenerateBrandKit(
-  slug: string,
-): Promise<{ kit: BrandKit }> {
+export async function regenerateBrandKit(slug: string): Promise<{ kit: BrandKit }> {
   const { data } = await apiClientLong.post<{ kit: BrandKit }>(
     `/api/analyzer/runs/s/${slug}/brand-kit/`,
     {},
@@ -629,18 +590,14 @@ export interface DomainAnalyticsSnapshot {
   cached: boolean;
 }
 
-export async function getDomainAnalytics(
-  slug: string,
-): Promise<DomainAnalyticsSnapshot> {
+export async function getDomainAnalytics(slug: string): Promise<DomainAnalyticsSnapshot> {
   const { data } = await apiClientLong.get<DomainAnalyticsSnapshot>(
     `/api/analyzer/runs/s/${slug}/domain-analytics/`,
   );
   return data;
 }
 
-export async function refreshDomainAnalytics(
-  slug: string,
-): Promise<DomainAnalyticsSnapshot> {
+export async function refreshDomainAnalytics(slug: string): Promise<DomainAnalyticsSnapshot> {
   const { data } = await apiClientLong.post<DomainAnalyticsSnapshot>(
     `/api/analyzer/runs/s/${slug}/domain-analytics/`,
     {},
@@ -659,14 +616,18 @@ export async function recheckAllPrompts(slug: string): Promise<{ count: number }
 // ---------- Competitor CRUD ----------
 
 export async function addCompetitor(slug: string, name: string, url: string): Promise<Competitor> {
-  const { data } = await apiClient.post<Competitor>(
-    `/api/analyzer/runs/s/${slug}/competitors/`,
-    { name, url },
-  );
+  const { data } = await apiClient.post<Competitor>(`/api/analyzer/runs/s/${slug}/competitors/`, {
+    name,
+    url,
+  });
   return data;
 }
 
-export async function updateCompetitor(slug: string, id: number, payload: { name?: string; url?: string }): Promise<Competitor> {
+export async function updateCompetitor(
+  slug: string,
+  id: number,
+  payload: { name?: string; url?: string },
+): Promise<Competitor> {
   const { data } = await apiClient.patch<Competitor>(
     `/api/analyzer/runs/s/${slug}/competitors/${id}/`,
     payload,
@@ -686,17 +647,11 @@ export interface ScoreHistoryPoint {
   slug: string;
 }
 
-export async function getScoreHistory(
-  email: string,
-  orgId?: number,
-): Promise<ScoreHistoryPoint[]> {
-  const params: Record<string, string | number> = orgId
-    ? { org_id: orgId }
-    : { email };
-  const { data } = await apiClient.get<ScoreHistoryPoint[]>(
-    "/api/analyzer/runs/history/",
-    { params },
-  );
+export async function getScoreHistory(email: string, orgId?: number): Promise<ScoreHistoryPoint[]> {
+  const params: Record<string, string | number> = orgId ? { org_id: orgId } : { email };
+  const { data } = await apiClient.get<ScoreHistoryPoint[]>("/api/analyzer/runs/history/", {
+    params,
+  });
   return data;
 }
 
@@ -717,14 +672,10 @@ export interface ScheduledAnalysis {
   created_at: string;
 }
 
-export async function getSchedule(
-  email: string,
-  orgId: number,
-): Promise<ScheduledAnalysis | null> {
-  const { data } = await apiClient.get<ScheduledAnalysis | null>(
-    "/api/analyzer/schedule/",
-    { params: { email, org_id: orgId } },
-  );
+export async function getSchedule(email: string, orgId: number): Promise<ScheduledAnalysis | null> {
+  const { data } = await apiClient.get<ScheduledAnalysis | null>("/api/analyzer/schedule/", {
+    params: { email, org_id: orgId },
+  });
   return data;
 }
 
@@ -738,10 +689,7 @@ export async function toggleSchedule(payload: {
   /** ISO datetime — required when frequency="once", optional otherwise. */
   run_at?: string;
 }): Promise<ScheduledAnalysis> {
-  const { data } = await apiClient.post<ScheduledAnalysis>(
-    "/api/analyzer/schedule/",
-    payload,
-  );
+  const { data } = await apiClient.post<ScheduledAnalysis>("/api/analyzer/schedule/", payload);
   return data;
 }
 
@@ -770,9 +718,7 @@ export async function applyAutoFix(
 }
 
 export async function getAutoFixStatus(slug: string): Promise<AutoFixResult[]> {
-  const { data } = await apiClient.get<AutoFixResult[]>(
-    `/api/analyzer/runs/s/${slug}/auto-fix/`,
-  );
+  const { data } = await apiClient.get<AutoFixResult[]>(`/api/analyzer/runs/s/${slug}/auto-fix/`);
   return data;
 }
 
@@ -818,10 +764,7 @@ export async function approveFix(
   return data;
 }
 
-export async function verifyFix(
-  slug: string,
-  recommendationId: number,
-): Promise<AutoFixResult> {
+export async function verifyFix(slug: string, recommendationId: number): Promise<AutoFixResult> {
   const { data } = await apiClient.post<AutoFixResult>(
     `/api/analyzer/runs/s/${slug}/auto-fix/verify/`,
     { recommendation_id: recommendationId },
@@ -1052,17 +995,14 @@ export async function getRankAudit(
   if (query.query_id != null) params.query_id = query.query_id;
   if (query.q) params.q = query.q;
   if (query.only_brand) params.only_brand = "1";
-  const { data } = await apiClient.get<RankAuditResponse>(
-    `/api/analyzer/runs/s/${slug}/rank/`,
-    { params, timeout: 30_000 },
-  );
+  const { data } = await apiClient.get<RankAuditResponse>(`/api/analyzer/runs/s/${slug}/rank/`, {
+    params,
+    timeout: 30_000,
+  });
   return data;
 }
 
-export async function refreshRankQuery(
-  slug: string,
-  queryId: number,
-): Promise<RankQuery> {
+export async function refreshRankQuery(slug: string, queryId: number): Promise<RankQuery> {
   const { data } = await apiClient.post<RankQuery>(
     `/api/analyzer/runs/s/${slug}/rank/query/${queryId}/refresh/`,
     {},
@@ -1089,12 +1029,17 @@ export async function getPromptRank(
 
 // ── Backlink marketplace ─────────────────────────────────────────────────────
 
-export type BacklinkLinkType =
-  | "guest_post" | "niche_edit" | "sponsored" | "citation" | "other";
+export type BacklinkLinkType = "guest_post" | "niche_edit" | "sponsored" | "citation" | "other";
 
 export type BacklinkOrderStatus =
-  | "draft" | "pending_payment" | "queued" | "in_progress"
-  | "delivered" | "rejected" | "refunded" | "cancelled";
+  | "draft"
+  | "pending_payment"
+  | "queued"
+  | "in_progress"
+  | "delivered"
+  | "rejected"
+  | "refunded"
+  | "cancelled";
 
 export interface BacklinkProduct {
   id: number;
@@ -1148,10 +1093,10 @@ export async function getBacklinkCatalog(
   if (filters?.link_type) params.link_type = filters.link_type;
   if (filters?.min_da) params.min_da = filters.min_da;
   if (filters?.niche) params.niche = filters.niche;
-  const { data } = await apiClient.get(
-    `/api/analyzer/runs/s/${slug}/backlinks/catalog/`,
-    { params, timeout: 30_000 },
-  );
+  const { data } = await apiClient.get(`/api/analyzer/runs/s/${slug}/backlinks/catalog/`, {
+    params,
+    timeout: 30_000,
+  });
   return data;
 }
 
@@ -1161,10 +1106,9 @@ export async function listBacklinkOrders(
 ): Promise<{ orders: BacklinkOrder[] }> {
   const params: Record<string, string> = {};
   if (userEmail) params.user_email = userEmail;
-  const { data } = await apiClient.get(
-    `/api/analyzer/runs/s/${slug}/backlinks/orders/`,
-    { params },
-  );
+  const { data } = await apiClient.get(`/api/analyzer/runs/s/${slug}/backlinks/orders/`, {
+    params,
+  });
   return data;
 }
 
@@ -1187,23 +1131,15 @@ export async function placeBacklinkOrder(
   return data;
 }
 
-export async function getBacklinkOrder(
-  slug: string,
-  orderId: number,
-): Promise<BacklinkOrder> {
+export async function getBacklinkOrder(slug: string, orderId: number): Promise<BacklinkOrder> {
   const { data } = await apiClient.get<BacklinkOrder>(
     `/api/analyzer/runs/s/${slug}/backlinks/orders/${orderId}/`,
   );
   return data;
 }
 
-export async function deleteBacklinkOrder(
-  slug: string,
-  orderId: number,
-): Promise<void> {
-  await apiClient.delete(
-    `/api/analyzer/runs/s/${slug}/backlinks/orders/${orderId}/`,
-  );
+export async function deleteBacklinkOrder(slug: string, orderId: number): Promise<void> {
+  await apiClient.delete(`/api/analyzer/runs/s/${slug}/backlinks/orders/${orderId}/`);
 }
 
 export async function confirmBacklinkOrderPayment(
@@ -1257,8 +1193,7 @@ export async function generateWikipediaDraft(
 
 // ── Per-prompt schema / E-E-A-T generator ────────────────────────────────────
 
-export type PromptSchemaType =
-  | "faq" | "article" | "person" | "organization" | "answer";
+export type PromptSchemaType = "faq" | "article" | "person" | "organization" | "answer";
 
 export interface PromptSchemaResponse {
   schema_type: PromptSchemaType;
