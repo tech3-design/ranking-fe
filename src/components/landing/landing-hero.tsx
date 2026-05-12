@@ -1,5 +1,6 @@
 "use client";
 
+import { AiChip } from "@/components/ui/ai-chip";
 import { HeroAnalyzerForm } from "../analyzer/hero-analyzer-form";
 import { HeroBackgroundGrid } from "./hero-background-grid";
 
@@ -11,8 +12,11 @@ export function LandingHero() {
         <div className="relative z-10 min-w-0 max-w-xl text-left lg:max-w-none">
           <h1 className="text-3xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem] xl:text-6xl">
             <span className="block">Be the brand</span>
-            <span className="block w-fit text-[#e04a3d] underline decoration-dashed decoration-3 decoration-[#e04a3d]/55 underline-offset-4">
-              AI recommends
+            <span className="flex w-fit items-center gap-2 text-[#e04a3d] sm:gap-3">
+              <AiChip size="lg" />
+              <span className="underline decoration-dashed decoration-3 decoration-[#e04a3d]/55 underline-offset-4">
+                recommends
+              </span>
             </span>
           </h1>
 

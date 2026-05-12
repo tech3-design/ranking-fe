@@ -43,8 +43,9 @@ function detectFromTimezone(): CurrencyCode | null {
  * currency (INR for India, USD for US, EUR for Europe and everywhere else).
  * Falls back to language hint if the API call fails or times out.
  */
-export function useCurrency(): { currency: Currency; ready: boolean } {
+export function useCurrency(): { currency: Currency; ready: boolean; country: string | null } {
   const [currency, setCurrency] = useState<Currency>(CURRENCIES.EUR);
+  const [country, setCountry] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -65,6 +66,7 @@ export function useCurrency(): { currency: Currency; ready: boolean } {
       .then((data: { country_code?: string }) => {
         if (cancelled) return;
         const cc = (data.country_code ?? "").toUpperCase();
+        if (cc) setCountry(cc);
         let code: CurrencyCode = "EUR";
         if (cc === "IN") code = "INR";
         else if (cc === "US") code = "USD";
@@ -84,7 +86,7 @@ export function useCurrency(): { currency: Currency; ready: boolean } {
     };
   }, []);
 
-  return { currency, ready };
+  return { currency, ready, country };
 }
 
 /** Format a EUR base price into the display currency. */

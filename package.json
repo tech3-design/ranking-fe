@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "env:local": "node -e \"require('fs').copyFileSync('env/local.env', '.env.local'); console.log('-> .env.local <- env/local.env')\"",
+    "env:staging": "node -e \"require('fs').copyFileSync('env/staging.env', '.env.local'); console.log('-> .env.local <- env/staging.env')\"",
+    "env:production": "node -e \"require('fs').copyFileSync('env/production.env', '.env.local'); console.log('-> .env.local <- env/production.env')\""
   },
   "dependencies": {
     "@microsoft/clarity": "^1.0.2",

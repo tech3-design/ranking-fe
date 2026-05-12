@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ClarityInit } from "@/components/analytics/clarity";
 import { ReferralCapture } from "@/components/analytics/referral-capture";
+import { AffiliateCapture } from "@/components/analytics/affiliate-capture";
 import {
   buildMetadata,
   organizationJsonLd,
@@ -76,6 +77,7 @@ export default function RootLayout({
         <ClarityInit />
         <Suspense fallback={null}>
           <ReferralCapture />
+          <AffiliateCapture />
         </Suspense>
         {children}
       </body>
