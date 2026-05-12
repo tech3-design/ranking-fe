@@ -227,8 +227,6 @@ function PostCard({ post }: { post: BlogPost }) {
         {post.excerpt}
       </p>
       <div className="mt-auto flex items-center gap-2 pt-2 text-[11px] text-muted-foreground">
-        <span className="font-semibold text-foreground">{post.author}</span>
-        <span>·</span>
         <span>{formatDate(post.publishedAt)}</span>
         <ArrowRight className="ml-auto h-3.5 w-3.5 text-[#b45309] opacity-0 transition group-hover:opacity-100" />
       </div>

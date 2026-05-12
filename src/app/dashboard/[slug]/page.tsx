@@ -238,9 +238,9 @@ export default function SignalorDashboard() {
               <img
                 src={brandFavicon}
                 alt={`${projectName} logo`}
-                width={48}
-                height={48}
-                className="size-10 shrink-0 rounded-lg object-contain sm:size-12"
+                width={32}
+                height={32}
+                className="size-7 shrink-0 rounded-md object-contain sm:size-8"
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.display = "none";
                 }}

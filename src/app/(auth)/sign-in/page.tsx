@@ -53,14 +53,14 @@ export default function SignInPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
 
+  // Initialise store once on mount only — must not re-run on session refetch
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { reset(); setAuthMode("sign-in"); }, []);
+
+  // Redirect when a valid session is detected (e.g. after OTP verify)
   useEffect(() => {
-    if (!isPending && session) {
-      router.replace(routes.dashboard);
-      return;
-    }
-    reset();
-    setAuthMode("sign-in");
-  }, [reset, setAuthMode, isPending, session, router]);
+    if (!isPending && session) router.replace(routes.dashboard);
+  }, [isPending, session, router]);
 
   const { title, description } = STEP_CONTENT[step] ?? STEP_CONTENT["auth-method"];
   const hero =
