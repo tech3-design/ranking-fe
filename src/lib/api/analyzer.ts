@@ -1155,41 +1155,6 @@ export async function confirmBacklinkOrderPayment(
   return data;
 }
 
-// ── Wikipedia draft generator ─────────────────────────────────────────────────
-
-export interface WikipediaDraftResponse {
-  notability: {
-    verdict: "qualifies" | "borderline" | "needs_more_coverage";
-    score: number;
-    summary: string;
-    missing_evidence: string[];
-  };
-  draft: {
-    title: string;
-    lead: string;
-    sections: Array<{ heading: string; body_markdown: string }>;
-    infobox: Record<string, string>;
-    references_markdown: string;
-  };
-  edit_targets: Array<{
-    title: string;
-    url: string;
-    suggested_edit: string;
-  }>;
-  submit_instructions_markdown: string;
-}
-
-export async function generateWikipediaDraft(
-  slug: string,
-  trackId: number,
-): Promise<WikipediaDraftResponse> {
-  const { data } = await apiClientLong.post<WikipediaDraftResponse>(
-    `/api/analyzer/runs/s/${slug}/prompts/${trackId}/wikipedia/draft/`,
-    {},
-    { timeout: 90_000 },
-  );
-  return data;
-}
 
 // ── Per-prompt schema / E-E-A-T generator ────────────────────────────────────
 

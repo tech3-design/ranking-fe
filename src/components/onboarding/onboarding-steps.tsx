@@ -416,28 +416,6 @@ export const ONBOARDING_STEPS: TourStep[] = [
     route: "/prompts",
   },
 
-  // ── Wikipedia ─────────────────────────────────────────────────────────
-  {
-    kind: "spotlight",
-    id: "nav-wikipedia",
-    section: "wikipedia",
-    selector: '[data-tour="nav-wikipedia"]',
-    title: "Wikipedia",
-    body: "Wikipedia is one of the top citation sources for LLMs — it's worth its own view.",
-    side: "right",
-    route: "/prompts/wikipedia",
-  },
-  {
-    kind: "spotlight",
-    id: "wikipedia-panel",
-    section: "wikipedia",
-    selector: '[data-tour-card="wikipedia-panel"]',
-    title: "Wikipedia per prompt",
-    body: "Same prompt list as Tracker, expanded to show which Wikipedia articles AI engines reach for and how to earn a citation in them.",
-    side: "top",
-    align: "start",
-    route: "/prompts/wikipedia",
-  },
 
   // ── Competitors ───────────────────────────────────────────────────────
   {

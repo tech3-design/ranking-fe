@@ -141,3 +141,16 @@ export function BacklinksIcon(props: IconProps) {
     </svg>
   );
 }
+
+// BlogAgent — pen nib writing onto a page, accent dot at the nib tip.
+export function BlogAgentIcon(props: IconProps) {
+  return (
+    <svg {...svgBase(props)}>
+      <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+      <path d="M14 3v6h6" />
+      <path d="M8 13h8M8 17h5" />
+      <path d="M15.5 13.5 17 12l1.5 1.5-1.5 1.5z" fill="currentColor" stroke="none" />
+      <circle cx="17" cy="12" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}

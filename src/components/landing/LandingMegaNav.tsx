@@ -44,6 +44,7 @@ const INTEGRATION_PLUGINS: {
   href: string;
   img: string;
   desc: string;
+  shortDesc?: string;
 }[] = [
   {
     key: "shopify",
@@ -51,6 +52,7 @@ const INTEGRATION_PLUGINS: {
     href: "/integration/shopify",
     img: "/logos/shopify.svg",
     desc: "Connect Shopify to your Signalor account to automatically sync your products and orders.",
+    shortDesc: "Sync products and publish AI-optimized content to your store.",
   },
   {
     key: "wordpress",
@@ -58,6 +60,7 @@ const INTEGRATION_PLUGINS: {
     href: "/integration/wordpress",
     img: "/logos/wordpress.svg",
     desc: "Connect WordPress to your Signalor account to automatically sync your posts and pages.",
+    shortDesc: "Push GEO-optimised articles directly to your WordPress site.",
   },
 ];
 
@@ -371,7 +374,7 @@ function ResourceHoverCell({
           "flex h-full flex-col justify-center rounded-sm border p-2 transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1",
           isActive
-            ? "border-primary/15 bg-neutral-50"
+            ? "border-primary/20 bg-primary/5"
             : "border-transparent hover:bg-neutral-50/80",
         )}
         onPointerEnter={onHover}
@@ -388,11 +391,17 @@ function ResourceHoverCell({
         }}
       >
         <span className="flex gap-3 text-left">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-black/8 text-primary shadow-sm">
+          <span className={cn(
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border shadow-sm transition-colors",
+            isActive ? "border-primary/20 bg-primary/8 text-primary" : "border-black/8 text-primary",
+          )}>
             <Icon className="h-[15px] w-[15px]" strokeWidth={1.75} aria-hidden />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="text-[14px] font-semibold leading-snug tracking-tight text-neutral-900">
+            <span className={cn(
+              "text-[14px] font-semibold leading-snug tracking-tight transition-colors",
+              isActive ? "text-primary" : "text-neutral-900",
+            )}>
               {item.title}
             </span>
             <span className="mt-0.5 block text-xs font-light leading-snug text-accent-foreground">
@@ -455,30 +464,32 @@ function PreviewHeading({ label }: { label: string }) {
 
 function IntegrationsPreview({ onNavigate }: { onNavigate: () => void }) {
   return (
-    <>
+    <div className="flex h-full flex-col">
       <PreviewHeading label="Plugins" />
-      <ul role="list" className="flex flex-col gap-0.5">
+      <ul role="list" className="flex flex-1 flex-col gap-0.5">
         {INTEGRATION_PLUGINS.map((p) => (
-          <li key={p.key}>
+          <li key={p.key} className="flex flex-1">
             <Link
               href={p.href}
-              className="flex flex-col items-center gap-2 rounded-md p-2 text-[13px] font-semibold tracking-tight text-neutral-900 transition-colors hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
+              className="group flex flex-1 items-center gap-2 rounded-md p-2 transition-colors hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
               onClick={onNavigate}
             >
-              <div className="flex w-full items-center gap-2">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
-                  <Image src={p.img} alt={p.label} width={20} height={20} />
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white shadow-sm">
+                <Image src={p.img} alt={p.label} width={14} height={14} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-semibold tracking-tight text-neutral-900">
+                  {p.label}
                 </span>
-                {p.label}
-              </div>
-              <span className="text-xs font-light leading-snug text-accent-foreground">
-                {p.desc}
+                <span className="block text-[11px] font-light leading-snug text-accent-foreground">
+                  {p.shortDesc ?? p.desc}
+                </span>
               </span>
             </Link>
           </li>
         ))}
       </ul>
-    </>
+    </div>
   );
 }
 
@@ -575,10 +586,10 @@ function LoginPreview({ onNavigate, isAuthenticated }: { onNavigate: () => void;
           <li key={link.href}>
             <Link
               href={link.href}
-              className="flex items-center gap-2 rounded-md p-2 text-[13px] font-semibold tracking-tight text-neutral-900 transition-colors hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
+              className="group flex items-center gap-2 rounded-md p-2 text-[13px] font-semibold tracking-tight text-neutral-700 transition-colors hover:bg-white hover:text-neutral-900 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
               onClick={onNavigate}
             >
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm transition-colors group-hover:border-primary/20 group-hover:text-primary">
                 <Check className="h-3 w-3" strokeWidth={2} aria-hidden />
               </span>
               {link.label}

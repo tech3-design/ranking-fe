@@ -23,7 +23,6 @@ export type TourSection =
   | "sitemap"
   | "tasks"
   | "tracker"
-  | "wikipedia"
   | "competitors"
   | "content"
   | "backlinks";
@@ -57,7 +56,6 @@ export function sectionForPathname(
   if (rel.startsWith("/visibility")) return "visibility";
   if (rel.startsWith("/sitemap")) return "sitemap";
   if (rel.startsWith("/recommendations")) return "tasks";
-  if (rel.startsWith("/prompts/wikipedia")) return "wikipedia";
   if (rel.startsWith("/prompts")) return "tracker";
   if (rel.startsWith("/competitors")) return "competitors";
   if (rel.startsWith("/optimisation/content")) return "content";

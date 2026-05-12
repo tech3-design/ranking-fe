@@ -69,7 +69,7 @@ function AuthMarketingPanel() {
       <div className="absolute left-7 xl:left-9 top-[11.5rem] bottom-0 right-[-9rem] z-10 overflow-hidden rounded-tl-xl border border-black/10 shadow-[0_8px_40px_rgba(0,0,0,0.10)]">
         <div className="pointer-events-none h-full w-full">
           <Image
-            src="/carousel1.jpeg"
+            src="/carousel1.png"
             alt="AI search surfaces preview"
             width={3000}
             height={3000}

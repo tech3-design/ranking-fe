@@ -290,6 +290,7 @@ export async function connectWordPress(
     email,
     site_url: siteUrl,
     api_key: apiKey || undefined,
+    username: username || undefined,
     return_to: returnTo || "/dashboard",
     frontend_base: window.location.origin,
     username: username || undefined,
@@ -327,6 +328,77 @@ export async function getWordPressData(
     { params: { email } },
   );
   return data;
+}
+
+// ---------- Blog Agent ----------
+
+export interface BlogPost {
+  id: number;
+  title: string;
+  slug: string;
+  url: string;
+  published_at: string;
+  modified_at: string;
+}
+
+export interface BlogPostsResponse {
+  connected: boolean;
+  site_name?: string;
+  site_url?: string;
+  total_posts?: number;
+  published_posts_30d?: number;
+  posts: BlogPost[];
+  error?: string;
+}
+
+export interface BlogDraft {
+  title: string;
+  slug: string;
+  meta_description: string;
+  tags: string[];
+  content_html: string;
+}
+
+export interface BlogPublishResult {
+  post_id: number;
+  post_url: string;
+  status: string;
+  edit_url: string;
+}
+
+export async function getBlogPosts(runSlug: string): Promise<BlogPostsResponse> {
+  const { data } = await apiClient.get<BlogPostsResponse>(
+    `/api/analyzer/runs/s/${runSlug}/blog/posts/`,
+  );
+  return data;
+}
+
+export async function generateBlogDraft(
+  runSlug: string,
+  topic: string,
+  tone: string,
+  wordCount: number,
+): Promise<BlogDraft> {
+  const { data } = await apiClient.post<BlogDraft>(
+    `/api/analyzer/runs/s/${runSlug}/blog/generate/`,
+    { topic, tone, word_count: wordCount },
+  );
+  return data;
+}
+
+export async function publishBlogDraft(
+  runSlug: string,
+  draft: BlogDraft & { status: "draft" | "publish" },
+): Promise<BlogPublishResult> {
+  const { data } = await apiClient.post<BlogPublishResult>(
+    `/api/analyzer/runs/s/${runSlug}/blog/publish/`,
+    draft,
+  );
+  return data;
+}
+
+export async function deleteBlogPost(runSlug: string, postId: number): Promise<void> {
+  await apiClient.delete(`/api/analyzer/runs/s/${runSlug}/blog/posts/${postId}/`);
 }
 
 // ---------- Correlation ----------

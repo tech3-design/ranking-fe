@@ -61,7 +61,6 @@ import ActionsDropdown from "./ActionDropdown";
 import { BacklinkOpportunitiesPanel } from "./backlink-opportunities-panel";
 import { BrandKitCard } from "./brand-kit-card";
 import { BacklinkMarketplacePanel } from "./backlink-marketplace-panel";
-import { WikipediaPromptPanel } from "./wikipedia-prompt-panel";
 import { PromptRankPlanPanel } from "./prompt-rank-plan-panel";
 import { ENGINE_LOGO_SRC } from "@/lib/engines";
 
@@ -143,7 +142,7 @@ interface PromptTrackerProps {
   onAdded: (track: PromptTrack) => void;
   onRechecked: (trackId: number) => void;
   onDeleted?: (trackId: number) => void;
-  expandedMode?: "full" | "blank" | "backlinks" | "wikipedia";
+  expandedMode?: "full" | "blank" | "backlinks";
   /** When set, shows “Recheck all” to the left of the search field (toolbar). */
   onRecheckAll?: () => void | Promise<void>;
   recheckingAll?: boolean;
@@ -783,8 +782,6 @@ export function PromptTracker({
                       trackId={track.id}
                       promptText={track.prompt_text}
                     />
-                  ) : expandedMode === "wikipedia" ? (
-                    <WikipediaPromptPanel track={track} />
                   ) : expandedMode === "blank" ? (
                     <ActionsTabbedPanel slug={slug} track={track} />
                   ) : (

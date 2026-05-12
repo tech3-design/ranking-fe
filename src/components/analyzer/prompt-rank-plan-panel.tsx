@@ -124,18 +124,6 @@ const ACTIONS: ActionDef[] = [
     href: "/prompts/backlinks",
     cta: "See free targets",
   },
-  {
-    id: "wikipedia_targets",
-    title: "Find Wikipedia articles where you could be cited as a source",
-    why: "Wikipedia drives ~8% of AI citations. Adding your brand as a source citation in an existing article is far easier than getting a new article approved.",
-    pillar: "Authority",
-    pillarWeight: "40%",
-    impact: "medium",
-    effort: "30-60 min",
-    kind: "deeplink",
-    href: "/prompts/wikipedia",
-    cta: "Find targets",
-  },
 ];
 
 const PILLAR_STYLES: Record<ActionDef["pillar"], string> = {

@@ -38,7 +38,6 @@ import {
   SitemapIcon,
   TasksIcon,
   TrackerIcon,
-  WikipediaIcon,
   CompetitorsIcon,
   ContentIcon,
   BacklinksIcon,
@@ -83,7 +82,6 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
     heading: "Prompts",
     items: [
       { icon: TrackerIcon, label: "Tracker", path: "/prompts" },
-      { icon: WikipediaIcon, label: "Wikipedia", path: "/prompts/wikipedia" },
     ],
   },
   {
@@ -158,18 +156,19 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     return {
       title: "Backlinks",
       hint: "Earn citations on the open web — free submission targets and paid placements.",
+      docsUrl: "https://docs.signalor.ai/backlinks",
+    };
+  }
+  if (rel.startsWith("/blog-agent")) {
+    return {
+      title: "Blog Agent",
+      hint: "Generate and publish AI-written blog posts directly to your WordPress site.",
     };
   }
   if (rel.startsWith("/prompts/backlinks")) {
     return {
       title: "Backlinks",
       hint: "Free submission targets and paid placements via backlink providers.",
-    };
-  }
-  if (rel.startsWith("/prompts/wikipedia")) {
-    return {
-      title: "Wikipedia",
-      hint: "Check brand presence on Wikipedia and assess notability for a draft article.",
     };
   }
   if (rel.startsWith("/prompts/actions")) {
