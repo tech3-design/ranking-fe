@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { Lock, ArrowRight } from "@/components/icons";
 import { useSession } from "@/lib/auth-client";
 import { routes } from "@/lib/config";
-import { cn } from "@/lib/utils";
 
 /**
  * Wrap a free-tool result section with this component to gate the result
- * behind sign-up / sign-in. When the user has no session, the children are
- * rendered blurred and unreachable behind a centered modal prompting them
- * to create an account or log in. Signed-in users see the result normally
- * with no modal.
+ * behind sign-up / sign-in. Signed-in users see the result unchanged.
+ * Anonymous users see an inline card with sign-up / log-in CTAs sitting
+ * above a soft-faded version of the result — no full-screen modal, no
+ * body scroll lock, no darkening of the whole page.
  *
  * Usage:
  *   <SignupGateOverlay when={state.kind === "done"}>
@@ -23,7 +22,7 @@ export function SignupGateOverlay({
   when,
   children,
   title = "Sign up to see your full result",
-  body = "Your audit is ready. Create a free account or log in to view your score, recommendations, and pillar breakdown.",
+  body = "Create a free account or log in to view your score, recommendations, and pillar breakdown.",
 }: {
   when: boolean;
   children: ReactNode;
@@ -33,64 +32,47 @@ export function SignupGateOverlay({
   const { data: session, isPending } = useSession();
   const gated = when && !isPending && !session;
 
-  // Lock body scroll while the modal is up so the page doesn't jump.
-  useEffect(() => {
-    if (!gated) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [gated]);
-
   if (!when) return null;
-
-  if (!gated) {
-    // Signed in (or still resolving), show the real result.
-    return <>{children}</>;
-  }
+  if (!gated) return <>{children}</>;
 
   return (
-    <div className="relative">
-      {/* Result, blurred and inert so the user sees there is data without reading it. */}
-      <div aria-hidden className="pointer-events-none select-none blur-[6px] opacity-70">
-        {children}
+    <div className="relative mt-6">
+      {/* Inline sign-up card */}
+      <div className="mb-4 rounded-lg border border-primary/30 bg-white p-6 shadow-[0_2px_12px_rgba(228,96,85,0.08)]">
+        <div className="flex items-start gap-3">
+          <div className="hidden shrink-0 sm:block">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Lock className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">{title}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{body}</p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <Link
+                href={nextHref(routes.signIn)}
+                className="inline-flex items-center justify-center rounded-sm border border-black/10 bg-white px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-neutral-50"
+              >
+                Log in
+              </Link>
+              <Link
+                href={nextHref(routes.signUp)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:brightness-110"
+              >
+                Sign up free
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-        <div
-          className={cn(
-            "w-full max-w-md rounded-md border border-black/10 bg-white p-6 shadow-2xl",
-          )}
-        >
-          <div className="flex items-center gap-2">
-            <Lock className="h-3.5 w-3.5 text-primary" />
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
-              Unlock your result
-            </p>
-          </div>
-          <h2 className="mt-2 text-lg font-semibold text-foreground">{title}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <Link
-              href={nextHref(routes.signUp)}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-sm bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:brightness-110"
-            >
-              Create free account
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            <Link
-              href={nextHref(routes.signIn)}
-              className="inline-flex items-center justify-center rounded-sm border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-neutral-50"
-            >
-              Log in
-            </Link>
-          </div>
-          <p className="mt-3 text-[11px] text-muted-foreground">
-            Free forever. No credit card required.
-          </p>
-        </div>
+      {/* Faded result preview — visible enough to know the audit ran, masked
+          enough that the user has to sign up to actually read it. */}
+      <div aria-hidden className="pointer-events-none select-none [filter:blur(3px)] opacity-50">
+        {children}
       </div>
     </div>
   );
