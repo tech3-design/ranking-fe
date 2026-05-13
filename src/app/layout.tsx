@@ -77,11 +77,11 @@ export default function RootLayout({
         <JsonLd id="ld-website" data={websiteJsonLd()} />
         <JsonLd id="ld-software" data={softwareApplicationJsonLd()} />
       </head>
-      <Amplitude />
       <body
         suppressHydrationWarning
         className={`signalor-body ${fontSerif.variable} ${fontMono.variable} overflow-x-hidden antialiased`}
       >
+        <Amplitude />
         <ClarityInit />
         <Suspense fallback={null}>
           <ReferralCapture />
