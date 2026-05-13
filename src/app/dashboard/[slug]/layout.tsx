@@ -49,7 +49,7 @@ import { cn } from "@/lib/utils";
 import { DashboardAppFrame, type DashboardAppSection } from "./_components/dashboard-app-frame";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { DashboardTopBarActions } from "./_components/dashboard-top-bar-actions";
-import { TourProvider, useTour } from "@/components/onboarding/tour";
+import { TourProvider } from "@/components/onboarding/tour";
 import { ONBOARDING_STEPS } from "@/components/onboarding/onboarding-steps";
 
 type MainNavItem = {
@@ -245,23 +245,6 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
     };
   }
   return { title: "Dashboard", hint: "" };
-}
-
-function RestartTourButton({ onClick }: { onClick?: () => void }) {
-  const { start } = useTour();
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        start();
-        onClick?.();
-      }}
-      className="flex w-full items-center gap-2.5 px-2 py-1.5 text-left text-[13px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-    >
-      <Compass className="size-3.5" />
-      Restart tour
-    </button>
-  );
 }
 
 function AnalysisGate({ children }: { children: React.ReactNode }) {
@@ -611,7 +594,6 @@ export default function DashboardSlugLayout({ children }: { children: React.Reac
                 <Settings className="size-3.5" />
                 Settings
               </Link>
-              <RestartTourButton onClick={() => setUserMenuOpen(false)} />
             </div>
           </div>
         ) : null}
