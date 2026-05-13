@@ -14,8 +14,14 @@ interface GoogleDetailsPanelProps {
 }
 
 const METHOD_LABELS: Record<string, { label: string; color: string }> = {
-  google_cse_api: { label: "Google API", color: "text-emerald-600 bg-emerald-500/10 border-emerald-500/20" },
-  googlesearch_scraper: { label: "Web Scraper", color: "text-amber-600 bg-amber-500/10 border-amber-500/20" },
+  google_cse_api: {
+    label: "Google API",
+    color: "text-emerald-600 bg-emerald-500/10 border-emerald-500/20",
+  },
+  googlesearch_scraper: {
+    label: "Web Scraper",
+    color: "text-amber-600 bg-amber-500/10 border-amber-500/20",
+  },
   llm_analysis: { label: "AI Analysis", color: "text-teal-600 bg-teal-500/10 border-teal-500/20" },
   llm_estimate: { label: "AI Estimate", color: "text-teal-600 bg-teal-500/10 border-teal-500/20" },
 };
@@ -43,28 +49,34 @@ export function GoogleDetailsPanel({ details, score, compact = false }: GoogleDe
               Google
             </CardTitle>
             {method && (
-              <span className={`shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-md border ${method.color}`}>
+              <span
+                className={`shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-md border ${method.color}`}
+              >
                 {method.label}
               </span>
             )}
           </div>
-          <span className={cn("shrink-0 font-mono font-bold tabular-nums", compact ? "text-base" : "text-lg", tone.text)}>
-            {score != null ? roundedScore : "—"}
+          <span
+            className={cn(
+              "shrink-0 font-mono font-bold tabular-nums",
+              compact ? "text-base" : "text-lg",
+              tone.text,
+            )}
+          >
+            {score != null ? roundedScore : ","}
             <span className="text-muted-foreground font-sans text-xs font-normal">/100</span>
           </span>
         </div>
       </CardHeader>
       <CardContent className={cn("space-y-4", compact && "space-y-3 pb-4 pt-0")}>
-        {details.error && (
-          <p className="text-sm text-destructive">{details.error}</p>
-        )}
+        {details.error && <p className="text-sm text-destructive">{details.error}</p>}
 
         {/* Key metrics row */}
         <div className={cn("grid grid-cols-3 gap-2", compact && "gap-1.5")}>
           {[
             {
               label: "Brand rank",
-              value: details.brand_rank_position != null ? `#${details.brand_rank_position}` : "—",
+              value: details.brand_rank_position != null ? `#${details.brand_rank_position}` : ",",
               icon: <TrendingUp className="size-3.5 text-emerald-600" />,
             },
             {
@@ -86,7 +98,12 @@ export function GoogleDetailsPanel({ details, score, compact = false }: GoogleDe
               )}
             >
               <div className="flex justify-center mb-1">{metric.icon}</div>
-              <p className={cn("font-bold tabular-nums tracking-tight", compact ? "text-lg" : "text-xl")}>
+              <p
+                className={cn(
+                  "font-bold tabular-nums tracking-tight",
+                  compact ? "text-lg" : "text-xl",
+                )}
+              >
                 {metric.value}
               </p>
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mt-0.5">
@@ -141,17 +158,13 @@ export function GoogleDetailsPanel({ details, score, compact = false }: GoogleDe
         {/* Sub-scores breakdown with styled bars */}
         {details.sub_scores && (
           <div className="space-y-2.5">
-            <p className={cn("font-semibold tracking-tight", compact ? "text-xs" : "text-sm")}>Breakdown</p>
+            <p className={cn("font-semibold tracking-tight", compact ? "text-xs" : "text-sm")}>
+              Breakdown
+            </p>
             <div className="space-y-2">
-              {Object.entries(details.sub_scores)
-                .map(([key, value]) => (
-                  <HorizontalScoreBar
-                    key={key}
-                    label={key}
-                    value={value}
-                    compact={compact}
-                  />
-                ))}
+              {Object.entries(details.sub_scores).map(([key, value]) => (
+                <HorizontalScoreBar key={key} label={key} value={value} compact={compact} />
+              ))}
             </div>
           </div>
         )}
@@ -159,9 +172,7 @@ export function GoogleDetailsPanel({ details, score, compact = false }: GoogleDe
         {/* Reasoning (LLM method) */}
         {!compact && details.reasoning && (
           <div className="rounded-xl bg-muted/20 border border-border/50 p-3.5">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {details.reasoning}
-            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{details.reasoning}</p>
           </div>
         )}
 
@@ -185,14 +196,10 @@ export function GoogleDetailsPanel({ details, score, compact = false }: GoogleDe
                       #{r.position}
                     </span>
                     <div className="flex-1 min-w-0">
-                      {r.title ? (
-                        <p className="font-medium truncate">{r.title}</p>
-                      ) : null}
+                      {r.title ? <p className="font-medium truncate">{r.title}</p> : null}
                       <p className="text-muted-foreground truncate text-[10px]">{r.url}</p>
                       {r.snippet ? (
-                        <p className="text-muted-foreground/70 line-clamp-2 mt-0.5">
-                          {r.snippet}
-                        </p>
+                        <p className="text-muted-foreground/70 line-clamp-2 mt-0.5">{r.snippet}</p>
                       ) : null}
                     </div>
                     {r.is_brand && (

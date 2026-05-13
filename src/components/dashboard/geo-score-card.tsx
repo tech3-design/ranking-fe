@@ -10,7 +10,11 @@ const SEGMENTS = 28;
 
 function buildSegments(score: number) {
   const filled = Math.round((Math.min(100, Math.max(0, score)) / 100) * SEGMENTS);
-  const cx = 110, cy = 110, r = 88, barW = 8, barH = 22;
+  const cx = 110,
+    cy = 110,
+    r = 88,
+    barW = 8,
+    barH = 22;
   return Array.from({ length: SEGMENTS }, (_, i) => {
     const angleDeg = 180 - (i / (SEGMENTS - 1)) * 180;
     const rad = (angleDeg * Math.PI) / 180;
@@ -27,9 +31,9 @@ function buildSegments(score: number) {
 }
 
 function scoreTier(s: number) {
-  if (s >= 70) return { label: "Strong",   color: "text-emerald-600" };
+  if (s >= 70) return { label: "Strong", color: "text-emerald-600" };
   if (s >= 40) return { label: "Moderate", color: "text-amber-600" };
-  return              { label: "Low",      color: "text-rose-500" };
+  return { label: "Low", color: "text-rose-500" };
 }
 
 export function GeoScoreCard({
@@ -51,7 +55,7 @@ export function GeoScoreCard({
 
   useEffect(() => {
     const startVal = fromRef.current;
-    const duration = 1300; // ms — ease-out over ~1.3 s
+    const duration = 1300; // ms, ease-out over ~1.3 s
     const startTime = performance.now();
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -73,7 +77,6 @@ export function GeoScoreCard({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target]);
 
   const tier = scoreTier(displayScore);
@@ -89,7 +92,7 @@ export function GeoScoreCard({
         <p className="mt-0.5 text-[10px] text-muted-foreground">Composite across pillars</p>
       </div>
 
-      {/* Gauge — flex-1 so it fills available height, centered */}
+      {/* Gauge, flex-1 so it fills available height, centered */}
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-2">
         <div className="relative w-full" style={{ aspectRatio: "220 / 118" }}>
           <svg
@@ -119,15 +122,13 @@ export function GeoScoreCard({
             ))}
           </svg>
 
-          {/* Score label — centered in the arc mouth */}
+          {/* Score label, centered in the arc mouth */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center pb-0.5">
             <p className="tabular-nums text-[28px] font-bold leading-none tracking-tight text-foreground">
               {displayScore}
               <span className="text-[12px] font-semibold text-muted-foreground">/100</span>
             </p>
-            <p className={cn("mt-1 text-[10px] font-semibold", tier.color)}>
-              {tier.label}
-            </p>
+            <p className={cn("mt-1 text-[10px] font-semibold", tier.color)}>{tier.label}</p>
           </div>
         </div>
       </div>
@@ -157,7 +158,7 @@ export function GeoScoreCard({
           </div>
         ) : (
           <p className="text-center text-[9px] leading-snug text-muted-foreground">
-            First analysis — trend after next run
+            First analysis, trend after next run
           </p>
         )}
       </div>

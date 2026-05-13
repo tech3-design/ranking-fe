@@ -2,11 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
-import {
-  getPromptTracks,
-  recheckAllPrompts,
-  type PromptTrack,
-} from "@/lib/api/analyzer";
+import { getPromptTracks, recheckAllPrompts, type PromptTrack } from "@/lib/api/analyzer";
 import { PromptTracker } from "@/components/analyzer/prompt-tracker";
 import { AlertCircle } from "@/components/icons";
 import { PromptsSkeleton } from "@/components/dashboard/skeletons";
@@ -61,7 +57,7 @@ export default function PromptsOverviewPage() {
             </div>
             <p className="text-sm text-muted-foreground">
               See how AI models and search engines respond to queries about your brand.
-              Scored with the 2026 AI Visibility Framework — Authority, Content Quality &amp; Structural signals.
+              Scored with the 2026 AI Visibility Framework, Authority, Content Quality &amp; Structural signals.
             </p>
           </div>
 
@@ -95,10 +91,12 @@ export default function PromptsOverviewPage() {
         )}
       </div> */}
       <div className="min-w-0" data-tour-card="tracker-header">
-        <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Prompt Tracking</h2>
+        <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+          Prompt Tracking
+        </h2>
         <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-          See how AI models and search engines respond to queries about your brand.
-          Scored with the 2026 AI Visibility Framework — Authority, Content Quality &amp; Structural signals.
+          See how AI models and search engines respond to queries about your brand. Scored with the
+          2026 AI Visibility Framework, Authority, Content Quality &amp; Structural signals.
         </p>
       </div>
 

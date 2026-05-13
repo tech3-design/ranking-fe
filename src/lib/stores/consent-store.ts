@@ -8,7 +8,7 @@ import { create } from "zustand";
  * banner only shows on first visit + lets users open Preferences from the
  * footer to change their mind later.
  *
- * `decidedAt === null` means the banner is still pending — no analytics
+ * `decidedAt === null` means the banner is still pending, no analytics
  * tracker should run until the user has either Accepted or Rejected.
  */
 
@@ -34,7 +34,7 @@ interface ConsentStore extends ConsentState {
   /** Reject everything optional (keeps `necessary: true`). */
   rejectAll: () => void;
 
-  /** Wipe the saved choice — the banner will reappear on next render. */
+  /** Wipe the saved choice, the banner will reappear on next render. */
   reset: () => void;
 }
 
@@ -67,7 +67,7 @@ function writeToStorage(state: ConsentState) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
-    /* quota exceeded or storage disabled — no-op */
+    /* quota exceeded or storage disabled, no-op */
   }
 }
 

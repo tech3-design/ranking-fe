@@ -13,16 +13,28 @@ export default function LlmsCheckToolPage() {
         eyebrow="[ free tool · llm checker ]"
         title="See if AI can find and cite"
         titleAccent="your site"
-        description="Enter a domain and we'll check llms.txt, robots.txt AI-bot rules, sitemap, and on-page schema — an honest LLM-readiness score, free."
+        description="Enter a domain and we'll check llms.txt, robots.txt AI-bot rules, sitemap, and on-page schema, an honest LLM-readiness score, free."
         form={<LlmsCheckInline />}
         features={[
-          { title: "llms.txt check", description: "Verifies whether you publish a llms.txt manifest and how many sections it exposes." },
-          { title: "AI crawler rules", description: "Parses robots.txt for GPTBot, ClaudeBot, PerplexityBot, Google-Extended, and more." },
-          { title: "On-page signals", description: "Title, description, Open Graph, canonical, Organization schema, sitemap reachability." },
+          {
+            title: "llms.txt check",
+            description:
+              "Verifies whether you publish a llms.txt manifest and how many sections it exposes.",
+          },
+          {
+            title: "AI crawler rules",
+            description:
+              "Parses robots.txt for GPTBot, ClaudeBot, PerplexityBot, Google-Extended, and more.",
+          },
+          {
+            title: "On-page signals",
+            description:
+              "Title, description, Open Graph, canonical, Organization schema, sitemap reachability.",
+          },
           { title: "Free forever", description: "Run unlimited checks without an account." },
         ]}
         previewEyebrow="[ what's inside the full report ]"
-        previewTitle="Go beyond readiness —"
+        previewTitle="Go beyond readiness ,"
         previewTitleAccent="real AI probes"
         previewDescription="The free tool shows crawlability and schema signals. Sign up or upgrade to run live probes across ChatGPT, Claude, Gemini, and Perplexity."
         previewRows={[
@@ -40,7 +52,8 @@ function PreviewOtherEngines() {
     <div>
       <p className="text-sm font-semibold text-foreground">Live AI probes · 4 engines</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        See how ChatGPT, Claude, Gemini, and Perplexity actually describe your brand, with paraphrase & citation tagging per line.
+        See how ChatGPT, Claude, Gemini, and Perplexity actually describe your brand, with
+        paraphrase & citation tagging per line.
       </p>
     </div>
   );

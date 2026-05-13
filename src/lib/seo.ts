@@ -50,7 +50,7 @@ export const DEFAULT_OG = {
       url: SITE_OG_IMAGE,
       width: 1200,
       height: 630,
-      alt: `${SITE_BRAND} — ${SITE_TAGLINE}`,
+      alt: `${SITE_BRAND}, ${SITE_TAGLINE}`,
     },
   ],
 };
@@ -80,11 +80,11 @@ export function buildMetadata({
   ogType = "website",
 }: BuildMetadataInput = {}): Metadata {
   const url = absoluteUrl(path);
-  const fullTitle = title ? `${title} | ${SITE_BRAND}` : `${SITE_BRAND} — ${SITE_TAGLINE}`;
+  const fullTitle = title ? `${title} | ${SITE_BRAND}` : `${SITE_BRAND}, ${SITE_TAGLINE}`;
   const image = ogImage || SITE_OG_IMAGE;
 
   return {
-    title: title || `${SITE_BRAND} — ${SITE_TAGLINE}`,
+    title: title || `${SITE_BRAND}, ${SITE_TAGLINE}`,
     description,
     keywords: keywords ?? SITE_KEYWORDS,
     applicationName: SITE_NAME,

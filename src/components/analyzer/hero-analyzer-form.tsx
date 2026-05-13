@@ -57,9 +57,10 @@ export function HeroAnalyzerForm() {
   }
 
   async function handleAnalyze() {
-    const normalizedUrl = url.startsWith("http://") || url.startsWith("https://")
-      ? url.trim()
-      : `https://${url.trim()}`;
+    const normalizedUrl =
+      url.startsWith("http://") || url.startsWith("https://")
+        ? url.trim()
+        : `https://${url.trim()}`;
 
     setError("");
     setLoading(true);
@@ -103,7 +104,10 @@ export function HeroAnalyzerForm() {
                   type="text"
                   placeholder="Enter your domain (e.g. signalor.ai)"
                   value={url}
-                  onChange={(e) => { setUrl(e.target.value); setError(""); }}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    setError("");
+                  }}
                   onKeyDown={(e) => e.key === "Enter" && url.trim() && goNext()}
                   className="min-w-[180px] flex-1 bg-transparent py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                   autoFocus
@@ -146,7 +150,9 @@ export function HeroAnalyzerForm() {
                   </SelectTrigger>
                   <SelectContent>
                     {COUNTRY_OPTIONS.map((opt) => (
-                      <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -161,7 +167,7 @@ export function HeroAnalyzerForm() {
               </motion.div>
             )}
 
-            {/* STEP 2: Analyzing — coral rings + GEO/SEO facts (same family as dashboard overlay) */}
+            {/* STEP 2: Analyzing, coral rings + GEO/SEO facts (same family as dashboard overlay) */}
             {step === 2 && (
               <motion.div
                 key="loading"
@@ -205,7 +211,11 @@ export function HeroAnalyzerForm() {
             className="mt-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 dark:bg-red-500/10 dark:border-red-500/20 px-4 py-3 text-sm text-red-600 dark:text-red-400"
           >
             <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
             </svg>
             {error}
           </motion.div>

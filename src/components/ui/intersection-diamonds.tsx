@@ -9,7 +9,7 @@ const diamondStyle: React.CSSProperties = {
 };
 
 /**
- * Single diamond primitive — absolutely positioned by the caller. Use for
+ * Single diamond primitive, absolutely positioned by the caller. Use for
  * arbitrary intersection points that don't fit `CornerDiamonds` / `ScreenHR`
  * (e.g. an auth shell with detached edge lines forming a frame).
  */
@@ -30,7 +30,7 @@ export function Diamond({
 }
 
 /**
- * Place diamond markers at the corners of a `relative` container — meant to
+ * Place diamond markers at the corners of a `relative` container, meant to
  * punctuate where the container's implicit horizontal (top/bottom) border
  * meets the page's wrapping `max-w-7xl` vertical borders.
  */
@@ -45,14 +45,30 @@ export function CornerDiamonds({
     <>
       {top && (
         <>
-          <span aria-hidden className="pointer-events-none absolute z-10 rotate-45" style={{ ...diamondStyle, top: -HALF, left: -HALF }} />
-          <span aria-hidden className="pointer-events-none absolute z-10 rotate-45" style={{ ...diamondStyle, top: -HALF, right: -HALF }} />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute z-10 rotate-45"
+            style={{ ...diamondStyle, top: -HALF, left: -HALF }}
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute z-10 rotate-45"
+            style={{ ...diamondStyle, top: -HALF, right: -HALF }}
+          />
         </>
       )}
       {bottom && (
         <>
-          <span aria-hidden className="pointer-events-none absolute z-10 rotate-45" style={{ ...diamondStyle, bottom: -HALF, left: -HALF }} />
-          <span aria-hidden className="pointer-events-none absolute z-10 rotate-45" style={{ ...diamondStyle, bottom: -HALF, right: -HALF }} />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute z-10 rotate-45"
+            style={{ ...diamondStyle, bottom: -HALF, left: -HALF }}
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute z-10 rotate-45"
+            style={{ ...diamondStyle, bottom: -HALF, right: -HALF }}
+          />
         </>
       )}
     </>
@@ -69,8 +85,14 @@ export function ScreenHR() {
     <div aria-hidden className="relative">
       <div className="relative left-1/2 w-screen -translate-x-1/2 border-t border-black/6" />
       <div className="pointer-events-none absolute inset-x-0 top-0 mx-auto w-full max-w-7xl">
-        <span className="pointer-events-none absolute z-10 rotate-45" style={{ ...diamondStyle, top: -HALF, left: -HALF }} />
-        <span className="pointer-events-none absolute z-10 rotate-45" style={{ ...diamondStyle, top: -HALF, right: -HALF }} />
+        <span
+          className="pointer-events-none absolute z-10 rotate-45"
+          style={{ ...diamondStyle, top: -HALF, left: -HALF }}
+        />
+        <span
+          className="pointer-events-none absolute z-10 rotate-45"
+          style={{ ...diamondStyle, top: -HALF, right: -HALF }}
+        />
       </div>
     </div>
   );

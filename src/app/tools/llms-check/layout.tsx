@@ -3,9 +3,9 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Free llms.txt checker — LLM readiness score",
+  title: "Free llms.txt checker, LLM readiness score",
   description:
-    "Enter a domain and Signalor checks llms.txt, robots.txt rules for GPTBot, ClaudeBot, PerplexityBot, Google-Extended, sitemap, and on-page schema — an honest LLM-readiness score.",
+    "Enter a domain and Signalor checks llms.txt, robots.txt rules for GPTBot, ClaudeBot, PerplexityBot, Google-Extended, sitemap, and on-page schema, an honest LLM-readiness score.",
   path: "/tools/llms-check",
 });
 

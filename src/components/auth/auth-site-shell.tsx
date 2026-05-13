@@ -61,7 +61,7 @@ function AuthMarketingPanel() {
           Answer-engine visibility
         </p>
         <h2 className="mt-2.5 max-w-[280px] text-lg font-semibold leading-snug tracking-tight text-foreground xl:max-w-xs xl:text-xl">
-          See how your brand shows up in AI search — and fix what holds you back.
+          See how your brand shows up in AI search, and fix what holds you back.
         </h2>
       </div>
 

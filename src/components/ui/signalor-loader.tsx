@@ -8,7 +8,7 @@ interface SignalorLoaderProps {
 }
 
 /**
- * SignalorLoader — global loading visual.
+ * SignalorLoader, global loading visual.
  *
  * Rings are the current default. Once `@rive-app/react-canvas` is installed
  * and a Rive file lives at `/public/animations/loading.riv`, this component

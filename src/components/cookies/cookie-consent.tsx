@@ -10,7 +10,7 @@ import { Cookie } from "@/components/icons";
  * (no stored decision). Two choices: Accept all / Reject all.
  *
  * Mount once in the root layout. Tracker components (Amplitude, Clarity,
- * GA) check `useConsentStore(s => s.analytics)` before initializing —
+ * GA) check `useConsentStore(s => s.analytics)` before initializing ,
  * they stay dormant until the user accepts.
  */
 export function CookieConsentBanner() {

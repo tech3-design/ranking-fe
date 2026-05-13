@@ -200,7 +200,7 @@ function ResultView({ data, onReset }: { data: LlmsResult; onReset: () => void }
         <p className="mt-1 text-[12px] text-muted-foreground">
           {data.robots.present
             ? "Green = explicitly allowed · Red = disallowed · Gray = no rule (default allow)."
-            : "No robots.txt found — bots will crawl by default."}
+            : "No robots.txt found, bots will crawl by default."}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {data.robots.aiBots.length === 0 ? (
@@ -221,26 +221,26 @@ function ResultView({ data, onReset }: { data: LlmsResult; onReset: () => void }
             detail={
               data.llmsTxt.present
                 ? `Present · ${data.llmsTxt.sections} section${data.llmsTxt.sections === 1 ? "" : "s"}`
-                : "Not published — LLMs can't read a guided index of your content."
+                : "Not published, LLMs can't read a guided index of your content."
             }
           />
           <SignalRow
             ok={!!data.page.title}
             label="<title> tag"
-            detail={data.page.title ?? "Missing — add a descriptive title."}
+            detail={data.page.title ?? "Missing, add a descriptive title."}
           />
           <SignalRow
             ok={!!data.page.description}
             label="Meta description"
-            detail={data.page.description ?? "Missing — AI models often cite this directly."}
+            detail={data.page.description ?? "Missing, AI models often cite this directly."}
           />
           <SignalRow
             ok={data.page.hasOrganizationSchema}
             label="Organization schema"
             detail={
               data.page.hasOrganizationSchema
-                ? "Detected — AI engines can identify your brand."
-                : "Missing — add Organization JSON-LD to make the brand identifiable."
+                ? "Detected, AI engines can identify your brand."
+                : "Missing, add Organization JSON-LD to make the brand identifiable."
             }
           />
           <SignalRow ok={data.page.hasOgTags} label="Open Graph tags" />
@@ -251,7 +251,7 @@ function ResultView({ data, onReset }: { data: LlmsResult; onReset: () => void }
 
       <ToolGateCard
         theme="blue"
-        signedOutMessage="Sign up to run real AI probes across ChatGPT, Claude, Gemini, and Perplexity — see how each engine actually describes your brand."
+        signedOutMessage="Sign up to run real AI probes across ChatGPT, Claude, Gemini, and Perplexity, see how each engine actually describes your brand."
         upgradeMessage="Upgrade to Pro to run live probes across 4 AI engines, track sentiment over time, and benchmark against competitors."
         signedInActiveMessage="Run AI probes on your connected projects."
         signedInActiveLabel="Open dashboard"

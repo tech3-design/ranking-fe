@@ -9,12 +9,12 @@ const DEFAULT_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "How do I get started with Signalor?",
     answer:
-      "Paste any public URL into the free analyzer. You’ll get a GEO score, citation signals, and a prioritized fix list—no install required. Create an account when you want to save runs and track changes over time.",
+      "Paste any public URL into the free analyzer. You’ll get a GEO score, citation signals, and a prioritized fix list,no install required. Create an account when you want to save runs and track changes over time.",
   },
   {
     question: "Can I segment visibility by model, region, or audience?",
     answer:
-      "Dashboard views let you filter by AI surface (e.g. ChatGPT-style answers vs. search-style overviews) and track how recommendations shift by page and topic. Deeper geo and audience segmentation is on the roadmap—tell us what you need via sales.",
+      "Dashboard views let you filter by AI surface (e.g. ChatGPT-style answers vs. search-style overviews) and track how recommendations shift by page and topic. Deeper geo and audience segmentation is on the roadmap,tell us what you need via sales.",
   },
   {
     question: "How often is the data refreshed?",
@@ -24,7 +24,7 @@ const DEFAULT_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "What are brand visibility vs. source visibility metrics?",
     answer:
-      "Brand visibility is how often and how strongly your name and claims appear in AI-style answers for tracked prompts. Source visibility is whether your URLs are cited, paraphrased, or skipped—both matter for GEO, and Signalor surfaces gaps in each.",
+      "Brand visibility is how often and how strongly your name and claims appear in AI-style answers for tracked prompts. Source visibility is whether your URLs are cited, paraphrased, or skipped,both matter for GEO, and Signalor surfaces gaps in each.",
   },
   {
     question: "How do source citations work behind the scenes?",
@@ -34,7 +34,7 @@ const DEFAULT_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
     question: "How do I integrate Signalor into my BI or reporting tools?",
     answer:
-      "Export summaries and share links from the product today. API access and webhook-style delivery for scores and recommendations are planned—contact us if you need an enterprise export path sooner.",
+      "Export summaries and share links from the product today. API access and webhook-style delivery for scores and recommendations are planned,contact us if you need an enterprise export path sooner.",
   },
 ];
 

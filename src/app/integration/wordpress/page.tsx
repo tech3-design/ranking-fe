@@ -5,12 +5,15 @@ import { IntegrationPlatformHero } from "@/components/landing/integration-platfo
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
-import { INTEGRATION_DETAIL_FAQ, WORDPRESS_INTEGRATION_PAGE } from "@/lib/landing-integration-content";
+import {
+  INTEGRATION_DETAIL_FAQ,
+  WORDPRESS_INTEGRATION_PAGE,
+} from "@/lib/landing-integration-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "WordPress plugin — GEO scoring & schema fixes",
+  title: "WordPress plugin, GEO scoring & schema fixes",
   description: WORDPRESS_INTEGRATION_PAGE.subhead,
   path: "/integration/wordpress",
 });

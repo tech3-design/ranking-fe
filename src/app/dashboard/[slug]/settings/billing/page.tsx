@@ -131,7 +131,7 @@ export default function BillingSettingsPage() {
                 <div>
                   <p className="flex items-center gap-2 text-[14px] font-semibold tracking-tight text-neutral-900">
                     <PlanIcon className="h-4 w-4 text-primary" strokeWidth={1.75} />
-                    {sub?.is_active ? `${sub.plan_label} Plan — Active` : "No Active Subscription"}
+                    {sub?.is_active ? `${sub.plan_label} Plan, Active` : "No Active Subscription"}
                   </p>
                   <p className="text-[12px] font-light leading-snug text-accent-foreground">
                     {sub?.is_active && sub.current_period_end
@@ -170,7 +170,7 @@ export default function BillingSettingsPage() {
                 {atAnyLimit && (
                   <span className="flex items-center gap-1 text-[11px] font-semibold tracking-tight text-[#E04D00]">
                     <AlertTriangle className="h-3.5 w-3.5" />
-                    At limit — upgrade to continue
+                    At limit, upgrade to continue
                   </span>
                 )}
               </div>
@@ -321,7 +321,7 @@ function InvoicesSection({ email }: { email: string }) {
         </p>
       ) : items.length === 0 ? (
         <p className="text-[12px] text-accent-foreground">
-          No invoices yet — they’ll appear here after your first successful charge.
+          No invoices yet, they’ll appear here after your first successful charge.
         </p>
       ) : (
         <div className="overflow-hidden rounded-sm border border-black/8">
@@ -344,12 +344,12 @@ function InvoicesSection({ email }: { email: string }) {
                           month: "short",
                           year: "numeric",
                         })
-                      : "—"}
+                      : ","}
                   </td>
                   <td className="px-3 py-2.5 font-medium tabular-nums text-neutral-900">
                     {row.amount != null
                       ? `${row.currency ?? ""} ${row.amount.toFixed(2)}`.trim()
-                      : "—"}
+                      : ","}
                   </td>
                   <td className="px-3 py-2.5">
                     <InvoiceStatusPill status={row.status} />
@@ -376,7 +376,7 @@ function InvoicesSection({ email }: { email: string }) {
 }
 
 function InvoiceStatusPill({ status }: { status: string | null }) {
-  if (!status) return <span className="text-accent-foreground">—</span>;
+  if (!status) return <span className="text-accent-foreground">,</span>;
   const s = status.toLowerCase();
   let cls = "bg-neutral-100 text-neutral-700 border-black/10";
   if (s === "succeeded" || s === "paid" || s === "completed") {

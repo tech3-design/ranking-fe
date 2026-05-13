@@ -247,10 +247,10 @@ export interface CitationSourcesResponse {
   rival_pages: CitedPage[];
 }
 
-/** API codes for `intent` — display via `PROMPT_INTENT_LABEL`. */
+/** API codes for `intent`, display via `PROMPT_INTENT_LABEL`. */
 export type PromptSearchIntent = "brand" | "informational" | "transactional";
 
-/** API codes for `prompt_type` — display via `PROMPT_SURFACE_TYPE_LABEL`. */
+/** API codes for `prompt_type`, display via `PROMPT_SURFACE_TYPE_LABEL`. */
 export type PromptSurfaceType = "organic" | "branded" | "competitive";
 
 export const PROMPT_INTENT_LABEL: Record<PromptSearchIntent, string> = {
@@ -686,7 +686,7 @@ export async function toggleSchedule(payload: {
   brand_name?: string;
   frequency: ScheduleFrequency;
   is_active: boolean;
-  /** ISO datetime — required when frequency="once", optional otherwise. */
+  /** ISO datetime, required when frequency="once", optional otherwise. */
   run_at?: string;
 }): Promise<ScheduledAnalysis> {
   const { data } = await apiClient.post<ScheduledAnalysis>("/api/analyzer/schedule/", payload);
@@ -914,7 +914,7 @@ export async function getAgentLog(slug: string): Promise<AgentLogResponse> {
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Rank Tracker — auto-suggested queries + Google/Reddit/Quora rank snapshots
+// Rank Tracker, auto-suggested queries + Google/Reddit/Quora rank snapshots
 // ──────────────────────────────────────────────────────────────────────────
 
 export type RankAuditStatus = "queued" | "running" | "complete" | "failed";

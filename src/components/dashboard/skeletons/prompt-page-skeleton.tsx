@@ -54,12 +54,12 @@ export function PromptPageSkeleton() {
               {/* Chevron icon */}
               <Skeleton className="size-4 shrink-0 rounded" />
 
-              {/* Score badge — size-10 rounded-md */}
+              {/* Score badge, size-10 rounded-md */}
               <Skeleton className="size-10 shrink-0 rounded-md" />
 
               {/* Prompt text + meta badges */}
               <div className="min-w-0 flex-1 space-y-1.5">
-                {/* prompt text line — varies width per card */}
+                {/* prompt text line, varies width per card */}
                 <Skeleton
                   className="h-[14px] rounded"
                   style={{ width: `${55 + ((i * 11) % 35)}%` }}
@@ -72,7 +72,7 @@ export function PromptPageSkeleton() {
                 </div>
               </div>
 
-              {/* Engine logos — hidden on mobile, 6 icons */}
+              {/* Engine logos, hidden on mobile, 6 icons */}
               <div className="hidden shrink-0 items-center gap-1 sm:flex">
                 {[1, 2, 3, 4, 5, 6].map((j) => (
                   <Skeleton key={j} className="size-6 rounded-full" />

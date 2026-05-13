@@ -3,7 +3,7 @@ import confetti from "canvas-confetti";
 const CORAL = "#E04D00";
 
 /**
- * Fire a celebration confetti burst — coral + gold + white.
+ * Fire a celebration confetti burst, coral + gold + white.
  * Call after analysis completes or re-analysis finishes.
  */
 export function fireConfetti() {

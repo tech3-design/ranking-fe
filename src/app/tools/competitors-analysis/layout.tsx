@@ -5,7 +5,7 @@ import { breadcrumbJsonLd, buildMetadata, SITE_URL } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Free competitor analysis for AI search",
   description:
-    "Paste your domain and rank the brands buyers actually compare you against — pulled from live 'vs' and 'alternatives' autocomplete and AI co-mentions. Free, no sign-up.",
+    "Paste your domain and rank the brands buyers actually compare you against, pulled from live 'vs' and 'alternatives' autocomplete and AI co-mentions. Free, no sign-up.",
   path: "/tools/competitors-analysis",
 });
 

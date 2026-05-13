@@ -4,7 +4,7 @@ import React, { useLayoutEffect, useRef, useState } from "react";
 
 /**
  * PromptWatch-style grid: `gap-px` grout + rounded tiles (diamond junctions), one line
- * thickness between cells — no “double” stroke from stacked borders.
+ * thickness between cells, no “double” stroke from stacked borders.
  */
 export function HeroBackgroundGrid({
   cellSize = 112,
@@ -79,11 +79,7 @@ export function HeroBackgroundGrid({
           }}
         >
           {Array.from({ length: total }, (_, i) => (
-            <div
-              key={i}
-              className="min-h-0 bg-background"
-              style={{ borderRadius: cornerRadius }}
-            />
+            <div key={i} className="min-h-0 bg-background" style={{ borderRadius: cornerRadius }} />
           ))}
         </div>
         {markers ? (

@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 /**
  * Wraps the app in a single TanStack QueryClient. The client is created
- * inside a useState so React only constructs it once per browser tab —
+ * inside a useState so React only constructs it once per browser tab ,
  * if we constructed it at module scope, every Server-Component render
  * would reuse the same instance across requests, leaking state.
  *

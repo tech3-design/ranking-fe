@@ -705,7 +705,7 @@ export function LandingMegaNav() {
     closeTimer.current = setTimeout(() => setOpen(null), HOVER_CLOSE_MS);
   }, [cancelClose]);
 
-  // Open immediately on hover — no toggle, just ensures the menu is open
+  // Open immediately on hover, no toggle, just ensures the menu is open
   const openMenu = useCallback(
     (key: MegaKey) => {
       cancelClose();

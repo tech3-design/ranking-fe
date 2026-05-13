@@ -11,7 +11,7 @@ interface SparklesProps {
 }
 
 /**
- * Sparkles — overlay that emits twinkling stars over its parent.
+ * Sparkles, overlay that emits twinkling stars over its parent.
  * Parent must have position: relative.
  */
 export function Sparkles({

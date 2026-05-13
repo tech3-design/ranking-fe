@@ -46,7 +46,7 @@ export function SignupGateOverlay({
   if (!when) return null;
 
   if (!gated) {
-    // Signed in (or still resolving) — show the real result.
+    // Signed in (or still resolving), show the real result.
     return <>{children}</>;
   }
 

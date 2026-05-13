@@ -81,7 +81,9 @@ export function ScheduleAnalysisDialog({
     if (!open || typeof document === "undefined") return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [open]);
 
   const runAtIso = useMemo(() => {
@@ -97,13 +99,30 @@ export function ScheduleAnalysisDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!runAtIso) { setError("Pick a valid date and time."); return; }
-    if (!isFuture) { setError("Scheduled time must be in the future."); return; }
-    if (!url) { setError("Project URL is missing — can't schedule."); return; }
+    if (!runAtIso) {
+      setError("Pick a valid date and time.");
+      return;
+    }
+    if (!isFuture) {
+      setError("Scheduled time must be in the future.");
+      return;
+    }
+    if (!url) {
+      setError("Project URL is missing, can't schedule.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
-      await toggleSchedule({ email, org_id: orgId, url, brand_name: brandName, frequency, is_active: true, run_at: runAtIso });
+      await toggleSchedule({
+        email,
+        org_id: orgId,
+        url,
+        brand_name: brandName,
+        frequency,
+        is_active: true,
+        run_at: runAtIso,
+      });
       onScheduled?.();
       onClose();
     } catch {
@@ -114,9 +133,11 @@ export function ScheduleAnalysisDialog({
   }
 
   const humanFreq =
-    frequency === "once" ? "one time" :
-    frequency === "weekly" ? "every week from this moment" :
-    "every month from this moment";
+    frequency === "once"
+      ? "one time"
+      : frequency === "weekly"
+        ? "every week from this moment"
+        : "every month from this moment";
 
   if (!open) return null;
   if (typeof document === "undefined") return null;
@@ -127,7 +148,9 @@ export function ScheduleAnalysisDialog({
       aria-modal="true"
       aria-labelledby="schedule-analysis-title"
       className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <form
         onSubmit={handleSubmit}
@@ -144,8 +167,7 @@ export function ScheduleAnalysisDialog({
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               We'll run a fresh analysis of{" "}
-              <span className="font-medium text-foreground">{url}</span>{" "}
-              {humanFreq}.
+              <span className="font-medium text-foreground">{url}</span> {humanFreq}.
             </p>
           </div>
           <button
@@ -171,7 +193,7 @@ export function ScheduleAnalysisDialog({
                     variant="outline"
                     className={cn(
                       "h-9 w-full justify-start gap-2 border-border/80 bg-white px-3 text-left text-sm font-normal shadow-sm hover:bg-neutral-50",
-                      !date && "text-muted-foreground"
+                      !date && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="size-3.5 shrink-0 text-muted-foreground" />
@@ -232,9 +254,7 @@ export function ScheduleAnalysisDialog({
             </p>
           ) : null}
 
-          {error ? (
-            <p className="text-[12px] text-red-600">{error}</p>
-          ) : null}
+          {error ? <p className="text-[12px] text-red-600">{error}</p> : null}
         </div>
 
         <div className="mt-5 flex items-center justify-end gap-2">

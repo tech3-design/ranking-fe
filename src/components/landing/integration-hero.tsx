@@ -24,7 +24,7 @@ export function IntegrationHero() {
                 in
               </span>
             </span>{" "}
-            your stack — make <AiChip /> see{" "}
+            your stack, make <AiChip /> see{" "}
             <span className="relative whitespace-nowrap text-[#e04a3d]">
               the same truth
               <span
@@ -36,8 +36,8 @@ export function IntegrationHero() {
           </h1>
 
           <p className="mt-5 max-w-lg text-base font-light leading-relaxed text-accent-foreground sm:text-lg">
-            Connect Shopify and WordPress so GEO audits, scores, and recommendations use live catalog
-            and CMS data—not a stale crawl snapshot.
+            Connect Shopify and WordPress so GEO audits, scores, and recommendations use live
+            catalog and CMS data,not a stale crawl snapshot.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -81,7 +81,10 @@ export function IntegrationHero() {
               </span>
               <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#e04a3d]">
                 View integration
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                <ArrowRight
+                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                  aria-hidden
+                />
               </span>
             </Link>
           ))}

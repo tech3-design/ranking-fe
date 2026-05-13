@@ -104,7 +104,7 @@ const ACTIONS: ActionDef[] = [
   {
     id: "organization",
     title: "Organization JSON-LD anchoring your brand on this topic",
-    why: "Tells AI engines you're the canonical primary source for this prompt's topic — over aggregators that mention you.",
+    why: "Tells AI engines you're the canonical primary source for this prompt's topic, over aggregators that mention you.",
     pillar: "Authority",
     pillarWeight: "40%",
     impact: "medium",

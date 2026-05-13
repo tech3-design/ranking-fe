@@ -3,12 +3,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function VisibilitySkeleton() {
   return (
     <div className="space-y-4">
-
       {/* ── Row 1: KPI strip ─────────────────────────────────────────────── */}
       {/* mirrors: grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-
-        {/* Overall score card — col-span-2 sm:col-span-3 lg:col-span-2 */}
+        {/* Overall score card, col-span-2 sm:col-span-3 lg:col-span-2 */}
         <div
           className="col-span-2 flex items-center gap-4 rounded-xl border border-border/60 px-5 py-4 sm:col-span-3 lg:col-span-2"
           style={{ backgroundColor: "rgba(var(--primary-rgb,99,102,241),.04)" }}
@@ -42,7 +40,6 @@ export function VisibilitySkeleton() {
       {/* ── Row 2: Insights row ──────────────────────────────────────────── */}
       {/* mirrors: overflow-hidden rounded-xl border border-border/60 bg-card */}
       <div className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-
         {/* Header bar */}
         <div className="flex items-center gap-3 border-b border-border/60 px-5 py-3">
           <Skeleton className="h-3.5 w-3.5 rounded" />
@@ -55,8 +52,7 @@ export function VisibilitySkeleton() {
 
         {/* 3-column body: lg:grid-cols-12 */}
         <div className="grid grid-cols-1 divide-y divide-border/40 lg:grid-cols-12 lg:divide-x lg:divide-y-0">
-
-          {/* Column 1 — Share of Voice bar chart (lg:col-span-5) */}
+          {/* Column 1, Share of Voice bar chart (lg:col-span-5) */}
           <div className="p-4 lg:col-span-5">
             <Skeleton className="mb-2 h-[10px] w-24 rounded" />
             {/* Bar chart: height 192, 6 bars */}
@@ -73,7 +69,7 @@ export function VisibilitySkeleton() {
             </div>
           </div>
 
-          {/* Column 2 — Mention Split donut (lg:col-span-3) */}
+          {/* Column 2, Mention Split donut (lg:col-span-3) */}
           <div className="flex flex-col items-center p-4 lg:col-span-3">
             <Skeleton className="mb-3 h-[10px] w-24 self-start rounded" />
             {/* Donut: size 128 */}
@@ -98,7 +94,7 @@ export function VisibilitySkeleton() {
             </div>
           </div>
 
-          {/* Column 3 — Platform Reach list (lg:col-span-4) */}
+          {/* Column 3, Platform Reach list (lg:col-span-4) */}
           <div className="p-4 lg:col-span-4">
             <div className="mb-2.5 flex items-center gap-1.5">
               <Skeleton className="size-3 rounded" />
@@ -145,9 +141,8 @@ export function VisibilitySkeleton() {
           <Skeleton className="h-[10px] w-32 rounded" />
         </div>
 
-        {/* lg:grid-cols-3 — left col stacks Google+Reddit, right 2 cols = Web */}
+        {/* lg:grid-cols-3, left col stacks Google+Reddit, right 2 cols = Web */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-
           {/* Left column: Google card + Reddit card */}
           <div className="flex flex-col gap-4 lg:col-span-1">
             {/* Google Details card */}
@@ -224,7 +219,10 @@ export function VisibilitySkeleton() {
               {/* mention rows */}
               <div className="space-y-2">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-start gap-3 rounded-lg border border-border/30 p-2.5">
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 rounded-lg border border-border/30 p-2.5"
+                  >
                     <Skeleton className="mt-0.5 size-4 shrink-0 rounded-full" />
                     <div className="min-w-0 flex-1 space-y-1">
                       <Skeleton className="h-[11px] w-4/5 rounded" />
@@ -238,7 +236,6 @@ export function VisibilitySkeleton() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }

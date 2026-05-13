@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 type TourMedia = {
   /** Static screenshot/illustration. Ignored when `video` is set. */
   image?: string;
-  /** MP4/WebM URL — autoplays muted on loop. */
+  /** MP4/WebM URL, autoplays muted on loop. */
   video?: string;
   /** Poster shown before the video buffers. Falls back to `image` if absent. */
   videoPoster?: string;
@@ -286,7 +286,7 @@ function SpotlightStep({ step }: { step: Extract<TourStep, { kind: "spotlight" }
   }, [step.selector]);
 
   if (gaveUp) {
-    // Target missing — fall back to centered modal so the tour keeps moving.
+    // Target missing, fall back to centered modal so the tour keeps moving.
     return (
       <motion.div
         initial={{ opacity: 0 }}

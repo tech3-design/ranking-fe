@@ -5,7 +5,7 @@ import type { LucideIcon } from "@/components/icons";
 export const PROMPT_TRACKING_SITE = {
   title: "Prompt monitoring",
   description:
-    "Monitor AI prompts and surfaces where your brand should appear—aligned with Signalor GEO scoring, citations, and prioritized fixes.",
+    "Monitor AI prompts and surfaces where your brand should appear,aligned with Signalor GEO scoring, citations, and prioritized fixes.",
 } as const;
 
 export const PROMPT_TRACKING_HERO = {
@@ -15,8 +15,7 @@ export const PROMPT_TRACKING_HERO = {
   titleAccent: "product surface",
   subhead:
     "Capture the questions buyers ask models about your category, then tie answers to citations, GEO scores, and the schema and content work your team already prioritizes.",
-  footnote:
-    "Surface-aware views · saved run history · exports and digests on higher tiers",
+  footnote: "Surface-aware views · saved run history · exports and digests on higher tiers",
   primaryCta: "Start tracking",
   secondaryCta: "Run free GEO audit",
 } as const;
@@ -34,7 +33,7 @@ export const PROMPT_TRACKING_HUB_CARDS: {
     href: "/prompt-tracking/ai-surfaces",
     title: "AI surfaces",
     description:
-      "Group prompts by where answers appear—assistants, AI Overviews, answer engines—so PMM and SEO chase the same buyer moments.",
+      "Group prompts by where answers appear,assistants, AI Overviews, answer engines,so PMM and SEO chase the same buyer moments.",
     Icon: LayoutGrid,
     cta: "Learn more",
   },
@@ -49,7 +48,7 @@ export const PROMPT_TRACKING_HUB_CARDS: {
   },
 ];
 
-/** “Proof in numbers” — landing-why-signalor pattern */
+/** “Proof in numbers”, landing-why-signalor pattern */
 export const PROMPT_TRACKING_PROOF_METRICS = [
   { value: "50+", label: "Prompts per workspace" },
   { value: "8+", label: "Surfaces & engines" },
@@ -74,13 +73,13 @@ export const PROMPT_TRACKING_CAPABILITY_ROWS = [
     icon: ListChecks,
     title: "Libraries & tags",
     description:
-      "Tag prompts by funnel, region, or campaign so weekly readouts stay legible for execs—not buried in spreadsheets.",
+      "Tag prompts by funnel, region, or campaign so weekly readouts stay legible for execs,not buried in spreadsheets.",
   },
   {
     icon: Bell,
     title: "Drift alerts",
     description:
-      "Surface when mentions, citations, or omissions move after a launch—before competitors spot the gap in their own tooling.",
+      "Surface when mentions, citations, or omissions move after a launch,before competitors spot the gap in their own tooling.",
   },
   {
     icon: Link2,
@@ -95,7 +94,7 @@ export const PROMPT_TRACKING_FEATURES_INTRO = {
   titleBefore: "Everything you need to",
   titleAccent: "watch AI answers",
   description:
-    "Generative engines summarize, cite, or skip you in full sentences. Prompt tracking keeps your roadmap aligned with those answers—not only with where a blue link ranked last Tuesday.",
+    "Generative engines summarize, cite, or skip you in full sentences. Prompt tracking keeps your roadmap aligned with those answers,not only with where a blue link ranked last Tuesday.",
 } as const;
 
 export type PromptTrackingChatAnswerPart =
@@ -181,7 +180,7 @@ export const PROMPT_TRACKING_FEATURE_CELLS: {
   {
     title: "AI surfaces",
     description:
-      "Replay the same prompt across assistants and overviews—see where you are cited, paraphrased, or absent before you rewrite a page.",
+      "Replay the same prompt across assistants and overviews,see where you are cited, paraphrased, or absent before you rewrite a page.",
     mock: {
       kind: "chat",
       prompt: "Best project management tool for a 40-person product team?",
@@ -191,7 +190,7 @@ export const PROMPT_TRACKING_FEATURE_CELLS: {
         { t: " and " },
         { t: "Northwind", variant: "link" },
         {
-          t: " for roadmaps—Signalor is cited for integrations and rollout templates; Northwind leads on Gantt-first workflows.",
+          t: " for roadmaps,Signalor is cited for integrations and rollout templates; Northwind leads on Gantt-first workflows.",
         },
       ],
     },
@@ -199,20 +198,38 @@ export const PROMPT_TRACKING_FEATURE_CELLS: {
   {
     title: "Prompt library",
     description:
-      "Curate branded, category, and head-to-head prompts, then compare runs after schema or copy ships—without losing context in side docs.",
+      "Curate branded, category, and head-to-head prompts, then compare runs after schema or copy ships,without losing context in side docs.",
     mock: {
       kind: "library",
       rows: [
-        { q: "Why Signalor vs …", tag: "Branded", tagLetter: "B", tone: "bg-[#2563eb]", meta: "Last run · 2h ago" },
-        { q: "Best CRM for SMB…", tag: "Category", tagLetter: "C", tone: "bg-emerald-600", meta: "Last run · 6h ago" },
-        { q: "Acme vs us · pricing", tag: "Comp", tagLetter: "C", tone: "bg-amber-500", meta: "Last run · 1d ago" },
+        {
+          q: "Why Signalor vs …",
+          tag: "Branded",
+          tagLetter: "B",
+          tone: "bg-[#2563eb]",
+          meta: "Last run · 2h ago",
+        },
+        {
+          q: "Best CRM for SMB…",
+          tag: "Category",
+          tagLetter: "C",
+          tone: "bg-emerald-600",
+          meta: "Last run · 6h ago",
+        },
+        {
+          q: "Acme vs us · pricing",
+          tag: "Comp",
+          tagLetter: "C",
+          tone: "bg-amber-500",
+          meta: "Last run · 1d ago",
+        },
       ],
     },
   },
   {
     title: "Citation mix",
     description:
-      "For each prompt set, see how often your URLs are cited versus competitors or skipped—so SEO invests in the URLs models actually reuse.",
+      "For each prompt set, see how often your URLs are cited versus competitors or skipped,so SEO invests in the URLs models actually reuse.",
     mock: {
       kind: "citationBar",
       leftLabel: "Your domain",
@@ -228,7 +245,7 @@ export const PROMPT_TRACKING_FEATURE_CELLS: {
   {
     title: "Topic rollups",
     description:
-      "Stack-rank themes—pricing objections, security questions, integrations—by share of voice inside answers, not just search volume.",
+      "Stack-rank themes,pricing objections, security questions, integrations,by share of voice inside answers, not just search volume.",
     mock: {
       kind: "scoreCard",
       label: "Coverage",
@@ -245,12 +262,12 @@ export const PROMPT_TRACKING_FEATURE_CELLS: {
   {
     title: "Alert queue",
     description:
-      "Prompt-level deltas surface like a fix queue—so PMM, SEO, and comms triage the same drops and recoveries after every launch.",
+      "Prompt-level deltas surface like a fix queue,so PMM, SEO, and comms triage the same drops and recoveries after every launch.",
     mock: {
       kind: "alertList",
       items: [
         {
-          title: 'Dropped on “best CRM”',
+          title: "Dropped on “best CRM”",
           meta: "ChatGPT · since launch",
           dot: "red",
           badge: "New",
@@ -276,7 +293,7 @@ export const PROMPT_TRACKING_FEATURE_CELLS: {
   {
     title: "Competitor lens",
     description:
-      "Compare mention share for the same prompt basket—built for agency QBRs and internal exec reviews, not one-off screenshots.",
+      "Compare mention share for the same prompt basket,built for agency QBRs and internal exec reviews, not one-off screenshots.",
     mock: {
       kind: "competitorBars",
       title: "Share of mentions",
@@ -302,27 +319,26 @@ export const PROMPT_TRACKING_WHY = {
   titleAccent: "shelf space",
   titleAfter: "for AI buyers",
   intro:
-    "When models cite a competitor—or never name you—traditional rank trackers will not explain why. Signalor links prompts to surfaces, citations, and GEO fixes so growth, product, and SEO react to one signal.",
+    "When models cite a competitor,or never name you,traditional rank trackers will not explain why. Signalor links prompts to surfaces, citations, and GEO fixes so growth, product, and SEO react to one signal.",
   proofTitle: "Proof in numbers",
   proofBody:
     "Benchmarks teams cite when they graduate from SERP dashboards to generative visibility programs inside Signalor.",
   liveTitle: "Live preview",
   liveBody:
-    "The same answer review strategists run in a doc—before you ship schema, copy, or positioning—now anchored to saved prompts and surfaces.",
-  livePrompt:
-    "Who is winning GEO citations for enterprise analytics this quarter?",
+    "The same answer review strategists run in a doc,before you ship schema, copy, or positioning,now anchored to saved prompts and surfaces.",
+  livePrompt: "Who is winning GEO citations for enterprise analytics this quarter?",
   liveAnswerParts: [
     { t: "Models frequently cite " },
     { t: "Signalor", variant: "brand" },
     { t: " for implementation playbooks, while " },
     { t: "Acme", variant: "link" },
     {
-      t: " still owns generic “what is GEO” answers—tighten Organization JSON-LD on /docs to close the gap.",
+      t: " still owns generic “what is GEO” answers,tighten Organization JSON-LD on /docs to close the gap.",
     },
   ] satisfies readonly PromptTrackingChatAnswerPart[],
   coverageTitle: "Prompt coverage",
   coverageBody:
-    "Roll up visibility across prompt families so you know which themes need content, schema, or entity work next—not only which URL moved.",
+    "Roll up visibility across prompt families so you know which themes need content, schema, or entity work next,not only which URL moved.",
   coverageScoreLabel: "Coverage",
   coverageScore: "68",
   coverageSuffix: "/100",
@@ -335,14 +351,14 @@ export const PROMPT_TRACKING_WHY = {
   coverageCitedBarPct: 52,
   shipTitle: "What you ship",
   shipBody:
-    "The surfaces your team touches weekly—from curated prompts to alerts that route straight into GEO execution.",
+    "The surfaces your team touches weekly,from curated prompts to alerts that route straight into GEO execution.",
 } as const;
 
 export const PROMPT_TRACKING_HUB_FAQ = [
   {
     question: "How is prompt tracking different from traditional rank tracking?",
     answer:
-      "Rank trackers optimize for blue links on a results page. Prompt tracking follows how assistants and AI overviews answer specific questions—whether your brand, URLs, or competitors are named, cited, paraphrased, or skipped entirely.",
+      "Rank trackers optimize for blue links on a results page. Prompt tracking follows how assistants and AI overviews answer specific questions,whether your brand, URLs, or competitors are named, cited, paraphrased, or skipped entirely.",
   },
   {
     question: "Which AI surfaces can I monitor?",
@@ -352,7 +368,7 @@ export const PROMPT_TRACKING_HUB_FAQ = [
   {
     question: "Can I import prompts in bulk?",
     answer:
-      "Yes—curate lists and grouped themes inside the workspace. Bulk import and API sync are on the roadmap for teams migrating from spreadsheets or legacy monitoring stacks.",
+      "Yes,curate lists and grouped themes inside the workspace. Bulk import and API sync are on the roadmap for teams migrating from spreadsheets or legacy monitoring stacks.",
   },
   {
     question: "Do tracked prompts change my GEO score?",
@@ -370,10 +386,10 @@ export const AI_SURFACES_PAGE = {
   title: "AI surfaces",
   headline: "Know which answers matter for your category",
   subhead:
-    "Organize prompts by the AI experiences buyers trust—so product marketing, SEO, and comms align on the same surfaces instead of a single SERP snapshot that hides generative results.",
+    "Organize prompts by the AI experiences buyers trust,so product marketing, SEO, and comms align on the same surfaces instead of a single SERP snapshot that hides generative results.",
   bullets: [
     "Surface rollups show where you are over-represented, under-represented, or absent across engines on your plan.",
-    "Compare how the same prompt behaves where multi-engine coverage is enabled—spot drift before it shows up in revenue.",
+    "Compare how the same prompt behaves where multi-engine coverage is enabled,spot drift before it shows up in revenue.",
     "Pair surface trends with GEO recommendations so the next schema or copy fix targets the answers buyers actually see.",
   ],
 } as const;
@@ -413,7 +429,7 @@ export const PROMPT_TRACKING_SURFACES_FAQ = [
   {
     question: "Can I weight one surface higher than another?",
     answer:
-      "Yes—mark priority surfaces inside the workspace so rollups and alerts emphasize the experiences your buyers rely on most (for example, assistant-style answers vs. overview cards).",
+      "Yes,mark priority surfaces inside the workspace so rollups and alerts emphasize the experiences your buyers rely on most (for example, assistant-style answers vs. overview cards).",
   },
 ] as const;
 

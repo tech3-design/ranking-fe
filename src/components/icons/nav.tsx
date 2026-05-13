@@ -3,7 +3,7 @@ import * as React from "react";
 /**
  * Custom sidebar nav icon set for Signalor's dashboard navigation.
  *
- * Style rules — keep these consistent so the set reads as a designed family:
+ * Style rules, keep these consistent so the set reads as a designed family:
  *   - 24×24 viewBox, fill=none, currentColor stroke
  *   - 2px stroke, round caps and joins (matches lucide's visual weight so
  *     these can sit alongside other lucide icons in the same UI)
@@ -29,7 +29,7 @@ function svgBase(props: IconProps) {
   };
 }
 
-// Overview — 2×2 dashboard panel, top-left tile gets the accent.
+// Overview, 2×2 dashboard panel, top-left tile gets the accent.
 export function OverviewIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -42,7 +42,7 @@ export function OverviewIcon(props: IconProps) {
   );
 }
 
-// Visibility — eye outline with a centered AI-pupil dot.
+// Visibility, eye outline with a centered AI-pupil dot.
 export function VisibilityIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -53,7 +53,7 @@ export function VisibilityIcon(props: IconProps) {
   );
 }
 
-// Sitemap — root page connected to three child pages.
+// Sitemap, root page connected to three child pages.
 export function SitemapIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -68,7 +68,7 @@ export function SitemapIcon(props: IconProps) {
   );
 }
 
-// Tasks — two checklist rows, one checked, with a "pulse" accent dot.
+// Tasks, two checklist rows, one checked, with a "pulse" accent dot.
 export function TasksIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -82,7 +82,7 @@ export function TasksIcon(props: IconProps) {
   );
 }
 
-// Tracker — speech/prompt bubble centered on a citation target dot.
+// Tracker, speech/prompt bubble centered on a citation target dot.
 export function TrackerIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -92,7 +92,7 @@ export function TrackerIcon(props: IconProps) {
   );
 }
 
-// Competitors — primary brand avatar foregrounded, rival avatar behind.
+// Competitors, primary brand avatar foregrounded, rival avatar behind.
 export function CompetitorsIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -105,7 +105,7 @@ export function CompetitorsIcon(props: IconProps) {
   );
 }
 
-// Content — document outline with text lines and a "signal" accent.
+// Content, document outline with text lines and a "signal" accent.
 export function ContentIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -118,7 +118,7 @@ export function ContentIcon(props: IconProps) {
   );
 }
 
-// Backlinks — two interlocked rings (clearer than a chain glyph at small sizes).
+// Backlinks, two interlocked rings (clearer than a chain glyph at small sizes).
 export function BacklinksIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -129,7 +129,7 @@ export function BacklinksIcon(props: IconProps) {
   );
 }
 
-// BlogAgent — pen nib writing onto a page, accent dot at the nib tip.
+// BlogAgent, pen nib writing onto a page, accent dot at the nib tip.
 export function BlogAgentIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>

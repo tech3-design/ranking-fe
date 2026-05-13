@@ -173,7 +173,7 @@ export function DashboardAppFrame({
         <DashboardThemeToggle />
       </header>
 
-      {/* Desktop Layout — min-h-0 so nested overflow + flex stretch match the viewport */}
+      {/* Desktop Layout, min-h-0 so nested overflow + flex stretch match the viewport */}
 
       <div className="relative hidden min-h-0 flex-col md:flex md:flex-1 md:overflow-hidden">
         {/* Topbar */}

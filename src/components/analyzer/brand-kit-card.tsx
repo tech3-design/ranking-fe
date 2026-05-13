@@ -1,19 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Copy,
-  Check,
-  Loader2,
-  RefreshCw,
-  AlertCircle,
-  Briefcase,
-} from "@/components/icons";
-import {
-  getBrandKit,
-  regenerateBrandKit,
-  type BrandKit,
-} from "@/lib/api/analyzer";
+import { Copy, Check, Loader2, RefreshCw, AlertCircle, Briefcase } from "@/components/icons";
+import { getBrandKit, regenerateBrandKit, type BrandKit } from "@/lib/api/analyzer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -92,9 +81,7 @@ export function BrandKitCard({ slug }: BrandKitCardProps) {
           response?: { data?: { detail?: string } };
           message?: string;
         };
-        setError(
-          e.response?.data?.detail ?? e.message ?? "Failed to load brand kit",
-        );
+        setError(e.response?.data?.detail ?? e.message ?? "Failed to load brand kit");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -115,9 +102,7 @@ export function BrandKitCard({ slug }: BrandKitCardProps) {
         response?: { data?: { detail?: string } };
         message?: string;
       };
-      setError(
-        e.response?.data?.detail ?? e.message ?? "Failed to regenerate kit",
-      );
+      setError(e.response?.data?.detail ?? e.message ?? "Failed to regenerate kit");
     } finally {
       setRegenerating(false);
     }
@@ -130,7 +115,7 @@ export function BrandKitCard({ slug }: BrandKitCardProps) {
       setCopiedKey(key);
       window.setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 1500);
     } catch {
-      // clipboard refused — silently ignore
+      // clipboard refused, silently ignore
     }
   };
 
@@ -167,12 +152,8 @@ export function BrandKitCard({ slug }: BrandKitCardProps) {
           className="flex items-center gap-2 text-left"
         >
           <Briefcase className="size-4 text-muted-foreground" />
-          <h4 className="text-sm font-medium text-foreground">
-            Brand Submission Kit
-          </h4>
-          <span className="text-[10px] text-muted-foreground">
-            {expanded ? "Hide" : "Show"}
-          </span>
+          <h4 className="text-sm font-medium text-foreground">Brand Submission Kit</h4>
+          <span className="text-[10px] text-muted-foreground">{expanded ? "Hide" : "Show"}</span>
         </button>
         {expanded && (
           <Button
@@ -182,9 +163,7 @@ export function BrandKitCard({ slug }: BrandKitCardProps) {
             disabled={regenerating}
             className="h-7 gap-1.5 text-xs"
           >
-            <RefreshCw
-              className={cn("size-3.5", regenerating && "animate-spin")}
-            />
+            <RefreshCw className={cn("size-3.5", regenerating && "animate-spin")} />
             {regenerating ? "Regenerating…" : "Regenerate"}
           </Button>
         )}
@@ -192,8 +171,8 @@ export function BrandKitCard({ slug }: BrandKitCardProps) {
 
       {!expanded ? (
         <p className="text-xs text-muted-foreground">
-          Click to reveal pre-filled brand fields. Copy each one into the
-          submission form on the sites listed below.
+          Click to reveal pre-filled brand fields. Copy each one into the submission form on the
+          sites listed below.
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -230,14 +209,8 @@ function KitFieldRow({
     >
       <div className="mb-1 flex items-center justify-between gap-2">
         <div className="flex items-baseline gap-2">
-          <span className="text-[11px] font-medium text-foreground">
-            {field.label}
-          </span>
-          {field.hint && (
-            <span className="text-[10px] text-muted-foreground">
-              {field.hint}
-            </span>
-          )}
+          <span className="text-[11px] font-medium text-foreground">{field.label}</span>
+          {field.hint && <span className="text-[10px] text-muted-foreground">{field.hint}</span>}
         </div>
         <button
           type="button"
@@ -272,7 +245,7 @@ function KitFieldRow({
           empty ? "text-muted-foreground/50" : "text-foreground",
         )}
       >
-        {field.value || "—"}
+        {field.value || ","}
       </p>
     </div>
   );

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // ──────────────────────────────────────────────────────────────────────────
-// Real-search autocomplete signal — ranked by popularity
+// Real-search autocomplete signal, ranked by popularity
 //
 // Google Suggest + DuckDuckGo Instant Answer both return suggestions in
 // roughly popularity order. We preserve that order via position-weighted
@@ -15,15 +15,36 @@ type Source = "google" | "duckduckgo";
 
 interface ScoredSuggestion {
   text: string;
-  score: number; // 0..100 — higher = more likely searched
+  score: number; // 0..100, higher = more likely searched
   sources: Source[];
   tier: "high" | "medium" | "low";
 }
 
 const STOP_WORDS = new Set([
-  "the", "a", "an", "to", "for", "of", "in", "on", "with", "and", "or", "is",
-  "are", "how", "what", "when", "where", "why", "who", "from", "by", "about",
-  "near", "best",
+  "the",
+  "a",
+  "an",
+  "to",
+  "for",
+  "of",
+  "in",
+  "on",
+  "with",
+  "and",
+  "or",
+  "is",
+  "are",
+  "how",
+  "what",
+  "when",
+  "where",
+  "why",
+  "who",
+  "from",
+  "by",
+  "about",
+  "near",
+  "best",
 ]);
 
 function normalize(text: string): string {
@@ -61,36 +82,53 @@ function buildImprovementTips(
   const tips: string[] = [];
   for (const { topic } of topics) {
     if (topic.includes("price") || topic.includes("pricing") || topic.includes("cost")) {
-      tips.push(`Create a clear ${brandName} pricing page with tier comparison, FAQs, and transparent limits.`);
+      tips.push(
+        `Create a clear ${brandName} pricing page with tier comparison, FAQs, and transparent limits.`,
+      );
       continue;
     }
     if (topic.includes("review") || topic.includes("rating") || topic.includes("trustpilot")) {
-      tips.push(`Publish proof-focused review content and customer outcomes so ${brandName} appears stronger for trust queries.`);
+      tips.push(
+        `Publish proof-focused review content and customer outcomes so ${brandName} appears stronger for trust queries.`,
+      );
       continue;
     }
     if (topic.includes("alternative") || topic.includes("vs") || topic.includes("compare")) {
-      tips.push(`Build comparison pages: "${brandName} vs competitors" with honest differences and use-case fit.`);
+      tips.push(
+        `Build comparison pages: "${brandName} vs competitors" with honest differences and use-case fit.`,
+      );
       continue;
     }
     if (topic.includes("login") || topic.includes("support") || topic.includes("contact")) {
-      tips.push(`Improve support and help-center SEO for ${brandName} with fast-answer pages and structured FAQs.`);
+      tips.push(
+        `Improve support and help-center SEO for ${brandName} with fast-answer pages and structured FAQs.`,
+      );
       continue;
     }
-    tips.push(`Create dedicated content around "${topic}" tied to ${brandName} with direct answers and schema markup.`);
+    tips.push(
+      `Create dedicated content around "${topic}" tied to ${brandName} with direct answers and schema markup.`,
+    );
   }
   // Dedupe
   const seen = new Set<string>();
-  return tips.filter((t) => {
-    const k = normalize(t);
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  }).slice(0, 6);
+  return tips
+    .filter((t) => {
+      const k = normalize(t);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .slice(0, 6);
 }
 
 function parseDuckSuggestions(data: unknown): string[] {
   if (!Array.isArray(data)) return [];
-  if (data.length > 0 && typeof data[0] === "object" && data[0] !== null && "phrase" in (data[0] as Record<string, unknown>)) {
+  if (
+    data.length > 0 &&
+    typeof data[0] === "object" &&
+    data[0] !== null &&
+    "phrase" in (data[0] as Record<string, unknown>)
+  ) {
     return (data as DDGSuggestion[]).map((d) => d.phrase ?? "").filter(Boolean);
   }
   if (typeof data[0] === "string" && Array.isArray(data[1])) {
@@ -101,16 +139,13 @@ function parseDuckSuggestions(data: unknown): string[] {
 
 async function fetchDuckDuckGoSuggestions(query: string): Promise<string[]> {
   try {
-    const res = await fetch(
-      `https://duckduckgo.com/ac/?q=${encodeURIComponent(query)}&type=list`,
-      {
-        headers: {
-          Accept: "application/json",
-          "User-Agent": "Mozilla/5.0 (compatible; SignalorBot/1.0)",
-        },
-        cache: "no-store",
+    const res = await fetch(`https://duckduckgo.com/ac/?q=${encodeURIComponent(query)}&type=list`, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "Mozilla/5.0 (compatible; SignalorBot/1.0)",
       },
-    );
+      cache: "no-store",
+    });
     if (!res.ok) return [];
     const data = (await res.json()) as unknown;
     return parseDuckSuggestions(data);
@@ -121,7 +156,7 @@ async function fetchDuckDuckGoSuggestions(query: string): Promise<string[]> {
 
 async function fetchGoogleSuggestions(query: string): Promise<string[]> {
   // Google Suggest's firefox client returns: ["query", ["s1","s2",...]]
-  // Suggestions are returned in rough popularity order — we preserve that.
+  // Suggestions are returned in rough popularity order, we preserve that.
   try {
     const res = await fetch(
       `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}`,
@@ -161,21 +196,14 @@ function buildRankedSuggestions(
   perSeedGoogle: string[][],
   perSeedDdg: string[][],
 ): ScoredSuggestion[] {
-  const bag = new Map<
-    string,
-    { text: string; rawScore: number; sources: Set<Source> }
-  >();
+  const bag = new Map<string, { text: string; rawScore: number; sources: Set<Source> }>();
 
-  const bump = (
-    rawList: string[],
-    source: Source,
-    sourceWeight: number,
-  ) => {
+  const bump = (rawList: string[], source: Source, sourceWeight: number) => {
     rawList.forEach((text, idx) => {
       const clean = text.trim();
       if (!clean) return;
       const key = normalize(clean);
-      // Position bonus — Google/DDG roughly order by popularity.
+      // Position bonus, Google/DDG roughly order by popularity.
       // idx=0 contributes ~1.0, idx=9 contributes ~0.1.
       const positionWeight = Math.max(0.1, 1 - idx / 12);
       const existing = bag.get(key);
@@ -193,14 +221,14 @@ function buildRankedSuggestions(
     });
   };
 
-  // Google gets a slightly higher weight — stronger popularity signal.
+  // Google gets a slightly higher weight, stronger popularity signal.
   perSeedGoogle.forEach((list) => bump(list, "google", 1.2));
   perSeedDdg.forEach((list) => bump(list, "duckduckgo", 1.0));
 
   const rows = [...bag.values()];
   if (rows.length === 0) return [];
 
-  // Cross-source bonus — appearing in BOTH providers is a strong signal
+  // Cross-source bonus, appearing in BOTH providers is a strong signal
   for (const r of rows) {
     if (r.sources.has("google") && r.sources.has("duckduckgo")) {
       r.rawScore *= 1.25;
@@ -252,21 +280,22 @@ export async function POST(req: NextRequest) {
     const ranked = buildRankedSuggestions(googleLists, ddgLists).slice(0, 32);
 
     // Fallback when both providers returned nothing (rate-limited, etc.)
-    const fallback = ranked.length === 0
-      ? [
-          `${brandName} pricing`,
-          `${brandName} reviews`,
-          `${brandName} alternatives`,
-          `${brandName} vs competitors`,
-          `${brandName} features`,
-          `${brandName} support`,
-        ].map((text, idx) => ({
-          text,
-          score: Math.max(10, 60 - idx * 8),
-          sources: [] as Source[],
-          tier: tierFromScore(Math.max(10, 60 - idx * 8)),
-        }))
-      : ranked;
+    const fallback =
+      ranked.length === 0
+        ? [
+            `${brandName} pricing`,
+            `${brandName} reviews`,
+            `${brandName} alternatives`,
+            `${brandName} vs competitors`,
+            `${brandName} features`,
+            `${brandName} support`,
+          ].map((text, idx) => ({
+            text,
+            score: Math.max(10, 60 - idx * 8),
+            sources: [] as Source[],
+            tier: tierFromScore(Math.max(10, 60 - idx * 8)),
+          }))
+        : ranked;
 
     const plainTextList = fallback.map((r) => r.text);
     const topTopics = scoreTopics(plainTextList, brandName);
@@ -275,7 +304,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       source: "google+duckduckgo-autocomplete",
       seeds,
-      // Legacy field — kept for backwards compat (plain strings, already ranked).
+      // Legacy field, kept for backwards compat (plain strings, already ranked).
       suggestions: plainTextList,
       // New: each suggestion + its score (0..100) + source provenance.
       rankedSuggestions: fallback,

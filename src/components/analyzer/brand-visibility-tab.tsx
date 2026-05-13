@@ -219,7 +219,7 @@ function OverallScoreCard({
       style={{ backgroundColor: `${BRAND_COLOR}08`, borderColor: `${BRAND_COLOR}28` }}
       data-tour-card="visibility-overall"
     >
-      {/* Ring — no number inside; score lives solely on the right */}
+      {/* Ring, no number inside; score lives solely on the right */}
       <AnimatedRing value={overall} color={BRAND_COLOR} size={68} />
 
       <div className="min-w-0 flex-1 space-y-0.5">
@@ -367,7 +367,7 @@ function InsightsRow({
 
       {/* ── Three-column body ── */}
       <div className="grid grid-cols-1 divide-y divide-border/40 lg:grid-cols-12 lg:divide-x lg:divide-y-0">
-        {/* Column 1 — Share of Voice bar chart */}
+        {/* Column 1, Share of Voice bar chart */}
         {hasSov && (
           <div className="lg:col-span-5 p-4">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -387,7 +387,7 @@ function InsightsRow({
           </div>
         )}
 
-        {/* Column 2 — Mention Split donut */}
+        {/* Column 2, Mention Split donut */}
         {hasSov && (
           <div className="lg:col-span-3 flex flex-col items-center justify-start p-4">
             <p className="mb-3 w-full text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -418,7 +418,7 @@ function InsightsRow({
           </div>
         )}
 
-        {/* Column 3 — Platform Reach + optional Site Signals */}
+        {/* Column 3, Platform Reach + optional Site Signals */}
         <div className={cn("p-4", hasSov ? "lg:col-span-4" : "lg:col-span-12")}>
           <div className="mb-2.5 flex items-center gap-1.5">
             <Layers className="size-3 text-muted-foreground" />
@@ -427,7 +427,7 @@ function InsightsRow({
             </p>
           </div>
 
-          {/* Platform list — compact rows */}
+          {/* Platform list, compact rows */}
           <div className="space-y-1">
             {platformRows.map((plat) => {
               const found = plat.data.found;
@@ -461,7 +461,7 @@ function InsightsRow({
             })}
           </div>
 
-          {/* Site Signals — compact, inline */}
+          {/* Site Signals, compact, inline */}
           {hasSiteSignals && (
             <div className="mt-3 space-y-2.5 border-t border-border/40 pt-3">
               <div>
@@ -632,7 +632,7 @@ export function BrandVisibilityTab({ brandName, visibility, sov = [] }: BrandVis
           {/* Web + (Google/Reddit): Web spans 2 cols, Google+Reddit stack in 1 col */}
           {webMentionsDetails && (googleDetails || redditDetails) ? (
             <div className="grid grid-cols-1 gap-4 items-stretch lg:grid-cols-3">
-              {/* Left column — Google on top, Reddit below (stretches to match Web height) */}
+              {/* Left column, Google on top, Reddit below (stretches to match Web height) */}
               <div className="flex flex-col gap-4 h-full lg:col-span-1">
                 {googleDetails && (
                   <GoogleDetailsPanel
@@ -650,7 +650,7 @@ export function BrandVisibilityTab({ brandName, visibility, sov = [] }: BrandVis
                   />
                 )}
               </div>
-              {/* Right column — Web primary, spans 2 cols */}
+              {/* Right column, Web primary, spans 2 cols */}
               <div className="h-full lg:col-span-2">
                 <WebMentionsPanel
                   details={webMentionsDetails}
@@ -660,7 +660,7 @@ export function BrandVisibilityTab({ brandName, visibility, sov = [] }: BrandVis
               </div>
             </div>
           ) : (
-            /* Fallback: no Web card, or Web only — equal-width grid */
+            /* Fallback: no Web card, or Web only, equal-width grid */
             <div
               className={cn(
                 "grid grid-cols-1 gap-4 items-start",

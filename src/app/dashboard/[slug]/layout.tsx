@@ -150,7 +150,7 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
   if (rel.startsWith("/backlinks")) {
     return {
       title: "Backlinks",
-      hint: "Earn citations on the open web — free submission targets and paid placements.",
+      hint: "Earn citations on the open web, free submission targets and paid placements.",
       docsUrl: "https://docs.signalor.ai/backlinks",
     };
   }

@@ -1,9 +1,4 @@
-export type BlogCategory =
-  | "Playbooks"
-  | "AI visibility"
-  | "Product"
-  | "Research"
-  | "Guides";
+export type BlogCategory = "Playbooks" | "AI visibility" | "Product" | "Research" | "Guides";
 
 export interface BlogPost {
   slug: string;
@@ -26,7 +21,7 @@ export const BLOG_FEATURED: BlogPost = {
   slug: "citation-source-attribution-playbook",
   title: "How to turn AI citation gaps into your next content sprint",
   excerpt:
-    "A step-by-step playbook for reading the citation source attribution roll-up, picking the rival URLs worth beating, and shipping the page that wins the citation back — without guessing.",
+    "A step-by-step playbook for reading the citation source attribution roll-up, picking the rival URLs worth beating, and shipping the page that wins the citation back, without guessing.",
   category: "Playbooks",
   readingMinutes: 9,
   publishedAt: "2026-04-18",
@@ -35,7 +30,7 @@ export const BLOG_FEATURED: BlogPost = {
 export const BLOG_POSTS: BlogPost[] = [
   {
     slug: "what-gpt-actually-cites",
-    title: "What ChatGPT actually cites — a 500-prompt study",
+    title: "What ChatGPT actually cites, a 500-prompt study",
     excerpt:
       "We fired 500 buyer-intent prompts at ChatGPT with web search and measured which domains it cited. The answer is nothing like Google's top 10.",
     category: "Research",
@@ -55,7 +50,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: "five-factor-ai-visibility",
     title: "The 5-factor AI visibility framework, explained",
     excerpt:
-      "Authority, content quality, structural extractability, semantic alignment, third-party validation — why these five factors beat legacy SEO rank signals for AI search.",
+      "Authority, content quality, structural extractability, semantic alignment, third-party validation, why these five factors beat legacy SEO rank signals for AI search.",
     category: "AI visibility",
     readingMinutes: 10,
     publishedAt: "2026-04-06",
@@ -73,7 +68,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: "citation-source-attribution-shipped",
     title: "New: Citation source attribution (Phase 1 + 2 shipped)",
     excerpt:
-      "Every Signalor project now captures which URLs AI engines cite — your pages, rival pages, and the domain roll-up. Pairs with auto-fix to close the content loop.",
+      "Every Signalor project now captures which URLs AI engines cite, your pages, rival pages, and the domain roll-up. Pairs with auto-fix to close the content loop.",
     category: "Product",
     readingMinutes: 4,
     publishedAt: "2026-04-21",
@@ -82,7 +77,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: "perplexity-vs-chatgpt-visibility",
     title: "Perplexity vs ChatGPT: why your visibility split is wider than you think",
     excerpt:
-      "The two engines rarely agree on who to cite. We walk through 6 real categories where the gap is 40+ points — and what to ship to close it on the engine you're losing.",
+      "The two engines rarely agree on who to cite. We walk through 6 real categories where the gap is 40+ points, and what to ship to close it on the engine you're losing.",
     category: "AI visibility",
     readingMinutes: 8,
     publishedAt: "2026-03-30",
@@ -98,6 +93,6 @@ export const BLOG_STATS = [
 export const BLOG_NEWSLETTER = {
   title: "New GEO tactics every Thursday",
   description:
-    "One email, one tactic, zero fluff — a short essay on a real citation win, a prompt trend, or a schema fix you can ship the same day.",
+    "One email, one tactic, zero fluff, a short essay on a real citation win, a prompt trend, or a schema fix you can ship the same day.",
   cta: "Subscribe",
 };

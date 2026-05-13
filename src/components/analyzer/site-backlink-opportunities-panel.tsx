@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  ExternalLink,
-  Loader2,
-  RefreshCw,
-  Globe,
-  AlertCircle,
-  Sparkles,
-} from "@/components/icons";
+import { ExternalLink, Loader2, RefreshCw, Globe, AlertCircle, Sparkles } from "@/components/icons";
 import {
   getSiteBacklinkOpportunities,
   regenerateSiteBacklinkOpportunities,
@@ -28,18 +21,12 @@ const CATEGORY_LABEL: Record<OpportunityCategory, string> = {
 };
 
 const CATEGORY_STYLES: Record<OpportunityCategory, string> = {
-  directory:
-    "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20",
-  review:
-    "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
-  press:
-    "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20",
-  forum:
-    "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
-  resource:
-    "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20",
-  other:
-    "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20",
+  directory: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20",
+  review: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
+  press: "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20",
+  forum: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
+  resource: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20",
+  other: "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20",
 };
 
 const PRIORITY_LABEL: Record<number, string> = {
@@ -75,9 +62,7 @@ export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
           response?: { data?: { detail?: string } };
           message?: string;
         };
-        setError(
-          e.response?.data?.detail ?? e.message ?? "Failed to load opportunities",
-        );
+        setError(e.response?.data?.detail ?? e.message ?? "Failed to load opportunities");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -103,7 +88,7 @@ export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
       const msg =
         e.code === "ECONNABORTED"
           ? "Generation took too long. Try again, or refresh in a moment."
-          : e.response?.data?.detail ?? e.message ?? "Failed to generate";
+          : (e.response?.data?.detail ?? e.message ?? "Failed to generate");
       setError(msg);
     } finally {
       setRegenerating(false);
@@ -131,9 +116,7 @@ export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Globe className="size-4 text-muted-foreground" />
-          <h4 className="text-sm font-medium text-foreground">
-            Where to earn backlinks
-          </h4>
+          <h4 className="text-sm font-medium text-foreground">Where to earn backlinks</h4>
           {rows.length > 0 ? (
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
               {rows.length}
@@ -163,12 +146,10 @@ export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
 
       {isEmpty ? (
         <div className="rounded-md border border-dashed border-border bg-muted/10 px-4 py-10 text-center">
-          <p className="text-sm font-medium text-foreground">
-            No suggestions yet
-          </p>
+          <p className="text-sm font-medium text-foreground">No suggestions yet</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Generate a list of sites where you can earn a backlink for this
-            brand. Takes 10–30 seconds.
+            Generate a list of sites where you can earn a backlink for this brand. Takes 10–30
+            seconds.
           </p>
           <Button
             variant="default"
@@ -203,8 +184,8 @@ export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
       )}
 
       <p className="mt-3 text-[10px] leading-snug text-muted-foreground">
-        Suggestions are AI-generated. Verify each link before submitting — sites
-        change their listing/contribution policies over time.
+        Suggestions are AI-generated. Verify each link before submitting, sites change their
+        listing/contribution policies over time.
       </p>
     </div>
   );
@@ -242,9 +223,7 @@ function OpportunityRow({ opp, dataTour }: { opp: SiteOpportunity; dataTour?: st
         <p className="mt-1 text-xs text-muted-foreground">{opp.description}</p>
       ) : null}
       {opp.rationale ? (
-        <p className="mt-0.5 text-[11px] italic text-muted-foreground/80">
-          {opp.rationale}
-        </p>
+        <p className="mt-0.5 text-[11px] italic text-muted-foreground/80">{opp.rationale}</p>
       ) : null}
     </li>
   );

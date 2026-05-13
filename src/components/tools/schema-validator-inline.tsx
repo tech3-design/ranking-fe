@@ -187,7 +187,7 @@ function ResultView({ data, onReset }: { data: Summary; onReset: () => void }) {
         <div className="rounded-xl border border-black/6 bg-white p-5 shadow-sm">
           <p className="text-sm font-semibold text-foreground">No JSON-LD found</p>
           <p className="mt-1 text-[13px] text-muted-foreground">
-            This page ships no structured data. AI engines rely on schema to cite you confidently —
+            This page ships no structured data. AI engines rely on schema to cite you confidently ,
             add Organization, Product, or FAQ schema to make content citable.
           </p>
         </div>

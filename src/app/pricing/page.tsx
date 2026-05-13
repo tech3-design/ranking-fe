@@ -234,7 +234,7 @@ function PricingPageInner() {
             </span>
           </h2>
           <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
-            Start free, upgrade when your GEO program outgrows the Starter slots—cancel any time.
+            Start free, upgrade when your GEO program outgrows the Starter slots,cancel any time.
           </p>
 
           <div className="mt-10">
@@ -284,9 +284,8 @@ function PricingPageInner() {
                       ? live.prices_by_currency[userCcy]
                       : undefined;
 
-                  const useLocal = Boolean(
-                    localized !== undefined && userCcy && userCcy !== live.currency.toUpperCase(),
-                  );
+                  const useLocal =
+                    localized !== undefined && userCcy && userCcy !== live.currency.toUpperCase();
                   const ccy = useLocal ? userCcy! : live.currency.toUpperCase();
                   const amount = useLocal ? localized! : live.amount;
 
@@ -426,7 +425,7 @@ function PricingPageInner() {
             <p className="mt-10 text-center text-[11px] font-medium text-muted-foreground">
               {currency.code === "EUR"
                 ? "All prices in EUR. Secure payment. Cancel anytime."
-                : `Prices shown in ${currency.code} — indicative only. Charged in EUR at checkout. Cancel anytime.`}
+                : `Prices shown in ${currency.code}, indicative only. Charged in EUR at checkout. Cancel anytime.`}
             </p>
           </div>
         </div>

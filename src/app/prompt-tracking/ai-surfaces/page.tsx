@@ -6,12 +6,15 @@ import { IntegrationDetailCta } from "@/components/landing/integration-detail-ct
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
-import { AI_SURFACES_PAGE, PROMPT_TRACKING_SURFACES_FAQ } from "@/lib/landing-prompt-tracking-content";
+import {
+  AI_SURFACES_PAGE,
+  PROMPT_TRACKING_SURFACES_FAQ,
+} from "@/lib/landing-prompt-tracking-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "AI surfaces — prompt tracking",
+  title: "AI surfaces, prompt tracking",
   description: AI_SURFACES_PAGE.subhead,
   path: "/prompt-tracking/ai-surfaces",
 });

@@ -3,9 +3,9 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Free URL analyzer — GEO + AI visibility score",
+  title: "Free URL analyzer, GEO + AI visibility score",
   description:
-    "Paste any URL and get a free GEO score, citation signals, and the top three fixes — across ChatGPT, Claude, Gemini, Perplexity, and Google AI. No sign-up required.",
+    "Paste any URL and get a free GEO score, citation signals, and the top three fixes, across ChatGPT, Claude, Gemini, Perplexity, and Google AI. No sign-up required.",
   path: "/tools/url-analyzer",
 });
 

@@ -254,7 +254,7 @@ export function PromptTracker({
         const data = await getPromptRank(slug, trackId);
         setPromptRanks((p) => ({ ...p, [trackId]: data }));
       } catch {
-        // Silent — the card stays in its loading shape; user can re-expand.
+        // Silent, the card stays in its loading shape; user can re-expand.
       } finally {
         promptRankInflightRef.current.delete(trackId);
         setPromptRankLoading((p) => {
@@ -556,7 +556,7 @@ export function PromptTracker({
             <Lock className="size-3 shrink-0 text-muted-foreground" />
             <p className="min-w-0 flex-1 text-[11px] leading-snug text-muted-foreground">
               <span className="font-medium text-foreground">ChatGPT, Claude, Perplexity</span>
-              {" — "}Pro / Max.{" "}
+              {", "}Pro / Max.{" "}
               <span className="text-muted-foreground">Google and Bing on all plans.</span>
             </p>
             <Link
@@ -623,7 +623,7 @@ export function PromptTracker({
                     className={`flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-background ${ls.bg} ring-1 ${ls.ring}`}
                   >
                     <span className={`text-xs font-bold tabular-nums ${ls.text}`}>
-                      {hasResults ? score : "—"}
+                      {hasResults ? score : ","}
                     </span>
                   </div>
 
@@ -689,7 +689,7 @@ export function PromptTracker({
                     </div>
                   </div>
 
-                  {/* Engine status — brand logos */}
+                  {/* Engine status, brand logos */}
                   <div className="hidden shrink-0 items-center gap-1 sm:flex">
                     {enginesForUi.map((eng) => {
                       const res = track.results.filter((r) => r.engine === eng.key);
@@ -794,7 +794,7 @@ export function PromptTracker({
                                 <p
                                   className={`mt-0.5 text-lg font-semibold tabular-nums sm:text-xl ${bestPos > 0 ? "text-foreground" : "text-muted-foreground/50"}`}
                                 >
-                                  {bestPos > 0 ? `#${bestPos}` : "—"}
+                                  {bestPos > 0 ? `#${bestPos}` : ","}
                                 </p>
                                 <p className="mt-0.5 text-[10px] text-muted-foreground">
                                   {avgPos > 0 ? `Avg ${avgPos.toFixed(1)}` : "No rank data"}
@@ -1205,7 +1205,7 @@ export function PromptTracker({
         </div>
       )}
 
-      {/* Pagination controls — only when there's more than one page. */}
+      {/* Pagination controls, only when there's more than one page. */}
       {visibleTracks.length > PAGE_SIZE && (
         <div className="mt-3 flex items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
@@ -1592,7 +1592,7 @@ function BacklinksPreviewCard({ slug }: { slug: string }) {
           <div className="min-w-0">
             <p className="text-[12px] font-semibold text-foreground">Backlinks for this prompt</p>
             <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-              Top placements available right now — open the full page to filter, compare, and order.
+              Top placements available right now, open the full page to filter, compare, and order.
             </p>
           </div>
         </div>
@@ -1688,7 +1688,7 @@ const BACKLINK_SUBTABS: Array<{
   label: string;
   hint: string;
 }> = [
-  { key: "free", label: "Free opportunities", hint: "Submit yourself — no cost" },
+  { key: "free", label: "Free opportunities", hint: "Submit yourself, no cost" },
   { key: "buy", label: "Buy backlinks", hint: "Paid placements via providers" },
 ];
 
@@ -1955,7 +1955,7 @@ function EngineStatusIcon({
   );
 }
 
-/** KPI cell — optional orange left accent to match product theme. */
+/** KPI cell, optional orange left accent to match product theme. */
 function StatTile({
   label,
   value,

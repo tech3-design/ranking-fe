@@ -14,17 +14,57 @@ export type Currency = {
 };
 
 const CURRENCIES: Record<CurrencyCode, Currency> = {
-  EUR: { code: "EUR", symbol: "€", rate: 1,    decimals: 2, locale: "en-DE" },
-  USD: { code: "USD", symbol: "$", rate: 1.08,  decimals: 2, locale: "en-US" },
-  INR: { code: "INR", symbol: "₹", rate: 90.5,  decimals: 0, locale: "en-IN" },
+  EUR: { code: "EUR", symbol: "€", rate: 1, decimals: 2, locale: "en-DE" },
+  USD: { code: "USD", symbol: "$", rate: 1.08, decimals: 2, locale: "en-US" },
+  INR: { code: "INR", symbol: "₹", rate: 90.5, decimals: 0, locale: "en-IN" },
 };
 
-// Eurozone + broader EU countries — all map to EUR
+// Eurozone + broader EU countries, all map to EUR
 const EUR_COUNTRIES = new Set([
-  "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU",
-  "IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE",
-  "CH","NO","IS","AL","BA","ME","MK","RS","MD","UA","BY","LI","AD","MC",
-  "SM","VA","GB",
+  "AT",
+  "BE",
+  "BG",
+  "HR",
+  "CY",
+  "CZ",
+  "DK",
+  "EE",
+  "FI",
+  "FR",
+  "DE",
+  "GR",
+  "HU",
+  "IE",
+  "IT",
+  "LV",
+  "LT",
+  "LU",
+  "MT",
+  "NL",
+  "PL",
+  "PT",
+  "RO",
+  "SK",
+  "SI",
+  "ES",
+  "SE",
+  "CH",
+  "NO",
+  "IS",
+  "AL",
+  "BA",
+  "ME",
+  "MK",
+  "RS",
+  "MD",
+  "UA",
+  "BY",
+  "LI",
+  "AD",
+  "MC",
+  "SM",
+  "VA",
+  "GB",
 ]);
 
 function detectFromTimezone(): CurrencyCode | null {
@@ -73,7 +113,9 @@ export function useCurrency(): { currency: Currency; ready: boolean; country: st
         else if (!EUR_COUNTRIES.has(cc)) code = "EUR"; // default rest of world → EUR
         setCurrency(CURRENCIES[code]);
       })
-      .catch(() => { /* timezone already set initial value */ })
+      .catch(() => {
+        /* timezone already set initial value */
+      })
       .finally(() => {
         clearTimeout(timeout);
         if (!cancelled) setReady(true);

@@ -28,7 +28,7 @@ export function PageIframe({
   onSelectElement,
 }: Props) {
   const [hoverId, setHoverId] = useState<number | null>(null);
-  // Natural image height in CSS px — we need it to position bboxes vertically
+  // Natural image height in CSS px, we need it to position bboxes vertically
   // as a percentage of the image's intrinsic height. Captured on image load.
   const [imgNaturalHeight, setImgNaturalHeight] = useState(0);
 
@@ -64,7 +64,7 @@ export function PageIframe({
         />
         {/* Overlay layer fills the image's rendered box. We position each
             element's hit-zone with percentages so it scales correctly when
-            the panel is resized — left/width relative to viewportWidth (the
+            the panel is resized, left/width relative to viewportWidth (the
             screenshot's intrinsic width), top/height relative to the image's
             intrinsic height. */}
         {imgNaturalHeight > 0 ? (
@@ -87,8 +87,8 @@ export function PageIframe({
                     isSelected
                       ? "border-2 border-primary bg-primary/10"
                       : isHover
-                      ? "border-2 border-primary/60 bg-primary/5"
-                      : "border border-transparent hover:border-primary/40",
+                        ? "border-2 border-primary/60 bg-primary/5"
+                        : "border border-transparent hover:border-primary/40",
                   )}
                   style={{
                     left: `${(el.bbox.x / viewportWidth) * 100}%`,

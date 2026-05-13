@@ -4,11 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useOnboardingStore } from "@/lib/stores/onboarding-store";
 import { authClient } from "@/lib/auth-client";
 import { checkOrganizationExists } from "@/lib/api/organizations";
@@ -47,10 +43,8 @@ export function OtpForm() {
         if (hasOrg) {
           router.push(routes.dashboard);
         } else {
-          // No org found — user hasn't signed up yet
-          setError(
-            "No account found for this email. Please sign up first.",
-          );
+          // No org found, user hasn't signed up yet
+          setError("No account found for this email. Please sign up first.");
           await authClient.signOut();
         }
       }

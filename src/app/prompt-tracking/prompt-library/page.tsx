@@ -6,12 +6,15 @@ import { IntegrationDetailCta } from "@/components/landing/integration-detail-ct
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
-import { PROMPT_LIBRARY_PAGE, PROMPT_TRACKING_LIBRARY_FAQ } from "@/lib/landing-prompt-tracking-content";
+import {
+  PROMPT_LIBRARY_PAGE,
+  PROMPT_TRACKING_LIBRARY_FAQ,
+} from "@/lib/landing-prompt-tracking-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Prompt library — prompt tracking",
+  title: "Prompt library, prompt tracking",
   description: PROMPT_LIBRARY_PAGE.subhead,
   path: "/prompt-tracking/prompt-library",
 });

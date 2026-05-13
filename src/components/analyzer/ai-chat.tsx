@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { MessageSquare, Send, Loader2, X, Compass, ChevronLeft } from "@/components/icons";
 import { config } from "@/lib/config";
 
-/** Parse AI reply into formatted React elements — handles **bold**, headings, lists, numbered steps */
+/** Parse AI reply into formatted React elements, handles **bold**, headings, lists, numbered steps */
 function formatAiReply(text: string) {
   const lines = text.split("\n");
   const elements: React.ReactNode[] = [];
@@ -21,7 +21,7 @@ function formatAiReply(text: string) {
               <span>{renderInline(item)}</span>
             </li>
           ))}
-        </ul>
+        </ul>,
       );
       listItems = [];
     }
@@ -30,11 +30,13 @@ function formatAiReply(text: string) {
         <ol key={`ol-${elements.length}`} className="space-y-1 ml-1">
           {orderedItems.map((item, i) => (
             <li key={i} className="flex items-start gap-2">
-              <span className="w-4 h-4 bg-foreground/10 text-foreground text-[10px] font-bold flex items-center justify-center shrink-0 rounded mt-0.5">{i + 1}</span>
+              <span className="w-4 h-4 bg-foreground/10 text-foreground text-[10px] font-bold flex items-center justify-center shrink-0 rounded mt-0.5">
+                {i + 1}
+              </span>
               <span>{renderInline(item)}</span>
             </li>
           ))}
-        </ol>
+        </ol>,
       );
       orderedItems = [];
     }
@@ -42,19 +44,53 @@ function formatAiReply(text: string) {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed) { flushList(); elements.push(<div key={elements.length} className="h-1" />); continue; }
+    if (!trimmed) {
+      flushList();
+      elements.push(<div key={elements.length} className="h-1" />);
+      continue;
+    }
 
     // Headings
-    if (trimmed.startsWith("### ")) { flushList(); elements.push(<p key={elements.length} className="font-semibold text-foreground mt-1">{renderInline(trimmed.slice(4))}</p>); continue; }
-    if (trimmed.startsWith("## ")) { flushList(); elements.push(<p key={elements.length} className="font-semibold text-foreground mt-1">{renderInline(trimmed.slice(3))}</p>); continue; }
-    if (trimmed.startsWith("# ")) { flushList(); elements.push(<p key={elements.length} className="font-bold text-foreground mt-1">{renderInline(trimmed.slice(2))}</p>); continue; }
+    if (trimmed.startsWith("### ")) {
+      flushList();
+      elements.push(
+        <p key={elements.length} className="font-semibold text-foreground mt-1">
+          {renderInline(trimmed.slice(4))}
+        </p>,
+      );
+      continue;
+    }
+    if (trimmed.startsWith("## ")) {
+      flushList();
+      elements.push(
+        <p key={elements.length} className="font-semibold text-foreground mt-1">
+          {renderInline(trimmed.slice(3))}
+        </p>,
+      );
+      continue;
+    }
+    if (trimmed.startsWith("# ")) {
+      flushList();
+      elements.push(
+        <p key={elements.length} className="font-bold text-foreground mt-1">
+          {renderInline(trimmed.slice(2))}
+        </p>,
+      );
+      continue;
+    }
 
     // Bullet lists
-    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) { listItems.push(trimmed.slice(2)); continue; }
+    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      listItems.push(trimmed.slice(2));
+      continue;
+    }
 
     // Numbered lists
     const numMatch = trimmed.match(/^(\d+)[.)]\s+(.*)/);
-    if (numMatch) { orderedItems.push(numMatch[2]); continue; }
+    if (numMatch) {
+      orderedItems.push(numMatch[2]);
+      continue;
+    }
 
     // Regular paragraph
     flushList();
@@ -76,7 +112,11 @@ function renderInline(text: string): React.ReactNode {
     const boldMatch = remaining.match(/^([\s\S]*?)\*\*(.+?)\*\*([\s\S]*)/);
     if (boldMatch) {
       if (boldMatch[1]) parts.push(<span key={key++}>{boldMatch[1]}</span>);
-      parts.push(<strong key={key++} className="font-semibold text-foreground">{boldMatch[2]}</strong>);
+      parts.push(
+        <strong key={key++} className="font-semibold text-foreground">
+          {boldMatch[2]}
+        </strong>,
+      );
       remaining = boldMatch[3];
       continue;
     }
@@ -85,12 +125,16 @@ function renderInline(text: string): React.ReactNode {
     const codeMatch = remaining.match(/^([\s\S]*?)`(.+?)`([\s\S]*)/);
     if (codeMatch) {
       if (codeMatch[1]) parts.push(<span key={key++}>{codeMatch[1]}</span>);
-      parts.push(<code key={key++} className="bg-foreground/5 px-1 py-0.5 rounded text-[11px] font-mono">{codeMatch[2]}</code>);
+      parts.push(
+        <code key={key++} className="bg-foreground/5 px-1 py-0.5 rounded text-[11px] font-mono">
+          {codeMatch[2]}
+        </code>,
+      );
       remaining = codeMatch[3];
       continue;
     }
 
-    // No more matches — push the rest
+    // No more matches, push the rest
     parts.push(<span key={key++}>{remaining}</span>);
     break;
   }
@@ -115,7 +159,7 @@ export function AiChat({ slug, brandName, open, onClose, initialMessage }: AiCha
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Hi! I'm your GEO assistant. I have full context of ${brandName || "your site"}'s analysis — scores, recommendations, and what to improve. Ask me anything!`,
+      content: `Hi! I'm your GEO assistant. I have full context of ${brandName || "your site"}'s analysis, scores, recommendations, and what to improve. Ask me anything!`,
     },
   ]);
   const [input, setInput] = useState("");
@@ -150,10 +194,19 @@ export function AiChat({ slug, brandName, open, onClose, initialMessage }: AiCha
       })
         .then((r) => r.json())
         .then((data) => {
-          setMessages((prev) => [...prev, { role: "assistant", content: data.reply || data.response || data.message || "I can help with that!" }]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: data.reply || data.response || data.message || "I can help with that!",
+            },
+          ]);
         })
         .catch(() => {
-          setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn't process that. Try again." }]);
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "Sorry, I couldn't process that. Try again." },
+          ]);
         })
         .finally(() => setLoading(false));
     }
@@ -183,10 +236,16 @@ export function AiChat({ slug, brandName, open, onClose, initialMessage }: AiCha
         const data = await resp.json();
         setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
       } else {
-        setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn't process that. Please try again." }]);
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: "Sorry, I couldn't process that. Please try again." },
+        ]);
       }
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Connection error. Please try again." }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Connection error. Please try again." },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -226,9 +285,7 @@ export function AiChat({ slug, brandName, open, onClose, initialMessage }: AiCha
               {msg.role === "user" ? (
                 <p>{msg.content}</p>
               ) : (
-                <div className="chat-reply space-y-1.5">
-                  {formatAiReply(msg.content)}
-                </div>
+                <div className="chat-reply space-y-1.5">{formatAiReply(msg.content)}</div>
               )}
             </div>
           </div>
@@ -257,7 +314,10 @@ export function AiChat({ slug, brandName, open, onClose, initialMessage }: AiCha
           ].map((q) => (
             <button
               key={q}
-              onClick={() => { setInput(q); inputRef.current?.focus(); }}
+              onClick={() => {
+                setInput(q);
+                inputRef.current?.focus();
+              }}
               className="rounded-full border border-border px-2.5 py-1 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground transition"
             >
               {q}

@@ -199,13 +199,13 @@ function ConnectWordPressPanel({
           <p className="text-sm font-semibold text-foreground">Connect your WordPress site</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {wpComMode
-              ? "This is a WordPress.com-hosted site — connect via OAuth."
-              : "Self-hosted WordPress uses an Application Password — no plugin needed."}
+              ? "This is a WordPress.com-hosted site, connect via OAuth."
+              : "Self-hosted WordPress uses an Application Password, no plugin needed."}
           </p>
         </div>
       </div>
 
-      {/* Site URL field — always shown */}
+      {/* Site URL field, always shown */}
       <div className="mb-4 space-y-3">
         <div>
           <FieldLabel>Site URL</FieldLabel>
@@ -221,11 +221,11 @@ function ConnectWordPressPanel({
           />
         </div>
 
-        {/* WordPress.com — OAuth button */}
+        {/* WordPress.com, OAuth button */}
         {wpComMode && (
           <div className="rounded-md border border-blue-100 bg-blue-50 px-4 py-3">
             <p className="mb-2 text-xs font-medium text-blue-800">
-              WordPress.com-hosted sites use OAuth — no password needed.
+              WordPress.com-hosted sites use OAuth, no password needed.
             </p>
             {error && (
               <div className="mb-2">
@@ -244,7 +244,7 @@ function ConnectWordPressPanel({
           </div>
         )}
 
-        {/* Self-hosted — Application Password fields */}
+        {/* Self-hosted, Application Password fields */}
         {!wpComMode && (
           <form onSubmit={handleSelfHostedSubmit} className="space-y-3">
             <div>
@@ -555,7 +555,7 @@ function CreatePanel({
             ) : (
               <Send className="h-4 w-4" />
             )}
-            {aiLoading ? "Generating — this may take 20–40 s…" : "Generate with AI"}
+            {aiLoading ? "Generating, this may take 20–40 s…" : "Generate with AI"}
           </button>
         </form>
       )}
@@ -802,7 +802,7 @@ function RecentPostsSidebar({
       await deleteBlogPost(runSlug, postId);
       onPostDeleted(postId);
     } catch {
-      // silently ignore — post remains in list
+      // silently ignore, post remains in list
     } finally {
       setDeletingId(null);
     }
@@ -812,7 +812,7 @@ function RecentPostsSidebar({
     <div className="space-y-4">
       <SectionCard>
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-          Stats — last 30 days
+          Stats, last 30 days
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -896,7 +896,7 @@ function HowItWorksSidebar() {
     "Enter a topic and choose your preferred tone and post length.",
     "AI generates a full SEO-optimised blog post in seconds.",
     "Edit the title, meta description, and tags if needed.",
-    "Publish live or save as a draft — directly from this page.",
+    "Publish live or save as a draft, directly from this page.",
   ];
   return (
     <SectionCard>

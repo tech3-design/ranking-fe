@@ -150,7 +150,7 @@ export default function ReferralsSettingsPage() {
                         {new Date(r.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-2.5 text-muted-foreground">
-                        {r.paid_at ? new Date(r.paid_at).toLocaleDateString() : "—"}
+                        {r.paid_at ? new Date(r.paid_at).toLocaleDateString() : ","}
                       </td>
                     </tr>
                   ))}

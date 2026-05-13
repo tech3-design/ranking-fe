@@ -3,9 +3,9 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Free Schema.org validator — JSON-LD coverage check",
+  title: "Free Schema.org validator, JSON-LD coverage check",
   description:
-    "Paste any URL and Signalor scans the page for Organization, Product, Article, FAQ, HowTo, BreadcrumbList, and other Schema.org JSON-LD — flagging missing, partial, or malformed entries.",
+    "Paste any URL and Signalor scans the page for Organization, Product, Article, FAQ, HowTo, BreadcrumbList, and other Schema.org JSON-LD, flagging missing, partial, or malformed entries.",
   path: "/tools/schema-validator",
 });
 

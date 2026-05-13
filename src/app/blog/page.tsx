@@ -62,9 +62,9 @@ export default async function BlogPage() {
               </span>
             </h1>
             <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
-              Playbooks, research, and honest guides on GEO, citation attribution, llms.txt,
-              and the schemas that actually move the needle — written by operators shipping
-              Signalor every day.
+              Playbooks, research, and honest guides on GEO, citation attribution, llms.txt, and the
+              schemas that actually move the needle, written by operators shipping Signalor every
+              day.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               <span className="inline-flex items-center rounded-full border border-black/10 bg-white px-3 py-1 text-[11px] font-semibold text-foreground">
@@ -96,7 +96,7 @@ export default async function BlogPage() {
           <div className="mx-auto max-w-7xl text-center">
             <p className="text-4xl font-bold tracking-tight text-foreground">No blogs yet!</p>
             <p className="mt-3 text-base font-light text-muted-foreground">
-              Check back soon — posts will appear here once published.
+              Check back soon, posts will appear here once published.
             </p>
           </div>
         </section>
@@ -161,9 +161,7 @@ export default async function BlogPage() {
                 <p className="text-3xl font-bold tabular-nums tracking-tight text-foreground md:text-4xl">
                   {s.value}
                 </p>
-                <p className="text-sm font-light leading-snug text-muted-foreground">
-                  {s.detail}
-                </p>
+                <p className="text-sm font-light leading-snug text-muted-foreground">{s.detail}</p>
               </div>
             ))}
           </div>
@@ -196,7 +194,6 @@ export default async function BlogPage() {
     </LandingMarketingShell>
   );
 }
-
 
 function PostCard({ post }: { post: BlogPost }) {
   const tone = CATEGORY_TONE[post.category] ?? { bg: "bg-neutral-100", fg: "text-neutral-700" };

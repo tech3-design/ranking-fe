@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     path: "/",
   }),
   title: {
-    default: "Signalor.ai — AI search visibility & GEO platform",
+    default: "Signalor.ai, AI search visibility & GEO platform",
     template: "%s | Signalor.ai",
   },
 };
