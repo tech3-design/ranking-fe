@@ -17,7 +17,7 @@ export function CreateOrgDialog({ open, onClose }: CreateOrgDialogProps) {
 
   if (!open) return null;
 
-  // Redirect to onboarding — same 3-step flow as first signup
+  // Redirect to onboarding, same 3-step flow as first signup
   router.push("/onboarding/company-info");
   onClose();
   return null;

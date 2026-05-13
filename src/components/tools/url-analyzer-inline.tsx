@@ -198,7 +198,7 @@ function RunningCard({ progress }: { progress: number }) {
       <div className="flex items-center gap-3">
         <Loader2 className="h-4 w-4 animate-spin text-primary" />
         <p className="text-sm font-medium text-foreground">
-          Running your audit — fetching the page, parsing schema, scoring pillars…
+          Running your audit, fetching the page, parsing schema, scoring pillars…
         </p>
       </div>
       <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-neutral-100">
@@ -363,8 +363,8 @@ function GateCard({
         </div>
         <p className="mt-2 text-sm font-semibold text-foreground">
           {hiddenFixes > 0
-            ? `${hiddenFixes} more fixes, per-engine AI probes, and monitoring are ready — sign up to view them.`
-            : "Per-engine AI probes, competitor share, and monitoring are ready — sign up to view them."}
+            ? `${hiddenFixes} more fixes, per-engine AI probes, and monitoring are ready, sign up to view them.`
+            : "Per-engine AI probes, competitor share, and monitoring are ready, sign up to view them."}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link

@@ -17,10 +17,9 @@ export function PDFDownloadButton({ runId }: PDFDownloadButtonProps) {
     setLoading(true);
     setStatus("idle");
     try {
-      const response = await fetch(
-        `${config.apiBaseUrl}/api/analyzer/runs/${runId}/export-pdf/`,
-        { method: "POST" },
-      );
+      const response = await fetch(`${config.apiBaseUrl}/api/analyzer/runs/${runId}/export-pdf/`, {
+        method: "POST",
+      });
 
       if (!response.ok) {
         throw new Error("Failed to generate PDF");
@@ -39,7 +38,7 @@ export function PDFDownloadButton({ runId }: PDFDownloadButtonProps) {
       window.setTimeout(() => setStatus("idle"), 1800);
     } catch {
       setStatus("error");
-      // Error shown via status state — no alert needed
+      // Error shown via status state, no alert needed
     } finally {
       setLoading(false);
     }

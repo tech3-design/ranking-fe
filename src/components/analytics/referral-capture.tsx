@@ -19,7 +19,7 @@ export function ReferralCapture() {
     const ref = searchParams.get("ref");
     if (!ref) return;
     try {
-      // Only set if we don't already have one stashed — first-touch attribution.
+      // Only set if we don't already have one stashed, first-touch attribution.
       if (!localStorage.getItem(REFERRAL_PENDING_KEY)) {
         localStorage.setItem(REFERRAL_PENDING_KEY, ref);
       }

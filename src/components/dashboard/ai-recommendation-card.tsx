@@ -57,7 +57,7 @@ export function AiRecommendationCard({ slug }: { slug: string }) {
         ) : !data || data.total === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <p className="text-xs text-muted-foreground">
-              No AI responses yet — run the prompt tracker to see recommendation rate.
+              No AI responses yet, run the prompt tracker to see recommendation rate.
             </p>
           </div>
         ) : (

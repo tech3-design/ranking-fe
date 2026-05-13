@@ -3,7 +3,7 @@ import * as React from "react";
 /**
  * Signalor custom icon library.
  *
- * Drop-in replacement for `lucide-react` — every icon name imported from
+ * Drop-in replacement for `lucide-react`, every icon name imported from
  * `lucide-react` anywhere in this codebase is re-exported from here so
  * `import { Foo } from "@/components/icons"` works unchanged.
  *
@@ -33,7 +33,7 @@ function base(props: IconProps): React.SVGProps<SVGSVGElement> & { xmlns: string
   };
 }
 
-/** Filled accent dot — the "Signalor signature" tying the family together. */
+/** Filled accent dot, the "Signalor signature" tying the family together. */
 function dot(cx: number, cy: number, r = 1) {
   return <circle cx={cx} cy={cy} r={r} fill="currentColor" stroke="none" />;
 }

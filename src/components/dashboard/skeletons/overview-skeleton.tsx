@@ -3,7 +3,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 // ─── Shared card shell ────────────────────────────────────────────────────────
 function DashCard({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={`rounded-xl border border-neutral-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] ${className ?? ""}`}>
+    <div
+      className={`rounded-xl border border-neutral-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] ${className ?? ""}`}
+    >
       {children}
     </div>
   );
@@ -28,7 +30,10 @@ function GeoScoreCardSkeleton() {
         <Skeleton className="mt-1 h-[10px] w-32 rounded" />
 
         {/* Gauge arc */}
-        <div className="relative mx-auto mt-4 w-full max-w-[180px]" style={{ aspectRatio: "220 / 118" }}>
+        <div
+          className="relative mx-auto mt-4 w-full max-w-[180px]"
+          style={{ aspectRatio: "220 / 118" }}
+        >
           {/* Arc segments simulation */}
           <Skeleton className="absolute inset-0 rounded-t-[500px] opacity-60" />
           {/* Score label */}
@@ -57,10 +62,15 @@ function GeoPerformanceSkeleton() {
           <div className="flex w-8 shrink-0 items-center justify-center border-r border-neutral-100" />
           <div className="flex flex-1 overflow-hidden">
             {[80, 72, 80, 72, 80].map((w, i) => (
-              <div key={i} className="relative flex min-w-[70px] flex-1 flex-col items-center justify-center gap-1.5 border-r border-neutral-50 px-3 py-3">
+              <div
+                key={i}
+                className="relative flex min-w-[70px] flex-1 flex-col items-center justify-center gap-1.5 border-r border-neutral-50 px-3 py-3"
+              >
                 <Skeleton className="h-[9px] rounded" style={{ width: w * 0.45 }} />
                 <Skeleton className="h-[11px] rounded" style={{ width: w * 0.65 }} />
-                {i === 2 && <span className="absolute bottom-0 left-2 right-2 h-[2.5px] rounded-full bg-primary/20" />}
+                {i === 2 && (
+                  <span className="absolute bottom-0 left-2 right-2 h-[2.5px] rounded-full bg-primary/20" />
+                )}
               </div>
             ))}
           </div>
@@ -116,7 +126,7 @@ function VisibilityByPlatformSkeleton() {
         <Skeleton className="h-3.5 w-3.5 rounded" />
       </div>
 
-      {/* 2×2 grid — featured (Google) + 3 others */}
+      {/* 2×2 grid, featured (Google) + 3 others */}
       <div className="grid flex-1 grid-cols-2 gap-2" style={{ gridTemplateRows: "1fr 1fr" }}>
         {/* Featured card */}
         <div className="row-span-1 overflow-hidden rounded-xl">
@@ -176,13 +186,31 @@ function PillarBreakdownSkeleton() {
         {/* Inner inset card with donut placeholder */}
         <div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-neutral-100 bg-neutral-50/80 p-3">
           {/* Concentric ring placeholders */}
-          <div className="relative flex items-center justify-center" style={{ width: 160, height: 160 }}>
-            <Skeleton className="absolute rounded-full opacity-20" style={{ width: 160, height: 160 }} />
-            <Skeleton className="absolute rounded-full opacity-30" style={{ width: 126, height: 126 }} />
-            <Skeleton className="absolute rounded-full opacity-40" style={{ width: 96, height: 96 }} />
-            <Skeleton className="absolute rounded-full opacity-50" style={{ width: 66, height: 66 }} />
+          <div
+            className="relative flex items-center justify-center"
+            style={{ width: 160, height: 160 }}
+          >
+            <Skeleton
+              className="absolute rounded-full opacity-20"
+              style={{ width: 160, height: 160 }}
+            />
+            <Skeleton
+              className="absolute rounded-full opacity-30"
+              style={{ width: 126, height: 126 }}
+            />
+            <Skeleton
+              className="absolute rounded-full opacity-40"
+              style={{ width: 96, height: 96 }}
+            />
+            <Skeleton
+              className="absolute rounded-full opacity-50"
+              style={{ width: 66, height: 66 }}
+            />
             {/* White center hole */}
-            <div className="absolute z-10 rounded-full bg-neutral-50/80" style={{ width: 40, height: 40 }} />
+            <div
+              className="absolute z-10 rounded-full bg-neutral-50/80"
+              style={{ width: 40, height: 40 }}
+            />
           </div>
         </div>
       </DashCard>
@@ -216,7 +244,10 @@ function SentimentAnalysisSkeleton() {
         {/* Stat boxes row */}
         <div className="mt-5 grid grid-cols-4 gap-2">
           {["Positive", "Neutral", "Negative", "AI Mentions"].map((label) => (
-            <div key={label} className="space-y-2 rounded-lg border border-neutral-100 bg-neutral-50/60 p-2.5">
+            <div
+              key={label}
+              className="space-y-2 rounded-lg border border-neutral-100 bg-neutral-50/60 p-2.5"
+            >
               <Skeleton className="h-[9px] w-10 rounded" />
               <Skeleton className="h-5 w-8 rounded" />
             </div>
@@ -258,13 +289,16 @@ function SocialReachSkeleton() {
         </div>
 
         {/* World map placeholder with subtle grid lines */}
-        <div className="relative overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50/50" style={{ height: 160 }}>
+        <div
+          className="relative overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50/50"
+          style={{ height: 160 }}
+        >
           <Skeleton className="h-full w-full rounded-xl opacity-40" />
           {/* Legend row */}
           <div className="absolute bottom-3 left-4 flex items-center gap-3">
             <Skeleton className="h-2 w-20 rounded-full" />
             <div className="flex gap-2">
-              {[1,2,3,4,5,6,7].map((i) => (
+              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
                 <Skeleton key={i} className="h-[9px] w-9 rounded" />
               ))}
             </div>
@@ -279,7 +313,7 @@ function SocialReachSkeleton() {
 function CompetitorsSkeleton() {
   return (
     <DashCard className="col-span-12 overflow-hidden">
-      {/* Header — no trophy icon (removed in real card) */}
+      {/* Header, no trophy icon (removed in real card) */}
       <div className="border-b border-neutral-100 bg-gradient-to-br from-primary/[0.03] via-white to-neutral-50/60 px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="space-y-1.5">

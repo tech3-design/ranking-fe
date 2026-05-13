@@ -12,7 +12,7 @@ const FEATURE_ROWS = [
     icon: Gauge,
     title: "GEO score",
     description:
-      "One 0–100 read on how well AI systems understand, trust, and cite your site — not vanity traffic.",
+      "One 0–100 read on how well AI systems understand, trust, and cite your site, not vanity traffic.",
   },
   {
     icon: Link2,
@@ -30,7 +30,7 @@ const FEATURE_ROWS = [
     icon: Layers,
     title: "Multi-engine view",
     description:
-      "Track how ChatGPT, Perplexity, Gemini, and others treat your brand — in one place, updated continuously.",
+      "Track how ChatGPT, Perplexity, Gemini, and others treat your brand, in one place, updated continuously.",
   },
 ] as const;
 
@@ -64,7 +64,7 @@ export function LandingWhySignalor() {
           </span>
         </h2>
         <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
-          Over 40% of searches now happen inside AI tools — and those tools don&apos;t rank links,
+          Over 40% of searches now happen inside AI tools, and those tools don&apos;t rank links,
           they cite sources. Signalor runs a full GEO audit of your website, scoring AI citability,
           structured data, and where you win or lose against competitors.
         </p>
@@ -74,7 +74,7 @@ export function LandingWhySignalor() {
 
       <div className="mx-auto max-w-7xl bg-black-10">
         <div className="grid grid-cols-1 divide-y divide-black/6 md:grid-cols-2 md:divide-x md:divide-y-0 md:divide-black/6 ">
-          {/* 1 — Proof in numbers + CTAs */}
+          {/* 1, Proof in numbers + CTAs */}
           <div className="flex flex-col gap-8 bg-white px-6 py-12 md:px-8 md:py-16 lg:px-10 rounded-sm border border-black/6">
             <div>
               <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">
@@ -95,7 +95,9 @@ export function LandingWhySignalor() {
                     <p className="font-sans text-3xl font-bold tabular-nums tracking-tight text-foreground md:text-4xl">
                       {m.value}
                     </p>
-                    <p className="mt-2 text-sm font-medium leading-snug text-muted-foreground">{m.label}</p>
+                    <p className="mt-2 text-sm font-medium leading-snug text-muted-foreground">
+                      {m.label}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -118,14 +120,14 @@ export function LandingWhySignalor() {
             </div>
           </div>
 
-          {/* 2 — Citation attribution (feature moat — the URL roll-up) */}
+          {/* 2, Citation attribution (feature moat, the URL roll-up) */}
           <div className="flex flex-col gap-8 bg-white px-6 py-12 md:px-8 md:py-16 lg:px-10 rounded-sm border border-black/6">
             <div>
               <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">
                 Citation attribution
               </h3>
               <p className="mt-3 max-w-sm text-sm font-light leading-relaxed text-accent-foreground md:text-[15px]">
-                See exactly which URLs AI engines cite for your prompts — yours, your rivals&apos;,
+                See exactly which URLs AI engines cite for your prompts, yours, your rivals&apos;,
                 and everyone else. The page to fix, not a guess.
               </p>
             </div>
@@ -139,17 +141,47 @@ export function LandingWhySignalor() {
                   </div>
                   <ul className="space-y-2.5 text-[12px] font-medium">
                     {[
-                      { domain: "signalor.ai", pct: 62, tag: "YOU", tagBg: "bg-emerald-100", tagFg: "text-emerald-700", bar: "bg-emerald-600" },
-                      { domain: "tryprofound.com", pct: 38, tag: "RIVAL", tagBg: "bg-amber-100", tagFg: "text-amber-700", bar: "bg-amber-500" },
-                      { domain: "siftly.ai", pct: 26, tag: "RIVAL", tagBg: "bg-amber-100", tagFg: "text-amber-700", bar: "bg-amber-500" },
-                      { domain: "searchengineland.com", pct: 18, tag: "", tagBg: "", tagFg: "", bar: "bg-neutral-400" },
+                      {
+                        domain: "signalor.ai",
+                        pct: 62,
+                        tag: "YOU",
+                        tagBg: "bg-emerald-100",
+                        tagFg: "text-emerald-700",
+                        bar: "bg-emerald-600",
+                      },
+                      {
+                        domain: "tryprofound.com",
+                        pct: 38,
+                        tag: "RIVAL",
+                        tagBg: "bg-amber-100",
+                        tagFg: "text-amber-700",
+                        bar: "bg-amber-500",
+                      },
+                      {
+                        domain: "siftly.ai",
+                        pct: 26,
+                        tag: "RIVAL",
+                        tagBg: "bg-amber-100",
+                        tagFg: "text-amber-700",
+                        bar: "bg-amber-500",
+                      },
+                      {
+                        domain: "searchengineland.com",
+                        pct: 18,
+                        tag: "",
+                        tagBg: "",
+                        tagFg: "",
+                        bar: "bg-neutral-400",
+                      },
                     ].map((r) => (
                       <li key={r.domain}>
                         <div className="flex items-center justify-between gap-2 text-[12px] font-semibold text-neutral-800">
                           <span className="flex min-w-0 items-center gap-1.5">
                             <span className="truncate">{r.domain}</span>
                             {r.tag && (
-                              <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${r.tagBg} ${r.tagFg}`}>
+                              <span
+                                className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${r.tagBg} ${r.tagFg}`}
+                              >
                                 {r.tag}
                               </span>
                             )}
@@ -157,7 +189,10 @@ export function LandingWhySignalor() {
                           <span className="tabular-nums text-neutral-500">{r.pct}%</span>
                         </div>
                         <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-neutral-200">
-                          <div className={`h-full rounded-full ${r.bar}`} style={{ width: `${r.pct}%` }} />
+                          <div
+                            className={`h-full rounded-full ${r.bar}`}
+                            style={{ width: `${r.pct}%` }}
+                          />
                         </div>
                       </li>
                     ))}
@@ -167,15 +202,15 @@ export function LandingWhySignalor() {
             </div>
           </div>
 
-          {/* 3 — Competitor delta (closing the gap week over week) */}
+          {/* 3, Competitor delta (closing the gap week over week) */}
           <div className="flex flex-col gap-8 bg-white px-6 py-12 md:px-8 md:py-16 lg:px-10 rounded-sm border border-black/6">
             <div>
               <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">
                 Competitor delta
               </h3>
               <p className="mt-3 max-w-sm text-sm font-light leading-relaxed text-accent-foreground md:text-[15px]">
-                Track which prompts you win back from rivals week over week — so you see the
-                content sprint paying off, not just static scores.
+                Track which prompts you win back from rivals week over week, so you see the content
+                sprint paying off, not just static scores.
               </p>
             </div>
 
@@ -204,7 +239,11 @@ export function LandingWhySignalor() {
                     ].map((row) => (
                       <li key={row.name} className="flex items-center gap-2">
                         <span className="min-w-0 flex-1">
-                          <span className={row.rival ? "text-neutral-700" : "font-semibold text-emerald-700"}>
+                          <span
+                            className={
+                              row.rival ? "text-neutral-700" : "font-semibold text-emerald-700"
+                            }
+                          >
                             {row.name}
                           </span>
                           <span className="ml-1 text-[11px] text-neutral-500 tabular-nums">
@@ -229,14 +268,14 @@ export function LandingWhySignalor() {
             </div>
           </div>
 
-          {/* 4 — What you ship (capability list) */}
+          {/* 4, What you ship (capability list) */}
           <div className="flex flex-col gap-8 bg-white px-6 py-12 md:px-8 md:py-16 lg:px-10 rounded-sm border border-black/6">
             <div>
               <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">
                 What you ship
               </h3>
               <p className="mt-3 max-w-sm text-sm font-light leading-relaxed text-accent-foreground md:text-[15px]">
-                The product surfaces you use every week — from score to fixes to engine-by-engine
+                The product surfaces you use every week, from score to fixes to engine-by-engine
                 visibility.
               </p>
             </div>

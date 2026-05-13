@@ -1,7 +1,7 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 /**
- * Base skeleton primitive — a muted rectangle with a left-to-right shimmer
+ * Base skeleton primitive, a muted rectangle with a left-to-right shimmer
  * sweep. Compose these into page-level skeletons that mirror the actual UI.
  *
  * The shimmer keyframe (`shimmer`) and `.shimmer` utility already live in
@@ -19,7 +19,7 @@ function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
         className="shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent"
       />
     </div>
-  )
+  );
 }
 
-export { Skeleton }
+export { Skeleton };

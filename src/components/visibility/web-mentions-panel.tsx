@@ -26,14 +26,19 @@ interface WebMentionsPanelProps {
   compact?: boolean;
 }
 
-const PLATFORM_CONFIG: Record<
-  string,
-  { label: string; icon: ReactNode; hexColor: string }
-> = {
+const PLATFORM_CONFIG: Record<string, { label: string; icon: ReactNode; hexColor: string }> = {
   blog: { label: "Blogs", icon: <FileText className="w-4 h-4" />, hexColor: BRAND_PALETTE[0] },
   news: { label: "News", icon: <Newspaper className="w-4 h-4" />, hexColor: BRAND_PALETTE[1] },
-  forum: { label: "Forums", icon: <MessageSquare className="w-4 h-4" />, hexColor: BRAND_PALETTE[2] },
-  social: { label: "Social Media", icon: <Users className="w-4 h-4" />, hexColor: BRAND_PALETTE[3] },
+  forum: {
+    label: "Forums",
+    icon: <MessageSquare className="w-4 h-4" />,
+    hexColor: BRAND_PALETTE[2],
+  },
+  social: {
+    label: "Social Media",
+    icon: <Users className="w-4 h-4" />,
+    hexColor: BRAND_PALETTE[3],
+  },
   review: { label: "Review Sites", icon: <Star className="w-4 h-4" />, hexColor: BRAND_PALETTE[4] },
   other: { label: "Other", icon: <Globe className="w-4 h-4" />, hexColor: BRAND_PALETTE[5] },
 };
@@ -68,9 +73,7 @@ export function WebMentionsPanel({ details, score, compact = false }: WebMention
     grouped[type].push(m);
   }
 
-  const sortedTypes = Object.keys(grouped).sort(
-    (a, b) => grouped[b].length - grouped[a].length,
-  );
+  const sortedTypes = Object.keys(grouped).sort((a, b) => grouped[b].length - grouped[a].length);
 
   return (
     <Card className="glass-card" data-tour-card="visibility-web">
@@ -105,15 +108,13 @@ export function WebMentionsPanel({ details, score, compact = false }: WebMention
               tone.text,
             )}
           >
-            {score != null ? roundedScore : "—"}
+            {score != null ? roundedScore : ","}
             <span className="font-sans text-xs font-normal text-muted-foreground">/100</span>
           </span>
         </div>
       </CardHeader>
       <CardContent className={cn("space-y-4", compact && "space-y-3 pb-4 pt-0")}>
-        {details.error && (
-          <p className="text-sm text-destructive">{details.error}</p>
-        )}
+        {details.error && <p className="text-sm text-destructive">{details.error}</p>}
 
         {/* Key metrics */}
         <div className={cn("grid grid-cols-3 gap-2", compact && "gap-1.5")}>
@@ -167,12 +168,7 @@ export function WebMentionsPanel({ details, score, compact = false }: WebMention
               {Object.entries(details.sub_scores)
                 .slice(0, compact ? 5 : undefined)
                 .map(([key, value]) => (
-                  <HorizontalScoreBar
-                    key={key}
-                    label={key}
-                    value={value}
-                    compact={compact}
-                  />
+                  <HorizontalScoreBar key={key} label={key} value={value} compact={compact} />
                 ))}
             </div>
           </div>
@@ -185,7 +181,7 @@ export function WebMentionsPanel({ details, score, compact = false }: WebMention
           </div>
         )}
 
-        {/* Grouped mentions — full accordion */}
+        {/* Grouped mentions, full accordion */}
         {!compact && sortedTypes.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-semibold tracking-tight">Mentions by Platform</p>
@@ -214,7 +210,9 @@ export function WebMentionsPanel({ details, score, compact = false }: WebMention
                     }}
                   >
                     {config.label}
-                    <span className="tabular-nums font-bold opacity-80">{grouped[type].length}</span>
+                    <span className="tabular-nums font-bold opacity-80">
+                      {grouped[type].length}
+                    </span>
                   </span>
                 );
               })}
@@ -237,7 +235,9 @@ export function WebMentionsPanel({ details, score, compact = false }: WebMention
                   >
                     <ExternalLink className="size-3 shrink-0 text-muted-foreground/50 transition-opacity group-hover:text-muted-foreground" />
                     <span className="min-w-0 flex-1">
-                      <span className="line-clamp-1 font-medium text-foreground">{m.title || m.url}</span>
+                      <span className="line-clamp-1 font-medium text-foreground">
+                        {m.title || m.url}
+                      </span>
                       <span className="mt-0.5 block font-mono text-[9px] text-muted-foreground/70">
                         {m.domain}
                       </span>

@@ -104,7 +104,7 @@ const ACTIONS: ActionDef[] = [
   {
     id: "organization",
     title: "Organization JSON-LD anchoring your brand on this topic",
-    why: "Tells AI engines you're the canonical primary source for this prompt's topic — over aggregators that mention you.",
+    why: "Tells AI engines you're the canonical primary source for this prompt's topic, over aggregators that mention you.",
     pillar: "Authority",
     pillarWeight: "40%",
     impact: "medium",
@@ -221,11 +221,12 @@ export function PromptRankPlanPanel({ track }: { track: PromptTrack }) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-semibold text-foreground">
-            Rank &ldquo;{track.prompt_text.slice(0, 80)}{track.prompt_text.length > 80 ? "…" : ""}&rdquo; on AI platforms
+            Rank &ldquo;{track.prompt_text.slice(0, 80)}
+            {track.prompt_text.length > 80 ? "…" : ""}&rdquo; on AI platforms
           </p>
           <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-            {ACTIONS.length} achievable actions across Authority (40%), Content (35%), and Structural (25%).
-            Click any row to generate the artifact or open the dedicated tool.
+            {ACTIONS.length} achievable actions across Authority (40%), Content (35%), and
+            Structural (25%). Click any row to generate the artifact or open the dedicated tool.
           </p>
         </div>
       </div>
@@ -279,7 +280,11 @@ export function PromptRankPlanPanel({ track }: { track: PromptTrack }) {
                       {isLoading ? (
                         <Loader2 className="size-3 animate-spin" />
                       ) : result ? (
-                        isOpen ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />
+                        isOpen ? (
+                          <ChevronUp className="size-3" />
+                        ) : (
+                          <ChevronDown className="size-3" />
+                        )
                       ) : (
                         <Sparkles className="size-3" />
                       )}

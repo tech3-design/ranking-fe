@@ -3,7 +3,16 @@
 import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowDownRight, Globe, Loader2, Lock, MoreHorizontal, Plus, Trash2, User } from "@/components/icons";
+import {
+  ArrowDownRight,
+  Globe,
+  Loader2,
+  Lock,
+  MoreHorizontal,
+  Plus,
+  Trash2,
+  User,
+} from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 import type { Competitor } from "@/lib/api/analyzer";
@@ -15,12 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export type ScoreBandFilter = "all" | "leaders" | "mid" | "low";
 export type ConfidenceFilter = "all" | "scored" | "unscored";
@@ -114,7 +118,7 @@ function SiteLogo({ url, size = 32 }: { url: string; size?: number }) {
   );
 }
 
-// ─── Three-dot row menu — portalled so it escapes overflow:hidden ─────────────
+// ─── Three-dot row menu, portalled so it escapes overflow:hidden ─────────────
 
 function RowMenu({ onDeleteClick }: { onDeleteClick: () => void }) {
   const [open, setOpen] = useState(false);
@@ -138,8 +142,10 @@ function RowMenu({ onDeleteClick }: { onDeleteClick: () => void }) {
     if (!open) return;
     function handler(e: MouseEvent) {
       if (
-        menuRef.current && !menuRef.current.contains(e.target as Node) &&
-        btnRef.current && !btnRef.current.contains(e.target as Node)
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node) &&
+        btnRef.current &&
+        !btnRef.current.contains(e.target as Node)
       ) {
         setOpen(false);
       }
@@ -160,7 +166,8 @@ function RowMenu({ onDeleteClick }: { onDeleteClick: () => void }) {
         <MoreHorizontal className="h-4 w-4" />
       </button>
 
-      {open && typeof document !== "undefined" &&
+      {open &&
+        typeof document !== "undefined" &&
         createPortal(
           <div
             ref={menuRef}
@@ -174,7 +181,10 @@ function RowMenu({ onDeleteClick }: { onDeleteClick: () => void }) {
           >
             <button
               type="button"
-              onClick={() => { setOpen(false); onDeleteClick(); }}
+              onClick={() => {
+                setOpen(false);
+                onDeleteClick();
+              }}
               className="flex w-full items-center gap-2 px-3 py-2 text-[13px] font-medium text-red-600 transition hover:bg-red-50"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -203,7 +213,9 @@ function DeleteModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px]"
-      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
     >
       <div className="w-full max-w-sm rounded-xl border border-border bg-white p-6 shadow-2xl">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
@@ -212,8 +224,8 @@ function DeleteModal({
         <h2 className="mt-3 text-base font-semibold text-foreground">Delete competitor</h2>
         <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
           Are you sure you want to remove{" "}
-          <span className="font-semibold text-foreground">{name}</span> from your
-          competitors list? This action cannot be undone.
+          <span className="font-semibold text-foreground">{name}</span> from your competitors list?
+          This action cannot be undone.
         </p>
         <div className="mt-5 flex justify-end gap-2.5">
           <button
@@ -231,9 +243,15 @@ function DeleteModal({
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-red-600 px-4 text-[13px] font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
           >
             {deleting ? (
-              <><Loader2 className="h-3.5 w-3.5 animate-spin" />Deleting…</>
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Deleting…
+              </>
             ) : (
-              <><Trash2 className="h-3.5 w-3.5" />Delete</>
+              <>
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </>
             )}
           </button>
         </div>
@@ -257,7 +275,11 @@ export function CompetitorTable({
   onDelete,
 }: CompetitorTableProps) {
   const [relations, setRelations] = useState<Record<string, Relation>>({});
-  const [deleteTarget, setDeleteTarget] = useState<{ key: string; id: number; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    key: string;
+    id: number;
+    name: string;
+  } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const rows = useMemo<BrandRow[]>(() => {
@@ -286,8 +308,7 @@ export function CompetitorTable({
       const hay = `${c.name} ${c.url} ${hostOf(c.url)}`.toLowerCase();
       const matchQuery = !q || hay.includes(q);
       const matchConfidence =
-        confidence === "all" ||
-        (confidence === "scored" ? c.scored : !c.scored);
+        confidence === "all" || (confidence === "scored" ? c.scored : !c.scored);
       const score = c.composite_score ?? 0;
       const matchScore =
         scoreBand === "all" ||
@@ -422,7 +443,7 @@ export function CompetitorTable({
                         ) : scoreVal != null ? (
                           <ScoreChip value={scoreVal} />
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-muted-foreground">,</span>
                         )}
                       </td>
 
