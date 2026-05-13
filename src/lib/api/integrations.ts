@@ -44,7 +44,7 @@ export interface GADataSnapshot {
   }>;
   countries: Array<{
     country: string;
-    country_id: string;  // ISO alpha-2 e.g. "IN", "US"
+    country_id: string; // ISO alpha-2 e.g. "IN", "US"
     sessions: number;
   }>;
   sync_status: "pending" | "syncing" | "complete" | "failed";
@@ -76,18 +76,17 @@ export async function sendGACallback(
   code: string,
   state: string,
 ): Promise<{ message: string; integration: IntegrationInfo }> {
-  const { data } = await apiClient.post(
-    "/api/integrations/google-analytics/callback/",
-    { code, state },
-  );
+  const { data } = await apiClient.post("/api/integrations/google-analytics/callback/", {
+    code,
+    state,
+  });
   return data;
 }
 
 export async function disconnectGA(email: string): Promise<{ message: string }> {
-  const { data } = await apiClient.delete(
-    "/api/integrations/google-analytics/disconnect/",
-    { params: { email } },
-  );
+  const { data } = await apiClient.delete("/api/integrations/google-analytics/disconnect/", {
+    params: { email },
+  });
   return data;
 }
 
@@ -97,18 +96,15 @@ export async function getIntegrationStatus(
   email: string,
   orgId?: number,
 ): Promise<IntegrationInfo[]> {
-  const { data } = await apiClient.get<IntegrationInfo[]>(
-    "/api/integrations/status/",
-    { params: { email, org_id: orgId } },
-  );
+  const { data } = await apiClient.get<IntegrationInfo[]>("/api/integrations/status/", {
+    params: { email, org_id: orgId },
+  });
   return data;
 }
 
 // ---------- Properties ----------
 
-export async function getGAProperties(
-  email: string,
-): Promise<{ properties: GA4Property[] }> {
+export async function getGAProperties(email: string): Promise<{ properties: GA4Property[] }> {
   const { data } = await apiClient.get<{ properties: GA4Property[] }>(
     "/api/integrations/google-analytics/properties/",
     { params: { email } },
@@ -121,32 +117,27 @@ export async function selectGAProperty(
   propertyId: string,
   propertyName: string,
 ): Promise<{ message: string; integration: IntegrationInfo }> {
-  const { data } = await apiClient.post(
-    "/api/integrations/google-analytics/select-property/",
-    { email, property_id: propertyId, property_name: propertyName },
-  );
+  const { data } = await apiClient.post("/api/integrations/google-analytics/select-property/", {
+    email,
+    property_id: propertyId,
+    property_name: propertyName,
+  });
   return data;
 }
 
 // ---------- Data ----------
 
 export async function syncGAData(email: string): Promise<{ message: string }> {
-  const { data } = await apiClient.post(
-    "/api/integrations/google-analytics/sync/",
-    null,
-    { params: { email } },
-  );
+  const { data } = await apiClient.post("/api/integrations/google-analytics/sync/", null, {
+    params: { email },
+  });
   return data;
 }
 
-export async function getGAData(
-  email: string,
-  analyzedUrl?: string,
-): Promise<GADataSnapshot> {
-  const { data } = await apiClient.get<GADataSnapshot>(
-    "/api/integrations/google-analytics/data/",
-    { params: { email, analyzed_url: analyzedUrl } },
-  );
+export async function getGAData(email: string, analyzedUrl?: string): Promise<GADataSnapshot> {
+  const { data } = await apiClient.get<GADataSnapshot>("/api/integrations/google-analytics/data/", {
+    params: { email, analyzed_url: analyzedUrl },
+  });
   return data;
 }
 
@@ -208,10 +199,11 @@ export async function connectShopify(
   shopDomain: string,
   accessToken: string,
 ): Promise<{ message: string; integration: IntegrationInfo }> {
-  const { data } = await apiClient.post(
-    "/api/integrations/shopify/connect/",
-    { email, shop_domain: shopDomain, access_token: accessToken },
-  );
+  const { data } = await apiClient.post("/api/integrations/shopify/connect/", {
+    email,
+    shop_domain: shopDomain,
+    access_token: accessToken,
+  });
   return data;
 }
 
@@ -232,9 +224,7 @@ export async function getShopifyAuthUrl(
         org_id: orgId,
         storefront_password: storefrontPassword || undefined,
         // Must match the tab the user started from (localhost vs 127.0.0.1, prod domain).
-        ...(typeof window !== "undefined"
-          ? { frontend_base: window.location.origin }
-          : {}),
+        ...(typeof window !== "undefined" ? { frontend_base: window.location.origin } : {}),
       },
     },
   );
@@ -245,33 +235,23 @@ export async function disconnectShopify(
   email: string,
   orgId?: number,
 ): Promise<{ message: string }> {
-  const { data } = await apiClient.delete(
-    "/api/integrations/shopify/disconnect/",
-    { params: { email, org_id: orgId } },
-  );
+  const { data } = await apiClient.delete("/api/integrations/shopify/disconnect/", {
+    params: { email, org_id: orgId },
+  });
   return data;
 }
 
-export async function syncShopifyData(
-  email: string,
-  orgId?: number,
-): Promise<{ message: string }> {
-  const { data } = await apiClient.post(
-    "/api/integrations/shopify/sync/",
-    null,
-    { params: { email, org_id: orgId } },
-  );
+export async function syncShopifyData(email: string, orgId?: number): Promise<{ message: string }> {
+  const { data } = await apiClient.post("/api/integrations/shopify/sync/", null, {
+    params: { email, org_id: orgId },
+  });
   return data;
 }
 
-export async function getShopifyData(
-  email: string,
-  orgId?: number,
-): Promise<ShopifyDataSnapshot> {
-  const { data } = await apiClient.get<ShopifyDataSnapshot>(
-    "/api/integrations/shopify/data/",
-    { params: { email, org_id: orgId } },
-  );
+export async function getShopifyData(email: string, orgId?: number): Promise<ShopifyDataSnapshot> {
+  const { data } = await apiClient.get<ShopifyDataSnapshot>("/api/integrations/shopify/data/", {
+    params: { email, org_id: orgId },
+  });
   return data;
 }
 
@@ -293,40 +273,28 @@ export async function connectWordPress(
     username: username || undefined,
     return_to: returnTo || "/dashboard",
     frontend_base: window.location.origin,
-    username: username || undefined,
   });
   return res.data;
 }
 
-
-export async function disconnectWordPress(
-  email: string,
-): Promise<{ message: string }> {
-  const { data } = await apiClient.delete(
-    "/api/integrations/wordpress/disconnect/",
-    { params: { email } },
-  );
+export async function disconnectWordPress(email: string): Promise<{ message: string }> {
+  const { data } = await apiClient.delete("/api/integrations/wordpress/disconnect/", {
+    params: { email },
+  });
   return data;
 }
 
-export async function syncWordPressData(
-  email: string,
-): Promise<{ message: string }> {
-  const { data } = await apiClient.post(
-    "/api/integrations/wordpress/sync/",
-    null,
-    { params: { email } },
-  );
+export async function syncWordPressData(email: string): Promise<{ message: string }> {
+  const { data } = await apiClient.post("/api/integrations/wordpress/sync/", null, {
+    params: { email },
+  });
   return data;
 }
 
-export async function getWordPressData(
-  email: string,
-): Promise<WordPressDataSnapshot> {
-  const { data } = await apiClient.get<WordPressDataSnapshot>(
-    "/api/integrations/wordpress/data/",
-    { params: { email } },
-  );
+export async function getWordPressData(email: string): Promise<WordPressDataSnapshot> {
+  const { data } = await apiClient.get<WordPressDataSnapshot>("/api/integrations/wordpress/data/", {
+    params: { email },
+  });
   return data;
 }
 
@@ -401,6 +369,49 @@ export async function deleteBlogPost(runSlug: string, postId: number): Promise<v
   await apiClient.delete(`/api/analyzer/runs/s/${runSlug}/blog/posts/${postId}/`);
 }
 
+// ---------- Shopify Blog ----------
+
+export interface ShopifyBlogPost {
+  id: number;
+  title: string;
+  handle: string;
+  url: string;
+  published_at: string;
+  author: string;
+}
+
+export interface ShopifyBlogPostsResponse {
+  connected: boolean;
+  shop_name?: string;
+  shop_url?: string;
+  total_posts?: number;
+  published_posts_30d?: number;
+  posts: ShopifyBlogPost[];
+  error?: string;
+}
+
+export async function getShopifyBlogPosts(runSlug: string): Promise<ShopifyBlogPostsResponse> {
+  const { data } = await apiClient.get<ShopifyBlogPostsResponse>(
+    `/api/analyzer/runs/s/${runSlug}/shopify-blog/posts/`,
+  );
+  return data;
+}
+
+export async function publishShopifyBlogDraft(
+  runSlug: string,
+  draft: BlogDraft & { status: "draft" | "publish" },
+): Promise<BlogPublishResult> {
+  const { data } = await apiClient.post<BlogPublishResult>(
+    `/api/analyzer/runs/s/${runSlug}/shopify-blog/publish/`,
+    draft,
+  );
+  return data;
+}
+
+export async function deleteShopifyBlogPost(runSlug: string, postId: number): Promise<void> {
+  await apiClient.delete(`/api/analyzer/runs/s/${runSlug}/shopify-blog/posts/${postId}/`);
+}
+
 // ---------- Correlation ----------
 
 export interface CorrelationDataPoint {
@@ -416,9 +427,7 @@ export interface CorrelationResponse {
   has_ga_data: boolean;
 }
 
-export async function getScoreTrafficCorrelation(
-  email: string,
-): Promise<CorrelationResponse> {
+export async function getScoreTrafficCorrelation(email: string): Promise<CorrelationResponse> {
   const { data } = await apiClient.get<CorrelationResponse>(
     "/api/integrations/score-traffic-correlation/",
     { params: { email } },
