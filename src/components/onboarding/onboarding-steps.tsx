@@ -9,9 +9,9 @@ export const ONBOARDING_STEPS: TourStep[] = [
     title: "Welcome to Signalor",
     body: (
       <>
-        A short tour of Overview — we&apos;ll walk through the cards on this
-        page one at a time. When you visit other sections (Visibility,
-        Sitemap, Tracker, etc.) you&apos;ll get a tour for those too.
+        A short tour of Overview — we&apos;ll walk through the cards on this page one at a time.
+        When you visit other sections (Visibility, Sitemap, Tracker, etc.) you&apos;ll get a tour
+        for those too.
       </>
     ),
     route: "",
@@ -414,29 +414,6 @@ export const ONBOARDING_STEPS: TourStep[] = [
     side: "bottom",
     align: "start",
     route: "/prompts",
-  },
-
-  // ── Wikipedia ─────────────────────────────────────────────────────────
-  {
-    kind: "spotlight",
-    id: "nav-wikipedia",
-    section: "wikipedia",
-    selector: '[data-tour="nav-wikipedia"]',
-    title: "Wikipedia",
-    body: "Wikipedia is one of the top citation sources for LLMs — it's worth its own view.",
-    side: "right",
-    route: "/prompts/wikipedia",
-  },
-  {
-    kind: "spotlight",
-    id: "wikipedia-panel",
-    section: "wikipedia",
-    selector: '[data-tour-card="wikipedia-panel"]',
-    title: "Wikipedia per prompt",
-    body: "Same prompt list as Tracker, expanded to show which Wikipedia articles AI engines reach for and how to earn a citation in them.",
-    side: "top",
-    align: "start",
-    route: "/prompts/wikipedia",
   },
 
   // ── Competitors ───────────────────────────────────────────────────────

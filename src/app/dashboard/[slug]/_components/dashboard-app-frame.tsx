@@ -9,10 +9,7 @@ import { Menu, Moon, Sun, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Diamond } from "@/components/ui/intersection-diamonds";
 import { cn } from "@/lib/utils";
-import {
-  DashboardBreadcrumbNav,
-  type DashboardBreadcrumbItem,
-} from "./dashboard-breadcrumbs";
+import { DashboardBreadcrumbNav, type DashboardBreadcrumbItem } from "./dashboard-breadcrumbs";
 
 const DASHBOARD_TOPBAR_H = "h-[60px]";
 
@@ -52,12 +49,7 @@ function ThemeHotkeyBinder() {
 
       const el = e.target as HTMLElement | null;
 
-      if (
-        el?.closest(
-          "input, textarea, select, [contenteditable='true']"
-        )
-      )
-        return;
+      if (el?.closest("input, textarea, select, [contenteditable='true']")) return;
 
       e.preventDefault();
 
@@ -75,6 +67,7 @@ function ThemeHotkeyBinder() {
 export type DashboardAppSection = {
   title: string;
   hint: string;
+  docsUrl?: string;
 };
 
 export function DashboardAppFrame({
@@ -118,14 +111,14 @@ export function DashboardAppFrame({
 
   const topBarShell = cn(
     "shrink-0 z-50 border-b border-border/40 bg-white dark:bg-zinc-950",
-    DASHBOARD_TOPBAR_H
+    DASHBOARD_TOPBAR_H,
   );
 
   const mainHeader = (
     <header
       className={cn(
         "flex min-w-0 flex-1 items-center justify-between gap-4 px-4 backdrop-blur-sm lg:px-6 bg-white",
-        DASHBOARD_TOPBAR_H
+        DASHBOARD_TOPBAR_H,
       )}
     >
       {sidebarBelowHeaderRow ? (
@@ -138,15 +131,12 @@ export function DashboardAppFrame({
         <DashboardBreadcrumbNav items={breadcrumbs} className="mb-1" />
       </div>
 
-      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-        {topBarActions}
-      </div>
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">{topBarActions}</div>
     </header>
   );
 
   return (
     <div className="flex h-dvh flex-col bg-muted/40 text-foreground dark:bg-background">
-
       <ThemeHotkeyBinder />
 
       {/* Mobile Topbar */}
@@ -165,22 +155,19 @@ export function DashboardAppFrame({
         </Button>
 
         <div className="min-w-0 flex-1">
-          <DashboardBreadcrumbNav items={breadcrumbs} className="mb-0.5 max-w-[min(100%,14rem)] sm:max-w-none" />
-          <p className="truncate text-sm font-semibold text-foreground">
-            {section.title}
-          </p>
+          <DashboardBreadcrumbNav
+            items={breadcrumbs}
+            className="mb-0.5 max-w-[min(100%,14rem)] sm:max-w-none"
+          />
+          <p className="truncate text-sm font-semibold text-foreground">{section.title}</p>
 
           {section.hint ? (
-            <p className="truncate text-[10px] text-muted-foreground">
-              {section.hint}
-            </p>
+            <p className="truncate text-[10px] text-muted-foreground">{section.hint}</p>
           ) : null}
         </div>
 
         {topBarActions ? (
-          <div className="flex shrink-0 items-center gap-1">
-            {topBarActions}
-          </div>
+          <div className="flex shrink-0 items-center gap-1">{topBarActions}</div>
         ) : null}
 
         <DashboardThemeToggle />
@@ -189,17 +176,15 @@ export function DashboardAppFrame({
       {/* Desktop Layout — min-h-0 so nested overflow + flex stretch match the viewport */}
 
       <div className="relative hidden min-h-0 flex-col md:flex md:flex-1 md:overflow-hidden">
-
         {/* Topbar */}
 
         <div className={cn("flex w-full shrink-0 items-stretch", topBarShell)}>
-
           {/* Sidebar Logo */}
 
           <div
             className={cn(
               "relative flex w-56 shrink-0 items-center border-r border-border/40 px-3 bg-white",
-              DASHBOARD_TOPBAR_H
+              DASHBOARD_TOPBAR_H,
             )}
           >
             {sidebarBrand}
@@ -207,23 +192,17 @@ export function DashboardAppFrame({
           </div>
 
           {mainHeader}
-
         </div>
 
         {/* Body */}
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
-
           {/* Sidebar */}
 
           <aside className="flex w-56 shrink-0 flex-col border-r border-border/40 bg-white">
-
-
             {/* Nav */}
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              {sidebarNav}
-            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{sidebarNav}</div>
 
             {/* Bottom User Section */}
 
@@ -231,23 +210,15 @@ export function DashboardAppFrame({
               {sidebarBottom}
               <Diamond style={{ top: -2.5, right: -2.5 }} />
             </div>
-
           </aside>
 
           {/* Main */}
 
           <div className="flex min-w-0 flex-1 flex-col overflow-y-auto bg-muted/40 dark:bg-background/80">
-
-            <main className="mx-auto w-full max-w-7xl px-4 py-8">
-              {children}
-            </main>
-
+            <main className="mx-auto w-full max-w-7xl px-4 py-8">{children}</main>
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }

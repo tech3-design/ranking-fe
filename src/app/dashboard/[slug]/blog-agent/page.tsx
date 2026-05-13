@@ -1,848 +1,1158 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
-import { useRun } from "../_components/run-context";
-import { BlogAutomationPanel } from "@/components/analyzer/blog-automation-panel";
-import {
-  getIntegrationStatus,
-  connectWordPress,
-  disconnectWordPress,
-  connectShopify,
-  getShopifyAuthUrl,
-  disconnectShopify,
-  type IntegrationInfo,
-} from "@/lib/api/integrations";
+import { useCallback, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import {
   AlertCircle,
   Check,
-  Globe,
-  Info,
+  ChevronDown,
+  ExternalLink,
   Loader2,
+  RefreshCw,
+  Send,
+  Trash2,
   X,
 } from "@/components/icons";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { useRun } from "../_components/run-context";
+import {
+  getBlogPosts,
+  generateBlogDraft,
+  publishBlogDraft,
+  deleteBlogPost,
+  connectWordPress,
+  disconnectWordPress,
+  type BlogDraft,
+  type BlogPostsResponse,
+} from "@/lib/api/integrations";
 import { cn } from "@/lib/utils";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-type CMS = "wordpress" | "shopify" | "unknown";
+type Step = "connect" | "generate" | "preview";
+type Tone = "informative" | "conversational" | "authoritative" | "educational";
 
-// ── CMS helpers ────────────────────────────────────────────────────────────────
-
-function detectCMS(url: string | undefined, integrations: IntegrationInfo[]): CMS {
-  if (integrations.some((i) => i.provider === "wordpress" && i.is_active)) return "wordpress";
-  if (integrations.some((i) => i.provider === "shopify" && i.is_active)) return "shopify";
-  if (url?.includes(".myshopify.com")) return "shopify";
-  return "unknown";
-}
-
-function getActiveIntegration(cms: CMS, integrations: IntegrationInfo[]): IntegrationInfo | undefined {
-  if (cms === "wordpress") return integrations.find((i) => i.provider === "wordpress" && i.is_active);
-  if (cms === "shopify") return integrations.find((i) => i.provider === "shopify" && i.is_active);
-}
-
-// ── Setup steps ────────────────────────────────────────────────────────────────
-
-const STEPS = [
-  { label: "Connect CMS", sub: "Link your WordPress or Shopify site" },
-  { label: "Configure", sub: "Set topics, frequency, and mode" },
-  { label: "Generate", sub: "AI-powered blog drafts", soon: true },
-  { label: "Auto publish", sub: "Publish on schedule", soon: true },
+const TONES: { value: Tone; label: string }[] = [
+  { value: "informative", label: "Informative" },
+  { value: "conversational", label: "Conversational" },
+  { value: "authoritative", label: "Authoritative" },
+  { value: "educational", label: "Educational" },
 ];
 
-// ── CMS branding ───────────────────────────────────────────────────────────────
+const WORD_COUNTS = [
+  { label: "Short (~500 words)", value: 500 },
+  { label: "Medium (~800 words)", value: 800 },
+  { label: "Long (~1 200 words)", value: 1200 },
+];
 
-const CMS_META: Record<"wordpress" | "shopify", { name: string; color: string; logoText: string }> = {
-  wordpress: {
-    name: "WordPress",
-    color: "#21759B",
-    logoText: "WP",
-  },
-  shopify: {
-    name: "Shopify",
-    color: "#96BF48",
-    logoText: "SH",
-  },
-};
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// ── Setup stepper ──────────────────────────────────────────────────────────────
-
-function SetupStepper({ currentStep }: { currentStep: number }) {
-  return (
-    <div className="rounded-xl border border-border/60 bg-card/65 px-5 py-4">
-      <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        Setup progress
-      </p>
-      <div className="flex items-start gap-0">
-        {STEPS.map((step, i) => {
-          const done = i < currentStep;
-          const active = i === currentStep && !step.soon;
-          return (
-            <div key={step.label} className="flex flex-1 items-start">
-              <div className="flex flex-1 flex-col items-center gap-1.5">
-                {/* Circle + connector */}
-                <div className="flex w-full items-center">
-                  <div className={cn("h-px flex-1", i === 0 ? "invisible" : done ? "bg-primary" : "bg-border/60")} />
-                  <span
-                    className={cn(
-                      "flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-colors",
-                      done
-                        ? "bg-primary text-white"
-                        : active
-                        ? "border-2 border-primary text-primary bg-white"
-                        : "border border-border/60 bg-card text-muted-foreground",
-                      step.soon && !done && !active && "opacity-40",
-                    )}
-                  >
-                    {done ? <Check className="size-3.5" /> : i + 1}
-                  </span>
-                  <div className={cn("h-px flex-1", i === STEPS.length - 1 ? "invisible" : done ? "bg-primary" : "bg-border/60")} />
-                </div>
-                {/* Label */}
-                <div className={cn("text-center", step.soon && !done && !active && "opacity-40")}>
-                  <p
-                    className={cn(
-                      "text-[11px] font-semibold leading-tight",
-                      done || active ? "text-foreground" : "text-muted-foreground",
-                    )}
-                  >
-                    {step.label}
-                    {step.soon && (
-                      <span className="ml-1 text-[9px] font-normal text-muted-foreground/60">(soon)</span>
-                    )}
-                  </p>
-                  <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground">{step.sub}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+function formatDate(iso: string) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
 }
 
-// ── CMS detection card ─────────────────────────────────────────────────────────
-
-function CMSDetectionCard({ cms, runUrl }: { cms: CMS; runUrl?: string }) {
-  const meta = cms !== "unknown" ? CMS_META[cms] : null;
-  return (
-    <div className="rounded-xl border border-border/60 bg-card/65 p-5">
-      <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        Detected platform
-      </p>
-      <div className="flex items-center gap-3">
-        {meta ? (
-          <span
-            className="flex size-9 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold text-white"
-            style={{ backgroundColor: meta.color }}
-          >
-            {meta.logoText}
-          </span>
-        ) : (
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted text-muted-foreground">
-            <Globe className="size-4" />
-          </span>
-        )}
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">
-            {meta ? meta.name : "Unsupported platform"}
-          </p>
-          {runUrl && (
-            <p className="mt-0.5 truncate text-[12px] text-muted-foreground">{runUrl}</p>
-          )}
-        </div>
-        <span
-          className={cn(
-            "ml-auto shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
-            meta
-              ? "bg-amber-100 text-amber-700"
-              : "bg-muted text-muted-foreground",
-          )}
-        >
-          {meta ? "Ready to connect" : "Unsupported"}
-        </span>
-      </div>
-    </div>
-  );
+function extractErrorMessage(err: unknown): string {
+  const e = err as { response?: { data?: { error?: string } }; message?: string };
+  return e?.response?.data?.error ?? e?.message ?? "Something went wrong. Please try again.";
 }
 
-// ── Connected state card ───────────────────────────────────────────────────────
+// ─── Shared UI ────────────────────────────────────────────────────────────────
 
-function ConnectedCard({
-  cms,
-  integration,
-  runUrl,
-  onDisconnect,
-  disconnecting,
-}: {
-  cms: CMS;
-  integration?: IntegrationInfo;
-  runUrl?: string;
-  onDisconnect: () => void;
-  disconnecting: boolean;
-}) {
-  const meta = cms !== "unknown" ? CMS_META[cms] : null;
-  const siteName =
-    (integration?.metadata?.site_name as string) ||
-    (integration?.metadata?.shop_name as string) ||
-    runUrl ||
-    "Your site";
-  const updatedAt = integration?.updated_at
-    ? new Date(integration.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-    : null;
-
+function SectionCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="rounded-xl border border-emerald-500/30 bg-emerald-50/50 p-5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {meta && (
-            <span
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold text-white"
-              style={{ backgroundColor: meta.color }}
-            >
-              {meta.logoText}
-            </span>
-          )}
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-foreground">{siteName}</p>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                Connected
-              </span>
-            </div>
-            {updatedAt && (
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Last synced {updatedAt}</p>
-            )}
-          </div>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onDisconnect}
-          disabled={disconnecting}
-          className="h-8 shrink-0 border-border/80 bg-white px-3 text-[12px] text-muted-foreground hover:text-destructive"
-        >
-          {disconnecting ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <X className="size-3.5" />
-          )}
-          <span className="ml-1">{disconnecting ? "Disconnecting…" : "Disconnect"}</span>
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// ── WordPress connect card ─────────────────────────────────────────────────────
-
-function WordPressConnectCard({
-  wpUrl,
-  setWpUrl,
-  wpUsername,
-  setWpUsername,
-  wpApiKey,
-  setWpApiKey,
-  connecting,
-  onSubmit,
-}: {
-  wpUrl: string;
-  setWpUrl: (v: string) => void;
-  wpUsername: string;
-  setWpUsername: (v: string) => void;
-  wpApiKey: string;
-  setWpApiKey: (v: string) => void;
-  connecting: boolean;
-  onSubmit: (e: React.FormEvent) => void;
-}) {
-  const isWpCom = wpUrl.includes(".wordpress.com");
-
-  return (
-    <div className="rounded-xl border border-[#21759B]/30 bg-[#21759B]/5 p-5">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#21759B] text-[11px] font-bold text-white">
-          WP
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-foreground">Connect WordPress</p>
-          <p className="text-[12px] text-muted-foreground">
-            WordPress.com sites use OAuth. Self-hosted sites use an application password.
-          </p>
-        </div>
-      </div>
-
-      <form onSubmit={onSubmit} className="space-y-3">
-        <div className="space-y-1.5">
-          <label className="text-[12px] font-medium text-foreground" htmlFor="wp-url">
-            Site URL
-          </label>
-          <div className="relative">
-            <Globe className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="wp-url"
-              value={wpUrl}
-              onChange={(e) => setWpUrl(e.target.value)}
-              placeholder="https://yoursite.com"
-              required
-              disabled={connecting}
-              className="h-9 border-border/80 bg-white pl-8 text-[13px] focus-visible:ring-0"
-            />
-          </div>
-        </div>
-
-        {!isWpCom && (
-          <>
-            <div className="space-y-1.5">
-              <label className="text-[12px] font-medium text-foreground" htmlFor="wp-username">
-                WordPress username
-              </label>
-              <Input
-                id="wp-username"
-                value={wpUsername}
-                onChange={(e) => setWpUsername(e.target.value)}
-                placeholder="admin"
-                required
-                disabled={connecting}
-                className="h-9 border-border/80 bg-white text-[13px] focus-visible:ring-0"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[12px] font-medium text-foreground" htmlFor="wp-key">
-                Application password
-              </label>
-              <Input
-                id="wp-key"
-                type="password"
-                value={wpApiKey}
-                onChange={(e) => setWpApiKey(e.target.value)}
-                placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"
-                disabled={connecting}
-                className="h-9 border-border/80 bg-white text-[13px] focus-visible:ring-0"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Generate in WordPress admin → Users → Profile → Application Passwords.
-              </p>
-            </div>
-          </>
-        )}
-
-        <div className="mt-1 flex items-center gap-2">
-          <Button
-            type="submit"
-            disabled={connecting || !wpUrl || (!isWpCom && !wpUsername)}
-            className="h-9 bg-[#21759B] px-4 text-[13px] font-semibold text-white hover:bg-[#1a5f7a]"
-          >
-            {connecting ? (
-              <><Loader2 className="mr-1.5 size-3.5 animate-spin" />Connecting…</>
-            ) : isWpCom ? (
-              "Continue with WordPress.com"
-            ) : (
-              "Connect WordPress"
-            )}
-          </Button>
-        </div>
-      </form>
-
-      {/* Benefits */}
-      <ul className="mt-4 space-y-1.5 border-t border-[#21759B]/20 pt-4">
-        {[
-          "Auto-publish AI blog posts to WordPress",
-          "GEO-optimized content for AI search surfaces",
-          "Review before publish or fully automated mode",
-        ].map((b) => (
-          <li key={b} className="flex items-start gap-2 text-[12px] text-muted-foreground">
-            <Check className="mt-0.5 size-3.5 shrink-0 text-[#21759B]" />
-            {b}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-// ── Shopify connect card ───────────────────────────────────────────────────────
-
-function ShopifyConnectCard({
-  shopDomain,
-  setShopDomain,
-  accessToken,
-  setAccessToken,
-  connectMode,
-  setConnectMode,
-  connecting,
-  onSubmitToken,
-  onSubmitOAuth,
-}: {
-  shopDomain: string;
-  setShopDomain: (v: string) => void;
-  accessToken: string;
-  setAccessToken: (v: string) => void;
-  connectMode: "token" | "oauth";
-  setConnectMode: (m: "token" | "oauth") => void;
-  connecting: boolean;
-  onSubmitToken: (e: React.FormEvent) => void;
-  onSubmitOAuth: (e: React.FormEvent) => void;
-}) {
-  return (
-    <div className="rounded-xl border border-[#96BF48]/30 bg-[#96BF48]/5 p-5">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#96BF48] text-[11px] font-bold text-white">
-          SH
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-foreground">Connect Shopify</p>
-          <p className="text-[12px] text-muted-foreground">
-            Authorize Signalor to publish blog articles to your Shopify store.
-          </p>
-        </div>
-      </div>
-
-      {/* Tab toggle */}
-      <div className="mb-4 flex gap-1 rounded-lg border border-[#96BF48]/30 bg-white p-1">
-        {(["token", "oauth"] as const).map((mode) => (
-          <button
-            key={mode}
-            type="button"
-            onClick={() => setConnectMode(mode)}
-            className={cn(
-              "flex-1 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors",
-              connectMode === mode
-                ? "bg-[#96BF48] text-white"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {mode === "token" ? "Admin API Token" : "Shopify OAuth"}
-          </button>
-        ))}
-      </div>
-
-      {connectMode === "token" ? (
-        <form onSubmit={onSubmitToken} className="space-y-3">
-          <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-foreground" htmlFor="shop-domain-token">
-              Store domain
-            </label>
-            <div className="relative">
-              <Globe className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="shop-domain-token"
-                value={shopDomain}
-                onChange={(e) => setShopDomain(e.target.value)}
-                placeholder="yourstore.myshopify.com"
-                required
-                disabled={connecting}
-                className="h-9 border-border/80 bg-white pl-8 text-[13px] focus-visible:ring-0"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-foreground" htmlFor="shop-token">
-              Admin API access token
-            </label>
-            <Input
-              id="shop-token"
-              type="password"
-              value={accessToken}
-              onChange={(e) => setAccessToken(e.target.value)}
-              placeholder="shpat_xxxxxxxxxxxxxxxxxxxx"
-              required
-              disabled={connecting}
-              className="h-9 border-border/80 bg-white text-[13px] focus-visible:ring-0"
-            />
-          </div>
-
-          {/* Instructions callout */}
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
-            <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-amber-800">
-              <Info className="size-3.5 shrink-0" />
-              How to get your Admin API token
-            </p>
-            <ol className="space-y-0.5 pl-1 text-[11px] text-amber-700">
-              <li>1. Shopify Admin → <strong>Settings → Apps → Develop apps</strong></li>
-              <li>2. Create a custom app → go to <strong>Configuration</strong> tab</li>
-              <li>3. Enable <strong>write_content</strong> and <strong>read_content</strong> scopes → Save</li>
-              <li>4. Click <strong>Install app</strong> → copy the Admin API access token</li>
-            </ol>
-          </div>
-
-          <Button
-            type="submit"
-            disabled={connecting || !shopDomain || !accessToken}
-            className="h-9 bg-[#96BF48] px-4 text-[13px] font-semibold text-white hover:bg-[#7da33c]"
-          >
-            {connecting ? (
-              <><Loader2 className="mr-1.5 size-3.5 animate-spin" />Connecting…</>
-            ) : (
-              "Connect Shopify"
-            )}
-          </Button>
-        </form>
-      ) : (
-        <form onSubmit={onSubmitOAuth} className="space-y-3">
-          <div className="space-y-1.5">
-            <label className="text-[12px] font-medium text-foreground" htmlFor="shop-domain-oauth">
-              Store domain
-            </label>
-            <div className="relative">
-              <Globe className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="shop-domain-oauth"
-                value={shopDomain}
-                onChange={(e) => setShopDomain(e.target.value)}
-                placeholder="yourstore.myshopify.com"
-                required
-                disabled={connecting}
-                className="h-9 border-border/80 bg-white pl-8 text-[13px] focus-visible:ring-0"
-              />
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            disabled={connecting || !shopDomain}
-            className="h-9 bg-[#96BF48] px-4 text-[13px] font-semibold text-white hover:bg-[#7da33c]"
-          >
-            {connecting ? (
-              <><Loader2 className="mr-1.5 size-3.5 animate-spin" />Redirecting…</>
-            ) : (
-              "Connect with Shopify OAuth"
-            )}
-          </Button>
-        </form>
+    <div
+      className={cn(
+        "rounded-lg border border-black/[0.07] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]",
+        className,
       )}
-
-      <ul className="mt-4 space-y-1.5 border-t border-[#96BF48]/20 pt-4">
-        {[
-          "Auto-publish blog articles to your Shopify store",
-          "GEO-optimized content to improve AI search presence",
-          "Secure — no passwords stored",
-        ].map((b) => (
-          <li key={b} className="flex items-start gap-2 text-[12px] text-muted-foreground">
-            <Check className="mt-0.5 size-3.5 shrink-0 text-[#96BF48]" />
-            {b}
-          </li>
-        ))}
-      </ul>
+    >
+      {children}
     </div>
   );
 }
 
-// ── Unsupported CMS card ───────────────────────────────────────────────────────
-
-function UnsupportedCMSCard({ runUrl }: { runUrl?: string }) {
+function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-card/65 p-8 text-center">
-      <Globe className="mx-auto mb-3 size-8 text-muted-foreground/40" />
-      <p className="text-sm font-medium text-foreground">Platform not yet supported</p>
-      <p className="mt-1 text-[13px] text-muted-foreground">
-        {runUrl ? (
-          <>
-            <span className="font-medium">{runUrl}</span> is not a WordPress or Shopify site.
-          </>
-        ) : (
-          "Connect a WordPress or Shopify website to use Blog Agent."
-        )}
-      </p>
-      <p className="mt-2 text-[12px] text-muted-foreground">
-        Support for additional platforms is coming soon.
-      </p>
+    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+      {children}
+    </label>
+  );
+}
+
+function ErrorNote({ message }: { message: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-md bg-red-50 px-3 py-2.5 text-xs text-red-700">
+      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      {message}
     </div>
   );
 }
 
-// ── OAuth callback reader ──────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function BlogAgentCallbackReader({
-  onSuccess,
-  onError,
-}: {
-  onSuccess: (provider: string) => void;
-  onError: (msg: string) => void;
-}) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  useEffect(() => {
-    const shopifyStatus = searchParams.get("shopify");
-    const wordpressStatus = searchParams.get("wordpress");
-    const reason = searchParams.get("reason");
-
-    const friendlyReason = (r: string | null) => {
-      if (!r) return "";
-      const map: Record<string, string> = {
-        expired_state: "Connection timed out. Please try again.",
-        invalid_state: "Invalid session. Please try again.",
-        invalid_hmac: "Security check failed. Please try again.",
-        subscription_required: "Your plan does not support this integration.",
-        token_exchange_failed: "Could not exchange the authorization code.",
-        missing_access_token: "No access token received from provider.",
-        shop_frozen: "This Shopify store is currently frozen.",
-        oauth_not_configured: "OAuth is not configured on this server.",
-      };
-      return map[r] || `${r.replaceAll("_", " ")}.`;
-    };
-
-    if (shopifyStatus === "connected") {
-      onSuccess("shopify");
-    } else if (shopifyStatus === "error") {
-      onError(`Shopify connection failed. ${friendlyReason(reason)}`);
-    } else if (wordpressStatus === "connected") {
-      onSuccess("wordpress");
-    } else if (wordpressStatus === "error") {
-      onError(`WordPress connection failed. ${friendlyReason(reason)}`);
-    }
-
-    if (shopifyStatus || wordpressStatus) {
-      router.replace(window.location.pathname, { scroll: false });
-    }
-  }, [searchParams, router, onSuccess, onError]);
-
-  return null;
+function isWpComUrl(url: string): boolean {
+  try {
+    const host = new URL(url.trim().startsWith("http") ? url.trim() : `https://${url.trim()}`)
+      .hostname;
+    return host.endsWith(".wordpress.com") || host === "wordpress.com";
+  } catch {
+    return false;
+  }
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
+// ─── Connect panel ────────────────────────────────────────────────────────────
 
-export default function BlogAgentPage() {
-  useParams<{ slug: string }>();
-  const { data: session } = useSession();
-  const { run, loading: runLoading } = useRun();
-  const email = session?.user?.email ?? "";
+function ConnectWordPressPanel({
+  email,
+  runSlug,
+  onConnected,
+}: {
+  email: string;
+  runSlug: string;
+  onConnected: () => void;
+}) {
+  const [siteUrl, setSiteUrl] = useState("");
+  const [username, setUsername] = useState("");
+  const [appPassword, setAppPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [integrations, setIntegrations] = useState<IntegrationInfo[]>([]);
-  const [loadingIntegrations, setLoadingIntegrations] = useState(true);
-  const [connecting, setConnecting] = useState(false);
-  const [disconnecting, setDisconnecting] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  // Derived: is the entered URL a WordPress.com-hosted site?
+  const wpComMode = siteUrl.trim().length > 3 && isWpComUrl(siteUrl);
 
-  // WordPress form
-  const [wpUrl, setWpUrl] = useState("");
-  const [wpUsername, setWpUsername] = useState("");
-  const [wpApiKey, setWpApiKey] = useState("");
-
-  // Shopify form
-  const [shopDomain, setShopDomain] = useState("");
-  const [shopAccessToken, setShopAccessToken] = useState("");
-  const [shopConnectMode, setShopConnectMode] = useState<"token" | "oauth">("token");
-
-  function handleOAuthSuccess(provider: string) {
-    setError("");
-    setSuccess(`${provider === "shopify" ? "Shopify" : "WordPress"} connected successfully.`);
-    getIntegrationStatus(email).then(setIntegrations).catch(() => {});
-  }
-
-  function handleOAuthError(msg: string) {
-    setSuccess("");
-    setError(msg);
-  }
-
-  useEffect(() => {
-    if (!email) return;
-    getIntegrationStatus(email)
-      .then(setIntegrations)
-      .catch(() => {})
-      .finally(() => setLoadingIntegrations(false));
-  }, [email]);
-
-  const loading = runLoading || loadingIntegrations;
-  const cms = detectCMS(run?.url, integrations);
-  const connected = cms !== "unknown" && integrations.some(
-    (i) => i.provider === cms && i.is_active,
-  );
-  const integration = getActiveIntegration(cms, integrations);
-  const currentStep = connected ? 1 : 0;
-
-  async function handleConnectWordPress(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email || !wpUrl) return;
-    setConnecting(true);
-    setError("");
-    setSuccess("");
+  async function handleOAuthConnect() {
+    if (!siteUrl.trim()) {
+      setError("Enter your WordPress.com site URL first.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
     try {
-      const res = await connectWordPress(email, wpUrl.trim(), wpApiKey.trim(), window.location.pathname, wpUsername.trim() || undefined);
+      // Send without api_key → backend triggers WordPress.com OAuth flow
+      const res = await connectWordPress(
+        email,
+        siteUrl.trim(),
+        "",
+        `/dashboard/${runSlug}/blog-agent`,
+      );
+      if (res.oauth_url) {
+        window.location.href = res.oauth_url;
+      } else {
+        setError(res.message || "Could not start OAuth flow.");
+      }
+    } catch (err) {
+      setError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSelfHostedSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!siteUrl.trim() || !username.trim() || !appPassword.trim()) {
+      setError("All three fields are required.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await connectWordPress(
+        email,
+        siteUrl.trim(),
+        appPassword.trim(),
+        `/dashboard/${runSlug}/blog-agent`,
+        username.trim(),
+      );
       if (res.oauth_url) {
         window.location.href = res.oauth_url;
         return;
       }
-      const updated = await getIntegrationStatus(email);
-      setIntegrations(updated);
-      setSuccess("WordPress connected successfully.");
-    } catch {
-      setError("Failed to connect WordPress. Check your site URL and application password.");
+      if (res.status === "connected") {
+        onConnected();
+      } else {
+        setError(res.message || "Connection failed.");
+      }
+    } catch (err) {
+      setError(extractErrorMessage(err));
     } finally {
-      setConnecting(false);
+      setLoading(false);
     }
   }
 
-  async function handleConnectShopifyManual(e: React.FormEvent) {
+  return (
+    <SectionCard>
+      <div className="mb-5 flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#21759b]/10">
+          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-[#21759b]" aria-hidden>
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">Connect your WordPress site</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {wpComMode
+              ? "This is a WordPress.com-hosted site — connect via OAuth."
+              : "Self-hosted WordPress uses an Application Password — no plugin needed."}
+          </p>
+        </div>
+      </div>
+
+      {/* Site URL field — always shown */}
+      <div className="mb-4 space-y-3">
+        <div>
+          <FieldLabel>Site URL</FieldLabel>
+          <input
+            type="url"
+            placeholder="https://yoursite.com or https://yoursite.wordpress.com"
+            value={siteUrl}
+            onChange={(e) => {
+              setSiteUrl(e.target.value);
+              setError(null);
+            }}
+            className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        {/* WordPress.com — OAuth button */}
+        {wpComMode && (
+          <div className="rounded-md border border-blue-100 bg-blue-50 px-4 py-3">
+            <p className="mb-2 text-xs font-medium text-blue-800">
+              WordPress.com-hosted sites use OAuth — no password needed.
+            </p>
+            {error && (
+              <div className="mb-2">
+                <ErrorNote message={error} />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleOAuthConnect}
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-[#21759b] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1a5f7e] disabled:opacity-50"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading ? "Redirecting to WordPress.com…" : "Connect with WordPress.com"}
+            </button>
+          </div>
+        )}
+
+        {/* Self-hosted — Application Password fields */}
+        {!wpComMode && (
+          <form onSubmit={handleSelfHostedSubmit} className="space-y-3">
+            <div>
+              <FieldLabel>WordPress Username</FieldLabel>
+              <input
+                type="text"
+                placeholder="admin"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+                required
+              />
+            </div>
+            <div>
+              <FieldLabel>Application Password</FieldLabel>
+              <input
+                type="password"
+                placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"
+                value={appPassword}
+                onChange={(e) => setAppPassword(e.target.value)}
+                className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 font-mono text-sm outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+                required
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Generate in WP Admin → Users → Your Profile → Application Passwords.
+              </p>
+            </div>
+
+            {error && <ErrorNote message={error} />}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading ? "Connecting…" : "Connect WordPress"}
+            </button>
+          </form>
+        )}
+      </div>
+    </SectionCard>
+  );
+}
+
+// ─── Create panel (Write yourself + Generate with AI) ────────────────────────
+
+type CreateMode = "manual" | "ai";
+
+function textToHtml(text: string): string {
+  return text
+    .split(/\n\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p>${p.replace(/\n/g, "<br />")}</p>`)
+    .join("\n");
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 80);
+}
+
+function CreatePanel({
+  onGenerate,
+  onManual,
+}: {
+  onGenerate: (topic: string, tone: Tone, wordCount: number) => Promise<void>;
+  onManual: (draft: BlogDraft) => void;
+}) {
+  const [mode, setMode] = useState<CreateMode>("manual");
+
+  // AI mode state
+  const [topic, setTopic] = useState("");
+  const [tone, setTone] = useState<Tone>("informative");
+  const [wordCount, setWordCount] = useState(800);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  // Manual mode state
+  const [manTitle, setManTitle] = useState("");
+  const [manContent, setManContent] = useState("");
+  const [manMeta, setManMeta] = useState("");
+  const [manTags, setManTags] = useState("");
+
+  async function handleAiSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !shopDomain || !shopAccessToken) return;
-    setConnecting(true);
-    setError("");
-    setSuccess("");
+    setAiError(null);
+    setAiLoading(true);
     try {
-      await connectShopify(email, shopDomain.trim(), shopAccessToken.trim());
-      const updated = await getIntegrationStatus(email);
-      setIntegrations(updated);
-      setSuccess("Shopify connected successfully.");
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setError(msg || "Failed to connect Shopify. Check your store domain and access token.");
+      await onGenerate(topic.trim(), tone, wordCount);
+    } catch (err) {
+      setAiError(extractErrorMessage(err));
     } finally {
-      setConnecting(false);
+      setAiLoading(false);
     }
   }
 
-  async function handleConnectShopify(e: React.FormEvent) {
+  function handleManualContinue(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !shopDomain) return;
-    setConnecting(true);
-    setError("");
-    setSuccess("");
+    const title = manTitle.trim();
+    const raw = manContent.trim();
+    if (!title || !raw) return;
+    onManual({
+      title,
+      slug: slugify(title),
+      meta_description: manMeta.trim(),
+      tags: manTags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+      content_html: textToHtml(raw),
+    });
+  }
+
+  return (
+    <SectionCard>
+      {/* Mode toggle */}
+      <div className="mb-5 flex gap-1 rounded-lg border border-black/[0.07] bg-neutral-50 p-1">
+        {(["manual", "ai"] as CreateMode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMode(m)}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-xs font-semibold transition-colors",
+              mode === m
+                ? "bg-white text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {m === "manual" ? (
+              <>
+                <svg
+                  viewBox="0 0 16 16"
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <path d="M2 12.5V14h1.5l7-7L9 5.5l-7 7zM13.7 4.3a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.1 1.1 3 3 1.1-1.1z" />
+                </svg>
+                Write yourself
+              </>
+            ) : (
+              <>
+                <svg
+                  viewBox="0 0 16 16"
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.5 3.5l2 2M10.5 10.5l2 2M3.5 12.5l2-2M10.5 5.5l2-2" />
+                </svg>
+                Generate with AI
+              </>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Manual mode ── */}
+      {mode === "manual" && (
+        <form onSubmit={handleManualContinue} className="space-y-3">
+          <div>
+            <FieldLabel>Title</FieldLabel>
+            <input
+              type="text"
+              placeholder="Your blog post title"
+              value={manTitle}
+              onChange={(e) => setManTitle(e.target.value)}
+              className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm font-medium outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+              required
+            />
+          </div>
+
+          <div>
+            <FieldLabel>Content</FieldLabel>
+            <textarea
+              placeholder={
+                "Write your blog post here.\n\nSeparate paragraphs with a blank line. No HTML needed."
+              }
+              value={manContent}
+              onChange={(e) => setManContent(e.target.value)}
+              rows={14}
+              className="w-full resize-y rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm leading-relaxed outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+              required
+            />
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              {manContent.trim().split(/\s+/).filter(Boolean).length} words · Blank lines create new
+              paragraphs.
+            </p>
+          </div>
+
+          <div>
+            <FieldLabel>
+              Meta description{" "}
+              <span className="font-normal normal-case tracking-normal text-neutral-400">
+                (optional)
+              </span>
+            </FieldLabel>
+            <input
+              type="text"
+              placeholder="Short SEO summary under 155 chars"
+              value={manMeta}
+              onChange={(e) => setManMeta(e.target.value)}
+              maxLength={155}
+              className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <div>
+            <FieldLabel>
+              Tags{" "}
+              <span className="font-normal normal-case tracking-normal text-neutral-400">
+                (optional, comma-separated)
+              </span>
+            </FieldLabel>
+            <input
+              type="text"
+              placeholder="seo, ai, content marketing"
+              value={manTags}
+              onChange={(e) => setManTags(e.target.value)}
+              className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={!manTitle.trim() || !manContent.trim()}
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+          >
+            <Send className="h-4 w-4" />
+            Continue to publish
+          </button>
+        </form>
+      )}
+
+      {/* ── AI mode ── */}
+      {mode === "ai" && (
+        <form onSubmit={handleAiSubmit} className="space-y-4">
+          <div>
+            <FieldLabel>Topic / Keyword</FieldLabel>
+            <input
+              type="text"
+              placeholder="e.g. How AI search is changing B2B content marketing"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <FieldLabel>Tone</FieldLabel>
+              <div className="relative">
+                <select
+                  value={tone}
+                  onChange={(e) => setTone(e.target.value as Tone)}
+                  className="w-full appearance-none rounded-md border border-black/[0.1] bg-white px-3 py-2 pr-8 text-sm outline-none ring-offset-2 focus:ring-2 focus:ring-ring"
+                >
+                  {TONES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              </div>
+            </div>
+            <div>
+              <FieldLabel>Length</FieldLabel>
+              <div className="relative">
+                <select
+                  value={wordCount}
+                  onChange={(e) => setWordCount(Number(e.target.value))}
+                  className="w-full appearance-none rounded-md border border-black/[0.1] bg-white px-3 py-2 pr-8 text-sm outline-none ring-offset-2 focus:ring-2 focus:ring-ring"
+                >
+                  {WORD_COUNTS.map((w) => (
+                    <option key={w.value} value={w.value}>
+                      {w.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              </div>
+            </div>
+          </div>
+
+          {aiError && <ErrorNote message={aiError} />}
+
+          <button
+            type="submit"
+            disabled={aiLoading || !topic.trim()}
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+          >
+            {aiLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+            {aiLoading ? "Generating — this may take 20–40 s…" : "Generate with AI"}
+          </button>
+        </form>
+      )}
+    </SectionCard>
+  );
+}
+
+// ─── Preview / publish panel ──────────────────────────────────────────────────
+
+function PreviewPanel({
+  draft,
+  runSlug,
+  onPublished,
+  onDiscard,
+}: {
+  draft: BlogDraft;
+  runSlug: string;
+  onPublished: (result: { post_url: string; edit_url: string; status: string }) => void;
+  onDiscard: () => void;
+}) {
+  const [title, setTitle] = useState(draft.title);
+  const [metaDescription, setMetaDescription] = useState(draft.meta_description);
+  const [slug, setSlug] = useState(draft.slug);
+  const [tags, setTags] = useState<string[]>(draft.tags);
+  const [tagInput, setTagInput] = useState("");
+  const [contentHtml, setContentHtml] = useState(draft.content_html);
+  const [publishStatus, setPublishStatus] = useState<"draft" | "publish">("draft");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [contentMode, setContentMode] = useState<"edit" | "preview">("edit");
+
+  function addTag() {
+    const t = tagInput.trim().replace(/,+$/, "");
+    if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+    setTagInput("");
+  }
+
+  async function handlePublish() {
+    setError(null);
+    setLoading(true);
     try {
-      const res = await getShopifyAuthUrl(email, shopDomain.trim(), window.location.pathname);
-      window.location.href = res.auth_url;
-    } catch {
-      setError("Failed to start Shopify connection. Check your store domain and try again.");
-      setConnecting(false);
+      const result = await publishBlogDraft(runSlug, {
+        title,
+        slug,
+        meta_description: metaDescription,
+        tags,
+        content_html: contentHtml,
+        status: publishStatus,
+      });
+      onPublished(result);
+    } catch (err) {
+      setError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
     }
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionCard>
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-sm font-semibold text-foreground">Review & publish</p>
+          <button
+            onClick={onDiscard}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            ← Generate new
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <FieldLabel>Title</FieldLabel>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm font-medium outline-none ring-offset-2 focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <div>
+            <FieldLabel>URL slug</FieldLabel>
+            <input
+              type="text"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              className="w-full rounded-md border border-black/[0.1] bg-neutral-50 px-3 py-2 font-mono text-xs outline-none ring-offset-2 focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <div>
+            <FieldLabel>Meta description</FieldLabel>
+            <textarea
+              value={metaDescription}
+              onChange={(e) => setMetaDescription(e.target.value)}
+              rows={2}
+              className="w-full resize-none rounded-md border border-black/[0.1] bg-white px-3 py-2 text-xs outline-none ring-offset-2 focus:ring-2 focus:ring-ring"
+            />
+            <p
+              className={cn(
+                "mt-0.5 text-[10px]",
+                metaDescription.length > 155 ? "text-red-500" : "text-muted-foreground",
+              )}
+            >
+              {metaDescription.length} / 155 chars
+            </p>
+          </div>
+
+          <div>
+            <FieldLabel>Tags</FieldLabel>
+            <div className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-md border border-black/[0.1] bg-white p-2">
+              {tags.map((t) => (
+                <span
+                  key={t}
+                  className="flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600"
+                >
+                  {t}
+                  <button
+                    type="button"
+                    onClick={() => setTags((prev) => prev.filter((x) => x !== t))}
+                    className="ml-0.5 text-neutral-400 hover:text-neutral-700"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              ))}
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === ",") {
+                    e.preventDefault();
+                    addTag();
+                  }
+                  if (e.key === "Backspace" && !tagInput && tags.length) {
+                    setTags((prev) => prev.slice(0, -1));
+                  }
+                }}
+                placeholder={tags.length === 0 ? "Add tags…" : ""}
+                className="min-w-[70px] flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Publish mode toggle */}
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {(["draft", "publish"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setPublishStatus(s)}
+              className={cn(
+                "rounded-md border py-2 text-xs font-medium transition-colors",
+                publishStatus === s
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-black/[0.1] bg-white text-muted-foreground hover:border-black/20",
+              )}
+            >
+              {s === "draft" ? "Save as draft" : "Publish live"}
+            </button>
+          ))}
+        </div>
+
+        {error && (
+          <div className="mt-3">
+            <ErrorNote message={error} />
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={handlePublish}
+          disabled={loading || !title}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {loading
+            ? "Publishing…"
+            : `${publishStatus === "publish" ? "Publish" : "Save draft"} to WordPress`}
+        </button>
+      </SectionCard>
+
+      {/* Content editor / preview */}
+      <SectionCard>
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-semibold text-foreground">Content</p>
+          <div className="flex gap-1 rounded-md border border-black/[0.07] bg-neutral-50 p-0.5">
+            {(["edit", "preview"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setContentMode(m)}
+                className={cn(
+                  "rounded px-2.5 py-1 text-[11px] font-semibold capitalize transition-colors",
+                  contentMode === m
+                    ? "bg-white text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {contentMode === "edit" ? (
+          <textarea
+            value={contentHtml}
+            onChange={(e) => setContentHtml(e.target.value)}
+            rows={18}
+            className="w-full resize-y rounded-md border border-black/[0.1] bg-neutral-50 px-3 py-2.5 font-mono text-xs leading-relaxed outline-none ring-offset-2 focus:ring-2 focus:ring-ring"
+            placeholder="HTML content…"
+          />
+        ) : (
+          <div
+            className="prose prose-sm max-w-none text-foreground [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-semibold [&_li]:text-sm [&_li]:leading-relaxed [&_p]:text-sm [&_p]:leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
+        )}
+      </SectionCard>
+    </div>
+  );
+}
+
+// ─── Recent posts sidebar ─────────────────────────────────────────────────────
+
+function RecentPostsSidebar({
+  wpData,
+  runSlug,
+  onPostDeleted,
+}: {
+  wpData: BlogPostsResponse;
+  runSlug: string;
+  onPostDeleted: (postId: number) => void;
+}) {
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  async function handleDelete(postId: number) {
+    setDeletingId(postId);
+    try {
+      await deleteBlogPost(runSlug, postId);
+      onPostDeleted(postId);
+    } catch {
+      // silently ignore — post remains in list
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionCard>
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+          Stats — last 30 days
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-2xl font-bold tabular-nums text-foreground">
+              {wpData.total_posts ?? 0}
+            </p>
+            <p className="text-[11px] text-muted-foreground">Total posts</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold tabular-nums text-foreground">
+              {wpData.published_posts_30d ?? 0}
+            </p>
+            <p className="text-[11px] text-muted-foreground">Published</p>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard>
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+            Recent posts
+          </p>
+          {wpData.site_url && (
+            <a
+              href={wpData.site_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          )}
+        </div>
+        {wpData.posts.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No posts found yet.</p>
+        ) : (
+          <ul className="space-y-2.5">
+            {wpData.posts.map((post) => (
+              <li key={post.id} className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-medium text-foreground">{post.title}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {formatDate(post.published_at)}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {post.url && (
+                    <a
+                      href={post.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                  <button
+                    onClick={() => handleDelete(post.id)}
+                    disabled={deletingId === post.id}
+                    className="text-muted-foreground hover:text-red-500 disabled:opacity-40"
+                  >
+                    {deletingId === post.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
+    </div>
+  );
+}
+
+function HowItWorksSidebar() {
+  const steps = [
+    "Connect your WordPress site using an Application Password.",
+    "Enter a topic and choose your preferred tone and post length.",
+    "AI generates a full SEO-optimised blog post in seconds.",
+    "Edit the title, meta description, and tags if needed.",
+    "Publish live or save as a draft — directly from this page.",
+  ];
+  return (
+    <SectionCard>
+      <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+        How it works
+      </p>
+      <ol className="space-y-3">
+        {steps.map((s, i) => (
+          <li key={i} className="flex items-start gap-2.5 text-xs text-muted-foreground">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[10px] font-bold text-neutral-500">
+              {i + 1}
+            </span>
+            {s}
+          </li>
+        ))}
+      </ol>
+    </SectionCard>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
+export default function BlogAgentPage() {
+  const { slug } = useParams<{ slug: string }>();
+  const { run } = useRun();
+
+  const [wpData, setWpData] = useState<BlogPostsResponse | null>(null);
+  const [wpLoading, setWpLoading] = useState(true);
+  const [step, setStep] = useState<Step>("generate");
+
+  const [draft, setDraft] = useState<BlogDraft | null>(null);
+  const [publishResult, setPublishResult] = useState<{
+    post_url: string;
+    edit_url: string;
+    status: string;
+  } | null>(null);
+
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  const email = run?.email ?? "";
+
+  const loadWpStatus = useCallback(async () => {
+    if (!slug) return;
+    setWpLoading(true);
+    try {
+      const data = await getBlogPosts(slug);
+      setWpData(data);
+      setStep(data.connected ? "generate" : "connect");
+    } catch {
+      setWpData({ connected: false, posts: [] });
+      setStep("connect");
+    } finally {
+      setWpLoading(false);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    loadWpStatus();
+  }, [loadWpStatus]);
+
+  // After WordPress.com OAuth callback, the URL contains ?wordpress=connected
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("wordpress") === "connected") {
+      // Clean the query param then reload status
+      const clean = window.location.pathname;
+      window.history.replaceState({}, "", clean);
+      loadWpStatus();
+    }
+  }, [loadWpStatus]);
+
+  async function handleGenerate(topic: string, tone: Tone, wordCount: number) {
+    setPublishResult(null);
+    const result = await generateBlogDraft(slug, topic, tone, wordCount);
+    setDraft(result);
+    setStep("preview");
+  }
+
+  function handleManual(manualDraft: BlogDraft) {
+    setPublishResult(null);
+    setDraft(manualDraft);
+    setStep("preview");
+  }
+
+  function handlePostDeleted(postId: number) {
+    setWpData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        posts: prev.posts.filter((p) => p.id !== postId),
+        total_posts: Math.max(0, (prev.total_posts ?? 1) - 1),
+      };
+    });
   }
 
   async function handleDisconnect() {
     if (!email) return;
     setDisconnecting(true);
-    setError("");
-    setSuccess("");
     try {
-      if (cms === "wordpress") await disconnectWordPress(email);
-      else if (cms === "shopify") await disconnectShopify(email);
-      const updated = await getIntegrationStatus(email);
-      setIntegrations(updated);
+      await disconnectWordPress(email);
+      setWpData({ connected: false, posts: [] });
+      setStep("connect");
+      setDraft(null);
+      setPublishResult(null);
     } catch {
-      setError("Failed to disconnect. Please try again.");
+      // silently ignore
     } finally {
       setDisconnecting(false);
     }
   }
 
-  return (
-    <div className="space-y-6 px-2 py-2 sm:px-0">
-      <Suspense fallback={null}>
-        <BlogAgentCallbackReader
-          onSuccess={handleOAuthSuccess}
-          onError={handleOAuthError}
-        />
-      </Suspense>
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-            Blog Agent
-          </h2>
-          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-            Connect your CMS and let Signalor generate and publish GEO-optimized blog content automatically.
-          </p>
-        </div>
-        <a
-          href="https://docs.signalor.ai/blog-agent"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="View documentation"
-          className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground"
-        >
-          <Info className="size-4" />
-        </a>
+  if (wpLoading) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
+    );
+  }
 
-      {/* Setup stepper */}
-      <SetupStepper currentStep={currentStep} />
+  const isConnected = !!wpData?.connected;
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          Loading…
+  return (
+    <div className="mx-auto max-w-5xl space-y-5 p-5 lg:p-7">
+      {/* Connection status bar */}
+      <div className="flex items-center justify-between rounded-lg border border-black/[0.07] bg-white px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center gap-2.5">
+          <div
+            className={cn(
+              "h-2 w-2 rounded-full",
+              isConnected ? "bg-emerald-500" : "bg-neutral-300",
+            )}
+          />
+          <span className="text-sm font-medium text-foreground">
+            {isConnected ? wpData?.site_name || "WordPress" : "WordPress not connected"}
+          </span>
+          {isConnected && wpData?.site_url && (
+            <a
+              href={wpData.site_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden text-[11px] text-muted-foreground hover:text-foreground sm:inline"
+            >
+              {wpData.site_url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+            </a>
+          )}
         </div>
-      )}
-
-      {/* Error */}
-      {!loading && error && (
-        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          <AlertCircle className="size-4 shrink-0" />
-          {error}
-        </div>
-      )}
-
-      {/* Success */}
-      {!loading && success && (
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          <Check className="size-4 shrink-0" />
-          {success}
-        </div>
-      )}
-
-      {/* Main content */}
-      {!loading && (
-        <>
-          {connected && run ? (
+        <div className="flex items-center gap-3">
+          {isConnected && (
             <>
-              <ConnectedCard
-                cms={cms}
-                integration={integration}
-                runUrl={run.url}
-                onDisconnect={handleDisconnect}
-                disconnecting={disconnecting}
-              />
-              <BlogAutomationPanel
-                email={email}
-                runId={run.id}
-                analyzedUrl={run.url ?? ""}
-              />
-            </>
-          ) : cms === "unknown" ? (
-            <>
-              <CMSDetectionCard cms={cms} runUrl={run?.url} />
-              <UnsupportedCMSCard runUrl={run?.url} />
-            </>
-          ) : (
-            <>
-              <CMSDetectionCard cms={cms} runUrl={run?.url} />
-              {cms === "wordpress" && (
-                <WordPressConnectCard
-                  wpUrl={wpUrl}
-                  setWpUrl={setWpUrl}
-                  wpUsername={wpUsername}
-                  setWpUsername={setWpUsername}
-                  wpApiKey={wpApiKey}
-                  setWpApiKey={setWpApiKey}
-                  connecting={connecting}
-                  onSubmit={handleConnectWordPress}
-                />
-              )}
-              {cms === "shopify" && (
-                <ShopifyConnectCard
-                  shopDomain={shopDomain}
-                  setShopDomain={setShopDomain}
-                  accessToken={shopAccessToken}
-                  setAccessToken={setShopAccessToken}
-                  connectMode={shopConnectMode}
-                  setConnectMode={setShopConnectMode}
-                  connecting={connecting}
-                  onSubmitToken={handleConnectShopifyManual}
-                  onSubmitOAuth={handleConnectShopify}
-                />
-              )}
+              <button
+                type="button"
+                onClick={loadWpStatus}
+                title="Refresh"
+                className="rounded p-1 text-muted-foreground hover:bg-neutral-50 hover:text-foreground"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleDisconnect}
+                disabled={disconnecting}
+                className="text-xs text-muted-foreground hover:text-red-600 disabled:opacity-50"
+              >
+                {disconnecting ? "Disconnecting…" : "Disconnect"}
+              </button>
             </>
           )}
-        </>
+        </div>
+      </div>
+
+      {/* Publish success banner */}
+      {publishResult && (
+        <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+          <div className="flex-1 text-sm text-emerald-800">
+            <span className="font-semibold">
+              {publishResult.status === "publish" ? "Published!" : "Saved as draft!"}
+            </span>{" "}
+            Your post is now on WordPress.
+          </div>
+          <div className="flex items-center gap-3 text-xs font-medium">
+            {publishResult.post_url && (
+              <a
+                href={publishResult.post_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-700 underline hover:text-emerald-900"
+              >
+                View post
+              </a>
+            )}
+            {publishResult.edit_url && (
+              <a
+                href={publishResult.edit_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-700 underline hover:text-emerald-900"
+              >
+                Edit in WP
+              </a>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setPublishResult(null);
+              setDraft(null);
+              setStep("generate");
+            }}
+            className="text-emerald-600 hover:text-emerald-800"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
       )}
+
+      {/* Main layout */}
+      <div className="grid gap-5 lg:grid-cols-[1fr_272px]">
+        {/* Left: workflow */}
+        <div className="min-w-0 space-y-4">
+          {step === "connect" && (
+            <ConnectWordPressPanel email={email} runSlug={slug} onConnected={loadWpStatus} />
+          )}
+
+          {step === "generate" && isConnected && (
+            <CreatePanel onGenerate={handleGenerate} onManual={handleManual} />
+          )}
+
+          {step === "preview" && draft && (
+            <PreviewPanel
+              draft={draft}
+              runSlug={slug}
+              onPublished={(result) => {
+                setPublishResult(result);
+                setDraft(null);
+                setStep("generate");
+                loadWpStatus();
+              }}
+              onDiscard={() => {
+                setDraft(null);
+                setStep("generate");
+              }}
+            />
+          )}
+        </div>
+
+        {/* Right: sidebar */}
+        <div>
+          {isConnected && wpData ? (
+            <RecentPostsSidebar wpData={wpData} runSlug={slug} onPostDeleted={handlePostDeleted} />
+          ) : (
+            <HowItWorksSidebar />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

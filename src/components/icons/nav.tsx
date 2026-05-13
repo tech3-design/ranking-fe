@@ -92,19 +92,6 @@ export function TrackerIcon(props: IconProps) {
   );
 }
 
-// Wikipedia — open book, accent dot on the spine like a bookmark.
-export function WikipediaIcon(props: IconProps) {
-  return (
-    <svg {...svgBase(props)}>
-      <path d="M3 5a2 2 0 0 1 2-2h6.5v18H5a2 2 0 0 1-2-2V5z" />
-      <path d="M21 5a2 2 0 0 0-2-2h-6.5v18H19a2 2 0 0 0 2-2V5z" />
-      <path d="M6 8h3M6 11h3M6 14h2.5" />
-      <path d="M15 8h3M15 11h3M15 14h2.5" />
-      <circle cx="12" cy="6" r="0.9" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
 // Competitors — primary brand avatar foregrounded, rival avatar behind.
 export function CompetitorsIcon(props: IconProps) {
   return (
@@ -138,6 +125,19 @@ export function BacklinksIcon(props: IconProps) {
       <circle cx="8.5" cy="12" r="5" />
       <circle cx="15.5" cy="12" r="5" />
       <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+// BlogAgent — pen nib writing onto a page, accent dot at the nib tip.
+export function BlogAgentIcon(props: IconProps) {
+  return (
+    <svg {...svgBase(props)}>
+      <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+      <path d="M14 3v6h6" />
+      <path d="M8 13h8M8 17h5" />
+      <path d="M15.5 13.5 17 12l1.5 1.5-1.5 1.5z" fill="currentColor" stroke="none" />
+      <circle cx="17" cy="12" r="1" fill="currentColor" stroke="none" />
     </svg>
   );
 }

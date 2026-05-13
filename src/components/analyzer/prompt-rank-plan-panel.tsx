@@ -124,18 +124,6 @@ const ACTIONS: ActionDef[] = [
     href: "/prompts/backlinks",
     cta: "See free targets",
   },
-  {
-    id: "wikipedia_targets",
-    title: "Find Wikipedia articles where you could be cited as a source",
-    why: "Wikipedia drives ~8% of AI citations. Adding your brand as a source citation in an existing article is far easier than getting a new article approved.",
-    pillar: "Authority",
-    pillarWeight: "40%",
-    impact: "medium",
-    effort: "30-60 min",
-    kind: "deeplink",
-    href: "/prompts/wikipedia",
-    cta: "Find targets",
-  },
 ];
 
 const PILLAR_STYLES: Record<ActionDef["pillar"], string> = {
@@ -233,11 +221,12 @@ export function PromptRankPlanPanel({ track }: { track: PromptTrack }) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-semibold text-foreground">
-            Rank &ldquo;{track.prompt_text.slice(0, 80)}{track.prompt_text.length > 80 ? "…" : ""}&rdquo; on AI platforms
+            Rank &ldquo;{track.prompt_text.slice(0, 80)}
+            {track.prompt_text.length > 80 ? "…" : ""}&rdquo; on AI platforms
           </p>
           <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-            {ACTIONS.length} achievable actions across Authority (40%), Content (35%), and Structural (25%).
-            Click any row to generate the artifact or open the dedicated tool.
+            {ACTIONS.length} achievable actions across Authority (40%), Content (35%), and
+            Structural (25%). Click any row to generate the artifact or open the dedicated tool.
           </p>
         </div>
       </div>
@@ -291,7 +280,11 @@ export function PromptRankPlanPanel({ track }: { track: PromptTrack }) {
                       {isLoading ? (
                         <Loader2 className="size-3 animate-spin" />
                       ) : result ? (
-                        isOpen ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />
+                        isOpen ? (
+                          <ChevronUp className="size-3" />
+                        ) : (
+                          <ChevronDown className="size-3" />
+                        )
                       ) : (
                         <Sparkles className="size-3" />
                       )}

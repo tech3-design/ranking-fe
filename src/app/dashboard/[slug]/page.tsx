@@ -3,19 +3,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import {
-  getExportPDFUrl,
-  startAnalysis,
-} from "@/lib/api/analyzer";
+import { getExportPDFUrl, startAnalysis } from "@/lib/api/analyzer";
 import { useRun } from "./_components/run-context";
 import { config, routes } from "@/lib/config";
-import {
-  Download,
-  RefreshCw,
-  Loader2,
-  AlertCircle,
-  Calendar,
-} from "@/components/icons";
+import { Download, RefreshCw, Loader2, AlertCircle, Calendar } from "@/components/icons";
 import { useOrgStore } from "@/lib/stores/org-store";
 import { ScheduleAnalysisDialog } from "./_components/schedule-analysis-dialog";
 import { OverviewSkeleton } from "@/components/dashboard/skeletons";
@@ -94,14 +85,22 @@ export default function SignalorDashboard() {
     window.open(`${config.apiBaseUrl}${getExportPDFUrl(run.id)}`, "_blank");
   }
 
-  const normalizeUrl = (u: string) => u.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
-  const pageScore = run?.page_scores?.find((p) => normalizeUrl(p.url) === normalizeUrl(run.url)) ?? run?.page_scores?.[0] ?? null;
+  const normalizeUrl = (u: string) =>
+    u
+      .replace(/^https?:\/\//, "")
+      .replace(/\/+$/, "")
+      .toLowerCase();
+  const pageScore =
+    run?.page_scores?.find((p) => normalizeUrl(p.url) === normalizeUrl(run.url)) ??
+    run?.page_scores?.[0] ??
+    null;
   const compositeScore = run?.composite_score ?? 0;
   const brandVis = run?.brand_visibility;
   const recommendations = run?.recommendations ?? [];
   const isRunning = !!run && run.status !== "complete" && run.status !== "failed";
 
-  const prevScore = scoreHistory.length >= 2 ? scoreHistory[scoreHistory.length - 2]?.composite_score : null;
+  const prevScore =
+    scoreHistory.length >= 2 ? scoreHistory[scoreHistory.length - 2]?.composite_score : null;
   const scoreChange = prevScore !== null ? Math.round(compositeScore - prevScore) : null;
 
   const prediction = useMemo(() => {
@@ -111,7 +110,14 @@ export default function SignalorDashboard() {
     for (const rec of recommendations) {
       const match = rec.impact_estimate?.match(/(\d+)/);
       const pts = match ? parseInt(match[1], 10) : 0;
-      const weight = rec.priority === "critical" ? 1 : rec.priority === "high" ? 0.7 : rec.priority === "medium" ? 0.4 : 0.2;
+      const weight =
+        rec.priority === "critical"
+          ? 1
+          : rec.priority === "high"
+            ? 0.7
+            : rec.priority === "medium"
+              ? 0.4
+              : 0.2;
       const impact = Math.min(pts * weight, 15);
       totalImpact += impact;
       if (rec.pillar) {
@@ -123,10 +129,13 @@ export default function SignalorDashboard() {
     const projectedGain = Math.round(projected - compositeScore);
 
     const days = Array.from({ length: 7 }, (_, i) => {
-      const dayScore = compositeScore + (projectedGain * ((i + 1) / 7));
+      const dayScore = compositeScore + projectedGain * ((i + 1) / 7);
       const d = new Date();
       d.setDate(d.getDate() + i + 1);
-      return { day: d.toLocaleDateString("en-US", { weekday: "short" }), score: Math.round(dayScore) };
+      return {
+        day: d.toLocaleDateString("en-US", { weekday: "short" }),
+        score: Math.round(dayScore),
+      };
     });
 
     return { projected: Math.round(projected), gain: projectedGain, days, pillarImpacts };
@@ -134,7 +143,9 @@ export default function SignalorDashboard() {
 
   const sentiment = useMemo((): DashboardSentiment | null => {
     const redditDetails = brandVis?.reddit_details as Record<string, unknown> | undefined;
-    const redditSentiment = redditDetails?.sentiment as { positive: number; negative: number; neutral: number; modifier: number } | undefined;
+    const redditSentiment = redditDetails?.sentiment as
+      | { positive: number; negative: number; neutral: number; modifier: number }
+      | undefined;
 
     const probes = run?.ai_probes ?? [];
     const mentioned = probes.filter((p) => p.brand_mentioned).length;
@@ -143,14 +154,16 @@ export default function SignalorDashboard() {
     const positive = redditSentiment?.positive ?? 0;
     const negative = redditSentiment?.negative ?? 0;
     const neutral = redditSentiment?.neutral ?? 0;
-    const modifier = redditSentiment?.modifier ?? 0; 
+    const modifier = redditSentiment?.modifier ?? 0;
     const score = Math.round(modifier / 2);
 
-    const hasData = (positive + negative + neutral) > 0 || total > 0;
+    const hasData = positive + negative + neutral > 0 || total > 0;
     if (!hasData) return null;
 
     return {
-      positive, negative, neutral,
+      positive,
+      negative,
+      neutral,
       score,
       totalMentions: positive + negative + neutral,
       aiMentioned: mentioned,
@@ -165,7 +178,10 @@ export default function SignalorDashboard() {
   if ((error || reanalyzeError) && !run) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <div className="flex items-center gap-3 rounded-sm border px-5 py-4 text-sm shadow-sm" style={{ backgroundColor: `${CORAL}08`, borderColor: `${CORAL}30`, color: CORAL }}>
+        <div
+          className="flex items-center gap-3 rounded-sm border px-5 py-4 text-sm shadow-sm"
+          style={{ backgroundColor: `${CORAL}08`, borderColor: `${CORAL}30`, color: CORAL }}
+        >
           <AlertCircle className="h-4 w-4 shrink-0" />
           {error || reanalyzeError}
         </div>
@@ -177,7 +193,10 @@ export default function SignalorDashboard() {
     return (
       <div className="flex h-full w-full items-center justify-center px-6">
         <div className="max-w-md w-full text-center space-y-6 bg-white p-8 rounded-sm border border-border shadow-sm">
-          <div className="mx-auto w-12 h-12 rounded-sm flex items-center justify-center" style={{ backgroundColor: `${CORAL}10` }}>
+          <div
+            className="mx-auto w-12 h-12 rounded-sm flex items-center justify-center"
+            style={{ backgroundColor: `${CORAL}10` }}
+          >
             <AlertCircle className="w-6 h-6" style={{ color: CORAL }} />
           </div>
           <div>
@@ -214,13 +233,18 @@ export default function SignalorDashboard() {
     );
   }
 
-  const projectName = run?.display_brand_name?.trim() || run?.brand_name || (run?.url ? normalizeUrl(run.url).split("/")[0] : "Overview");
+  const projectName =
+    run?.display_brand_name?.trim() ||
+    run?.brand_name ||
+    (run?.url ? normalizeUrl(run.url).split("/")[0] : "Overview");
   const brandDomain = run?.url ? normalizeUrl(run.url).split("/")[0] : "";
   const brandFavicon = brandDomain
     ? `https://www.google.com/s2/favicons?domain=${brandDomain}&sz=128`
     : "";
-  const statusLabel = run?.status === "complete" ? "Active" : run?.status === "failed" ? "Failed" : "Analyzing";
-  const statusClasses = run?.status === "complete"
+  const statusLabel =
+    run?.status === "complete" ? "Active" : run?.status === "failed" ? "Failed" : "Analyzing";
+  const statusClasses =
+    run?.status === "complete"
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
       : run?.status === "failed"
         ? "bg-red-50 text-red-700 border-red-200"
@@ -229,102 +253,115 @@ export default function SignalorDashboard() {
   return (
     <>
       {/* <header className="sticky top-0 z-20 border-b border-border bg-white px-6 py-4"> */}
-        <div
-          className="flex flex-col gap-4 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
-          data-tour-card="overview-header"
-        >
-          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-            {brandFavicon ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={brandFavicon}
-                alt={`${projectName} logo`}
-                width={32}
-                height={32}
-                className="size-7 shrink-0 rounded-md object-contain sm:size-8"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.display = "none";
-                }}
-              />
-            ) : null}
-            <div className="min-w-0">
-              <h1 className="truncate text-2xl font-bold tracking-tight text-foreground capitalize sm:text-3xl">
-                {projectName}
-              </h1>
-              {brandDomain ? (
-                <p className="truncate text-xs text-muted-foreground sm:text-sm">
-                  {brandDomain}
-                </p>
-              ) : null}
-            </div>
-          </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-4 sm:gap-5">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Status</span>
-              <span className={cn("rounded-sm border px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase", statusClasses)}>
-                {statusLabel}
-              </span>
-            </div>
-            
-            {run?.created_at ? (
-              <div className="hidden flex-col items-end gap-0.5 text-right sm:flex border-l border-border pl-4">
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
-                  Created on
-                </span>
-                <span className="text-xs font-medium text-foreground">
-                  {new Date(run.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                </span>
-              </div>
-            ) : null}
-
-            <div className="flex items-center gap-2 pl-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleReanalyze}
-                disabled={reanalyzing || isRunning}
-                className="h-8 gap-1.5 rounded-sm border-border bg-white px-3 text-xs font-medium text-foreground shadow-sm"
-              >
-                {reanalyzing ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
-                Re-analyze
-              </Button>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={() => setScheduleOpen(true)}
-                disabled={!run || isRunning || !session?.user?.email || !activeOrg?.id}
-                className="h-8 gap-1.5 rounded-sm px-3 text-xs font-medium shadow-sm"
-              >
-                <Calendar className="size-3.5" />
-                Schedule analysis
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadPDF}
-                disabled={!run || isRunning}
-                className="h-8 gap-1.5 rounded-sm border-border bg-white px-3 text-xs font-medium text-foreground shadow-sm"
-              >
-                <Download className="size-3.5" />
-                Export
-              </Button>
-            </div>
-
-            {run && session?.user?.email && activeOrg?.id ? (
-              <ScheduleAnalysisDialog
-                open={scheduleOpen}
-                onClose={() => setScheduleOpen(false)}
-                email={session.user.email}
-                orgId={activeOrg.id}
-                url={run.url}
-                brandName={run.brand_name || ""}
-              />
+      <div
+        className="flex flex-col gap-4 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+        data-tour-card="overview-header"
+      >
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          {brandFavicon ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={brandFavicon}
+              alt={`${projectName} logo`}
+              width={32}
+              height={32}
+              className="size-7 shrink-0 rounded-md object-contain sm:size-8"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : null}
+          <div className="min-w-0">
+            <h1 className="truncate text-2xl font-bold tracking-tight text-foreground capitalize sm:text-3xl">
+              {projectName}
+            </h1>
+            {brandDomain ? (
+              <p className="truncate text-xs text-muted-foreground sm:text-sm">{brandDomain}</p>
             ) : null}
           </div>
         </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-4 sm:gap-5">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+              Status
+            </span>
+            <span
+              className={cn(
+                "rounded-sm border px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase",
+                statusClasses,
+              )}
+            >
+              {statusLabel}
+            </span>
+          </div>
+
+          {run?.created_at ? (
+            <div className="hidden flex-col items-end gap-0.5 text-right sm:flex border-l border-border pl-4">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                Created on
+              </span>
+              <span className="text-xs font-medium text-foreground">
+                {new Date(run.created_at).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+          ) : null}
+
+          <div className="flex items-center gap-2 pl-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleReanalyze}
+              disabled={reanalyzing || isRunning}
+              className="h-8 gap-1.5 rounded-sm border-border bg-white px-3 text-xs font-medium text-foreground shadow-sm"
+            >
+              {reanalyzing ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="size-3.5" />
+              )}
+              Re-analyze
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => setScheduleOpen(true)}
+              disabled={!run || isRunning || !session?.user?.email || !activeOrg?.id}
+              className="h-8 gap-1.5 rounded-sm px-3 text-xs font-medium shadow-sm"
+            >
+              <Calendar className="size-3.5" />
+              Schedule analysis
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadPDF}
+              disabled={!run || isRunning}
+              className="h-8 gap-1.5 rounded-sm border-border bg-white px-3 text-xs font-medium text-foreground shadow-sm"
+            >
+              <Download className="size-3.5" />
+              Export
+            </Button>
+          </div>
+
+          {run && session?.user?.email && activeOrg?.id ? (
+            <ScheduleAnalysisDialog
+              open={scheduleOpen}
+              onClose={() => setScheduleOpen(false)}
+              email={session.user.email}
+              orgId={activeOrg.id}
+              url={run.url}
+              brandName={run.brand_name || ""}
+            />
+          ) : null}
+        </div>
+      </div>
       {/* </header> */}
 
       {run && !isRunning && (
@@ -399,7 +436,11 @@ export default function SignalorDashboard() {
           </div>
 
           {(prediction.gain > 0 || sentiment) && (
-            <PredictionSentimentRow compositeScore={compositeScore} prediction={prediction} sentiment={sentiment} />
+            <PredictionSentimentRow
+              compositeScore={compositeScore}
+              prediction={prediction}
+              sentiment={sentiment}
+            />
           )}
         </div>
       )}

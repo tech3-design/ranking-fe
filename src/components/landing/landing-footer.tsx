@@ -2,7 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ExternalLink, Github, Linkedin, Twitter, Youtube } from "@/components/icons";
+import {
+  ArrowRight,
+  ExternalLink,
+  Github,
+  Linkedin,
+  Twitter,
+  Youtube,
+  CirclePlus,
+} from "@/components/icons";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import LogoComp from "@/components/LogoComp";
 import { AiChip } from "@/components/ui/ai-chip";
@@ -62,12 +70,7 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   },
 ];
 
-const SOCIAL = [
-  { href: "https://twitter.com", label: "X (Twitter)", icon: Twitter },
-  { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin },
-  { href: "https://youtube.com", label: "YouTube", icon: Youtube },
-  { href: "https://github.com", label: "GitHub", icon: Github },
-] as const;
+const SOCIAL = [{ href: "https://x.com/SignalorAI", label: "X (Twitter)", icon: Twitter }] as const;
 
 function FooterLinkRow({ href, label, external }: FooterLink) {
   const className = cn(
@@ -157,15 +160,14 @@ export function LandingFooter() {
                 <LogoComp compact size={32} />
               </Link>
               <p className="mt-5 max-w-xs text-sm font-normal leading-relaxed text-neutral-600">
-                The AI visibility platform to monitor, score, and grow how generative search cites your
-                brand.{" "}
+                The AI visibility platform to monitor, score, and grow how generative search cites
+                your brand.{" "}
                 <a
                   href="mailto:hello@signalor.ai?subject=Careers"
-                  className="font-medium text-[#2563eb] underline decoration-[#2563eb]/35 underline-offset-2 transition-colors hover:decoration-[#2563eb]"
+                  className="inline-flex align-middle hover:text-neutral-900 transition-colors text-sm font-medium text-primary"
                 >
-                  Join our team
+                  <CirclePlus width={16} height={16} />
                 </a>
-                .
               </p>
               <ul className="mt-6 flex flex-wrap items-center gap-2">
                 {SOCIAL.map(({ href, label, icon: Icon }) => (
@@ -187,7 +189,10 @@ export function LandingFooter() {
             <div className="min-w-0 flex-1 bg-neutral-50">
               <div className="grid grid-cols-1 divide-y divide-black/8 lg:grid-cols-4 lg:divide-x lg:divide-y-0">
                 {FOOTER_COLUMNS.map((col) => (
-                  <div key={col.title} className="min-w-0 px-6 py-10 sm:px-8 sm:py-12 lg:px-8 lg:py-14">
+                  <div
+                    key={col.title}
+                    className="min-w-0 px-6 py-10 sm:px-8 sm:py-12 lg:px-8 lg:py-14"
+                  >
                     <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-900">
                       {col.title}
                     </p>
@@ -216,13 +221,19 @@ export function LandingFooter() {
                 <span className="text-neutral-300" aria-hidden>
                   ·
                 </span>
-                <Link href="/terms-and-conditions" className="transition-colors hover:text-neutral-900">
+                <Link
+                  href="/terms-and-conditions"
+                  className="transition-colors hover:text-neutral-900"
+                >
                   Terms of service
                 </Link>
                 <span className="text-neutral-300" aria-hidden>
                   ·
                 </span>
-                <a href="mailto:hello@signalor.ai" className="transition-colors hover:text-neutral-900">
+                <a
+                  href="mailto:hello@signalor.ai"
+                  className="transition-colors hover:text-neutral-900"
+                >
                   Contact us
                 </a>
                 <span className="text-neutral-300" aria-hidden>

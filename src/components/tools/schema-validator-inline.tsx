@@ -5,6 +5,7 @@ import { ArrowRight, CircleAlert, CircleCheck, CircleX, Globe, Loader2 } from "@
 
 import { Button } from "@/components/ui/button";
 import { ToolGateCard } from "@/components/tools/tool-gate-card";
+import { SignupGateOverlay } from "@/components/tools/signup-gate-modal";
 import { cn } from "@/lib/utils";
 
 interface SchemaFinding {
@@ -104,12 +105,15 @@ export function SchemaValidatorInline() {
         </div>
       )}
 
-      {state.kind === "done" && (
-        <ResultView
-          data={state.data}
-          onReset={() => setState({ kind: "idle" })}
-        />
-      )}
+      <SignupGateOverlay
+        when={state.kind === "done"}
+        title="Sign up to see your schema audit"
+        body="We've validated your page's structured data. Create a free Signalor account or log in to view each finding and what's missing."
+      >
+        {state.kind === "done" && (
+          <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />
+        )}
+      </SignupGateOverlay>
     </div>
   );
 }
@@ -137,7 +141,9 @@ function ResultView({ data, onReset }: { data: Summary; onReset: () => void }) {
             <p className="mt-1 truncate text-sm font-semibold text-foreground">{data.url}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               {data.findings.length} schema{data.findings.length === 1 ? "" : "s"} found
-              {data.invalidBlocks > 0 ? ` · ${data.invalidBlocks} malformed block${data.invalidBlocks === 1 ? "" : "s"}` : ""}
+              {data.invalidBlocks > 0
+                ? ` · ${data.invalidBlocks} malformed block${data.invalidBlocks === 1 ? "" : "s"}`
+                : ""}
             </p>
           </div>
           <button
@@ -169,8 +175,8 @@ function ResultView({ data, onReset }: { data: Summary; onReset: () => void }) {
                     {f.status === "ok"
                       ? `Valid · ${f.fieldCount} field${f.fieldCount === 1 ? "" : "s"}`
                       : f.missing.length > 0
-                      ? `Missing: ${f.missing.join(", ")}`
-                      : `${f.fieldCount} field${f.fieldCount === 1 ? "" : "s"} · unrecognized`}
+                        ? `Missing: ${f.missing.join(", ")}`
+                        : `${f.fieldCount} field${f.fieldCount === 1 ? "" : "s"} · unrecognized`}
                   </p>
                 </div>
               </li>
@@ -181,8 +187,8 @@ function ResultView({ data, onReset }: { data: Summary; onReset: () => void }) {
         <div className="rounded-xl border border-black/6 bg-white p-5 shadow-sm">
           <p className="text-sm font-semibold text-foreground">No JSON-LD found</p>
           <p className="mt-1 text-[13px] text-muted-foreground">
-            This page ships no structured data. AI engines rely on schema to cite you confidently — add
-            Organization, Product, or FAQ schema to make content citable.
+            This page ships no structured data. AI engines rely on schema to cite you confidently —
+            add Organization, Product, or FAQ schema to make content citable.
           </p>
         </div>
       )}
@@ -198,7 +204,15 @@ function ResultView({ data, onReset }: { data: Summary; onReset: () => void }) {
   );
 }
 
-function Chip({ label, value, tone }: { label: string; value: number; tone: "emerald" | "amber" | "red" }) {
+function Chip({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "emerald" | "amber" | "red";
+}) {
   return (
     <div
       className={cn(

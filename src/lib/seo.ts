@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL || "https://signalor.ai"
-).replace(/\/$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://signalor.ai").replace(
+  /\/$/,
+  "",
+);
 
 export const SITE_NAME = "Signalor";
 export const SITE_LEGAL_NAME = "Signalor Ltd.";
 export const SITE_BRAND = "Signalor.ai";
-export const SITE_TAGLINE =
-  "AI search visibility & GEO platform";
+export const SITE_TAGLINE = "AI search visibility & GEO platform";
 export const SITE_DESCRIPTION =
   "Signalor is the Generative Engine Optimization (GEO) and Answer Engine Optimization (AEO) platform that scores, monitors, and improves how ChatGPT, Claude, Gemini, Perplexity, and Google AI cite your brand.";
 
@@ -32,7 +32,7 @@ export const SITE_KEYWORDS = [
 
 export const SITE_LOCALE = "en_US";
 export const SITE_TWITTER = "@signalorai";
-export const SITE_OG_IMAGE = `${SITE_URL}/Gemini_Generated_Image_89pqln89pqln89pq.png`;
+export const SITE_OG_IMAGE = `${SITE_URL}/carousel1.png`;
 
 export const ORG_SOCIAL = [
   "https://twitter.com/signalorai",
@@ -259,9 +259,7 @@ export function softwareApplicationJsonLd() {
   };
 }
 
-export function breadcrumbJsonLd(
-  items: Array<{ name: string; path: string }>,
-) {
+export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
