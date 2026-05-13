@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   AlertCircle,
+  ArrowRight,
   Check,
   ChevronDown,
   ExternalLink,
@@ -19,8 +21,6 @@ import {
   generateBlogDraft,
   publishBlogDraft,
   deleteBlogPost,
-  connectWordPress,
-  disconnectWordPress,
   type BlogDraft,
   type BlogPostsResponse,
 } from "@/lib/api/integrations";
@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Step = "connect" | "generate" | "preview";
+type Step = "generate" | "preview";
 type Tone = "informative" | "conversational" | "authoritative" | "educational";
 
 const TONES: { value: Tone; label: string }[] = [
@@ -93,200 +93,6 @@ function ErrorNote({ message }: { message: string }) {
       <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       {message}
     </div>
-  );
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function isWpComUrl(url: string): boolean {
-  try {
-    const host = new URL(url.trim().startsWith("http") ? url.trim() : `https://${url.trim()}`)
-      .hostname;
-    return host.endsWith(".wordpress.com") || host === "wordpress.com";
-  } catch {
-    return false;
-  }
-}
-
-// ─── Connect panel ────────────────────────────────────────────────────────────
-
-function ConnectWordPressPanel({
-  email,
-  runSlug,
-  onConnected,
-}: {
-  email: string;
-  runSlug: string;
-  onConnected: () => void;
-}) {
-  const [siteUrl, setSiteUrl] = useState("");
-  const [username, setUsername] = useState("");
-  const [appPassword, setAppPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Derived: is the entered URL a WordPress.com-hosted site?
-  const wpComMode = siteUrl.trim().length > 3 && isWpComUrl(siteUrl);
-
-  async function handleOAuthConnect() {
-    if (!siteUrl.trim()) {
-      setError("Enter your WordPress.com site URL first.");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      // Send without api_key → backend triggers WordPress.com OAuth flow
-      const res = await connectWordPress(
-        email,
-        siteUrl.trim(),
-        "",
-        `/dashboard/${runSlug}/blog-agent`,
-      );
-      if (res.oauth_url) {
-        window.location.href = res.oauth_url;
-      } else {
-        setError(res.message || "Could not start OAuth flow.");
-      }
-    } catch (err) {
-      setError(extractErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleSelfHostedSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!siteUrl.trim() || !username.trim() || !appPassword.trim()) {
-      setError("All three fields are required.");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await connectWordPress(
-        email,
-        siteUrl.trim(),
-        appPassword.trim(),
-        `/dashboard/${runSlug}/blog-agent`,
-        username.trim(),
-      );
-      if (res.oauth_url) {
-        window.location.href = res.oauth_url;
-        return;
-      }
-      if (res.status === "connected") {
-        onConnected();
-      } else {
-        setError(res.message || "Connection failed.");
-      }
-    } catch (err) {
-      setError(extractErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <SectionCard>
-      <div className="mb-5 flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#21759b]/10">
-          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-[#21759b]" aria-hidden>
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
-          </svg>
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-foreground">Connect your WordPress site</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {wpComMode
-              ? "This is a WordPress.com-hosted site, connect via OAuth."
-              : "Self-hosted WordPress uses an Application Password, no plugin needed."}
-          </p>
-        </div>
-      </div>
-
-      {/* Site URL field, always shown */}
-      <div className="mb-4 space-y-3">
-        <div>
-          <FieldLabel>Site URL</FieldLabel>
-          <input
-            type="url"
-            placeholder="https://yoursite.com or https://yoursite.wordpress.com"
-            value={siteUrl}
-            onChange={(e) => {
-              setSiteUrl(e.target.value);
-              setError(null);
-            }}
-            className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
-          />
-        </div>
-
-        {/* WordPress.com, OAuth button */}
-        {wpComMode && (
-          <div className="rounded-md border border-blue-100 bg-blue-50 px-4 py-3">
-            <p className="mb-2 text-xs font-medium text-blue-800">
-              WordPress.com-hosted sites use OAuth, no password needed.
-            </p>
-            {error && (
-              <div className="mb-2">
-                <ErrorNote message={error} />
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={handleOAuthConnect}
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-[#21759b] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1a5f7e] disabled:opacity-50"
-            >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? "Redirecting to WordPress.com…" : "Connect with WordPress.com"}
-            </button>
-          </div>
-        )}
-
-        {/* Self-hosted, Application Password fields */}
-        {!wpComMode && (
-          <form onSubmit={handleSelfHostedSubmit} className="space-y-3">
-            <div>
-              <FieldLabel>WordPress Username</FieldLabel>
-              <input
-                type="text"
-                placeholder="admin"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 text-sm outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
-                required
-              />
-            </div>
-            <div>
-              <FieldLabel>Application Password</FieldLabel>
-              <input
-                type="password"
-                placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"
-                value={appPassword}
-                onChange={(e) => setAppPassword(e.target.value)}
-                className="w-full rounded-md border border-black/[0.1] bg-white px-3 py-2 font-mono text-sm outline-none ring-offset-2 placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
-                required
-              />
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Generate in WP Admin → Users → Your Profile → Application Passwords.
-              </p>
-            </div>
-
-            {error && <ErrorNote message={error} />}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50"
-            >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? "Connecting…" : "Connect WordPress"}
-            </button>
-          </form>
-        )}
-      </div>
-    </SectionCard>
   );
 }
 
@@ -917,6 +723,31 @@ function HowItWorksSidebar() {
   );
 }
 
+// ─── Not-connected fallback ──────────────────────────────────────────────────
+
+function NotConnectedPanel({ slug }: { slug: string }) {
+  return (
+    <SectionCard>
+      <div className="flex flex-col items-start gap-3">
+        <div>
+          <p className="text-sm font-semibold text-foreground">Connect your blog to get started</p>
+          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+            Blog publishing is set up during onboarding. Once your WordPress (or other blog) is
+            connected, drafts you generate here can be published in one click.
+          </p>
+        </div>
+        <Link
+          href={`/dashboard/${slug}/settings/integrations`}
+          className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-[12px] font-semibold text-white shadow-sm hover:brightness-110"
+        >
+          Manage integrations
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+    </SectionCard>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function BlogAgentPage() {
@@ -934,8 +765,6 @@ export default function BlogAgentPage() {
     status: string;
   } | null>(null);
 
-  const [disconnecting, setDisconnecting] = useState(false);
-
   const email = run?.email ?? "";
 
   const loadWpStatus = useCallback(async () => {
@@ -944,10 +773,8 @@ export default function BlogAgentPage() {
     try {
       const data = await getBlogPosts(slug);
       setWpData(data);
-      setStep(data.connected ? "generate" : "connect");
     } catch {
       setWpData({ connected: false, posts: [] });
-      setStep("connect");
     } finally {
       setWpLoading(false);
     }
@@ -955,18 +782,6 @@ export default function BlogAgentPage() {
 
   useEffect(() => {
     loadWpStatus();
-  }, [loadWpStatus]);
-
-  // After WordPress.com OAuth callback, the URL contains ?wordpress=connected
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("wordpress") === "connected") {
-      // Clean the query param then reload status
-      const clean = window.location.pathname;
-      window.history.replaceState({}, "", clean);
-      loadWpStatus();
-    }
   }, [loadWpStatus]);
 
   async function handleGenerate(topic: string, tone: Tone, wordCount: number) {
@@ -991,22 +806,6 @@ export default function BlogAgentPage() {
         total_posts: Math.max(0, (prev.total_posts ?? 1) - 1),
       };
     });
-  }
-
-  async function handleDisconnect() {
-    if (!email) return;
-    setDisconnecting(true);
-    try {
-      await disconnectWordPress(email);
-      setWpData({ connected: false, posts: [] });
-      setStep("connect");
-      setDraft(null);
-      setPublishResult(null);
-    } catch {
-      // silently ignore
-    } finally {
-      setDisconnecting(false);
-    }
   }
 
   if (wpLoading) {
@@ -1046,24 +845,14 @@ export default function BlogAgentPage() {
         </div>
         <div className="flex items-center gap-3">
           {isConnected && (
-            <>
-              <button
-                type="button"
-                onClick={loadWpStatus}
-                title="Refresh"
-                className="rounded p-1 text-muted-foreground hover:bg-neutral-50 hover:text-foreground"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleDisconnect}
-                disabled={disconnecting}
-                className="text-xs text-muted-foreground hover:text-red-600 disabled:opacity-50"
-              >
-                {disconnecting ? "Disconnecting…" : "Disconnect"}
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={loadWpStatus}
+              title="Refresh"
+              className="rounded p-1 text-muted-foreground hover:bg-neutral-50 hover:text-foreground"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </button>
           )}
         </div>
       </div>
@@ -1118,9 +907,7 @@ export default function BlogAgentPage() {
       <div className="grid gap-5 lg:grid-cols-[1fr_272px]">
         {/* Left: workflow */}
         <div className="min-w-0 space-y-4">
-          {step === "connect" && (
-            <ConnectWordPressPanel email={email} runSlug={slug} onConnected={loadWpStatus} />
-          )}
+          {!isConnected && <NotConnectedPanel slug={slug} />}
 
           {step === "generate" && isConnected && (
             <CreatePanel onGenerate={handleGenerate} onManual={handleManual} />
