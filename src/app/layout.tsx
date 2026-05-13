@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Inter, DM_Serif_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ClarityInit } from "@/components/analytics/clarity";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { ReferralCapture } from "@/components/analytics/referral-capture";
 import { AffiliateCapture } from "@/components/analytics/affiliate-capture";
 import { Amplitude } from "@/amplitude";
+import { CookieConsentBanner } from "@/components/cookies/cookie-consent";
 import { QueryProvider } from "@/components/providers/query-provider";
 import {
   buildMetadata,
@@ -84,25 +85,13 @@ export default function RootLayout({
       >
         <Amplitude />
         <ClarityInit />
+        <GoogleAnalytics />
         <Suspense fallback={null}>
           <ReferralCapture />
           <AffiliateCapture />
         </Suspense>
         <QueryProvider>{children}</QueryProvider>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-5H7J1Q68TR"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-5H7J1Q68TR', {
-              page_path: window.location.pathname,
-            });
-          `}
-        </Script>
+        <CookieConsentBanner />
       </body>
     </html>
   );

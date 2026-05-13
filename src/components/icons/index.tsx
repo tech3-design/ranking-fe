@@ -76,6 +76,17 @@ export const Info: LucideIcon = (p) => (
   </svg>
 );
 
+export const Cookie: LucideIcon = (p) => (
+  <svg {...base(p)}>
+    <path d="M12 2a10 10 0 1 0 10 10c0-.18 0-.36-.02-.54a4 4 0 0 1-5.44-5.44A10 10 0 0 0 12 2Z" />
+    <path d="M8.5 8.5v.01" />
+    <path d="M16 15.5v.01" />
+    <path d="M12 12v.01" />
+    <path d="M11 17v.01" />
+    <path d="M7 14v.01" />
+  </svg>
+);
+
 export const AlertTriangle: LucideIcon = (p) => (
   <svg {...base(p)}>
     <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
