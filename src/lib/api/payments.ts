@@ -69,12 +69,9 @@ export async function createCheckoutSession(
       message?: string;
     };
     const msg =
-      ax.response?.data?.error ||
-      ax.message ||
-      "Failed to start checkout. Please try again.";
+      ax.response?.data?.error || ax.message || "Failed to start checkout. Please try again.";
     const raw = ax.response?.data?.dodo_mode;
-    const dodoMode: DodoMode | undefined =
-      raw === "live" || raw === "test" ? raw : undefined;
+    const dodoMode: DodoMode | undefined = raw === "live" || raw === "test" ? raw : undefined;
     throw new CheckoutSessionError(msg, dodoMode);
   }
 }
@@ -86,13 +83,30 @@ export async function getUsage(email: string): Promise<UsageData> {
   return data;
 }
 
-export async function getSubscriptionStatus(
-  email: string,
-): Promise<SubscriptionStatus> {
-  const { data } = await apiClient.get<SubscriptionStatus>(
-    "/api/payments/status/",
-    { params: { email } },
-  );
+export interface InvoiceItem {
+  payment_id: string;
+  created_at: string | null;
+  amount: number | null;
+  currency: string | null;
+  status: string | null;
+}
+
+export interface InvoiceListResponse {
+  items: InvoiceItem[];
+  error?: string;
+}
+
+export async function getInvoiceList(email: string): Promise<InvoiceListResponse> {
+  const { data } = await apiClient.get<InvoiceListResponse>("/api/payments/invoices/", {
+    params: { email },
+  });
+  return data;
+}
+
+export async function getSubscriptionStatus(email: string): Promise<SubscriptionStatus> {
+  const { data } = await apiClient.get<SubscriptionStatus>("/api/payments/status/", {
+    params: { email },
+  });
   return data;
 }
 
@@ -103,9 +117,7 @@ export async function terminateAccount(
   return data;
 }
 
-export async function cancelTermination(
-  email: string,
-): Promise<{ message: string }> {
+export async function cancelTermination(email: string): Promise<{ message: string }> {
   const { data } = await apiClient.post("/api/account/cancel-termination/", { email });
   return data;
 }
@@ -127,9 +139,7 @@ export interface PlanPricesResponse {
 }
 
 export async function getPlanPrices(): Promise<PlanPricesResponse> {
-  const { data } = await apiClient.get<PlanPricesResponse>(
-    "/api/payments/plan-prices/",
-  );
+  const { data } = await apiClient.get<PlanPricesResponse>("/api/payments/plan-prices/");
   return data;
 }
 
