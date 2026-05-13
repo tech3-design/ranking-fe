@@ -4,9 +4,11 @@ import "./globals.css";
 import { Suspense } from "react";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ClarityInit } from "@/components/analytics/clarity";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { ReferralCapture } from "@/components/analytics/referral-capture";
 import { AffiliateCapture } from "@/components/analytics/affiliate-capture";
 import { Amplitude } from "@/amplitude";
+import { CookieConsentBanner } from "@/components/cookies/cookie-consent";
 import { QueryProvider } from "@/components/providers/query-provider";
 import {
   buildMetadata,
@@ -83,11 +85,13 @@ export default function RootLayout({
       >
         <Amplitude />
         <ClarityInit />
+        <GoogleAnalytics />
         <Suspense fallback={null}>
           <ReferralCapture />
           <AffiliateCapture />
         </Suspense>
         <QueryProvider>{children}</QueryProvider>
+        <CookieConsentBanner />
       </body>
     </html>
   );
