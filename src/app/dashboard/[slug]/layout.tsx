@@ -41,6 +41,7 @@ import {
   CompetitorsIcon,
   ContentIcon,
   BacklinksIcon,
+  BlogAgentIcon,
 } from "@/components/icons/nav";
 import LogoComp from "@/components/LogoComp";
 import { AiChat } from "@/components/analyzer/ai-chat";
@@ -95,6 +96,7 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
     items: [
       { icon: ContentIcon, label: "Content", path: "/optimisation/content" },
       { icon: BacklinksIcon, label: "Backlinks", path: "/backlinks" },
+      { icon: BlogAgentIcon, label: "Blog Agent", path: "/blog-agent" },
     ],
   },
 ];

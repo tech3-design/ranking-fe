@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ExternalLink, Github, Linkedin, Twitter, Youtube } from "@/components/icons";
+import { ArrowRight, ExternalLink, Github, Linkedin, Twitter, Youtube, CirclePlus } from "@/components/icons";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import LogoComp from "@/components/LogoComp";
 import { AiChip } from "@/components/ui/ai-chip";
@@ -63,10 +63,8 @@ const FOOTER_COLUMNS: FooterColumn[] = [
 ];
 
 const SOCIAL = [
-  { href: "https://twitter.com", label: "X (Twitter)", icon: Twitter },
-  { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin },
-  { href: "https://youtube.com", label: "YouTube", icon: Youtube },
-  { href: "https://github.com", label: "GitHub", icon: Github },
+  { href: "https://x.com/SignalorAI", label: "X (Twitter)", icon: Twitter },
+
 ] as const;
 
 function FooterLinkRow({ href, label, external }: FooterLink) {
@@ -159,13 +157,13 @@ export function LandingFooter() {
               <p className="mt-5 max-w-xs text-sm font-normal leading-relaxed text-neutral-600">
                 The AI visibility platform to monitor, score, and grow how generative search cites your
                 brand.{" "}
+
                 <a
                   href="mailto:hello@signalor.ai?subject=Careers"
-                  className="font-medium text-[#2563eb] underline decoration-[#2563eb]/35 underline-offset-2 transition-colors hover:decoration-[#2563eb]"
+                  className="inline-flex align-middle hover:text-neutral-900 transition-colors text-sm font-medium text-primary"
                 >
-                  Join our team
+                  <CirclePlus width={16} height={16} />
                 </a>
-                .
               </p>
               <ul className="mt-6 flex flex-wrap items-center gap-2">
                 {SOCIAL.map(({ href, label, icon: Icon }) => (

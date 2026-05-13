@@ -299,6 +299,9 @@ export const Twitter: LucideIcon = (p) => (
 export const Youtube: LucideIcon = (p) => (
   <svg {...base(p)}><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" />{dot(15, 12)}</svg>
 );
+export const CirclePlus: LucideIcon = (p) => (
+  <svg {...base(p)}><circle cx="12" cy="12" r="10" /><path d="M8 12h8" /><path d="M12 8v8" /></svg>
+);
 export const ExternalLink: LucideIcon = (p) => (
   <svg {...base(p)}><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />{dot(21, 3)}</svg>
 );
