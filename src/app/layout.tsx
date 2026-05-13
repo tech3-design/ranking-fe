@@ -6,6 +6,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { ClarityInit } from "@/components/analytics/clarity";
 import { ReferralCapture } from "@/components/analytics/referral-capture";
 import { AffiliateCapture } from "@/components/analytics/affiliate-capture";
+import { QueryProvider } from "@/components/providers/query-provider";
 import {
   buildMetadata,
   organizationJsonLd,
@@ -64,7 +65,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="alternate" type="application/rss+xml" title="Signalor Blog" href="/blog/rss.xml" />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Signalor Blog"
+          href="/blog/rss.xml"
+        />
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
         <JsonLd id="ld-organization" data={organizationJsonLd()} />
         <JsonLd id="ld-website" data={websiteJsonLd()} />
@@ -79,7 +85,7 @@ export default function RootLayout({
           <ReferralCapture />
           <AffiliateCapture />
         </Suspense>
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@
 Next.js 16 (App Router) + React 19 + Tailwind 4 + shadcn/ui app for signalor.ai.
 
 ## Quick start
+
 ```bash
 pnpm install
 pnpm env:local           # copy env/local.env -> .env.local
@@ -13,16 +14,19 @@ Backend (`ranking-be`) must be running on `http://localhost:8000` for any
 authenticated/analyzer feature to work.
 
 ## Stack
+
 - **Framework**: Next.js 16 (App Router, Turbopack)
 - **Auth**: better-auth (OTP + Google OAuth) → cookie session
-- **State**: Zustand stores in `src/lib/stores/`
+- **State**: Zustand stores in `src/lib/stores/` (global app state) + TanStack Query (server state)
 - **HTTP**: axios via `src/lib/api/client.ts` (10s timeout) and `apiClientLong` (longer for analyzer)
+- **Data fetching**: TanStack Query (`@tanstack/react-query`) — `QueryClientProvider` wired in `src/app/layout.tsx`. New components SHOULD use `useQuery` instead of `useState + useEffect`. See `src/components/dashboard/ai-recommendation-card.tsx` for the canonical pattern.
 - **UI**: Tailwind 4 + shadcn/ui primitives + custom icon set (`src/components/icons/`)
 - **CMS**: Sanity v5 (blog only) under `/studio`, ssr-disabled
 - **Charts**: recharts
 - **Payments**: Dodo Payments (Shopify Billing API for the Shopify app)
 
 ## Layout
+
 ```
 src/
   app/                      # App Router routes
@@ -46,6 +50,7 @@ src/
 ```
 
 ## Conventions
+
 - **Package manager**: `pnpm` — not npm.
 - **Icons**: import from `@/components/icons`, NOT `lucide-react` (lucide-react is still in deps but should not be reached for new code).
 - **API client**: every backend call goes through `apiClient` or `apiClientLong` so 401s and base URLs are centrally handled.
@@ -55,6 +60,7 @@ src/
 - **Site URL**: `NEXT_PUBLIC_SITE_URL` is the public origin for share links — set per environment (`http://localhost:3000`, `https://staging.signalor.ai`, `https://signalor.ai`).
 
 ## Tooling
+
 - **Lint**: `pnpm lint` (eslint, Next.js defaults). `pnpm lint:fix` to auto-fix.
 - **Format**: `pnpm format` (prettier, see `.prettierrc.json`). `pnpm format:check` for CI.
 - **Typecheck**: `pnpm typecheck` (`tsc --noEmit`).
@@ -62,6 +68,7 @@ src/
 - **Pre-commit**: husky + lint-staged run `eslint --fix` and `prettier --write` on staged JS/TS files. Installed via `pnpm install` (the `prepare` script).
 
 ## Branching
+
 - `main` → Vercel production (signalor.ai)
 - `staging` → Vercel staging (staging.signalor.ai)
 - `blog` → blog/Sanity work flows through here before main
@@ -70,6 +77,7 @@ src/
 Typical flow: feature on `arkit-01` → `staging` → `blog` (if relevant) → `main`.
 
 ## Common pitfalls
+
 - **Sanity Studio** must use `next/dynamic({ ssr: false })` — `window` is referenced at import.
 - **`Date.toLocaleString()`** without a fixed locale will hydrate-mismatch SSR vs client. Use `en-US` + UTC.
 - **Vercel "Sensitive" env vars** are NOT inlined into `NEXT_PUBLIC_*` builds — uncheck Sensitive for those keys.

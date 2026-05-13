@@ -1,46 +1,32 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
-import {
-  getReferralMe,
-  type ReferralMeResponse,
-} from "@/lib/api/referrals";
+import { getReferralMe } from "@/lib/api/referrals";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, Gift, Sparkles, AlertCircle } from "@/components/icons";
 import { DashboardSettingsNav } from "@/components/settings/dashboard-settings-nav";
 import { cn } from "@/lib/utils";
 
-const SITE_BASE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://signalor.ai";
+const SITE_BASE = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://signalor.ai";
 
 export default function ReferralsSettingsPage() {
   const { data: session } = useSession();
   const email = session?.user?.email ?? "";
 
-  const [data, setData] = useState<ReferralMeResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    if (!email) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const r = await getReferralMe(email);
-      setData(r);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load referrals");
-    } finally {
-      setLoading(false);
-    }
-  }, [email]);
-
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+  const {
+    data,
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ["referral-me", email],
+    queryFn: () => getReferralMe(email),
+    enabled: !!email,
+  });
 
   const shareUrl = useMemo(() => {
     if (!data?.code) return "";
@@ -63,15 +49,11 @@ export default function ReferralsSettingsPage() {
       <DashboardSettingsNav label="Referrals" />
 
       <header>
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-          Refer & earn
-        </h2>
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">Refer & earn</h2>
         <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
           Share your referral link. When someone subscribes through it,{" "}
-          <strong className="text-foreground">they get 10%</strong> off their
-          first payment and{" "}
-          <strong className="text-foreground">you get 20%</strong> off your
-          next billing cycle.
+          <strong className="text-foreground">they get 10%</strong> off their first payment and{" "}
+          <strong className="text-foreground">you get 20%</strong> off your next billing cycle.
         </p>
       </header>
 
@@ -80,7 +62,7 @@ export default function ReferralsSettingsPage() {
       ) : error ? (
         <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           <AlertCircle className="mt-0.5 size-4 shrink-0" />
-          <span>{error}</span>
+          <span>{error instanceof Error ? error.message : "Failed to load referrals"}</span>
         </div>
       ) : data ? (
         <>
@@ -88,9 +70,7 @@ export default function ReferralsSettingsPage() {
           <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
             <div className="mb-3 flex items-center gap-2">
               <Gift className="size-4 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">
-                Your referral link
-              </h3>
+              <h3 className="text-sm font-semibold text-foreground">Your referral link</h3>
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -134,8 +114,8 @@ export default function ReferralsSettingsPage() {
             <div className="flex items-center gap-3 rounded-lg border border-primary/25 bg-primary/5 px-4 py-3 text-[13px] text-primary">
               <Sparkles className="size-4 shrink-0" />
               <span>
-                You have <strong>{data.stats.pending_reward.percent_off}% off</strong>{" "}
-                staged for your next billing cycle.
+                You have <strong>{data.stats.pending_reward.percent_off}% off</strong> staged for
+                your next billing cycle.
               </span>
             </div>
           ) : null}
@@ -162,9 +142,7 @@ export default function ReferralsSettingsPage() {
                 <tbody>
                   {data.referrals.map((r) => (
                     <tr key={r.referee_email} className="border-b border-border/60 last:border-0">
-                      <td className="px-4 py-2.5 font-medium text-foreground">
-                        {r.referee_email}
-                      </td>
+                      <td className="px-4 py-2.5 font-medium text-foreground">{r.referee_email}</td>
                       <td className="px-4 py-2.5">
                         <StatusPill status={r.status} />
                       </td>

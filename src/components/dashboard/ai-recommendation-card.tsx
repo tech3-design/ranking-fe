@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  getAiRecommendationSummary,
-  type AiRecommendationSummary,
-  type Engine,
-} from "@/lib/api/analyzer";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getAiRecommendationSummary, type Engine } from "@/lib/api/analyzer";
 import { Sparkles, Quote, ChevronDown } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -21,29 +18,16 @@ const ENGINE_LABEL: Record<Engine, string> = {
 const CORAL = "#e46055";
 
 export function AiRecommendationCard({ slug }: { slug: string }) {
-  const [data, setData] = useState<AiRecommendationSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showSamples, setShowSamples] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await getAiRecommendationSummary(slug);
-        if (alive) setData(res);
-      } catch (e) {
-        if (alive) setError(e instanceof Error ? e.message : "Failed to load");
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [slug]);
+  const {
+    data,
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ["ai-recommendation-summary", slug],
+    queryFn: () => getAiRecommendationSummary(slug),
+    enabled: !!slug,
+  });
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col rounded-xl border border-neutral-100 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-px hover:shadow-[0_8px_22px_rgba(15,23,42,0.08)]">
