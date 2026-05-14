@@ -20,10 +20,7 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
-export function CitationAuthorityPanel({
-  slug,
-  trackId,
-}: CitationAuthorityPanelProps) {
+export function CitationAuthorityPanel({ slug, trackId }: CitationAuthorityPanelProps) {
   const [data, setData] = useState<PromptBacklinksResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +28,11 @@ export function CitationAuthorityPanel({
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
+
     setError(null);
+
     setErrorCode(null);
 
     getPromptBacklinks(slug, trackId)
@@ -47,11 +47,7 @@ export function CitationAuthorityPanel({
           message?: string;
         };
         setErrorCode(e.response?.data?.code ?? null);
-        setError(
-          e.response?.data?.detail ??
-            e.message ??
-            "Failed to load backlink data",
-        );
+        setError(e.response?.data?.detail ?? e.message ?? "Failed to load backlink data");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -102,12 +98,10 @@ export function CitationAuthorityPanel({
     return (
       <div className="border-t border-border bg-muted/20 px-4 py-6">
         <div className="rounded-md border border-dashed border-border bg-muted/10 px-4 py-8 text-center">
-          <p className="text-sm font-medium text-foreground">
-            No citations yet for this prompt
-          </p>
+          <p className="text-sm font-medium text-foreground">No citations yet for this prompt</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Run the prompt across the AI engines first — citation authority is
-            measured against the domains they cite.
+            Run the prompt across the AI engines first - citation authority is measured against the
+            domains they cite.
           </p>
         </div>
       </div>
@@ -122,9 +116,7 @@ export function CitationAuthorityPanel({
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link2 className="size-4 text-muted-foreground" />
-          <h4 className="text-sm font-medium text-foreground">
-            Citation Authority
-          </h4>
+          <h4 className="text-sm font-medium text-foreground">Citation Authority</h4>
         </div>
         <p className="text-xs text-muted-foreground">
           Backlink strength of every domain cited for this prompt.
@@ -137,9 +129,7 @@ export function CitationAuthorityPanel({
             <tr className="text-left text-muted-foreground">
               <th className="px-3 py-2 font-medium">Domain</th>
               <th className="px-3 py-2 text-right font-medium">Cited</th>
-              <th className="px-3 py-2 text-right font-medium">
-                Referring Domains
-              </th>
+              <th className="px-3 py-2 text-right font-medium">Referring Domains</th>
               <th className="px-3 py-2 text-right font-medium">Backlinks</th>
               <th className="px-3 py-2 text-right font-medium">Rank</th>
               <th className="px-3 py-2 text-right font-medium">vs. You</th>
@@ -160,9 +150,7 @@ export function CitationAuthorityPanel({
 
       <p className="mt-2 text-[10px] leading-snug text-muted-foreground">
         Data via DataForSEO Backlinks API. Cached 7 days per domain.
-        {data.api_error ? (
-          <span className="text-amber-600"> · {data.api_error}</span>
-        ) : null}
+        {data.api_error ? <span className="text-amber-600"> · {data.api_error}</span> : null}
       </p>
     </div>
   );
@@ -180,12 +168,7 @@ function BacklinkTableRow({
   const gap = hasBrandRow && !row.is_brand ? row.referring_domains - brandRD : null;
 
   return (
-    <tr
-      className={cn(
-        "border-b border-border last:border-b-0",
-        row.is_brand && "bg-primary/5",
-      )}
-    >
+    <tr className={cn("border-b border-border last:border-b-0", row.is_brand && "bg-primary/5")}>
       <td className="px-3 py-2">
         <div className="flex items-center gap-2">
           <a

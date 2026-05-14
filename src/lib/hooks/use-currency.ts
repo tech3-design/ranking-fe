@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type CurrencyCode = "EUR" | "USD" | "INR";
 
@@ -14,17 +14,57 @@ export type Currency = {
 };
 
 const CURRENCIES: Record<CurrencyCode, Currency> = {
-  EUR: { code: "EUR", symbol: "€", rate: 1,    decimals: 2, locale: "en-DE" },
-  USD: { code: "USD", symbol: "$", rate: 1.08,  decimals: 2, locale: "en-US" },
-  INR: { code: "INR", symbol: "₹", rate: 90.5,  decimals: 0, locale: "en-IN" },
+  EUR: { code: "EUR", symbol: "€", rate: 1, decimals: 2, locale: "en-DE" },
+  USD: { code: "USD", symbol: "$", rate: 1.08, decimals: 2, locale: "en-US" },
+  INR: { code: "INR", symbol: "₹", rate: 90.5, decimals: 0, locale: "en-IN" },
 };
 
 // Eurozone + broader EU countries — all map to EUR
 const EUR_COUNTRIES = new Set([
-  "AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU",
-  "IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE",
-  "CH","NO","IS","AL","BA","ME","MK","RS","MD","UA","BY","LI","AD","MC",
-  "SM","VA","GB",
+  "AT",
+  "BE",
+  "BG",
+  "HR",
+  "CY",
+  "CZ",
+  "DK",
+  "EE",
+  "FI",
+  "FR",
+  "DE",
+  "GR",
+  "HU",
+  "IE",
+  "IT",
+  "LV",
+  "LT",
+  "LU",
+  "MT",
+  "NL",
+  "PL",
+  "PT",
+  "RO",
+  "SK",
+  "SI",
+  "ES",
+  "SE",
+  "CH",
+  "NO",
+  "IS",
+  "AL",
+  "BA",
+  "ME",
+  "MK",
+  "RS",
+  "MD",
+  "UA",
+  "BY",
+  "LI",
+  "AD",
+  "MC",
+  "SM",
+  "VA",
+  "GB",
 ]);
 
 function detectFromTimezone(): CurrencyCode | null {
@@ -43,17 +83,25 @@ function detectFromTimezone(): CurrencyCode | null {
  * currency (INR for India, USD for US, EUR for Europe and everywhere else).
  * Falls back to language hint if the API call fails or times out.
  */
-export function useCurrency(): { currency: Currency; ready: boolean; country: string | null } {
+export function useCurrency(): {
+  currency: Currency;
+  ready: boolean;
+  country: string | null;
+  selectCurrency: (code: CurrencyCode) => void;
+} {
   const [currency, setCurrency] = useState<Currency>(CURRENCIES.EUR);
   const [country, setCountry] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const manualOverride = useRef(false);
 
   useEffect(() => {
     // Apply timezone hint synchronously on the client before the async fetch.
     // This avoids SSR hydration mismatches while still giving instant detection.
     const tzCode = detectFromTimezone();
-    if (tzCode) {
+    if (tzCode && !manualOverride.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrency(CURRENCIES[tzCode]);
+
       setReady(true);
     }
 
@@ -64,7 +112,7 @@ export function useCurrency(): { currency: Currency; ready: boolean; country: st
     fetch("https://ipapi.co/json/", { signal: controller.signal })
       .then((r) => r.json())
       .then((data: { country_code?: string }) => {
-        if (cancelled) return;
+        if (cancelled || manualOverride.current) return;
         const cc = (data.country_code ?? "").toUpperCase();
         if (cc) setCountry(cc);
         let code: CurrencyCode = "EUR";
@@ -73,7 +121,9 @@ export function useCurrency(): { currency: Currency; ready: boolean; country: st
         else if (!EUR_COUNTRIES.has(cc)) code = "EUR"; // default rest of world → EUR
         setCurrency(CURRENCIES[code]);
       })
-      .catch(() => { /* timezone already set initial value */ })
+      .catch(() => {
+        /* timezone already set initial value */
+      })
       .finally(() => {
         clearTimeout(timeout);
         if (!cancelled) setReady(true);
@@ -86,7 +136,12 @@ export function useCurrency(): { currency: Currency; ready: boolean; country: st
     };
   }, []);
 
-  return { currency, ready, country };
+  function selectCurrency(code: CurrencyCode) {
+    manualOverride.current = true;
+    setCurrency(CURRENCIES[code]);
+  }
+
+  return { currency, ready, country, selectCurrency };
 }
 
 /** Format a EUR base price into the display currency. */

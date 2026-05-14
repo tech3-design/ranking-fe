@@ -61,8 +61,7 @@ function AuthMarketingPanel() {
           Answer-engine visibility
         </p>
         <h2 className="mt-2.5 max-w-[280px] text-lg font-semibold leading-snug tracking-tight text-foreground xl:max-w-xs xl:text-xl">
-          See how your brand shows up in AI search — and fix what holds you
-          back.
+          See how your brand shows up in AI search - and fix what holds you back.
         </h2>
       </div>
 
@@ -132,15 +131,12 @@ export function AuthSiteShell({
           {/* <LogoComp className="absolute top-4 left-4" /> */}
 
           {/* CONTENT */}
-          <div
-            className={cn("relative z-10 mx-auto w-[360px]", contentClassName)}
-          >
+          <div className={cn("relative z-10 mx-auto w-[360px]", contentClassName)}>
             {/* Logo */}
             <Link
               href="/"
               className="mb-5 flex justify-center outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-ring"
-            >
-            </Link>
+            ></Link>
 
             <div className="rounded-lg border border-black/6 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-7 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
               {children}

@@ -94,7 +94,7 @@ export default function BillingSettingsPage() {
     });
   }, [email]);
 
-  const PlanIcon = sub ? (PLAN_ICONS[sub.plan] || Zap) : Zap;
+  const PlanIcon = sub ? PLAN_ICONS[sub.plan] || Zap : Zap;
   const atAnyLimit = usage?.at_limit.projects || usage?.at_limit.prompts;
 
   return (
@@ -129,9 +129,7 @@ export default function BillingSettingsPage() {
                 <div>
                   <p className="flex items-center gap-2 text-[14px] font-semibold tracking-tight text-neutral-900">
                     <PlanIcon className="h-4 w-4 text-primary" strokeWidth={1.75} />
-                    {sub?.is_active
-                      ? `${sub.plan_label} Plan — Active`
-                      : "No Active Subscription"}
+                    {sub?.is_active ? `${sub.plan_label} Plan - Active` : "No Active Subscription"}
                   </p>
                   <p className="text-[12px] font-light leading-snug text-accent-foreground">
                     {sub?.is_active && sub.current_period_end
@@ -164,11 +162,13 @@ export default function BillingSettingsPage() {
           {usage && (
             <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm space-y-5">
               <div className="flex items-center justify-between">
-                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Usage this period</p>
+                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">
+                  Usage this period
+                </p>
                 {atAnyLimit && (
                   <span className="flex items-center gap-1 text-[11px] font-semibold tracking-tight text-[#E04D00]">
                     <AlertTriangle className="h-3.5 w-3.5" />
-                    At limit — upgrade to continue
+                    At limit - upgrade to continue
                   </span>
                 )}
               </div>
@@ -187,7 +187,9 @@ export default function BillingSettingsPage() {
               />
 
               <div className="pt-1">
-                <p className="mb-2 text-[12px] font-light leading-snug text-accent-foreground">AI Engines included</p>
+                <p className="mb-2 text-[12px] font-light leading-snug text-accent-foreground">
+                  AI Engines included
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {["gemini", "google", "chatgpt", "perplexity", "claude"].map((eng) => {
                     const allowed = usage.limits.engines.includes(eng);
@@ -211,8 +213,15 @@ export default function BillingSettingsPage() {
               </div>
 
               <div className="flex items-center justify-between border-t border-black/8 pt-3 text-[12px] font-light text-accent-foreground">
-                <span>Runs this month: <strong className="font-semibold text-neutral-900">{usage.usage.runs_this_month}</strong></span>
-                <span className="capitalize font-semibold text-neutral-900">{sub?.plan_label || "Starter"} plan</span>
+                <span>
+                  Runs this month:{" "}
+                  <strong className="font-semibold text-neutral-900">
+                    {usage.usage.runs_this_month}
+                  </strong>
+                </span>
+                <span className="capitalize font-semibold text-neutral-900">
+                  {sub?.plan_label || "Starter"} plan
+                </span>
               </div>
             </div>
           )}
@@ -234,12 +243,14 @@ export default function BillingSettingsPage() {
                       !f.toLowerCase().startsWith("1 project") &&
                       !f.toLowerCase().startsWith("3 project") &&
                       !f.toLowerCase().startsWith("4 project") &&
-                      !f.toLowerCase().startsWith("engines")
+                      !f.toLowerCase().startsWith("engines"),
                   ),
                 ].map((f) => (
                   <div key={f} className="flex items-center gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#16a34a]" strokeWidth={2} />
-                    <span className="text-[13px] font-light leading-snug text-neutral-900">{f}</span>
+                    <span className="text-[13px] font-light leading-snug text-neutral-900">
+                      {f}
+                    </span>
                   </div>
                 ))}
               </div>

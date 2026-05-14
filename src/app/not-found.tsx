@@ -1,70 +1,96 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowLeft, Home, Search } from "@/components/icons";
 import LogoComp from "@/components/LogoComp";
-import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/config";
 
 export default function NotFound() {
   return (
-    <div className="signalor-body min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-      <header className="absolute top-0 left-0 right-0 z-10 border-b border-border/50 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 lg:px-12">
+    <div className="min-h-screen bg-[#f7f7f7] font-sans text-foreground antialiased selection:bg-orange-100 selection:text-orange-900">
+      {/* ── Background grid ── */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.04)_1px,transparent_1px)] bg-[size:48px_48px]" />
+      </div>
+
+      {/* ── Header ── */}
+      <header className="absolute left-0 right-0 top-0 z-10 border-b border-black/6 bg-[#f7f7f7]/80 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 lg:px-12">
           <Link href="/" className="transition-opacity hover:opacity-90">
             <LogoComp />
           </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/" className="gap-2">
-              <ArrowLeft className="size-4" />
-              Back to home
-            </Link>
-          </Button>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" />
+            Back to home
+          </Link>
         </div>
       </header>
 
-      <main className="relative flex min-h-screen flex-col items-center justify-center px-6 pb-20 pt-28 lg:px-12">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[40px_40px]" />
-          <div className="absolute top-1/4 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+      {/* ── Main ── */}
+      <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 pb-24 pt-32 text-center">
+        {/* Huge "Oops!" */}
+        <div className="relative mb-1 select-none">
+          <span
+            className="block font-sans font-black leading-[0.9] tracking-tight"
+            style={{
+              fontSize: "clamp(72px, 15vw, 148px)",
+              background:
+                "linear-gradient(140deg, #c93b2f 0%, #e04a3d 35%, #f08478 65%, #e04a3d 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              filter: "drop-shadow(0 6px 28px rgba(224,74,61,0.28))",
+            }}
+          >
+            Oops!
+          </span>
         </div>
 
-        <div className="relative z-10 mx-auto w-full max-w-2xl text-center">
-          <h1 className="font-sans text-6xl font-black leading-[0.95] tracking-tighter text-foreground sm:text-7xl md:text-8xl lg:text-9xl">
-            <span className="block text-muted-foreground sm:inline sm:after:content-['\00a0']">
-              Error
-            </span>
-            <span className="text-primary">404</span>
-          </h1>
-          <p className="mx-auto mt-6 font-sans text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-            This page drifted{" "}
-            <span className="text-muted-foreground">off the map</span>
-          </p>
-          <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
-            The URL may be wrong or the page was moved. Head back to Signalor
-            and keep improving how AI cites your brand.
-          </p>
+        {/* 404 badge */}
+        <p className="mb-4 mt-4 font-mono text-[12px] font-bold uppercase tracking-[0.28em] text-foreground/55">
+          404 - Page Not Found
+        </p>
 
-          <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-            <Button size="lg" className="rounded-full px-8" asChild>
-              <Link href="/">
-                <Home className="size-4" />
-                Go to homepage
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="rounded-full border-border px-8" asChild>
-              <Link href={routes.analyzer}>
-                <Search className="size-4" />
-                Run free GEO audit
-              </Link>
-            </Button>
-          </div>
+        {/* Divider */}
+        <div className="mb-5 h-px w-16 bg-primary/30" />
 
-          <p className="mt-12 text-xs text-muted-foreground">
-            Want full GEO tooling?{" "}
-            <Link href="/pricing" className="font-medium text-primary underline-offset-4 hover:underline">
-              View pricing
-            </Link>
-          </p>
+        {/* Description */}
+        <p className="mx-auto max-w-[400px] text-[15px] leading-relaxed text-muted-foreground">
+          The page you are looking for might have been removed, had its name changed, or is
+          temporarily unavailable.
+        </p>
+
+        {/* CTAs */}
+        <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-2.5 text-[13px] font-semibold text-white shadow-[0_2px_14px_rgba(224,74,61,0.35)] transition hover:opacity-90 active:scale-[0.98]"
+          >
+            <Home className="size-4" />
+            Go to homepage
+          </Link>
+          <Link
+            href={routes.analyzer}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-8 py-2.5 text-[13px] font-semibold text-foreground shadow-sm transition hover:bg-muted active:scale-[0.98]"
+          >
+            <Search className="size-4" />
+            Run free GEO audit
+          </Link>
         </div>
+
+        {/* Footer note */}
+        <p className="mt-12 text-[12px] text-muted-foreground">
+          Want full GEO tooling?{" "}
+          <Link
+            href="/pricing"
+            className="font-semibold text-primary underline-offset-4 transition hover:underline"
+          >
+            View pricing
+          </Link>
+        </p>
       </main>
     </div>
   );

@@ -7,10 +7,7 @@ import { ScreenHR } from "@/components/ui/intersection-diamonds";
 
 export function LandingHowItWorks() {
   return (
-    <section
-      className="relative bg-background"
-      aria-labelledby="how-it-works-heading"
-    >
+    <section className="relative bg-background" aria-labelledby="how-it-works-heading">
       <ScreenHR />
       <div className="mx-auto max-w-7xl px-6 pb-12 pt-14 lg:px-12 lg:pb-14 lg:pt-16">
         <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
@@ -32,7 +29,7 @@ export function LandingHowItWorks() {
         </h2>
         <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
           No setup calls, no integrations headache. Every step uses the product you just signed up
-          for — no separate onboarding tool.
+          for - no separate onboarding tool.
         </p>
       </div>
 
@@ -100,10 +97,7 @@ function StepIllustration({ illo }: { illo: HowItWorksStep["illo"] }) {
         <div className="mt-2 flex gap-1">
           {[82, 71, 74].map((v) => (
             <div key={v} className="h-1 flex-1 overflow-hidden rounded-full bg-neutral-200">
-              <div
-                className="h-full rounded-full bg-emerald-500"
-                style={{ width: `${v}%` }}
-              />
+              <div className="h-full rounded-full bg-emerald-500" style={{ width: `${v}%` }} />
             </div>
           ))}
         </div>

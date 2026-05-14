@@ -6,10 +6,7 @@ import { TESTIMONIALS, type Testimonial } from "@/lib/landing-testimonials-conte
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { cn } from "@/lib/utils";
 
-const TINT_CLASSES: Record<
-  Testimonial["tint"],
-  { dot: string; avatar: string; quote: string }
-> = {
+const TINT_CLASSES: Record<Testimonial["tint"], { dot: string; avatar: string; quote: string }> = {
   orange: {
     dot: "bg-primary/15 text-primary",
     avatar: "bg-gradient-to-br from-primary to-orange-400 text-white",
@@ -29,10 +26,7 @@ const TINT_CLASSES: Record<
 
 export function LandingTestimonials() {
   return (
-    <section
-      className="relative bg-background"
-      aria-labelledby="landing-testimonials-heading"
-    >
+    <section className="relative bg-background" aria-labelledby="landing-testimonials-heading">
       <ScreenHR />
       <div className="mx-auto max-w-7xl px-6 pb-12 pt-14 lg:px-12 lg:pb-14 lg:pt-16">
         <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-neutral-400">
@@ -52,8 +46,8 @@ export function LandingTestimonials() {
           </span>
         </h2>
         <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
-          Real outcomes from growth, content, and DTC teams shipping Signalor into their
-          existing workflow — not another dashboard to babysit.
+          Real outcomes from growth, content, and DTC teams shipping Signalor into their existing
+          workflow - not another dashboard to babysit.
         </p>
       </div>
 
@@ -76,11 +70,7 @@ function TestimonialCard({ t }: { t: Testimonial }) {
   const tone = TINT_CLASSES[t.tint];
   return (
     <figure className="relative flex flex-col gap-6 bg-white px-6 py-12 md:px-8 md:py-14 lg:px-10">
-      <Quote
-        className={cn("h-8 w-8 shrink-0", tone.quote)}
-        strokeWidth={1.5}
-        aria-hidden
-      />
+      <Quote className={cn("h-8 w-8 shrink-0", tone.quote)} strokeWidth={1.5} aria-hidden />
       <blockquote className="flex-1 text-[15px] font-light leading-relaxed text-foreground md:text-base">
         &ldquo;{t.quote}&rdquo;
       </blockquote>

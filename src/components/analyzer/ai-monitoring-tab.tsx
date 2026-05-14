@@ -106,7 +106,8 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
         <div>
           <h2 className="text-lg font-semibold text-foreground">Prompt Tracking</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Track how <span className="text-foreground font-medium">{brandName}</span> appears in AI responses
+            Track how <span className="text-foreground font-medium">{brandName}</span> appears in AI
+            responses
             {recheckCount !== null ? (
               <span className="mt-1 block text-xs text-muted-foreground">
                 Started recheck for {recheckCount} prompt{recheckCount !== 1 ? "s" : ""}.
@@ -155,7 +156,7 @@ export function AIMonitoringTab({ slug, brandName }: AIMonitoringTabProps) {
         ) : (
           <div className="flex h-20 items-center justify-center rounded-xl border border-dashed border-white/[0.08]">
             <p className="text-xs text-muted-foreground">
-              No trend data yet — re-check prompts periodically to build history
+              No trend data yet - re-check prompts periodically to build history
             </p>
           </div>
         )}

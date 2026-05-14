@@ -11,18 +11,14 @@ interface WordPressConnectFormProps {
   onConnected: () => void;
 }
 
-export function WordPressConnectForm({
-  email,
-  onConnected,
-}: WordPressConnectFormProps) {
+export function WordPressConnectForm({ email, onConnected }: WordPressConnectFormProps) {
   const [siteUrl, setSiteUrl] = useState("");
   const [username, setUsername] = useState("");
   const [appPassword, setAppPassword] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isWpcom =
-    siteUrl.includes(".wordpress.com") || siteUrl.includes("wp.com");
+  const isWpcom = siteUrl.includes(".wordpress.com") || siteUrl.includes("wp.com");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,8 +49,8 @@ export function WordPressConnectForm({
       onConnected();
     } catch (err: unknown) {
       const message =
-        (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error || "Failed to connect WordPress.";
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        "Failed to connect WordPress.";
       setError(message);
     } finally {
       setConnecting(false);
@@ -85,8 +81,8 @@ export function WordPressConnectForm({
 
       {isWpcom ? (
         <div className="rounded-md border border-blue-500/30 bg-blue-500/10 p-3 text-sm text-blue-700 dark:text-blue-400">
-          WordPress.com detected — you&apos;ll be redirected to authorize via
-          OAuth. No username or password needed here.
+          WordPress.com detected - you&apos;ll be redirected to authorize via OAuth. No username or
+          password needed here.
         </div>
       ) : (
         <>
@@ -95,8 +91,8 @@ export function WordPressConnectForm({
               1. Install the Signalor GEO plugin on your site
             </p>
             <p className="text-xs text-muted-foreground">
-              Upload via Plugins → Add New → Upload. Use the latest zip, or the
-              versioned file for this release ({signalorWpPlugin.version}).
+              Upload via Plugins → Add New → Upload. Use the latest zip, or the versioned file for
+              this release ({signalorWpPlugin.version}).
             </p>
             <div className="flex flex-wrap gap-2">
               <a
@@ -142,8 +138,7 @@ export function WordPressConnectForm({
               className="mt-1"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Generate this in WordPress: Users &gt; Profile &gt; Application
-              Passwords.
+              Generate this in WordPress: Users &gt; Profile &gt; Application Passwords.
             </p>
           </div>
         </>

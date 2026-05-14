@@ -26,12 +26,6 @@ interface ShareOfVoicePanelProps {
 }
 
 export function ShareOfVoicePanel({ data }: ShareOfVoicePanelProps) {
-  if (!data.length) return null;
-
-  const avg = Math.round(data.reduce((s, d) => s + d.sov_pct, 0) / data.length);
-  const totalMentions = data.reduce((s, d) => s + d.mentioned, 0);
-  const totalRuns = data.reduce((s, d) => s + d.total, 0);
-
   const barData: BarChartDatum[] = useMemo(
     () =>
       data.map((item) => {
@@ -60,6 +54,12 @@ export function ShareOfVoicePanel({ data }: ShareOfVoicePanelProps) {
         }),
     [data],
   );
+
+  if (!data.length) return null;
+
+  const avg = Math.round(data.reduce((s, d) => s + d.sov_pct, 0) / data.length);
+  const totalMentions = data.reduce((s, d) => s + d.mentioned, 0);
+  const totalRuns = data.reduce((s, d) => s + d.total, 0);
 
   return (
     <div className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none">

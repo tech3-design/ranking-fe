@@ -20,9 +20,7 @@ import {
   User,
   Settings,
   CreditCard,
-  PlugZap,
   ArrowLeft,
-  Bell,
   Building2,
   ChevronsUpDown,
   Check,
@@ -46,10 +44,7 @@ import {
 import LogoComp from "@/components/LogoComp";
 import { AiChat } from "@/components/analyzer/ai-chat";
 import { cn } from "@/lib/utils";
-import {
-  DashboardAppFrame,
-  type DashboardAppSection,
-} from "./_components/dashboard-app-frame";
+import { DashboardAppFrame, type DashboardAppSection } from "./_components/dashboard-app-frame";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { DashboardTopBarActions } from "./_components/dashboard-top-bar-actions";
 import { TourProvider, useTour } from "@/components/onboarding/tour";
@@ -75,21 +70,17 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
     heading: "Monitoring",
     items: [
       { icon: VisibilityIcon, label: "Visibility", path: "/visibility" },
-            { icon: TasksIcon, label: "Tasks", path: "/recommendations" },
+      { icon: TasksIcon, label: "Tasks", path: "/recommendations" },
       { icon: SitemapIcon, label: "Sitemap", path: "/sitemap" },
     ],
   },
   {
     heading: "Prompts",
-    items: [
-      { icon: TrackerIcon, label: "Tracker", path: "/prompts" },
-    ],
+    items: [{ icon: TrackerIcon, label: "Tracker", path: "/prompts" }],
   },
   {
     heading: "Sources",
-    items: [
-      { icon: CompetitorsIcon, label: "Competitors", path: "/competitors" },
-    ],
+    items: [{ icon: CompetitorsIcon, label: "Competitors", path: "/competitors" }],
   },
   {
     heading: "Optimisation",
@@ -105,8 +96,6 @@ const SETTINGS_NAV = [
   { icon: User, label: "Profile", path: "/settings/profile" },
   { icon: CreditCard, label: "Billing", path: "/settings/billing" },
   { icon: Gift, label: "Referrals", path: "/settings/referrals" },
-  { icon: PlugZap, label: "Integrations", path: "/settings/integrations" },
-  { icon: Bell, label: "Notifications", path: "/settings/notifications" },
 ];
 
 function sectionForDashboardPath(pathname: string, basePath: string): DashboardAppSection {
@@ -157,7 +146,7 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
   if (rel.startsWith("/backlinks")) {
     return {
       title: "Backlinks",
-      hint: "Earn citations on the open web — free submission targets and paid placements.",
+      hint: "Earn citations on the open web - free submission targets and paid placements.",
       docsUrl: "https://docs.signalor.ai/backlinks",
     };
   }
@@ -227,22 +216,10 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
       hint: "Plan, invoices, and payment method.",
     };
   }
-  if (rel.startsWith("/settings/integrations")) {
-    return {
-      title: "Integrations",
-      hint: "Workspace connections and API access.",
-    };
-  }
   if (rel.startsWith("/settings/referrals")) {
     return {
       title: "Referrals",
       hint: "Refer friends and earn discounts on your subscription.",
-    };
-  }
-  if (rel.startsWith("/settings/notifications")) {
-    return {
-      title: "Notifications",
-      hint: "Email and in-app alert preferences.",
     };
   }
   if (rel.startsWith("/settings")) {
@@ -280,15 +257,9 @@ function AnalysisGate({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
-  
 }
 
-
-export default function DashboardSlugLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardSlugLayout({ children }: { children: React.ReactNode }) {
   const { slug } = useParams<{ slug: string }>();
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -329,7 +300,12 @@ export default function DashboardSlugLayout({
 
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const userEmail = session?.user?.email || "";
-  const userInitials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const userInitials = userName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   const userImage = (session?.user as Record<string, unknown>)?.image as string | undefined;
 
   const basePath = `/dashboard/${slug}`;
@@ -350,7 +326,7 @@ export default function DashboardSlugLayout({
     if (!userEmail) return;
     getSubscriptionStatus(userEmail)
       .then((s) => setIsPro(s.is_active))
-      .catch(() => { });
+      .catch(() => {});
   }, [userEmail]);
 
   // Load orgs
@@ -395,7 +371,7 @@ export default function DashboardSlugLayout({
   const isSettingsPage = pathname.startsWith(basePath + "/settings");
 
   const allNavPaths = MAIN_NAV_GROUPS.flatMap((g) =>
-    g.items.flatMap((i) => [i.path, ...((i.children ?? []).map((c) => c.path))]),
+    g.items.flatMap((i) => [i.path, ...(i.children ?? []).map((c) => c.path)]),
   );
 
   function isActive(navPath: string) {
@@ -445,7 +421,9 @@ export default function DashboardSlugLayout({
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14px] font-semibold leading-tight tracking-tight text-foreground capitalize">
-              {switchingOrg ? "Switching…" : activeOrg?.name || organizations[0]?.name || "Select org"}
+              {switchingOrg
+                ? "Switching…"
+                : activeOrg?.name || organizations[0]?.name || "Select org"}
             </p>
             {/* <p className="truncate text-[10px] leading-tight text-muted-foreground">
               {activeOrg?.url || organizations[0]?.url || ""}
@@ -469,14 +447,18 @@ export default function DashboardSlugLayout({
                   onClick={() => handleSwitchOrg(org)}
                   className={cn(
                     "flex w-full items-center gap-2 px-2.5 py-2 text-left transition-colors",
-                    orgSelected ? "bg-muted/60 dark:bg-muted/20" : "hover:bg-muted/40 dark:hover:bg-muted/15",
+                    orgSelected
+                      ? "bg-muted/60 dark:bg-muted/20"
+                      : "hover:bg-muted/40 dark:hover:bg-muted/15",
                   )}
                 >
                   <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted/50 dark:bg-muted/30">
                     <Building2 className="size-3 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-medium text-foreground capitalize">{org.name}</p>
+                    <p className="truncate text-[14px] font-medium text-foreground capitalize">
+                      {org.name}
+                    </p>
                     {/* <p className="truncate text-[10px] text-muted-foreground">{org.url || "No URL"}</p> */}
                   </div>
                   {orgSelected ? <Check className="size-3.5 shrink-0 text-foreground" /> : null}
@@ -517,7 +499,7 @@ export default function DashboardSlugLayout({
                     "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     active
                       ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
@@ -539,9 +521,7 @@ export default function DashboardSlugLayout({
               {group.items.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
-                const childActive = (item.children ?? []).some((c) =>
-                  isActive(c.path),
-                );
+                const childActive = (item.children ?? []).some((c) => isActive(c.path));
                 const showChildren = !!item.children?.length && (active || childActive);
                 return (
                   <div key={item.label} className="flex flex-col gap-0.5">
@@ -577,10 +557,7 @@ export default function DashboardSlugLayout({
                                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
                               )}
                             >
-                              <ChildIcon
-                                className="size-[15px] shrink-0 opacity-90"
-                                aria-hidden
-                              />
+                              <ChildIcon className="size-[15px] shrink-0 opacity-90" aria-hidden />
                               {child.label}
                             </Link>
                           );
@@ -641,8 +618,12 @@ export default function DashboardSlugLayout({
 
       {!isPro ? (
         <div className="rounded-md border border-border bg-background p-3">
-          <p className="mb-0.5 text-[13px] font-semibold text-foreground">Boost Your AI Visibility</p>
-          <p className="mb-2.5 text-[11px] text-muted-foreground">Elevate Your Site&apos;s Authority</p>
+          <p className="mb-0.5 text-[13px] font-semibold text-foreground">
+            Boost Your AI Visibility
+          </p>
+          <p className="mb-2.5 text-[11px] text-muted-foreground">
+            Elevate Your Site&apos;s Authority
+          </p>
           <Link
             href="/pricing"
             className="block w-full bg-primary py-2 text-center text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
@@ -654,9 +635,7 @@ export default function DashboardSlugLayout({
     </div>
   );
 
-  const topBarActions = (
-    <DashboardTopBarActions onOpenSearch={() => setCommandPaletteOpen(true)} />
-  );
+  const topBarActions = <DashboardTopBarActions onOpenSearch={() => setCommandPaletteOpen(true)} />;
 
   return (
     <RunProvider slug={slug}>
@@ -710,10 +689,7 @@ export default function DashboardSlugLayout({
             </button>
           ) : null} */}
 
-          <CommandPalette
-            open={commandPaletteOpen}
-            onClose={() => setCommandPaletteOpen(false)}
-          />
+          <CommandPalette open={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
           <ScoreBump />
         </TourProvider>
       </AnalysisGate>

@@ -20,14 +20,18 @@ export const INTEGRATION_HUB_CARDS = [
 export const INTEGRATION_HUB_STATS = [
   { label: "Connectors", value: "2+", detail: "Shopify & WordPress today" },
   { label: "Sync model", value: "Scheduled", detail: "Re-score after content changes" },
-  { label: "Data scope", value: "Read-only", detail: "No storefront or DB writes from marketing pages" },
+  {
+    label: "Data scope",
+    value: "Read-only",
+    detail: "No storefront or DB writes from marketing pages",
+  },
 ] as const;
 
 export const INTEGRATION_HUB_FAQ = [
   {
     question: "Do I need a paid Signalor plan to connect Shopify or WordPress?",
     answer:
-      "You can explore integration docs and marketing pages on any plan. Connecting a live store or site to your workspace follows the same rules as the rest of the product—start free, then upgrade when you need saved runs and team features.",
+      "You can explore integration docs and marketing pages on any plan. Connecting a live store or site to your workspace follows the same rules as the rest of the product - start free, then upgrade when you need saved runs and team features.",
   },
   {
     question: "What data is pulled from Shopify?",
@@ -37,7 +41,7 @@ export const INTEGRATION_HUB_FAQ = [
   {
     question: "How does WordPress integration handle plugins?",
     answer:
-      "We focus on public HTML and structured data your site outputs—SEO plugins that inject JSON-LD, sitemaps, and canonical URLs help. Admin-only or gated content is not fetched unless it is reachable the same way a crawler would see it.",
+      "We focus on public HTML and structured data your site outputs - SEO plugins that inject JSON-LD, sitemaps, and canonical URLs help. Admin-only or gated content is not fetched unless it is reachable the same way a crawler would see it.",
   },
   {
     question: "Can I disconnect an integration?",
@@ -50,7 +54,7 @@ export const SHOPIFY_INTEGRATION_PAGE = {
   title: "Shopify",
   headline: "GEO signals from your real storefront",
   subhead:
-    "Connect Shopify so Signalor can align audits with products, collections, and the story your theme tells—without replacing your stack.",
+    "Connect Shopify so Signalor can align audits with products, collections, and the story your theme tells - without replacing your stack.",
   bullets: [
     "Product and collection metadata feed citation and entity signals.",
     "Theme-visible copy helps models ground answers in what shoppers see.",

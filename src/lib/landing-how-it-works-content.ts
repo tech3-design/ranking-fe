@@ -13,7 +13,7 @@ export const HOW_IT_WORKS_STEPS: HowItWorksStep[] = [
   {
     n: 1,
     title: "Connect your site",
-    body: "Paste your domain, pick a market, and (optionally) link Shopify or WordPress — no code required.",
+    body: "Paste your domain, pick a market, and (optionally) link Shopify or WordPress - no code required.",
     illo: "connect",
   },
   {
@@ -31,7 +31,7 @@ export const HOW_IT_WORKS_STEPS: HowItWorksStep[] = [
   {
     n: 4,
     title: "Ship the fix queue",
-    body: "Prioritized recommendations with auto-fix for schema & meta on Shopify and WordPress — or export for your team.",
+    body: "Prioritized recommendations with auto-fix for schema & meta on Shopify and WordPress - or export for your team.",
     illo: "ship",
   },
 ];

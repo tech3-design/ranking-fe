@@ -187,7 +187,7 @@ function ResultView({ data, onReset }: { data: CompetitorsResult; onReset: () =>
 
       <ToolGateCard
         theme="emerald"
-        signedOutMessage="Sign up to benchmark AI citation share across ChatGPT, Claude, Gemini, and Perplexity — live, per prompt, per engine."
+        signedOutMessage="Sign up to benchmark AI citation share across ChatGPT, Claude, Gemini, and Perplexity - live, per prompt, per engine."
         upgradeMessage="Upgrade to Pro to unlock live AI citation benchmarks across 4 engines, prompt-level gaps, and a shareable report."
         signedInActiveMessage="Run live AI citation benchmarks on your connected projects."
         signedInActiveLabel="Open dashboard"

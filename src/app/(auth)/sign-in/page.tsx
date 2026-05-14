@@ -33,7 +33,7 @@ const STEP_HERO: Record<
 > = {
   "auth-method": {
     headline: "Sign in",
-    sub: "Welcome back — continue with Google or use your email.",
+    sub: "Welcome back - continue with Google or use your email.",
     badge: "Sign in",
   },
   "otp-verify": {
@@ -55,7 +55,10 @@ export default function SignInPage() {
 
   // Initialise store once on mount only — must not re-run on session refetch
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { reset(); setAuthMode("sign-in"); }, []);
+  useEffect(() => {
+    reset();
+    setAuthMode("sign-in");
+  }, []);
 
   // Redirect when a valid session is detected (e.g. after OTP verify)
   useEffect(() => {
@@ -63,8 +66,7 @@ export default function SignInPage() {
   }, [isPending, session, router]);
 
   const { title, description } = STEP_CONTENT[step] ?? STEP_CONTENT["auth-method"];
-  const hero =
-    step === "otp-verify" ? STEP_HERO["otp-verify"] : STEP_HERO["auth-method"];
+  const hero = step === "otp-verify" ? STEP_HERO["otp-verify"] : STEP_HERO["auth-method"];
   const StepComponent = STEP_COMPONENTS[step];
   const isOtpStep = step === "otp-verify";
   const showStepDetail = isOtpStep;
@@ -82,22 +84,18 @@ export default function SignInPage() {
         </div> */}
         <div className="space-y-1">
           <CardTitle className="text-xl font-semibold tracking-tight text-foreground">
-          <div className="flex items-center justify-between gap-2">
-          {/* <span className="rounded-md bg-[#fff4f2] px-2 py-0.5 text-[11px] font-medium text-[#b9382d]">
+            <div className="flex items-center justify-between gap-2">
+              {/* <span className="rounded-md bg-[#fff4f2] px-2 py-0.5 text-[11px] font-medium text-[#b9382d]">
             {hero.badge}
           </span> */}
-          <div>
-          {hero.headline}
-          </div>
-          <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
-            Step {isOtpStep ? "2/2" : "1/2"}
-          </span>
-        </div>
+              <div>{hero.headline}</div>
+              <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                Step {isOtpStep ? "2/2" : "1/2"}
+              </span>
+            </div>
             {/* {hero.headline} */}
           </CardTitle>
-          <CardDescription className="text-[13px] leading-relaxed">
-            {hero.sub}
-          </CardDescription>
+          <CardDescription className="text-[13px] leading-relaxed">{hero.sub}</CardDescription>
           {showStepDetail && (
             <div className="pt-2">
               <p className="text-[13px] font-medium text-foreground">{title}</p>

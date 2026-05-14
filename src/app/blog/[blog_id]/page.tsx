@@ -14,12 +14,7 @@ import { LandingFooter } from "@/components/landing/landing-footer";
 import { HeroBackgroundGrid } from "@/components/landing/hero-background-grid";
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { JsonLd } from "@/components/seo/json-ld";
-import {
-  buildMetadata,
-  breadcrumbJsonLd,
-  articleJsonLd,
-  SITE_URL,
-} from "@/lib/seo";
+import { buildMetadata, breadcrumbJsonLd, articleJsonLd, SITE_URL } from "@/lib/seo";
 import type { BlogPost } from "@/lib/landing-blog-content";
 import { cn } from "@/lib/utils";
 
@@ -112,11 +107,7 @@ type PTImage = {
 
 type PTValue = PTBlock | PTImage;
 
-function renderSpan(
-  span: PTSpan,
-  markDefs: PTMarkDef[],
-  key: string | number,
-): React.ReactNode {
+function renderSpan(span: PTSpan, markDefs: PTMarkDef[], key: string | number): React.ReactNode {
   const marks = span.marks ?? [];
   let node: React.ReactNode = span.text;
 
@@ -147,7 +138,10 @@ function renderSpan(
 }
 
 function slugifyHeading(block: PTBlock): string | undefined {
-  const text = (block.children ?? []).map((c) => c.text ?? "").join(" ").trim();
+  const text = (block.children ?? [])
+    .map((c) => c.text ?? "")
+    .join(" ")
+    .trim();
   if (!text) return undefined;
   return text
     .toLowerCase()
@@ -166,7 +160,10 @@ function renderBlock(block: PTBlock, idx: number): React.ReactNode {
 
   if (block.listItem === "bullet") {
     return (
-      <li key={block._key ?? idx} className="ml-5 list-disc text-[15px] leading-relaxed text-foreground/80">
+      <li
+        key={block._key ?? idx}
+        className="ml-5 list-disc text-[15px] leading-relaxed text-foreground/80"
+      >
         {children}
       </li>
     );
@@ -176,13 +173,45 @@ function renderBlock(block: PTBlock, idx: number): React.ReactNode {
 
   switch (block.style) {
     case "h1":
-      return <h1 key={block._key ?? idx} id={headingId} className="mt-10 mb-4 text-3xl font-bold tracking-tight text-foreground scroll-mt-24">{children}</h1>;
+      return (
+        <h1
+          key={block._key ?? idx}
+          id={headingId}
+          className="mt-10 mb-4 text-3xl font-bold tracking-tight text-foreground scroll-mt-24"
+        >
+          {children}
+        </h1>
+      );
     case "h2":
-      return <h2 key={block._key ?? idx} id={headingId} className="mt-8 mb-3 text-2xl font-bold tracking-tight text-foreground scroll-mt-24">{children}</h2>;
+      return (
+        <h2
+          key={block._key ?? idx}
+          id={headingId}
+          className="mt-8 mb-3 text-2xl font-bold tracking-tight text-foreground scroll-mt-24"
+        >
+          {children}
+        </h2>
+      );
     case "h3":
-      return <h3 key={block._key ?? idx} id={headingId} className="mt-6 mb-2.5 text-xl font-semibold tracking-tight text-foreground scroll-mt-24">{children}</h3>;
+      return (
+        <h3
+          key={block._key ?? idx}
+          id={headingId}
+          className="mt-6 mb-2.5 text-xl font-semibold tracking-tight text-foreground scroll-mt-24"
+        >
+          {children}
+        </h3>
+      );
     case "h4":
-      return <h4 key={block._key ?? idx} id={headingId} className="mt-5 mb-2 text-lg font-semibold text-foreground scroll-mt-24">{children}</h4>;
+      return (
+        <h4
+          key={block._key ?? idx}
+          id={headingId}
+          className="mt-5 mb-2 text-lg font-semibold text-foreground scroll-mt-24"
+        >
+          {children}
+        </h4>
+      );
     case "blockquote":
       return (
         <blockquote
@@ -256,11 +285,7 @@ function PortableTextContent({ value }: { value: PTValue[] }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function BlogPostPage({
-  params,
-}: {
-  params: Promise<{ blog_id: string }>;
-}) {
+export default async function BlogPostPage({ params }: { params: Promise<{ blog_id: string }> }) {
   const { blog_id } = await params;
   const post = await client
     .fetch<SanityBlogPost | null>(POST_BY_SLUG_QUERY, { slug: blog_id })
@@ -268,9 +293,10 @@ export default async function BlogPostPage({
 
   if (!post) notFound();
 
-  const tone =
-    CATEGORY_TONE[post.category as BlogPost["category"]] ??
-    { bg: "bg-neutral-100", fg: "text-neutral-700" };
+  const tone = CATEGORY_TONE[post.category as BlogPost["category"]] ?? {
+    bg: "bg-neutral-100",
+    fg: "text-neutral-700",
+  };
 
   const articleLd = articleJsonLd({
     title: post.title,
@@ -293,7 +319,7 @@ export default async function BlogPostPage({
       {/* ─── Hero ───────────────────────────────────────────────────── */}
       <section className="relative bg-background px-6 pb-12 pt-14 lg:px-12 lg:pb-14 lg:pt-16">
         <HeroBackgroundGrid />
-        <div className="relative z-10 mx-auto max-w-3xl">
+        <div className="relative z-10 mx-auto max-w-7xl">
           <Link
             href="/blog"
             className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground"
@@ -328,7 +354,6 @@ export default async function BlogPostPage({
           <p className="mt-4 text-base font-light leading-relaxed text-accent-foreground lg:text-[17px]">
             {post.excerpt}
           </p>
-
         </div>
       </section>
 
@@ -336,7 +361,7 @@ export default async function BlogPostPage({
 
       {/* ─── Body ───────────────────────────────────────────────────── */}
       <section className="bg-background px-6 py-12 lg:px-12 lg:py-14">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-7xl">
           {post.coverImage?.url && (
             <figure className="mb-10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -362,7 +387,7 @@ export default async function BlogPostPage({
 
       {/* ─── Back link ──────────────────────────────────────────────── */}
       <section className="bg-background px-6 pb-14 lg:px-12">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-7xl">
           <Link
             href="/blog"
             className="inline-flex items-center gap-1.5 rounded-sm border border-black/10 bg-white px-4 py-2 text-[12px] font-semibold text-foreground shadow-sm transition hover:bg-neutral-50"

@@ -62,7 +62,8 @@ export default function PromptsHistoryPage() {
   }, [tracks]);
 
   const mentionedCount = activity.filter((a) => a.brand_mentioned).length;
-  const mentionRate = activity.length > 0 ? Math.round((mentionedCount / activity.length) * 100) : 0;
+  const mentionRate =
+    activity.length > 0 ? Math.round((mentionedCount / activity.length) * 100) : 0;
   const trackedEngines = new Set(activity.map((a) => a.engine)).size;
 
   return (
@@ -94,7 +95,7 @@ export default function PromptsHistoryPage() {
           </div>
         )}
       </div>
-      
+
       {!loading && !error && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div className="space-y-6">
@@ -128,7 +129,7 @@ export default function PromptsHistoryPage() {
               ) : (
                 <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-border">
                   <p className="text-xs text-muted-foreground text-center px-4">
-                    No trend data yet — recheck prompts to build history.
+                    No trend data yet - recheck prompts to build history.
                   </p>
                 </div>
               )}
@@ -165,9 +166,7 @@ export default function PromptsHistoryPage() {
                       {r.brand_mentioned && r.rank_position > 0 && (
                         <span className="font-bold text-foreground">#{r.rank_position}</span>
                       )}
-                      <span className="text-muted-foreground/90 truncate">
-                        {r.prompt_text}
-                      </span>
+                      <span className="text-muted-foreground/90 truncate">{r.prompt_text}</span>
                       <span className="text-muted-foreground/50 ml-auto text-[10px] tabular-nums shrink-0">
                         {new Date(r.checked_at).toLocaleString([], {
                           month: "short",
@@ -197,8 +196,6 @@ export default function PromptsHistoryPage() {
           {error}
         </div>
       )}
-
     </div>
   );
 }
-

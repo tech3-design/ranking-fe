@@ -28,9 +28,7 @@ export default function ProjectAnalyticsPage() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const gaIntegration = integrations.find(
-    (i) => i.provider === "google_analytics" && i.is_active,
-  );
+  const gaIntegration = integrations.find((i) => i.provider === "google_analytics" && i.is_active);
   const hasProperty = !!gaIntegration?.metadata?.property_id;
 
   const loadIntegrations = useCallback(async () => {
@@ -68,9 +66,7 @@ export default function ProjectAnalyticsPage() {
     setError(null);
     try {
       await disconnectGA(email);
-      setIntegrations((prev) =>
-        prev.filter((i) => i.provider !== "google_analytics"),
-      );
+      setIntegrations((prev) => prev.filter((i) => i.provider !== "google_analytics"));
     } catch {
       setError("Failed to disconnect Google Analytics.");
     } finally {
@@ -85,9 +81,7 @@ export default function ProjectAnalyticsPage() {
         <p className="text-xs mt-1 text-muted-foreground">
           Connect Google Analytics and review traffic for this project.
         </p>
-        {run?.url && (
-          <p className="mt-2 text-xs text-muted-foreground">{run.url}</p>
-        )}
+        {run?.url && <p className="mt-2 text-xs text-muted-foreground">{run.url}</p>}
       </div>
 
       {error && (
@@ -100,7 +94,9 @@ export default function ProjectAnalyticsPage() {
       <div className="bg-card rounded-2xl p-6 border border-border">
         <div className="mb-1">
           <h3 className="text-base font-semibold text-foreground">Google Analytics</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">GA4 setup and page-specific traffic for this project.</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            GA4 setup and page-specific traffic for this project.
+          </p>
         </div>
 
         <div className="mt-4 space-y-4">
@@ -118,7 +114,7 @@ export default function ProjectAnalyticsPage() {
                     {typeof gaIntegration.metadata?.property_name === "string" &&
                       gaIntegration.metadata.property_name && (
                         <span className="text-sm text-muted-foreground">
-                          — {gaIntegration.metadata.property_name}
+                          - {gaIntegration.metadata.property_name}
                         </span>
                       )}
                   </div>

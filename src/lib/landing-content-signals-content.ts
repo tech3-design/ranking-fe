@@ -4,7 +4,7 @@ import type { LucideIcon } from "@/components/icons";
 export const CONTENT_SIGNALS_SITE = {
   title: "AI visibility",
   description:
-    "Score how AI engines see, cite, and recommend your brand — across ChatGPT, Claude, Gemini, Perplexity, and more.",
+    "Score how AI engines see, cite, and recommend your brand - across ChatGPT, Claude, Gemini, Perplexity, and more.",
 } as const;
 
 export const CONTENT_SIGNALS_HERO = {
@@ -14,8 +14,7 @@ export const CONTENT_SIGNALS_HERO = {
   titleAccent: "every answer engine",
   subhead:
     "Audit structure, schema, and trust markers on every page, then prioritize rewrites that move how generative engines summarize and cite you.",
-  footnote:
-    "Schema diagnostics · trust scoring · content briefs on higher tiers",
+  footnote: "Schema diagnostics · trust scoring · content briefs on higher tiers",
   primaryCta: "Score my content",
   secondaryCta: "Run free GEO audit",
 } as const;
@@ -93,30 +92,54 @@ export const CONTENT_SIGNALS_FEATURES_INTRO = {
   titleBefore: "Everything you need to",
   titleAccent: "train AI on your content",
   description:
-    "Generative engines decide what to cite based on structure, schema, and trust — not just keyword relevance. Content signals keeps those markers healthy across the templates that matter.",
+    "Generative engines decide what to cite based on structure, schema, and trust - not just keyword relevance. Content signals keeps those markers healthy across the templates that matter.",
 } as const;
 
 export const CONTENT_SIGNALS_FEATURE_CELLS = [
   {
     title: "Engine coverage",
     description:
-      "See your brand's visibility across every answer engine at a glance — ChatGPT, Claude, Gemini, Perplexity, and more.",
+      "See your brand's visibility across every answer engine at a glance - ChatGPT, Claude, Gemini, Perplexity, and more.",
     mock: {
       kind: "engineGrid" as const,
       engines: [
-        { name: "ChatGPT", initial: "C", tone: "bg-emerald-600", coverage: 74, trend: "up" as const },
+        {
+          name: "ChatGPT",
+          initial: "C",
+          tone: "bg-emerald-600",
+          coverage: 74,
+          trend: "up" as const,
+        },
         { name: "Claude", initial: "A", tone: "bg-amber-600", coverage: 62, trend: "up" as const },
-        { name: "Gemini", initial: "G", tone: "bg-[#2563eb]", coverage: 58, trend: "flat" as const },
-        { name: "Perplexity", initial: "P", tone: "bg-violet-600", coverage: 45, trend: "down" as const },
+        {
+          name: "Gemini",
+          initial: "G",
+          tone: "bg-[#2563eb]",
+          coverage: 58,
+          trend: "flat" as const,
+        },
+        {
+          name: "Perplexity",
+          initial: "P",
+          tone: "bg-violet-600",
+          coverage: 45,
+          trend: "down" as const,
+        },
         { name: "Copilot", initial: "B", tone: "bg-sky-600", coverage: 51, trend: "up" as const },
-        { name: "Google AI", initial: "G", tone: "bg-rose-500", coverage: 67, trend: "up" as const },
+        {
+          name: "Google AI",
+          initial: "G",
+          tone: "bg-rose-500",
+          coverage: 67,
+          trend: "up" as const,
+        },
       ],
     },
   },
   {
     title: "GEO score breakdown",
     description:
-      "One 0-100 read across citability, schema, and content — so every team aligns on what moves AI answers.",
+      "One 0-100 read across citability, schema, and content - so every team aligns on what moves AI answers.",
     mock: {
       kind: "scoreCard" as const,
       label: "Overall GEO",
@@ -133,7 +156,7 @@ export const CONTENT_SIGNALS_FEATURE_CELLS = [
   {
     title: "Share of AI citations",
     description:
-      "Benchmark mention share vs. competitors across the prompts that matter — not legacy blue-link rankings.",
+      "Benchmark mention share vs. competitors across the prompts that matter - not legacy blue-link rankings.",
     mock: {
       kind: "competitorBars" as const,
       title: "Share of AI mentions",
@@ -168,16 +191,34 @@ export const CONTENT_SIGNALS_FEATURE_CELLS = [
     mock: {
       kind: "alertList" as const,
       items: [
-        { title: "Add Organization JSON-LD", meta: "Site-wide · est +4 GEO", dot: "red" as const, badge: "Critical", badgeTone: "red" as const },
-        { title: "Tighten /pricing FAQ schema", meta: "Template · est +2 GEO", dot: "amber" as const, badge: "Next", badgeTone: "neutral" as const },
-        { title: "Publish author bios /docs", meta: "Shipped · cite lift", dot: "emerald" as const, badge: "Done", badgeTone: "emerald" as const },
+        {
+          title: "Add Organization JSON-LD",
+          meta: "Site-wide · est +4 GEO",
+          dot: "red" as const,
+          badge: "Critical",
+          badgeTone: "red" as const,
+        },
+        {
+          title: "Tighten /pricing FAQ schema",
+          meta: "Template · est +2 GEO",
+          dot: "amber" as const,
+          badge: "Next",
+          badgeTone: "neutral" as const,
+        },
+        {
+          title: "Publish author bios /docs",
+          meta: "Shipped · cite lift",
+          dot: "emerald" as const,
+          badge: "Done",
+          badgeTone: "emerald" as const,
+        },
       ],
     },
   },
   {
     title: "Competitor lens",
     description:
-      "Benchmark your structure and trust signals against rivals—see where their JSON-LD or bylines beat yours inside AI answers.",
+      "Benchmark your structure and trust signals against rivals - see where their JSON-LD or bylines beat yours inside AI answers.",
     mock: {
       kind: "competitorBars" as const,
       title: "Schema health",
@@ -203,25 +244,26 @@ export const CONTENT_SIGNALS_WHY = {
   titleAccent: "structure",
   titleAfter: "before they read copy",
   intro:
-    "Even great writing gets skipped when structure, schema, and trust markers miss. Content signals surfaces what engines grade first, so every rewrite or schema push moves answers—not just rankings.",
+    "Even great writing gets skipped when structure, schema, and trust markers miss. Content signals surfaces what engines grade first, so every rewrite or schema push moves answers - not just rankings.",
   proofTitle: "Proof in numbers",
   proofBody:
     "Benchmarks teams cite once they move from keyword-only SEO to signals-driven AI visibility programs inside Signalor.",
   liveTitle: "Live preview",
   liveBody:
-    "The content review strategists run before shipping copy—anchored to schema, structure, and trust gaps detected automatically on your site.",
-  livePrompt:
-    "Which ecommerce platform has the best GEO-ready product schema?",
+    "The content review strategists run before shipping copy - anchored to schema, structure, and trust gaps detected automatically on your site.",
+  livePrompt: "Which ecommerce platform has the best GEO-ready product schema?",
   liveAnswerParts: [
     { t: "Platforms like " },
     { t: "Signalor Commerce", variant: "brand" as const },
     { t: " and " },
     { t: "Acme", variant: "link" as const },
-    { t: " ship healthy Product + Review schema by default; stores missing Organization JSON-LD rarely appear in recommendations." },
+    {
+      t: " ship healthy Product + Review schema by default; stores missing Organization JSON-LD rarely appear in recommendations.",
+    },
   ],
   coverageTitle: "Signal coverage",
   coverageBody:
-    "Roll up how each template scores on structure, schema, and trust, so content plans target the weakest pillar next—not the loudest stakeholder.",
+    "Roll up how each template scores on structure, schema, and trust, so content plans target the weakest pillar next - not the loudest stakeholder.",
   coverageScoreLabel: "Signals",
   coverageScore: "71",
   coverageSuffix: "/100",
@@ -233,24 +275,24 @@ export const CONTENT_SIGNALS_WHY = {
   coverageCitedBarPct: 64,
   shipTitle: "What you ship",
   shipBody:
-    "The content signal work your team owns weekly—from schema diagnostics to prioritized rewrites that models reward first.",
+    "The content signal work your team owns weekly - from schema diagnostics to prioritized rewrites that models reward first.",
 } as const;
 
 export const CONTENT_SIGNALS_FAQ = [
   {
     question: "How is this different from a traditional SEO audit?",
     answer:
-      "Traditional audits grade you for Google rankings. Content signals grades you for AI answers—scoring structure, schema, and trust markers that generative engines rely on when deciding what to cite.",
+      "Traditional audits grade you for Google rankings. Content signals grades you for AI answers - scoring structure, schema, and trust markers that generative engines rely on when deciding what to cite.",
   },
   {
     question: "Which schema types are covered?",
     answer:
-      "Organization, Product, FAQ, Article, HowTo, BreadcrumbList, and more. Coverage adapts to what your templates actually need—no noise about schemas that don't apply.",
+      "Organization, Product, FAQ, Article, HowTo, BreadcrumbList, and more. Coverage adapts to what your templates actually need - no noise about schemas that don't apply.",
   },
   {
     question: "Does fixing content signals improve my GEO score?",
     answer:
-      "Yes—structure, schema, and trust are core inputs into the Signalor GEO score. Every fix maps to the expected score delta so engineering and content teams can prioritize.",
+      "Yes - structure, schema, and trust are core inputs into the Signalor GEO score. Every fix maps to the expected score delta so engineering and content teams can prioritize.",
   },
   {
     question: "How often are signals re-scanned?",

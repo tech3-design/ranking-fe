@@ -13,10 +13,7 @@ import {
 import { AuthMethodForm } from "@/components/auth/auth-method-form";
 import { OtpForm } from "@/components/auth/otp-form";
 import { CompanyInfoForm } from "@/components/auth/company-info-form";
-import {
-  useOnboardingStore,
-  type OnboardingStep,
-} from "@/lib/stores/onboarding-store";
+import { useOnboardingStore, type OnboardingStep } from "@/lib/stores/onboarding-store";
 import { useSession } from "@/lib/auth-client";
 import { routes } from "@/lib/config";
 import { redeemReferralCode } from "@/lib/api/referrals";
@@ -41,10 +38,7 @@ const STEP_CONTENT: Record<string, { title: string; description: string }> = {
   },
 };
 
-const STEP_HERO: Record<
-  OnboardingStep,
-  { headline: string; sub: string; badge: string }
-> = {
+const STEP_HERO: Record<OnboardingStep, { headline: string; sub: string; badge: string }> = {
   "auth-method": {
     headline: "Sign up",
     sub: "Create your account to continue.",
@@ -57,7 +51,7 @@ const STEP_HERO: Record<
   },
   "company-info": {
     headline: "Company details",
-    sub: "Almost done — add your organization.",
+    sub: "Almost done - add your organization.",
     badge: "Profile",
   },
   complete: {
@@ -107,20 +101,15 @@ function SignUpContent() {
       }
 
       const pendingReferral =
-        typeof window !== "undefined"
-          ? localStorage.getItem(REFERRAL_PENDING_KEY)
-          : null;
+        typeof window !== "undefined" ? localStorage.getItem(REFERRAL_PENDING_KEY) : null;
 
       const affiliateCode =
-        typeof window !== "undefined"
-          ? localStorage.getItem(AFFILIATE_KEY)
-          : null;
+        typeof window !== "undefined" ? localStorage.getItem(AFFILIATE_KEY) : null;
       const affiliateExpiresAt =
         typeof window !== "undefined"
           ? Number(localStorage.getItem(AFFILIATE_EXPIRES_KEY) ?? "0")
           : 0;
-      const affiliateActive =
-        affiliateCode && affiliateExpiresAt > Date.now();
+      const affiliateActive = affiliateCode && affiliateExpiresAt > Date.now();
 
       const tasks: Promise<unknown>[] = [];
       if (pendingReferral) {
@@ -135,9 +124,7 @@ function SignUpContent() {
         );
       }
       if (affiliateActive && affiliateCode) {
-        tasks.push(
-          attributePartner(affiliateCode, email).catch(() => {}),
-        );
+        tasks.push(attributePartner(affiliateCode, email).catch(() => {}));
       }
 
       if (tasks.length === 0) {
@@ -154,12 +141,10 @@ function SignUpContent() {
     setAuthMode("sign-up");
   }, [reset, setAuthMode, isPending, session, router]);
 
-  const { title, description } =
-    STEP_CONTENT[step] ?? STEP_CONTENT["auth-method"];
+  const { title, description } = STEP_CONTENT[step] ?? STEP_CONTENT["auth-method"];
   const hero = STEP_HERO[step] ?? STEP_HERO["auth-method"];
   const StepComponent = STEP_COMPONENTS[step];
-  const stepIndex =
-    step === "auth-method" ? "1/3" : step === "otp-verify" ? "2/3" : "3/3";
+  const stepIndex = step === "auth-method" ? "1/3" : step === "otp-verify" ? "2/3" : "3/3";
   const showStepDetail = step !== "auth-method";
 
   return (
@@ -175,15 +160,11 @@ function SignUpContent() {
             </div>
             <div></div>
           </CardTitle>
-          <CardDescription className="text-[13px] leading-relaxed">
-            {hero.sub}
-          </CardDescription>
+          <CardDescription className="text-[13px] leading-relaxed">{hero.sub}</CardDescription>
           {showStepDetail && (
             <div className="pt-2">
               <p className="text-[13px] font-medium text-foreground">{title}</p>
-              <CardDescription className="mt-0.5 text-[12px]">
-                {description}
-              </CardDescription>
+              <CardDescription className="mt-0.5 text-[12px]">{description}</CardDescription>
             </div>
           )}
         </div>

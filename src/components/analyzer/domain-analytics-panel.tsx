@@ -72,9 +72,7 @@ export function DomainAnalyticsPanel({ slug }: DomainAnalyticsPanelProps) {
           response?: { data?: { detail?: string; code?: string } };
           message?: string;
         };
-        setError(
-          e.response?.data?.detail ?? e.message ?? "Failed to load domain analytics",
-        );
+        setError(e.response?.data?.detail ?? e.message ?? "Failed to load domain analytics");
         setErrorCode(e.response?.data?.code ?? null);
       })
       .finally(() => {
@@ -97,9 +95,7 @@ export function DomainAnalyticsPanel({ slug }: DomainAnalyticsPanelProps) {
         response?: { data?: { detail?: string; code?: string } };
         message?: string;
       };
-      setError(
-        e.response?.data?.detail ?? e.message ?? "Failed to refresh",
-      );
+      setError(e.response?.data?.detail ?? e.message ?? "Failed to refresh");
       setErrorCode(e.response?.data?.code ?? null);
     } finally {
       setRefreshing(false);
@@ -123,12 +119,10 @@ export function DomainAnalyticsPanel({ slug }: DomainAnalyticsPanelProps) {
         <div className="flex items-start gap-3">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-foreground">
-              DataForSEO not configured
-            </p>
+            <p className="text-sm font-semibold text-foreground">DataForSEO not configured</p>
             <p className="text-xs text-muted-foreground">
-              Set <code>DATAFORSEO_LOGIN</code> and <code>DATAFORSEO_PASSWORD</code>{" "}
-              in the backend env to enable real-world traffic signals.
+              Set <code>DATAFORSEO_LOGIN</code> and <code>DATAFORSEO_PASSWORD</code> in the backend
+              env to enable real-world traffic signals.
             </p>
           </div>
         </div>
@@ -167,10 +161,7 @@ export function DomainAnalyticsPanel({ slug }: DomainAnalyticsPanelProps) {
   };
   const keywords = snapshot.top_keywords ?? [];
   const pages = snapshot.top_pages ?? [];
-  const noData =
-    overview.organic_traffic === 0 &&
-    keywords.length === 0 &&
-    pages.length === 0;
+  const noData = overview.organic_traffic === 0 && keywords.length === 0 && pages.length === 0;
 
   return (
     <div className="space-y-4">
@@ -182,8 +173,8 @@ export function DomainAnalyticsPanel({ slug }: DomainAnalyticsPanelProps) {
           </h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Estimated organic traffic for{" "}
-            <span className="font-medium text-foreground">{snapshot.domain}</span> —
-            sourced from DataForSEO, no GA connection needed.
+            <span className="font-medium text-foreground">{snapshot.domain}</span> - sourced from
+            DataForSEO, no GA connection needed.
             {snapshot.synced_at ? ` · Synced ${relativeTime(snapshot.synced_at)}` : null}
           </p>
         </div>
@@ -229,13 +220,10 @@ export function DomainAnalyticsPanel({ slug }: DomainAnalyticsPanelProps) {
 
       {noData ? (
         <div className="rounded-2xl border border-border bg-card p-6 text-center">
-          <p className="text-sm font-medium text-foreground">
-            No public traffic signal yet
-          </p>
+          <p className="text-sm font-medium text-foreground">No public traffic signal yet</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            DataForSEO has no organic ranking data for this domain. This is normal
-            for very new sites or domains that get traffic primarily from social,
-            email, or paid channels.
+            DataForSEO has no organic ranking data for this domain. This is normal for very new
+            sites or domains that get traffic primarily from social, email, or paid channels.
           </p>
         </div>
       ) : (
@@ -248,33 +236,19 @@ export function DomainAnalyticsPanel({ slug }: DomainAnalyticsPanelProps) {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-}) {
+function StatCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {icon}
         {label}
       </div>
-      <p className="mt-2 text-2xl font-bold tracking-tight text-foreground tabular-nums">
-        {value}
-      </p>
+      <p className="mt-2 text-2xl font-bold tracking-tight text-foreground tabular-nums">{value}</p>
     </div>
   );
 }
 
-function KeywordsTable({
-  keywords,
-}: {
-  keywords: DomainAnalyticsSnapshot["top_keywords"];
-}) {
+function KeywordsTable({ keywords }: { keywords: DomainAnalyticsSnapshot["top_keywords"] }) {
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="border-b border-border px-4 py-2.5">
@@ -298,10 +272,11 @@ function KeywordsTable({
             </thead>
             <tbody>
               {keywords.slice(0, 15).map((k) => (
-                <tr key={`${k.keyword}-${k.position}`} className="border-b border-border/50 last:border-0">
-                  <td className="px-4 py-2 truncate max-w-[220px] text-foreground">
-                    {k.keyword}
-                  </td>
+                <tr
+                  key={`${k.keyword}-${k.position}`}
+                  className="border-b border-border/50 last:border-0"
+                >
+                  <td className="px-4 py-2 truncate max-w-[220px] text-foreground">{k.keyword}</td>
                   <td className="px-2 py-2 text-right tabular-nums text-muted-foreground">
                     {k.position || "—"}
                   </td>
@@ -318,11 +293,7 @@ function KeywordsTable({
   );
 }
 
-function PagesTable({
-  pages,
-}: {
-  pages: DomainAnalyticsSnapshot["top_pages"];
-}) {
+function PagesTable({ pages }: { pages: DomainAnalyticsSnapshot["top_pages"] }) {
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="border-b border-border px-4 py-2.5">
@@ -331,9 +302,7 @@ function PagesTable({
         </p>
       </div>
       {pages.length === 0 ? (
-        <p className="px-4 py-6 text-center text-xs text-muted-foreground">
-          No top pages found.
-        </p>
+        <p className="px-4 py-6 text-center text-xs text-muted-foreground">No top pages found.</p>
       ) : (
         <div className="max-h-[320px] overflow-y-auto">
           <table className="w-full text-sm">
@@ -353,9 +322,7 @@ function PagesTable({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-foreground hover:text-primary"
                     >
-                      <span className="truncate">
-                        {p.url.replace(/^https?:\/\/(www\.)?/, "")}
-                      </span>
+                      <span className="truncate">{p.url.replace(/^https?:\/\/(www\.)?/, "")}</span>
                       <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
                     </a>
                   </td>

@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -71,13 +72,13 @@ const ENGINES: Array<{
   color: string;
   type: "ai" | "search";
 }> = [
-    { key: "google", label: "Google", color: "#ea4335", type: "search" },
-    { key: "bing", label: "Bing", color: "#00809d", type: "search" },
-    { key: "chatgpt", label: "ChatGPT", color: "#10a37f", type: "ai" },
-    { key: "claude", label: "Claude", color: "#d97706", type: "ai" },
-    { key: "gemini", label: "Gemini", color: "#4285f4", type: "ai" },
-    { key: "perplexity", label: "Perplexity", color: "#7c3aed", type: "ai" },
-  ];
+  { key: "google", label: "Google", color: "#ea4335", type: "search" },
+  { key: "bing", label: "Bing", color: "#00809d", type: "search" },
+  { key: "chatgpt", label: "ChatGPT", color: "#10a37f", type: "ai" },
+  { key: "claude", label: "Claude", color: "#d97706", type: "ai" },
+  { key: "gemini", label: "Gemini", color: "#4285f4", type: "ai" },
+  { key: "perplexity", label: "Perplexity", color: "#7c3aed", type: "ai" },
+];
 
 // ── Style helpers ─────────────────────────────────────────────────────────────
 const SENTIMENT_STYLES: Record<Sentiment, { pill: string; dot: string }> = {
@@ -95,8 +96,7 @@ const SENTIMENT_STYLES: Record<Sentiment, { pill: string; dot: string }> = {
   },
 };
 
-const LABEL_STYLES: Record<string, { ring: string; text: string; bg: string }> =
-{
+const LABEL_STYLES: Record<string, { ring: string; text: string; bg: string }> = {
   Strong: { ring: "ring-border", text: "text-foreground", bg: "bg-muted/70" },
   Moderate: {
     ring: "ring-border/80",
@@ -270,7 +270,10 @@ export function PromptTracker({
 
   // Lazy-load the full response_text when a modal opens
   useEffect(() => {
-    if (!viewingResponse || !viewingTrackId) { setFullResponseText(null); return; }
+    if (!viewingResponse || !viewingTrackId) {
+      setFullResponseText(null);
+      return;
+    }
     setFullResponseText(null);
     setLoadingFullText(true);
     getPromptResultFull(slug, viewingTrackId, viewingResponse.id)
@@ -303,13 +306,10 @@ export function PromptTracker({
         totalRuns: 0,
         mentions: 0,
       };
-    const avgScore = Math.round(
-      (tracks.reduce((s, t) => s + (t.score ?? 0), 0) / total) * 100,
-    );
+    const avgScore = Math.round((tracks.reduce((s, t) => s + (t.score ?? 0), 0) / total) * 100);
     const totalRuns = tracks.reduce((s, t) => s + (t.total_runs ?? 0), 0);
     const mentions = tracks.reduce((s, t) => s + (t.mentions ?? 0), 0);
-    const visibility =
-      totalRuns > 0 ? Math.round((mentions / totalRuns) * 100) : 0;
+    const visibility = totalRuns > 0 ? Math.round((mentions / totalRuns) * 100) : 0;
     const strong = tracks.filter((t) => t.ranking_label === "Strong").length;
     const weak = tracks.filter((t) => t.ranking_label === "Weak").length;
     return { avgScore, visibility, strong, weak, totalRuns, mentions };
@@ -325,23 +325,15 @@ export function PromptTracker({
     if (filterLabel !== "All") {
       list = list.filter((t) => t.ranking_label === filterLabel);
     }
-    if (sortKey === "score")
-      list.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+    if (sortKey === "score") list.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     else if (sortKey === "visibility")
       list.sort((a, b) => (b.visibility_pct ?? 0) - (a.visibility_pct ?? 0));
-    else
-      list.sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      );
+    else list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     return list;
   }, [tracks, search, filterLabel, sortKey]);
 
   const promptFiltersActive = useMemo(
-    () =>
-      search.trim() !== "" ||
-      filterLabel !== "All" ||
-      sortKey !== "score",
+    () => search.trim() !== "" || filterLabel !== "All" || sortKey !== "score",
     [search, filterLabel, sortKey],
   );
 
@@ -407,8 +399,7 @@ export function PromptTracker({
             <>Track prompts to score visibility across AI and search.</>
           ) : promptFiltersActive ? (
             <>
-              Showing{" "}
-              <span className="font-medium text-foreground">{visibleTracks.length}</span>
+              Showing <span className="font-medium text-foreground">{visibleTracks.length}</span>
               {" of "}
               {tracks.length} prompts
             </>
@@ -465,10 +456,7 @@ export function PromptTracker({
                 ) : null}
               </div>
 
-              <Select
-                value={filterLabel}
-                onValueChange={(v) => setFilterLabel(v as FilterLabel)}
-              >
+              <Select value={filterLabel} onValueChange={(v) => setFilterLabel(v as FilterLabel)}>
                 <SelectTrigger
                   size="default"
                   className="h-9 min-h-9 w-34 shrink-0 border border-border/80 bg-white py-0 text-sm text-foreground shadow-sm sm:w-36 dark:bg-white dark:text-foreground dark:hover:bg-neutral-50"
@@ -482,10 +470,7 @@ export function PromptTracker({
                   <SelectItem value="Weak">Weak</SelectItem>
                 </SelectContent>
               </Select>
-              <Select
-                value={sortKey}
-                onValueChange={(v) => setSortKey(v as SortKey)}
-              >
+              <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
                 <SelectTrigger
                   size="default"
                   className="h-9 min-h-9 w-30 shrink-0 border border-border/80 bg-white py-0 text-sm text-foreground shadow-sm sm:w-32 dark:bg-white dark:text-foreground dark:hover:bg-neutral-50"
@@ -545,23 +530,14 @@ export function PromptTracker({
         >
           {tracks.length > 0 ? (
             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:col-span-12">
-              <StatTile
-                accent
-                label="Avg score"
-                value={`${stats.avgScore}`}
-                sub="/100"
-              />
+              <StatTile accent label="Avg score" value={`${stats.avgScore}`} sub="/100" />
               <StatTile
                 accent
                 label="Visibility"
                 value={`${stats.visibility}%`}
                 sub={`${stats.mentions} mentions`}
               />
-              <StatTile
-                label="Strong"
-                value={`${stats.strong}`}
-                sub={`of ${tracks.length}`}
-              />
+              <StatTile label="Strong" value={`${stats.strong}`} sub={`of ${tracks.length}`} />
               <StatTile
                 label="Runs"
                 value={`${stats.totalRuns}`}
@@ -570,9 +546,8 @@ export function PromptTracker({
             </div>
           ) : (
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Use{" "}
-              <span className="font-medium text-foreground">New prompt</span> to
-              add your first query, or run a full analysis for suggestions.
+              Use <span className="font-medium text-foreground">New prompt</span> to add your first
+              query, or run a full analysis for suggestions.
             </p>
           )}
         </div>
@@ -581,13 +556,9 @@ export function PromptTracker({
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-border bg-muted/20 px-3 py-1.5 sm:px-4">
             <Lock className="size-3 shrink-0 text-muted-foreground" />
             <p className="min-w-0 flex-1 text-[11px] leading-snug text-muted-foreground">
-              <span className="font-medium text-foreground">
-                ChatGPT, Claude, Perplexity
-              </span>
-              {" — "}Pro / Max.{" "}
-              <span className="text-muted-foreground">
-                Google and Bing on all plans.
-              </span>
+              <span className="font-medium text-foreground">ChatGPT, Claude, Perplexity</span>
+              {" - "}Pro / Max.{" "}
+              <span className="text-muted-foreground">Google and Bing on all plans.</span>
             </p>
             <Link
               href="/pricing"
@@ -607,8 +578,7 @@ export function PromptTracker({
           </div>
           <p className="text-sm font-medium text-foreground">No prompts yet</p>
           <p className="mx-auto mt-1 max-w-sm px-4 text-xs text-muted-foreground">
-            Add a prompt with{" "}
-            <span className="font-medium text-foreground">New prompt</span> or run
+            Add a prompt with <span className="font-medium text-foreground">New prompt</span> or run
             a full analysis to generate suggestions.
           </p>
         </div>
@@ -629,17 +599,15 @@ export function PromptTracker({
               <div
                 key={track.id}
                 data-tour-card={trackIdx === 0 ? "tracker-row" : undefined}
-                className={`overflow-hidden rounded-md border bg-card transition-colors ${isExpanded
-                  ? "border-border shadow-sm"
-                  : "border-border/80 hover:border-border"
-                  }`}
+                className={`overflow-hidden rounded-md border bg-card transition-colors ${
+                  isExpanded ? "border-border shadow-sm" : "border-border/80 hover:border-border"
+                }`}
               >
                 {/* ── Card header ─────────────────────────────────────── */}
                 <div
                   className={`flex cursor-pointer select-none items-center gap-2.5 px-3 py-2.5 sm:gap-3 sm:px-3.5 sm:py-3 ${isExpanded ? "bg-muted/40" : "hover:bg-muted/30"}`}
                   onClick={() => setExpandedId(isExpanded ? null : track.id)}
                 >
-
                   {/* Chevron */}
                   <span
                     className={`shrink-0 ${isExpanded ? "text-muted-foreground" : "text-muted-foreground/35"}`}
@@ -655,9 +623,7 @@ export function PromptTracker({
                   <div
                     className={`flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-background ${ls.bg} ring-1 ${ls.ring}`}
                   >
-                    <span
-                      className={`text-xs font-bold tabular-nums ${ls.text}`}
-                    >
+                    <span className={`text-xs font-bold tabular-nums ${ls.text}`}>
                       {hasResults ? score : "—"}
                     </span>
                   </div>
@@ -674,29 +640,23 @@ export function PromptTracker({
                         <span
                           title="Intent"
                           className={
-                            INTENT_BADGE_CLASS[
-                              track.intent as PromptSearchIntent
-                            ] ??
+                            INTENT_BADGE_CLASS[track.intent as PromptSearchIntent] ??
                             "inline-flex items-center rounded-sm border border-border/70 bg-muted/35 px-1.5 py-px text-[10px] font-medium text-muted-foreground"
                           }
                         >
-                          {PROMPT_INTENT_LABEL[track.intent as PromptSearchIntent] ??
-                            track.intent}
+                          {PROMPT_INTENT_LABEL[track.intent as PromptSearchIntent] ?? track.intent}
                         </span>
                       ) : null}
                       {track.prompt_type ? (
                         <span
                           title="Type"
                           className={
-                            TYPE_BADGE_CLASS[
-                              track.prompt_type as PromptSurfaceType
-                            ] ??
+                            TYPE_BADGE_CLASS[track.prompt_type as PromptSurfaceType] ??
                             "inline-flex items-center rounded-sm border border-border/70 bg-muted/35 px-1.5 py-px text-[10px] font-medium text-muted-foreground"
                           }
                         >
-                          {PROMPT_SURFACE_TYPE_LABEL[
-                            track.prompt_type as PromptSurfaceType
-                          ] ?? track.prompt_type}
+                          {PROMPT_SURFACE_TYPE_LABEL[track.prompt_type as PromptSurfaceType] ??
+                            track.prompt_type}
                         </span>
                       ) : null}
                       {hasResults && (
@@ -707,8 +667,7 @@ export function PromptTracker({
                             {label}
                           </span>
                           <span className="text-[10px] tabular-nums text-muted-foreground">
-                            {track.visibility_pct ?? 0}% ·{" "}
-                            {track.total_runs ?? 0} runs
+                            {track.visibility_pct ?? 0}% · {track.total_runs ?? 0} runs
                           </span>
                           {(track.avg_position ?? 0) > 0 && (
                             <span className="text-[10px] text-muted-foreground">
@@ -734,9 +693,7 @@ export function PromptTracker({
                   {/* Engine status — brand logos */}
                   <div className="hidden shrink-0 items-center gap-1 sm:flex">
                     {enginesForUi.map((eng) => {
-                      const res = track.results.filter(
-                        (r) => r.engine === eng.key,
-                      );
+                      const res = track.results.filter((r) => r.engine === eng.key);
                       const hit = res.some((r) => r.brand_mentioned);
                       const has = res.length > 0;
                       return (
@@ -752,11 +709,11 @@ export function PromptTracker({
                   </div>
                   {/* Actions */}
                   <div
-  className="hidden sm:flex items-center gap-1.5 shrink-0 relative"
-  onClick={(e) => e.stopPropagation()} // prevent card toggle
->
-  <ActionsDropdown prompt={track.prompt_text} />
-</div>
+                    className="hidden sm:flex items-center gap-1.5 shrink-0 relative"
+                    onClick={(e) => e.stopPropagation()} // prevent card toggle
+                  >
+                    <ActionsDropdown prompt={track.prompt_text} />
+                  </div>
                   <button
                     type="button"
                     title="Re-check now"
@@ -767,9 +724,7 @@ export function PromptTracker({
                     }}
                     className="shrink-0 rounded-md p-1.5 text-muted-foreground/40 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
                   >
-                    <RefreshCw
-                      className={`size-3.5 ${isRechecking ? "animate-spin" : ""}`}
-                    />
+                    <RefreshCw className={`size-3.5 ${isRechecking ? "animate-spin" : ""}`} />
                   </button>
                 </div>
 
@@ -787,38 +742,24 @@ export function PromptTracker({
                   ) : (
                     (() => {
                       const allResults = track.results;
-                      const mentioned = allResults.filter(
-                        (r) => r.brand_mentioned,
-                      );
-                      const notMentioned = allResults.filter(
-                        (r) => !r.brand_mentioned,
-                      );
+                      const mentioned = allResults.filter((r) => r.brand_mentioned);
+                      const notMentioned = allResults.filter((r) => !r.brand_mentioned);
                       const positions = mentioned
                         .filter((r) => r.rank_position > 0)
                         .map((r) => r.rank_position);
-                      const bestPos =
-                        positions.length > 0 ? Math.min(...positions) : 0;
+                      const bestPos = positions.length > 0 ? Math.min(...positions) : 0;
                       const avgPos =
                         positions.length > 0
-                          ? positions.reduce((a, b) => a + b, 0) /
-                          positions.length
+                          ? positions.reduce((a, b) => a + b, 0) / positions.length
                           : 0;
-                      const posCount = allResults.filter(
-                        (r) => r.sentiment === "positive",
-                      ).length;
-                      const neuCount = allResults.filter(
-                        (r) => r.sentiment === "neutral",
-                      ).length;
-                      const negCount = allResults.filter(
-                        (r) => r.sentiment === "negative",
-                      ).length;
+                      const posCount = allResults.filter((r) => r.sentiment === "positive").length;
+                      const neuCount = allResults.filter((r) => r.sentiment === "neutral").length;
+                      const negCount = allResults.filter((r) => r.sentiment === "negative").length;
                       const sentTotal = posCount + neuCount + negCount;
                       const searchResults = allResults.filter(
                         (r) => r.engine === "google" || r.engine === "bing",
                       );
-                      const searchMentioned = searchResults.filter(
-                        (r) => r.brand_mentioned,
-                      ).length;
+                      const searchMentioned = searchResults.filter((r) => r.brand_mentioned).length;
 
                       return (
                         <div className="border-t border-border bg-muted/25">
@@ -836,8 +777,7 @@ export function PromptTracker({
                                   </span>
                                 </p>
                                 <p className="mt-0.5 text-[10px] text-muted-foreground">
-                                  {mentioned.length} of {allResults.length}{" "}
-                                  citations
+                                  {mentioned.length} of {allResults.length} citations
                                 </p>
                                 <div className="mt-1.5 h-0.5 overflow-hidden rounded-full bg-muted">
                                   <div
@@ -858,9 +798,7 @@ export function PromptTracker({
                                   {bestPos > 0 ? `#${bestPos}` : "—"}
                                 </p>
                                 <p className="mt-0.5 text-[10px] text-muted-foreground">
-                                  {avgPos > 0
-                                    ? `Avg ${avgPos.toFixed(1)}`
-                                    : "No rank data"}
+                                  {avgPos > 0 ? `Avg ${avgPos.toFixed(1)}` : "No rank data"}
                                 </p>
                               </div>
                               <div className="bg-card p-2.5 sm:p-3">
@@ -870,11 +808,7 @@ export function PromptTracker({
                                 <p className="mt-0.5 text-lg font-semibold tabular-nums text-foreground sm:text-xl">
                                   {new Set(mentioned.map((r) => r.engine)).size}
                                   <span className="text-sm font-normal text-muted-foreground">
-                                    /
-                                    {
-                                      new Set(allResults.map((r) => r.engine))
-                                        .size
-                                    }
+                                    /{new Set(allResults.map((r) => r.engine)).size}
                                   </span>
                                 </p>
                                 <p className="mt-0.5 text-[10px] text-muted-foreground">
@@ -885,9 +819,7 @@ export function PromptTracker({
                                     const hit = allResults
                                       .filter((r) => r.engine === eng.key)
                                       .some((r) => r.brand_mentioned);
-                                    const has = allResults.some(
-                                      (r) => r.engine === eng.key,
-                                    );
+                                    const has = allResults.some((r) => r.engine === eng.key);
                                     return (
                                       <EngineStatusIcon
                                         key={eng.key}
@@ -914,9 +846,7 @@ export function PromptTracker({
                                   </span>
                                 </p>
                                 <p className="mt-0.5 text-[10px] text-muted-foreground">
-                                  {searchMentioned > 0
-                                    ? "Google & Bing"
-                                    : "No search results"}
+                                  {searchMentioned > 0 ? "Google & Bing" : "No search results"}
                                 </p>
                               </div>
                             </div>
@@ -984,18 +914,16 @@ export function PromptTracker({
                                   {(() => {
                                     const rows = enginesForUi
                                       .map((eng) => {
-                                        const res = allResults.filter(
-                                          (r) => r.engine === eng.key,
-                                        );
+                                        const res = allResults.filter((r) => r.engine === eng.key);
                                         if (!res.length) return null;
                                         const r = res[0];
                                         return { eng, r, count: res.length };
                                       })
                                       .filter(Boolean) as Array<{
-                                        eng: (typeof enginesForUi)[number];
-                                        r: PromptResult;
-                                        count: number;
-                                      }>;
+                                      eng: (typeof enginesForUi)[number];
+                                      r: PromptResult;
+                                      count: number;
+                                    }>;
                                     if (rows.length === 0) return null;
                                     return (
                                       <div className="mt-3 border-t border-border/60 pt-2.5">
@@ -1047,7 +975,15 @@ export function PromptTracker({
 
                                   {/* ── Top cited domains (from AI citations) ─ */}
                                   {(() => {
-                                    const domainCounts = new Map<string, { count: number; isBrand: boolean; isCompetitor: boolean; sample: string }>();
+                                    const domainCounts = new Map<
+                                      string,
+                                      {
+                                        count: number;
+                                        isBrand: boolean;
+                                        isCompetitor: boolean;
+                                        sample: string;
+                                      }
+                                    >();
                                     for (const r of allResults) {
                                       for (const c of r.citations ?? []) {
                                         if (!c.domain) continue;
@@ -1121,11 +1057,11 @@ export function PromptTracker({
                                 </p>
                                 <div className="max-h-40 space-y-1.5 overflow-y-auto pr-0.5">
                                   {mentioned.map((r) => {
-                                    const eng = ENGINES.find(
-                                      (e) => e.key === r.engine,
+                                    const eng = ENGINES.find((e) => e.key === r.engine);
+                                    const openResponse = () => (
+                                      setViewingResponse(r),
+                                      setViewingTrackId(track.id)
                                     );
-                                    const openResponse = () =>
-                                      (setViewingResponse(r), setViewingTrackId(track.id));
                                     return (
                                       <div
                                         key={r.id}
@@ -1133,10 +1069,7 @@ export function PromptTracker({
                                         tabIndex={0}
                                         onClick={openResponse}
                                         onKeyDown={(e) => {
-                                          if (
-                                            e.key === "Enter" ||
-                                            e.key === " "
-                                          ) {
+                                          if (e.key === "Enter" || e.key === " ") {
                                             e.preventDefault();
                                             openResponse();
                                           }
@@ -1146,8 +1079,7 @@ export function PromptTracker({
                                         <div
                                           className="border-l-2 py-2 pl-3 pr-2"
                                           style={{
-                                            borderLeftColor:
-                                              eng?.color ?? "#737373",
+                                            borderLeftColor: eng?.color ?? "#737373",
                                           }}
                                         >
                                           <div className="mb-1 flex flex-wrap items-center gap-1.5">
@@ -1178,13 +1110,9 @@ export function PromptTracker({
                                           </div>
                                           <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
                                             {(
-                                              r.response_text?.trim() ||
-                                              "No response text stored."
+                                              r.response_text?.trim() || "No response text stored."
                                             ).slice(0, 200)}
-                                            {(r.response_text?.length ?? 0) >
-                                              200
-                                              ? "…"
-                                              : ""}
+                                            {(r.response_text?.length ?? 0) > 200 ? "…" : ""}
                                           </p>
                                         </div>
                                       </div>
@@ -1202,14 +1130,8 @@ export function PromptTracker({
                                   No mention
                                 </p>
                                 <div className="flex flex-wrap gap-1.5">
-                                  {[
-                                    ...new Set(
-                                      notMentioned.map((r) => r.engine),
-                                    ),
-                                  ].map((engine) => {
-                                    const eng = ENGINES.find(
-                                      (e) => e.key === engine,
-                                    );
+                                  {[...new Set(notMentioned.map((r) => r.engine))].map((engine) => {
+                                    const eng = ENGINES.find((e) => e.key === engine);
                                     const cnt = notMentioned.filter(
                                       (r) => r.engine === engine,
                                     ).length;
@@ -1221,8 +1143,7 @@ export function PromptTracker({
                                         <div
                                           className="size-1.5 rounded-full opacity-70"
                                           style={{
-                                            backgroundColor:
-                                              eng?.color ?? "#737373",
+                                            backgroundColor: eng?.color ?? "#737373",
                                           }}
                                         />
                                         <span className="text-[11px] text-foreground">
@@ -1248,11 +1169,18 @@ export function PromptTracker({
                             {/* ── Danger zone ──────────────────────────────── */}
                             <div className="mt-2 flex items-center justify-between gap-3 border-t border-border/50 pt-4">
                               <p className="text-[11px] text-muted-foreground">
-                                Deleting a prompt <span className="font-medium text-foreground">does not restore</span> a slot on your plan.
+                                Deleting a prompt{" "}
+                                <span className="font-medium text-foreground">
+                                  does not restore
+                                </span>{" "}
+                                a slot on your plan.
                               </p>
                               <button
                                 type="button"
-                                onClick={() => { setConfirmDeleteId(track.id); setDeleteError(null); }}
+                                onClick={() => {
+                                  setConfirmDeleteId(track.id);
+                                  setDeleteError(null);
+                                }}
                                 className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#F95C4B]/30 px-3 text-xs font-medium text-[#F95C4B] transition hover:bg-[#F95C4B]/10"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -1269,9 +1197,7 @@ export function PromptTracker({
                 {isExpanded && !hasResults && (
                   <div className="border-t border-border bg-muted/20 px-4 py-6 text-center">
                     <Loader2 className="mx-auto mb-2 size-4 animate-spin text-muted-foreground/50" />
-                    <p className="text-xs text-muted-foreground">
-                      Running checks…
-                    </p>
+                    <p className="text-xs text-muted-foreground">Running checks…</p>
                   </div>
                 )}
               </div>
@@ -1286,12 +1212,10 @@ export function PromptTracker({
           <p className="text-xs text-muted-foreground">
             Showing{" "}
             <span className="font-medium text-foreground">
-              {(safePage - 1) * PAGE_SIZE + 1}
-              –
+              {(safePage - 1) * PAGE_SIZE + 1}–
               {Math.min(safePage * PAGE_SIZE, visibleTracks.length)}
             </span>{" "}
-            of{" "}
-            <span className="font-medium text-foreground">{visibleTracks.length}</span>
+            of <span className="font-medium text-foreground">{visibleTracks.length}</span>
           </p>
           <div className="flex items-center gap-1">
             <button
@@ -1304,8 +1228,7 @@ export function PromptTracker({
               <ChevronLeft className="size-4" />
             </button>
             <span className="px-2 text-xs tabular-nums text-muted-foreground">
-              Page <span className="font-medium text-foreground">{safePage}</span>
-              {" "}of{" "}
+              Page <span className="font-medium text-foreground">{safePage}</span> of{" "}
               <span className="font-medium text-foreground">{pageCount}</span>
             </span>
             <button
@@ -1324,9 +1247,7 @@ export function PromptTracker({
       {/* No results after filter */}
       {tracks.length > 0 && visibleTracks.length === 0 && (
         <div className="rounded-lg border border-dashed border-border/60 py-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            Nothing matches this filter.
-          </p>
+          <p className="text-sm text-muted-foreground">Nothing matches this filter.</p>
           <button
             type="button"
             onClick={() => {
@@ -1341,89 +1262,110 @@ export function PromptTracker({
       )}
 
       {/* ── Delete Confirmation Dialog ───────────────────────────────────── */}
-      {portalEl && confirmDeleteId !== null && (() => {
-        const track = tracks.find((t) => t.id === confirmDeleteId);
-        if (!track) return null;
-        const isDeleting = !!deleting[confirmDeleteId];
-        return createPortal(
-          <div
-            className="fixed inset-0 z-200 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
-            onClick={() => { if (!isDeleting) { setConfirmDeleteId(null); setDeleteError(null); } }}
-          >
+      {portalEl &&
+        confirmDeleteId !== null &&
+        (() => {
+          const track = tracks.find((t) => t.id === confirmDeleteId);
+          if (!track) return null;
+          const isDeleting = !!deleting[confirmDeleteId];
+          return createPortal(
             <div
-              className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="delete-prompt-title"
+              className="fixed inset-0 z-200 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+              onClick={() => {
+                if (!isDeleting) {
+                  setConfirmDeleteId(null);
+                  setDeleteError(null);
+                }
+              }}
             >
-              <div className="px-6 pt-6 pb-4">
-                <div className="mb-4 flex items-start gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F95C4B]/10">
-                    <Trash2 className="h-4 w-4 text-[#F95C4B]" />
+              <div
+                className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="delete-prompt-title"
+              >
+                <div className="px-6 pt-6 pb-4">
+                  <div className="mb-4 flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F95C4B]/10">
+                      <Trash2 className="h-4 w-4 text-[#F95C4B]" />
+                    </div>
+                    <div>
+                      <h2
+                        id="delete-prompt-title"
+                        className="text-base font-semibold text-foreground"
+                      >
+                        Delete this prompt?
+                      </h2>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        This action can&apos;t be undone.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 id="delete-prompt-title" className="text-base font-semibold text-foreground">
-                      Delete this prompt?
-                    </h2>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      This action can&apos;t be undone.
+
+                  <div className="mb-4 rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5">
+                    <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Prompt
                     </p>
+                    <p className="line-clamp-3 text-sm text-foreground">{track.prompt_text}</p>
                   </div>
-                </div>
 
-                <div className="mb-4 rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5">
-                  <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Prompt</p>
-                  <p className="line-clamp-3 text-sm text-foreground">{track.prompt_text}</p>
-                </div>
-
-                <div className="flex items-start gap-2 rounded-lg border border-[#F95C4B]/20 bg-[#F95C4B]/5 px-3 py-2.5">
-                  <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F95C4B]" />
-                  <div className="text-[12px] leading-snug text-foreground">
-                    <p>
-                      <span className="font-medium">Your plan slot will not be restored.</span>
-                      {" "}
-                      Deleted prompts still count toward your <span className="font-medium">tracked prompts</span> usage to prevent bypassing limits.
-                    </p>
-                    <Link
-                      href={`/dashboard/${slug}/settings/billing`}
-                      onClick={() => { setConfirmDeleteId(null); setDeleteError(null); }}
-                      className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-[#F95C4B] hover:underline"
-                    >
-                      Manage plan →
-                    </Link>
+                  <div className="flex items-start gap-2 rounded-lg border border-[#F95C4B]/20 bg-[#F95C4B]/5 px-3 py-2.5">
+                    <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F95C4B]" />
+                    <div className="text-[12px] leading-snug text-foreground">
+                      <p>
+                        <span className="font-medium">Your plan slot will not be restored.</span>{" "}
+                        Deleted prompts still count toward your{" "}
+                        <span className="font-medium">tracked prompts</span> usage to prevent
+                        bypassing limits.
+                      </p>
+                      <Link
+                        href={`/dashboard/${slug}/settings/billing`}
+                        onClick={() => {
+                          setConfirmDeleteId(null);
+                          setDeleteError(null);
+                        }}
+                        className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-[#F95C4B] hover:underline"
+                      >
+                        Manage plan →
+                      </Link>
+                    </div>
                   </div>
+
+                  {deleteError && <p className="mt-3 text-[11px] text-[#F95C4B]">{deleteError}</p>}
                 </div>
 
-                {deleteError && (
-                  <p className="mt-3 text-[11px] text-[#F95C4B]">{deleteError}</p>
-                )}
+                <div className="flex items-center justify-end gap-2 border-t border-border/60 bg-muted/20 px-6 py-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmDeleteId(null);
+                      setDeleteError(null);
+                    }}
+                    disabled={isDeleting}
+                    className="h-9 rounded-lg border border-border/70 px-3 text-xs font-medium text-foreground transition hover:bg-muted/60 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(confirmDeleteId)}
+                    disabled={isDeleting}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#F95C4B] px-3 text-xs font-medium text-white transition hover:brightness-110 disabled:opacity-50"
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3.5 w-3.5" />
+                    )}
+                    {isDeleting ? "Deleting…" : "Delete prompt"}
+                  </button>
+                </div>
               </div>
-
-              <div className="flex items-center justify-end gap-2 border-t border-border/60 bg-muted/20 px-6 py-3">
-                <button
-                  type="button"
-                  onClick={() => { setConfirmDeleteId(null); setDeleteError(null); }}
-                  disabled={isDeleting}
-                  className="h-9 rounded-lg border border-border/70 px-3 text-xs font-medium text-foreground transition hover:bg-muted/60 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(confirmDeleteId)}
-                  disabled={isDeleting}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#F95C4B] px-3 text-xs font-medium text-white transition hover:brightness-110 disabled:opacity-50"
-                >
-                  {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                  {isDeleting ? "Deleting…" : "Delete prompt"}
-                </button>
-              </div>
-            </div>
-          </div>,
-          portalEl,
-        );
-      })()}
+            </div>,
+            portalEl,
+          );
+        })()}
 
       {/* ── Response viewer (portal: avoids overflow/transform clipping) ─── */}
       {portalEl &&
@@ -1447,16 +1389,15 @@ export function PromptTracker({
                     className="size-2.5 shrink-0 rounded-full ring-2 ring-border"
                     style={{
                       backgroundColor:
-                        ENGINES.find((e) => e.key === viewingResponse.engine)
-                          ?.color ?? "#737373",
+                        ENGINES.find((e) => e.key === viewingResponse.engine)?.color ?? "#737373",
                     }}
                   />
                   <h2
                     id="prompt-response-modal-title"
                     className="text-sm font-semibold text-foreground"
                   >
-                    {ENGINES.find((e) => e.key === viewingResponse.engine)
-                      ?.label ?? viewingResponse.engine}
+                    {ENGINES.find((e) => e.key === viewingResponse.engine)?.label ??
+                      viewingResponse.engine}
                   </h2>
                   {viewingResponse.brand_mentioned ? (
                     <span
@@ -1572,9 +1513,7 @@ export function PromptTracker({
                     )}
                   />
                 </div>
-                {addError ? (
-                  <p className="text-xs text-destructive">{addError}</p>
-                ) : null}
+                {addError ? <p className="text-xs text-destructive">{addError}</p> : null}
                 <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-4">
                   <Button
                     type="button"
@@ -1591,9 +1530,7 @@ export function PromptTracker({
                     disabled={adding || !text.trim()}
                     className="bg-orange-600 px-4 font-semibold text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-500"
                   >
-                    {adding ? (
-                      <Loader2 className="size-3.5 animate-spin" aria-hidden />
-                    ) : null}
+                    {adding ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
                     {adding ? "Adding…" : "Track prompt"}
                   </Button>
                 </div>
@@ -1617,6 +1554,7 @@ function BacklinksPreviewCard({ slug }: { slug: string }) {
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     getBacklinkCatalog(slug)
       .then((r) => {
@@ -1654,12 +1592,9 @@ function BacklinksPreviewCard({ slug }: { slug: string }) {
             <Plus className="size-3.5" />
           </div>
           <div className="min-w-0">
-            <p className="text-[12px] font-semibold text-foreground">
-              Backlinks for this prompt
-            </p>
+            <p className="text-[12px] font-semibold text-foreground">Backlinks for this prompt</p>
             <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-              Top placements available right now — open the full page to filter,
-              compare, and order.
+              Top placements available right now - open the full page to filter, compare, and order.
             </p>
           </div>
         </div>
@@ -1675,13 +1610,10 @@ function BacklinksPreviewCard({ slug }: { slug: string }) {
       <div className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-3">
         {loading ? (
           [1, 2, 3].map((k) => (
-            <div
-              key={k}
-              className="rounded-md border border-border/60 bg-card/60 p-2.5"
-            >
-              <div className="h-3 w-2/3 animate-pulse rounded bg-muted/70" />
-              <div className="mt-1.5 h-2 w-1/3 animate-pulse rounded bg-muted/50" />
-              <div className="mt-2 h-2 w-1/2 animate-pulse rounded bg-muted/40" />
+            <div key={k} className="rounded-md border border-border/60 bg-card/60 p-2.5">
+              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="mt-1.5 h-2 w-1/3" />
+              <Skeleton className="mt-2 h-2 w-1/2" />
             </div>
           ))
         ) : top.length === 0 ? (
@@ -1737,13 +1669,7 @@ function BacklinksPreviewCard({ slug }: { slug: string }) {
   );
 }
 
-function ActionsTabbedPanel({
-  slug,
-  track,
-}: {
-  slug: string;
-  track: PromptTrack;
-}) {
+function ActionsTabbedPanel({ slug, track }: { slug: string; track: PromptTrack }) {
   return (
     <div className="border-t border-border bg-muted/20">
       <div className="space-y-3 p-3 sm:p-4">
@@ -1764,8 +1690,8 @@ const BACKLINK_SUBTABS: Array<{
   label: string;
   hint: string;
 }> = [
-  { key: "free", label: "Free opportunities", hint: "Submit yourself — no cost" },
-  { key: "buy",  label: "Buy backlinks",      hint: "Paid placements via providers" },
+  { key: "free", label: "Free opportunities", hint: "Submit yourself - no cost" },
+  { key: "buy", label: "Buy backlinks", hint: "Paid placements via providers" },
 ];
 
 function BacklinksTabbedPanel({
@@ -1809,11 +1735,7 @@ function BacklinksTabbedPanel({
         {sub === "free" ? (
           <BacklinkOpportunitiesPanel slug={slug} trackId={trackId} />
         ) : (
-          <BacklinkMarketplacePanel
-            slug={slug}
-            trackId={trackId}
-            promptText={promptText}
-          />
+          <BacklinkMarketplacePanel slug={slug} trackId={trackId} promptText={promptText} />
         )}
       </div>
     </div>
@@ -1913,15 +1835,10 @@ function WebRankingCard({
       {!query ? (
         <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-3">
           {WEB_SURFACES.map(({ key, label, Icon }) => (
-            <div
-              key={key}
-              className="min-w-0 rounded-md border border-border/60 bg-muted/10 p-2.5"
-            >
+            <div key={key} className="min-w-0 rounded-md border border-border/60 bg-muted/10 p-2.5">
               <div className="mb-1.5 flex items-center gap-1.5">
                 <Icon className="size-3.5 shrink-0 text-muted-foreground" />
-                <span className="text-[11px] font-medium text-foreground">
-                  {label}
-                </span>
+                <span className="text-[11px] font-medium text-foreground">{label}</span>
                 <span className="ml-auto text-[10px] tabular-nums text-muted-foreground/70">
                   Top 3
                 </span>
@@ -1932,11 +1849,7 @@ function WebRankingCard({
                     <span className="inline-flex size-4 shrink-0 items-center justify-center rounded-sm bg-muted/80 text-[9px] font-semibold tabular-nums text-muted-foreground/70">
                       {pos}
                     </span>
-                    <div
-                      className={`h-1.5 flex-1 rounded bg-muted/60 ${
-                        isAuditing ? "animate-pulse" : ""
-                      }`}
-                    />
+                    <Skeleton className={`h-1.5 flex-1 ${isAuditing ? "" : "opacity-40"}`} />
                   </li>
                 ))}
               </ul>
@@ -1957,9 +1870,7 @@ function WebRankingCard({
                   </span>
                 </div>
                 {top.length === 0 ? (
-                  <p className="pl-5 text-[10px] text-muted-foreground/70">
-                    No results.
-                  </p>
+                  <p className="pl-5 text-[10px] text-muted-foreground/70">No results.</p>
                 ) : (
                   <ul className="space-y-1">
                     {top.map((r) => (
@@ -2028,12 +1939,13 @@ function EngineStatusIcon({
   return (
     <span
       title={title}
-      className={`inline-flex ${box} shrink-0 items-center justify-center rounded-sm border bg-white p-px dark:bg-muted/40 ${has && hit
-        ? "border-orange-400/90 ring-1 ring-orange-200/70 dark:border-orange-600 dark:ring-orange-900/60"
-        : has
-          ? "border-border opacity-80"
-          : "border-border opacity-40 grayscale"
-        }`}
+      className={`inline-flex ${box} shrink-0 items-center justify-center rounded-sm border bg-white p-px dark:bg-muted/40 ${
+        has && hit
+          ? "border-orange-400/90 ring-1 ring-orange-200/70 dark:border-orange-600 dark:ring-orange-900/60"
+          : has
+            ? "border-border opacity-80"
+            : "border-border opacity-40 grayscale"
+      }`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- small static SVGs from /public */}
       <img src={src} alt="" className={`${imgClass} object-contain`} />
@@ -2055,18 +1967,18 @@ function StatTile({
 }) {
   return (
     <div
-      className={`rounded-md border border-border/80 bg-muted/20 px-2.5 py-2 sm:px-3 sm:py-2 ${accent
-        ? "border-l-[3px] border-l-orange-500 pl-2 sm:pl-2.5 dark:border-l-orange-400"
-        : ""
-        }`}
+      className={`rounded-md border border-border/80 bg-muted/20 px-2.5 py-2 sm:px-3 sm:py-2 ${
+        accent ? "border-l-[3px] border-l-orange-500 pl-2 sm:pl-2.5 dark:border-l-orange-400" : ""
+      }`}
     >
       <p className="text-[10px] font-medium leading-none tracking-wide text-muted-foreground">
         {label}
       </p>
       <p className="mt-1 flex flex-wrap items-baseline gap-x-1 gap-y-0">
         <span
-          className={`text-base font-semibold tabular-nums leading-none sm:text-lg ${accent ? "text-orange-700 dark:text-orange-300" : "text-foreground"
-            }`}
+          className={`text-base font-semibold tabular-nums leading-none sm:text-lg ${
+            accent ? "text-orange-700 dark:text-orange-300" : "text-foreground"
+          }`}
         >
           {value}
         </span>

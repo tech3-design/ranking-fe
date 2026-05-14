@@ -14,7 +14,7 @@ export type Testimonial = {
 export const TESTIMONIALS: Testimonial[] = [
   {
     quote:
-      "We stopped guessing which pages ChatGPT cites. Signalor's citation attribution showed us three URLs we'd never have prioritized — one of them now drives 40% of our AI traffic.",
+      "We stopped guessing which pages ChatGPT cites. Signalor's citation attribution showed us three URLs we'd never have prioritized - one of them now drives 40% of our AI traffic.",
     name: "Priya M.",
     role: "Head of Growth",
     company: "Nimbus Commerce",
