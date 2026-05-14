@@ -25,6 +25,7 @@ import { LandingMarketingShell } from "@/components/landing/landing-marketing-sh
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { PricingHero } from "@/components/pricing/pricing-hero";
 import { PricingStatsSection } from "@/components/pricing/pricing-stats-section";
+import { CreatorDiscountBanner } from "@/components/pricing/creator-discount-banner";
 import { PRICING_FAQ_ITEMS } from "@/lib/pricing-marketing-content";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -172,9 +173,21 @@ function PricingPageInner() {
             /* ignore */
           }
         }
+        // Read partner code from localStorage (set by AffiliateCapture when
+        // the visitor lands with ?aff=CODE). Expired codes are ignored so a
+        // stale cookie never silently applies a discount.
+        let partnerCode: string | undefined;
+        try {
+          const code = localStorage.getItem("signalor.partner.code");
+          const expires = Number(localStorage.getItem("signalor.partner.expiresAt") || 0);
+          if (code && (!expires || expires > Date.now())) partnerCode = code;
+        } catch {
+          /* ignore */
+        }
         const { checkout_url } = await createCheckoutSession(session.user.email, planId, {
           country: detectedCountry ?? undefined,
           currency: currency.code,
+          partnerCode,
         });
         window.location.href = checkout_url;
       } catch (e) {
@@ -251,6 +264,8 @@ function PricingPageInner() {
               )}
             </div>
           ) : null}
+
+          <CreatorDiscountBanner />
 
           <div className="grid grid-cols-1 gap-0 md:grid-cols-3">
             {PLANS.map((plan) => {
