@@ -41,8 +41,8 @@ Key concepts:
 
 ## Legal
 
-- [Privacy policy](https://signalor.ai/privacy-policy): how Signalor handles user and crawl data.
-- [Terms and conditions](https://signalor.ai/terms-and-conditions): platform terms of service.
+- [Privacy policy](https://signalor.ai/policy): how Signalor handles user and crawl data.
+- [Terms and conditions](https://signalor.ai/terms): platform terms of service.
 
 ## Optional
 

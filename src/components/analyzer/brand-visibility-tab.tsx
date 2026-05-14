@@ -137,6 +137,80 @@ const ENGINE_LABELS: Record<string, string> = {
 
 const ENGINE_ORDER = ["google", "chatgpt", "perplexity", "gemini", "claude", "bing"];
 
+// ─── AI Engine Logos ──────────────────────────────────────────────────────────
+
+function ChatGPTLogo() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        fill="#10a37f"
+        d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.843-3.368 2.019-1.168a.076.076 0 0 1 .072 0l4.83 2.786a4.494 4.494 0 0 1-.676 8.101v-5.678a.786.786 0 0 0-.402-.673zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.08.08 0 0 1 .032-.062l4.84-2.791a4.494 4.494 0 0 1 6.662 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.494 4.494 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"
+      />
+    </svg>
+  );
+}
+
+function GeminiLogo() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="gemini-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4285f4" />
+          <stop offset="100%" stopColor="#a855f7" />
+        </linearGradient>
+      </defs>
+      <path
+        fill="url(#gemini-grad)"
+        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-11h2v6h-2zm0-4h2v2h-2z"
+      />
+      <path
+        fill="url(#gemini-grad)"
+        d="M12 3.5c-2.3 0-4.3 1-5.7 2.6L12 12l5.7-5.9C16.3 4.5 14.3 3.5 12 3.5zM6.3 6.1C4.9 7.5 4 9.4 4 11.5c0 .2 0 .3.1.5L12 12l-5.7-5.9zM4.1 12c0 4.4 3.5 7.9 7.9 7.9.5 0 .9 0 1.4-.1L12 12 4.1 12zM12 12l1.4 7.8c.5-.1.9-.2 1.3-.4L12 12zm1.7 7.4c1.9-.7 3.5-2 4.5-3.7L12 12l1.7 7.4zm4.5-3.7c.5-1 .8-2.1.8-3.2 0-2.1-.9-4-2.3-5.4L12 12l6.2 3.7z"
+      />
+    </svg>
+  );
+}
+
+function PerplexityLogo() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        fill="#20808d"
+        d="M22 2 13.3 10.8V5.2L8.8 2v8.8L2 17.5h6.8V22l4.5-2.8v-4.7H22L15 8.2zm-9 9.5v-6l2.7 1.7-2.7 4.3zM3.6 17l4.7-5.5v5.5zm5.7 3.5v-8.7l3.2 3.2-3.2 5.5z"
+      />
+    </svg>
+  );
+}
+
+function ClaudeLogo() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        fill="#d97706"
+        d="M4.709 15.955l4.72-2.647.08-.23-.08-.128-2.5-.42-.08.06zm9.458-9.486l-4.72 2.648-.08.23.08.128 2.5.42.08-.06zm-9.458 6.54h.5l3.8-1.05.16-.29-.16-.29-3.8-1.05h-.5zm14.166-6.54h-.5l-3.8 1.05-.16.29.16.29 3.8 1.05h.5zm-4.708 9.486l-4.72-2.647-.08.23.08.128 2.5.42.08-.06zm4.708-3.287l.08-.23-.08-.128-2.5-.42-.08.06 2.58 2.648-.08.23.08.128 2.5.42.08-.06zm-9.458 0l-.08.23.08.128 2.5.42.08-.06-2.58-2.648.08-.23-.08-.128-2.5-.42-.08.06zm9.458-6.54l.08.23-.08.128-2.5.42-.08-.06 2.58-2.648-.08-.23.08-.128 2.5-.42.08.06z"
+      />
+    </svg>
+  );
+}
+
+function BingLogo() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#008272" d="M5 3l4 1.5v13l5-3-2.5-1 .5-1.5 4.5 2v-2.5L8 7V3z" />
+      <path fill="#00b294" d="M9 17.5l7.5-4.5-7.5-3v7.5z" />
+    </svg>
+  );
+}
+
+const ENGINE_LOGO_MAP: Record<string, ReactNode> = {
+  Google: <GoogleLogo />,
+  ChatGPT: <ChatGPTLogo />,
+  Gemini: <GeminiLogo />,
+  Perplexity: <PerplexityLogo />,
+  Claude: <ClaudeLogo />,
+  Bing: <BingLogo />,
+};
+
 // ─── ① Executive KPI Strip ───────────────────────────────────────────────────
 
 /** SVG ring that animates from empty → filled on mount via stroke-dashoffset. */
@@ -400,21 +474,8 @@ function InsightsRow({
               outerRadius={56}
               centerLabel={String(totalMentions)}
               centerSub="mentions"
+              logoMap={ENGINE_LOGO_MAP}
             />
-            <div className="mt-3 w-full space-y-1.5">
-              {donutData.map((d) => (
-                <div key={d.name} className="flex items-center gap-2 text-[11px]">
-                  <span
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: d.color }}
-                  />
-                  <span className="flex-1 text-muted-foreground">{d.name}</span>
-                  <span className="font-mono font-semibold tabular-nums text-foreground">
-                    {d.value}
-                  </span>
-                </div>
-              ))}
-            </div>
           </div>
         )}
 

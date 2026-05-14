@@ -13,7 +13,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, Tooltip } from "recha
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 import type { ScoreHistoryPoint } from "@/lib/api/analyzer";
-import { CORAL } from "./constants";
+const PRIMARY = "var(--primary)";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -67,9 +67,9 @@ function BarTooltip({ active, payload }: TooltipContentProps) {
     <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-md text-xs">
       <p className="font-semibold text-foreground mb-1">{d.dateLabel}</p>
       <div className="flex items-center gap-1.5">
-        <span className="size-2 shrink-0 rounded-[2px]" style={{ backgroundColor: CORAL }} />
+        <span className="size-2 shrink-0 rounded-[2px]" style={{ backgroundColor: PRIMARY }} />
         <span className="text-muted-foreground">GEO Score</span>
-        <span className="ml-2 font-mono font-bold tabular-nums" style={{ color: CORAL }}>
+        <span className="ml-2 font-mono font-bold tabular-nums" style={{ color: PRIMARY }}>
           {d.score}
           <span className="font-normal text-muted-foreground">/100</span>
         </span>
@@ -80,7 +80,7 @@ function BarTooltip({ active, payload }: TooltipContentProps) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-const CHART_CONFIG: ChartConfig = { score: { label: "GEO Score", color: CORAL } };
+const CHART_CONFIG: ChartConfig = { score: { label: "GEO Score", color: PRIMARY } };
 
 export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
   scoreHistory,
@@ -93,8 +93,8 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
 }) {
   // Build week ranges anchored to the user's actual start date.
   // Week 1 begins on joinDate (or the earliest scoreHistory point if older).
-  // All subsequent weeks are strict 7-day intervals from that anchor, no
-  // Monday-snapping, so April 30 stays April 30 for existing users and a
+  // All subsequent weeks are strict 7-day intervals from that anchor — no
+  // Monday-snapping — so April 30 stays April 30 for existing users and a
   // new user's first analysis date becomes their personal Week 1 start.
   const weeks = useMemo<WeekRange[]>(() => {
     const origin = new Date(joinDate);
@@ -265,9 +265,9 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
                   className="absolute bottom-0 left-2 right-2 h-[2.5px] rounded-full transition-all duration-200"
                   style={{
                     backgroundColor: isSelected
-                      ? CORAL
+                      ? PRIMARY
                       : hasWeekData
-                        ? `${CORAL}45`
+                        ? "color-mix(in srgb, var(--primary) 27%, transparent)"
                         : "transparent",
                   }}
                 />
@@ -317,7 +317,7 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
                 </p>
                 <p
                   className="text-xl font-bold tabular-nums tracking-tight leading-none mt-0.5"
-                  style={{ color: CORAL }}
+                  style={{ color: PRIMARY }}
                 >
                   {weekAvg}
                   <span className="text-xs font-normal text-muted-foreground">/100</span>
@@ -382,7 +382,7 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
                 {chartData.map((entry, i) => (
                   <Cell
                     key={i}
-                    fill={entry.score != null ? CORAL : "transparent"}
+                    fill={entry.score != null ? PRIMARY : "transparent"}
                     fillOpacity={entry.score != null ? (entry.isFuture ? 0.3 : 0.88) : 0}
                   />
                 ))}

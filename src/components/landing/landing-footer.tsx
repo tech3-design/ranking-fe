@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { groq } from "next-sanity";
 import {
   ArrowRight,
   ExternalLink,
@@ -17,6 +19,7 @@ import { AiChip } from "@/components/ui/ai-chip";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
+import { client } from "@/sanity/lib/client";
 
 type FooterLink = {
   href: string;
@@ -61,16 +64,47 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   },
   {
     title: "Blog & resources",
-    links: [
-      { href: "/blog", label: "Blog" },
-      { href: "/blog?category=Playbooks", label: "GEO playbooks" },
-      { href: "/blog?category=AI%20visibility", label: "AI visibility guides" },
-      { href: "/blog?category=Product", label: "Product changelog" },
-    ],
+    links: [{ href: "/blog", label: "Blog" }],
   },
 ];
 
 const SOCIAL = [{ href: "https://x.com/SignalorAI", label: "X (Twitter)", icon: Twitter }] as const;
+
+const RECENT_POSTS_QUERY = groq`*[_type == "post" && defined(slug.current)] | order(publishedAt desc)[0...3] {
+  "slug": slug.current,
+  title
+}`;
+
+interface RecentPost {
+  slug: string;
+  title: string;
+}
+
+function truncateTitle(title: string, max = 34): string {
+  if (title.length <= max) return title;
+  return title.slice(0, max).trimEnd() + "…";
+}
+
+function RecentBlogLinks() {
+  const [posts, setPosts] = useState<RecentPost[]>([]);
+
+  useEffect(() => {
+    client
+      .fetch<RecentPost[]>(RECENT_POSTS_QUERY)
+      .then(setPosts)
+      .catch(() => {});
+  }, []);
+
+  return (
+    <>
+      {posts.map((post) => (
+        <li key={post.slug}>
+          <FooterLinkRow href={`/blog/${post.slug}`} label={truncateTitle(post.title)} />
+        </li>
+      ))}
+    </>
+  );
+}
 
 function FooterLinkRow({ href, label, external }: FooterLink) {
   const className = cn(
@@ -202,6 +236,7 @@ export function LandingFooter() {
                           <FooterLinkRow {...item} />
                         </li>
                       ))}
+                      {col.title === "Blog & resources" && <RecentBlogLinks />}
                     </ul>
                   </div>
                 ))}

@@ -103,14 +103,19 @@ export function ToolPage({
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section className={cn("relative px-6 pb-14 pt-14 lg:px-12 lg:pb-16 lg:pt-16", t.sectionBg)}>
         <div className="mx-auto max-w-7xl">
-          <p className={cn("text-[11px] font-medium uppercase tracking-[0.22em]", t.eyebrow)}>{eyebrow}</p>
+          <p className={cn("text-[11px] font-medium uppercase tracking-[0.22em]", t.eyebrow)}>
+            {eyebrow}
+          </p>
           <h1 className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem] xl:text-5xl">
             {title}{" "}
             {titleAccent && (
               <span className={cn("relative whitespace-nowrap", t.accent)}>
                 {titleAccent}
                 <span
-                  className={cn("absolute -bottom-1 left-0 right-0 border-b-2 border-dashed", t.accentBorder)}
+                  className={cn(
+                    "absolute -bottom-1 left-0 right-0 border-b-2 border-dashed",
+                    t.accentBorder,
+                  )}
                   aria-hidden
                 />
               </span>
@@ -119,7 +124,7 @@ export function ToolPage({
           <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
             {description}
           </p>
-          <div className="mt-8 max-w-2xl">{form}</div>
+          <div className="mt-8 max-w-xl">{form}</div>
         </div>
       </section>
 
@@ -136,11 +141,25 @@ export function ToolPage({
             )}
           >
             {features.map((f) => (
-              <div key={f.title} className={cn("flex flex-col gap-4 bg-white px-6 py-12 md:px-8 md:py-14 lg:px-10", t.cardRadius)}>
-                <span className={cn("inline-flex h-8 w-8 items-center justify-center", t.cardRadius, t.accentSoftBg)}>
+              <div
+                key={f.title}
+                className={cn(
+                  "flex flex-col gap-4 bg-white px-6 py-12 md:px-8 md:py-14 lg:px-10",
+                  t.cardRadius,
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-flex h-8 w-8 items-center justify-center",
+                    t.cardRadius,
+                    t.accentSoftBg,
+                  )}
+                >
                   <span className={cn("h-2 w-2 rounded-full", t.accentBg)} aria-hidden />
                 </span>
-                <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">{f.title}</h3>
+                <h3 className="text-lg font-semibold tracking-tight text-foreground md:text-xl">
+                  {f.title}
+                </h3>
                 <p className="max-w-sm text-sm font-light leading-relaxed text-accent-foreground md:text-[15px]">
                   {f.description}
                 </p>
@@ -154,14 +173,19 @@ export function ToolPage({
       <ScreenHR />
       <section className={cn("relative px-6 pb-14 pt-14 lg:px-12 lg:pb-16 lg:pt-16", t.sectionBg)}>
         <div className="mx-auto max-w-7xl">
-          <p className={cn("text-[11px] font-medium uppercase tracking-[0.22em]", t.eyebrow)}>{previewEyebrow}</p>
+          <p className={cn("text-[11px] font-medium uppercase tracking-[0.22em]", t.eyebrow)}>
+            {previewEyebrow}
+          </p>
           <h2 className="mt-4 max-w-4xl text-3xl font-bold leading-[1.12] tracking-tight text-foreground sm:text-4xl lg:text-[2.65rem]">
             {previewTitle}{" "}
             {previewTitleAccent && (
               <span className={cn("relative whitespace-nowrap", t.accent)}>
                 {previewTitleAccent}
                 <span
-                  className={cn("absolute -bottom-1 left-0 right-0 border-b-2 border-dashed", t.accentBorder)}
+                  className={cn(
+                    "absolute -bottom-1 left-0 right-0 border-b-2 border-dashed",
+                    t.accentBorder,
+                  )}
                   aria-hidden
                 />
               </span>
@@ -175,8 +199,18 @@ export function ToolPage({
         <div className="mx-auto mt-10 max-w-7xl bg-black-10">
           <div className="grid grid-cols-1 divide-y divide-black/6">
             {previewRows.map((row, i) => (
-              <div key={i} className={cn("relative flex flex-col gap-4 bg-white px-6 py-10 md:px-8 md:py-12 lg:px-10", t.cardRadius)}>
-                <div className={row.locked ? "pointer-events-none select-none blur-[2px] opacity-60" : ""}>
+              <div
+                key={i}
+                className={cn(
+                  "relative flex flex-col gap-4 bg-white px-6 py-10 md:px-8 md:py-12 lg:px-10",
+                  t.cardRadius,
+                )}
+              >
+                <div
+                  className={
+                    row.locked ? "pointer-events-none select-none blur-[2px] opacity-60" : ""
+                  }
+                >
                   {row.content}
                 </div>
                 {row.locked && (
