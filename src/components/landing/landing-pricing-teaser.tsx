@@ -8,6 +8,7 @@ import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { cn } from "@/lib/utils";
 import { useCurrency, formatPrice } from "@/lib/hooks/use-currency";
 import { getPlanPrices, type DodoPlanPrice } from "@/lib/api/payments";
+import { CurrencyToggle } from "@/components/pricing/currency-toggle";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -89,7 +90,7 @@ function localizedPrice(
 }
 
 export function LandingPricingTeaser() {
-  const { currency, ready: currencyReady } = useCurrency();
+  const { currency, ready: currencyReady, selectCurrency } = useCurrency();
   const [livePrices, setLivePrices] = useState<Record<string, DodoPlanPrice | null> | null>(null);
 
   useEffect(() => {
@@ -158,6 +159,12 @@ export function LandingPricingTeaser() {
       </div>
 
       <ScreenHR />
+
+      <div className="mx-auto max-w-7xl px-6 pt-8 pb-4 lg:px-12">
+        <div className="flex items-center gap-3">
+          <CurrencyToggle currency={currency} onSelect={selectCurrency} />
+        </div>
+      </div>
 
       <div className="mx-auto max-w-7xl bg-black-10">
         <div className="grid grid-cols-1 divide-y divide-black/6 md:grid-cols-3 md:divide-x md:divide-y-0">

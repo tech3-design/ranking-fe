@@ -22,6 +22,7 @@ import { LandingMarketingShell } from "@/components/landing/landing-marketing-sh
 import { ScreenHR } from "@/components/ui/intersection-diamonds";
 import { PricingHero } from "@/components/pricing/pricing-hero";
 import { PricingStatsSection } from "@/components/pricing/pricing-stats-section";
+import { CurrencyToggle } from "@/components/pricing/currency-toggle";
 import { PRICING_FAQ_ITEMS } from "@/lib/pricing-marketing-content";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -128,7 +129,12 @@ function PricingPageInner() {
   const [checkoutDodoMode, setCheckoutDodoMode] = useState<DodoMode | null>(null);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<Record<string, DodoPlanPrice | null> | null>(null);
-  const { currency, ready: currencyReady, country: detectedCountry } = useCurrency();
+  const {
+    currency,
+    ready: currencyReady,
+    country: detectedCountry,
+    selectCurrency,
+  } = useCurrency();
 
   useEffect(() => {
     getPlanPrices()
@@ -237,7 +243,11 @@ function PricingPageInner() {
             Start free, upgrade when your GEO program outgrows the Starter slots,cancel any time.
           </p>
 
-          <div className="mt-10">
+          <div className="mt-8 flex items-center gap-3">
+            <CurrencyToggle currency={currency} onSelect={selectCurrency} />
+          </div>
+
+          <div className="mt-8">
             {error ? (
               <div className="mb-10 max-w-lg mx-auto space-y-2">
                 <p className="rounded-lg border border-destructive/25 bg-destructive/5 px-4 py-3 text-center text-sm text-destructive">

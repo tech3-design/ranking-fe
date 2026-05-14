@@ -21,20 +21,13 @@ export function LandingHero() {
           </h1>
 
           <p className="mt-5 max-w-lg text-base font-light leading-relaxed text-accent-foreground sm:text-lg">
-            Measure how AI engines describe your brand, where competitors are winning citations,
-            and exactly what to fix next. Audit, scoring, and execution-ready recommendations in one workflow.
+            Measure how AI engines describe your brand, where competitors are winning citations, and
+            exactly what to fix next. Audit, scoring, and execution-ready recommendations in one
+            workflow.
           </p>
 
           {/* <HeroAnalyzerForm /> */}
           <HeroAnalyzerForm />
-
-
-          <p className="mt-4 flex items-center gap-2 text-xs font-medium text-neutral-500">
-            <span className="inline-flex text-amber-500" aria-hidden>
-              ★★★★★
-            </span>
-            <span>4.8/5 from growth teams running weekly GEO sprints</span>
-          </p>
         </div>
 
         {/* <div className="relative z-20 order-last mt-10 flex min-h-0 w-full justify-center lg:order-0 lg:mt-0 lg:min-h-[min(480px,68vh)] lg:items-center lg:justify-end lg:pl-0 xl:min-h-[min(540px,72vh)]">

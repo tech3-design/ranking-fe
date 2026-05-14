@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock } from "@/components/icons";
 
@@ -14,7 +15,7 @@ import {
   type BlogPost,
 } from "@/lib/landing-blog-content";
 import { client } from "@/sanity/lib/client";
-import { ALL_POSTS_QUERY } from "@/sanity/lib/queries";
+import { ALL_POSTS_QUERY, type SanityBlogPost } from "@/sanity/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const revalidate = 60;
@@ -38,8 +39,8 @@ const CATEGORY_TONE: Record<BlogPost["category"], { bg: string; fg: string }> = 
 
 export default async function BlogPage() {
   const displayPosts = await client
-    .fetch<BlogPost[]>(ALL_POSTS_QUERY)
-    .catch(() => [] as BlogPost[]);
+    .fetch<SanityBlogPost[]>(ALL_POSTS_QUERY)
+    .catch(() => [] as SanityBlogPost[]);
 
   return (
     <LandingMarketingShell>
@@ -121,7 +122,7 @@ export default async function BlogPage() {
           <div className="mx-auto mt-10 max-w-7xl bg-black-10">
             <div className="grid grid-cols-1 divide-y divide-black/6 md:grid-cols-3 md:divide-x md:divide-y-0">
               {displayPosts.map((post) => (
-                <PostCard key={post.slug} post={post} />
+                <PostCard key={post.slug} post={post as SanityBlogPost} />
               ))}
             </div>
           </div>
@@ -195,37 +196,53 @@ export default async function BlogPage() {
   );
 }
 
-function PostCard({ post }: { post: BlogPost }) {
+function PostCard({ post }: { post: SanityBlogPost }) {
   const tone = CATEGORY_TONE[post.category] ?? { bg: "bg-neutral-100", fg: "text-neutral-700" };
+  const imgUrl = post.coverImage?.url;
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group flex flex-col gap-4 bg-white px-6 py-10 transition hover:bg-neutral-50/70 md:px-8 md:py-12 lg:px-10"
+      className="group flex flex-col bg-white transition-colors hover:bg-neutral-50"
     >
-      <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-            tone.bg,
-            tone.fg,
-          )}
-        >
-          {post.category}
-        </span>
-        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-          <Clock className="h-3 w-3" />
-          {post.readingMinutes} min
-        </span>
-      </div>
-      <h3 className="text-lg font-semibold leading-snug tracking-tight text-foreground md:text-xl">
-        {post.title}
-      </h3>
-      <p className="max-w-sm text-sm font-light leading-relaxed text-muted-foreground md:text-[15px]">
-        {post.excerpt}
-      </p>
-      <div className="mt-auto flex items-center gap-2 pt-2 text-[11px] text-muted-foreground">
-        <span>{formatDate(post.publishedAt)}</span>
-        <ArrowRight className="ml-auto h-3.5 w-3.5 text-[#b45309] opacity-0 transition group-hover:opacity-100" />
+      {imgUrl ? (
+        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
+          <Image
+            src={imgUrl}
+            alt={post.coverImage?.alt ?? post.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 33vw"
+          />
+        </div>
+      ) : (
+        <div className="w-full bg-neutral-100" style={{ aspectRatio: "16/9" }} />
+      )}
+      <div className="flex flex-1 flex-col gap-4 px-6 py-8 lg:px-10">
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+              tone.bg,
+              tone.fg,
+            )}
+          >
+            {post.category}
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            {post.readingMinutes} min
+          </span>
+        </div>
+        <h3 className="text-lg font-semibold leading-snug tracking-tight text-foreground md:text-xl">
+          {post.title}
+        </h3>
+        <p className="max-w-sm text-sm font-light leading-relaxed text-muted-foreground md:text-[15px]">
+          {post.excerpt}
+        </p>
+        <div className="mt-auto flex items-center gap-2 pt-2 text-[11px] text-muted-foreground">
+          <span>{formatDate(post.publishedAt)}</span>
+          <ArrowRight className="ml-auto h-3.5 w-3.5 text-[#b45309] opacity-0 transition group-hover:opacity-100" />
+        </div>
       </div>
     </Link>
   );

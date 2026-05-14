@@ -59,7 +59,7 @@ export function CompetitorsInline() {
     <div className="w-full">
       <form
         onSubmit={submit}
-        className="flex w-full items-center gap-2 rounded-2xl border border-emerald-700/25 bg-white p-1.5 shadow-sm"
+        className="flex w-full items-center gap-2 rounded-sm border border-primary/25 bg-white p-1.5 shadow-sm"
       >
         <Globe className="ml-2 h-4 w-4 text-muted-foreground" aria-hidden />
         <input
@@ -73,7 +73,7 @@ export function CompetitorsInline() {
         <Button
           type="submit"
           disabled={!url.trim() || state.kind === "running"}
-          className="shrink-0 rounded-xl bg-emerald-700 px-4 text-xs font-semibold text-white hover:brightness-110"
+          className="shrink-0 rounded-sm bg-primary px-4 text-xs font-semibold text-white hover:brightness-110"
         >
           {state.kind === "running" ? (
             <>
@@ -90,16 +90,16 @@ export function CompetitorsInline() {
       </form>
 
       {state.kind === "running" && (
-        <div className="mt-5 rounded-2xl border border-black/6 bg-white p-5 shadow-sm">
+        <div className="mt-5 rounded-sm border border-black/6 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm text-foreground">
-            <Loader2 className="h-4 w-4 animate-spin text-emerald-700" />
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
             Pulling competitive comparison queries from real search autocomplete…
           </div>
         </div>
       )}
 
       {state.kind === "error" && (
-        <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mt-5 rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {state.message}
         </div>
       )}
@@ -123,7 +123,7 @@ function ResultView({ data, onReset }: { data: CompetitorsResult; onReset: () =>
 
   return (
     <div className="mt-6 space-y-4">
-      <div className="rounded-2xl border border-black/6 bg-white p-5 shadow-sm">
+      <div className="rounded-sm border border-black/6 bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
@@ -145,7 +145,7 @@ function ResultView({ data, onReset }: { data: CompetitorsResult; onReset: () =>
       </div>
 
       {data.rivals.length > 0 ? (
-        <div className="rounded-2xl border border-black/6 bg-white p-5 shadow-sm">
+        <div className="rounded-sm border border-black/6 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <Users className="h-4 w-4 text-emerald-700" />
             <p className="text-sm font-semibold text-foreground">Ranked by co-mention</p>
@@ -176,7 +176,7 @@ function ResultView({ data, onReset }: { data: CompetitorsResult; onReset: () =>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-black/6 bg-white p-5 shadow-sm">
+        <div className="rounded-sm border border-black/6 bg-white p-5 shadow-sm">
           <p className="text-sm font-semibold text-foreground">No comparison queries detected</p>
           <p className="mt-1 text-[13px] text-muted-foreground">
             {data.note ??

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, type ReactNode } from "react";
 import {
   BarChart,
   Bar,
@@ -255,6 +255,7 @@ interface BrandDonutChartProps {
   centerLabel?: string;
   centerSub?: string;
   className?: string;
+  logoMap?: Record<string, ReactNode>;
   /** @deprecated, label now renders outside the arc; this prop is no longer used */
   tooltipFormatter?: (value: number, name: string) => [string, string];
 }
@@ -316,6 +317,7 @@ export const BrandDonutChart = memo(function BrandDonutChart({
   centerLabel,
   centerSub,
   className,
+  logoMap,
 }: BrandDonutChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [activeData, setActiveData] = useState<{
@@ -490,32 +492,42 @@ export const BrandDonutChart = memo(function BrandDonutChart({
             background: "var(--card)",
             border: "1px solid var(--border)",
             borderRadius: 6,
-            padding: "3px 8px",
+            padding: "4px 8px",
             boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
           }}
         >
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--foreground)",
-              lineHeight: 1.3,
-              margin: 0,
-            }}
-          >
-            {labelInfo.name}
-          </p>
-          <p
-            style={{
-              fontSize: 10,
-              fontWeight: 500,
-              color: labelInfo.color,
-              lineHeight: 1.3,
-              margin: 0,
-            }}
-          >
-            {labelInfo.value}
-          </p>
+          {logoMap?.[labelInfo.name] && (
+            <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+              {logoMap[labelInfo.name]}
+            </span>
+          )}
+          <span>
+            <p
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "var(--foreground)",
+                lineHeight: 1.3,
+                margin: 0,
+              }}
+            >
+              {labelInfo.name}
+            </p>
+            <p
+              style={{
+                fontSize: 10,
+                fontWeight: 500,
+                color: labelInfo.color,
+                lineHeight: 1.3,
+                margin: 0,
+              }}
+            >
+              {labelInfo.value}
+            </p>
+          </span>
         </div>
       )}
     </div>

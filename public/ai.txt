@@ -33,5 +33,5 @@ Rss: https://signalor.ai/blog/rss.xml
 
 # Contact
 Contact: mailto:hello@signalor.ai
-Policy: https://signalor.ai/privacy-policy
-Terms: https://signalor.ai/terms-and-conditions
+Policy: https://signalor.ai/policy
+Terms: https://signalor.ai/terms

@@ -60,7 +60,7 @@ export function SchemaValidatorInline() {
     <div className="w-full">
       <form
         onSubmit={submit}
-        className="flex w-full items-center gap-2 rounded-xl border border-violet-700/25 bg-white p-1.5 shadow-sm"
+        className="flex w-full items-center gap-2 rounded-sm border border-primary/25 bg-white p-1.5 shadow-sm"
       >
         <Globe className="ml-2 h-4 w-4 text-muted-foreground" aria-hidden />
         <input
@@ -74,7 +74,7 @@ export function SchemaValidatorInline() {
         <Button
           type="submit"
           disabled={!url.trim() || state.kind === "running"}
-          className="shrink-0 rounded-lg bg-violet-700 px-4 text-xs font-semibold text-white hover:brightness-110"
+          className="shrink-0 rounded-sm bg-primary px-4 text-xs font-semibold text-white hover:brightness-110"
         >
           {state.kind === "running" ? (
             <>
@@ -91,16 +91,16 @@ export function SchemaValidatorInline() {
       </form>
 
       {state.kind === "running" && (
-        <div className="mt-5 rounded-xl border border-black/6 bg-white p-5 shadow-sm">
+        <div className="mt-5 rounded-sm border border-black/6 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm text-foreground">
-            <Loader2 className="h-4 w-4 animate-spin text-violet-700" />
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
             Fetching the page and parsing JSON-LD…
           </div>
         </div>
       )}
 
       {state.kind === "error" && (
-        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mt-5 rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {state.message}
         </div>
       )}
@@ -132,7 +132,7 @@ function ResultView({ data, onReset }: { data: Summary; onReset: () => void }) {
   return (
     <div className="mt-6 space-y-4">
       {/* Summary card */}
-      <div className="rounded-xl border border-black/6 bg-white p-5 shadow-sm">
+      <div className="rounded-sm border border-black/6 bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
@@ -163,7 +163,7 @@ function ResultView({ data, onReset }: { data: Summary; onReset: () => void }) {
 
       {/* Findings list */}
       {data.findings.length > 0 ? (
-        <div className="rounded-xl border border-black/6 bg-white p-5 shadow-sm">
+        <div className="rounded-sm border border-black/6 bg-white p-5 shadow-sm">
           <p className="text-sm font-semibold text-foreground">Schemas detected</p>
           <ul className="mt-3 divide-y divide-black/6">
             {data.findings.map((f) => (
@@ -184,7 +184,7 @@ function ResultView({ data, onReset }: { data: Summary; onReset: () => void }) {
           </ul>
         </div>
       ) : (
-        <div className="rounded-xl border border-black/6 bg-white p-5 shadow-sm">
+        <div className="rounded-sm border border-black/6 bg-white p-5 shadow-sm">
           <p className="text-sm font-semibold text-foreground">No JSON-LD found</p>
           <p className="mt-1 text-[13px] text-muted-foreground">
             This page ships no structured data. AI engines rely on schema to cite you confidently ,
