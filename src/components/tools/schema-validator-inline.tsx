@@ -5,7 +5,6 @@ import { ArrowRight, CircleAlert, CircleCheck, CircleX, Globe, Loader2 } from "@
 
 import { Button } from "@/components/ui/button";
 import { ToolGateCard } from "@/components/tools/tool-gate-card";
-import { SignupGateOverlay } from "@/components/tools/signup-gate-modal";
 import { cn } from "@/lib/utils";
 
 interface SchemaFinding {
@@ -105,15 +104,9 @@ export function SchemaValidatorInline() {
         </div>
       )}
 
-      <SignupGateOverlay
-        when={state.kind === "done"}
-        title="Sign up to see your schema audit"
-        body="We've validated your page's structured data. Create a free Signalor account or log in to view each finding and what's missing."
-      >
-        {state.kind === "done" && (
-          <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />
-        )}
-      </SignupGateOverlay>
+      {state.kind === "done" && (
+        <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />
+      )}
     </div>
   );
 }

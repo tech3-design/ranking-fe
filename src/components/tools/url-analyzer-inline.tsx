@@ -14,7 +14,6 @@ import {
 import { getSubscriptionStatus, type SubscriptionStatus } from "@/lib/api/payments";
 import { routes } from "@/lib/config";
 import { Button } from "@/components/ui/button";
-import { SignupGateOverlay } from "@/components/tools/signup-gate-modal";
 import { cn } from "@/lib/utils";
 
 type RunState =
@@ -173,21 +172,15 @@ export function UrlAnalyzerToolInline() {
 
       {state.kind === "running" && <RunningCard progress={state.progress} />}
       {state.kind === "error" && <ErrorCard message={state.message} onRetry={reset} />}
-      <SignupGateOverlay
-        when={state.kind === "done"}
-        title="Sign up to see your audit"
-        body="Your URL audit is ready. Create a free Signalor account or log in to view your score, pillar breakdown, and recommendations."
-      >
-        {state.kind === "done" && (
-          <ResultCards
-            detail={state.detail}
-            session={session}
-            sessionPending={isPending}
-            sub={sub}
-            onReset={reset}
-          />
-        )}
-      </SignupGateOverlay>
+      {state.kind === "done" && (
+        <ResultCards
+          detail={state.detail}
+          session={session}
+          sessionPending={isPending}
+          sub={sub}
+          onReset={reset}
+        />
+      )}
     </div>
   );
 }

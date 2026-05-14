@@ -5,7 +5,6 @@ import { ArrowRight, Globe, Loader2, Users } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
 import { ToolGateCard } from "@/components/tools/tool-gate-card";
-import { SignupGateOverlay } from "@/components/tools/signup-gate-modal";
 
 interface Rival {
   name: string;
@@ -104,15 +103,9 @@ export function CompetitorsInline() {
         </div>
       )}
 
-      <SignupGateOverlay
-        when={state.kind === "done"}
-        title="Sign up to see your competitors"
-        body="We've pulled the competitors AI is mentioning alongside your brand. Create a free Signalor account or log in to view the share-of-voice breakdown."
-      >
-        {state.kind === "done" && (
-          <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />
-        )}
-      </SignupGateOverlay>
+      {state.kind === "done" && (
+        <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />
+      )}
     </div>
   );
 }

@@ -5,7 +5,6 @@ import { ArrowRight, CircleCheck, CircleX, Globe, Loader2, MinusCircle } from "@
 
 import { Button } from "@/components/ui/button";
 import { ToolGateCard } from "@/components/tools/tool-gate-card";
-import { SignupGateOverlay } from "@/components/tools/signup-gate-modal";
 import { cn } from "@/lib/utils";
 
 interface LlmsResult {
@@ -110,15 +109,9 @@ export function LlmsCheckInline() {
         </div>
       )}
 
-      <SignupGateOverlay
-        when={state.kind === "done"}
-        title="Sign up to see your AI readiness check"
-        body="Your llms.txt + robots + schema check is ready. Create a free Signalor account or log in to view the full breakdown."
-      >
-        {state.kind === "done" && (
-          <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />
-        )}
-      </SignupGateOverlay>
+      {state.kind === "done" && (
+        <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />
+      )}
     </div>
   );
 }
