@@ -84,7 +84,7 @@ export function buildMetadata({
   const image = ogImage || SITE_OG_IMAGE;
 
   return {
-    title: title || `${SITE_BRAND}, ${SITE_TAGLINE}`,
+    title: title || `${SITE_BRAND} | ${SITE_TAGLINE}`,
     description,
     keywords: keywords ?? SITE_KEYWORDS,
     applicationName: SITE_NAME,
