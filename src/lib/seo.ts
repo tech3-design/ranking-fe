@@ -84,7 +84,7 @@ export function buildMetadata({
   const image = ogImage || SITE_OG_IMAGE;
 
   return {
-    title: title || `${SITE_BRAND}, ${SITE_TAGLINE}`,
+    title: title || `${SITE_BRAND} | ${SITE_TAGLINE}`,
     description,
     keywords: keywords ?? SITE_KEYWORDS,
     applicationName: SITE_NAME,
@@ -206,6 +206,14 @@ export function websiteJsonLd() {
   };
 }
 
+export const AGGREGATE_RATING = {
+  "@type": "AggregateRating",
+  ratingValue: "4.8",
+  ratingCount: "127",
+  bestRating: "5",
+  worstRating: "1",
+};
+
 export function softwareApplicationJsonLd() {
   return {
     "@context": "https://schema.org",
@@ -249,13 +257,7 @@ export function softwareApplicationJsonLd() {
       "Prompt tracking and ranking",
       "Shopify and WordPress integrations",
     ],
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      ratingCount: "127",
-      bestRating: "5",
-      worstRating: "1",
-    },
+    aggregateRating: AGGREGATE_RATING,
   };
 }
 
