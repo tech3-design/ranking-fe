@@ -24,8 +24,8 @@ import { PricingHero } from "@/components/pricing/pricing-hero";
 import { PricingStatsSection } from "@/components/pricing/pricing-stats-section";
 import { CurrencyToggle } from "@/components/pricing/currency-toggle";
 import { PRICING_FAQ_ITEMS } from "@/lib/pricing-marketing-content";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import NumberFlow from "@number-flow/react";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -271,34 +271,29 @@ function PricingPageInner() {
               </div>
             ) : null}
 
-            <div className="grid grid-cols-1 gap-0 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {PLANS.map((plan) => {
                 const isLoading = loadingPlan === plan.id;
                 const isCurrent = currentPlanId === plan.id;
 
-                // Prefer Dodo's real prices when the live fetch succeeded; otherwise
-                // fall back to the EUR-rate approximation so the page still renders
-                // if the backend is unreachable.
                 const live = livePrices?.[plan.id] ?? null;
                 let displaySymbol: string;
                 let displayCurrencyCode: string | null;
                 let priceLabel: string;
+                let numericAmount: number;
                 let isApprox: boolean;
 
                 if (live) {
-                  // Prefer the localized estimate if the user's detected currency
-                  // is in the FX-converted map. Fall back to Dodo's base currency.
                   const userCcy = currencyReady ? currency.code : null;
                   const localized =
                     userCcy && live.prices_by_currency
                       ? live.prices_by_currency[userCcy]
                       : undefined;
-
                   const useLocal =
                     localized !== undefined && userCcy && userCcy !== live.currency.toUpperCase();
                   const ccy = useLocal ? userCcy! : live.currency.toUpperCase();
                   const amount = useLocal ? localized! : live.amount;
-
+                  numericAmount = amount;
                   displaySymbol = CURRENCY_SYMBOLS[ccy] ?? ccy + " ";
                   displayCurrencyCode = ccy;
                   priceLabel =
@@ -308,64 +303,67 @@ function PricingPageInner() {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         });
-                  isApprox = !!useLocal; // localized total is an FX estimate
+                  isApprox = !!useLocal;
                 } else {
                   displaySymbol = currency.symbol;
                   displayCurrencyCode = currency.code;
+                  numericAmount = plan.price * currency.rate;
                   priceLabel = currencyReady
                     ? formatPrice(plan.price, currency)
                     : plan.price.toFixed(2);
                   isApprox = currencyReady && currency.code !== "EUR";
                 }
 
+                const priceDecimals =
+                  displayCurrencyCode === "INR" || displayCurrencyCode === "JPY" ? 0 : 2;
+
                 return (
                   <div
                     key={plan.id}
                     className={cn(
-                      "relative flex flex-col px-8 py-10 md:px-10 md:py-12 border border-black/6",
+                      "relative flex flex-col rounded-2xl border p-8",
                       isCurrent
-                        ? "bg-gradient-to-br from-emerald-50 via-white to-emerald-100/60 md:z-10 md:-my-2 md:shadow-[0_12px_40px_-12px_rgba(16,185,129,0.25)] ring-2 ring-emerald-500/40"
+                        ? "border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40 ring-2 ring-emerald-500/50 shadow-[0_12px_40px_-12px_rgba(16,185,129,0.2)]"
                         : plan.popular
-                          ? "bg-gradient-to-br from-primary/5 via-white to-primary/10 md:z-10 md:-my-2 md:shadow-[0_12px_40px_-12px_rgba(224,74,61,0.25)]"
-                          : "bg-neutral-50/50",
+                          ? "border-primary/20 bg-gradient-to-br from-primary/5 via-white to-primary/5 ring-2 ring-primary/40 shadow-[0_12px_40px_-12px_rgba(224,74,61,0.2)]"
+                          : "border-neutral-200 bg-white",
                     )}
                   >
-                    <div className="mb-1 flex items-center gap-2.5">
-                      <h3 className="text-2xl font-bold tracking-tight text-foreground">
+                    {/* Plan name + badge */}
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="text-3xl font-semibold tracking-tight text-foreground">
                         {plan.label}
                       </h3>
                       {isCurrent ? (
-                        <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                        <span className="rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-semibold text-white">
                           Current Plan
                         </span>
                       ) : plan.popular ? (
-                        <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold text-emerald-800">
                           Most Popular
                         </span>
                       ) : null}
                     </div>
 
-                    <p className="mt-2 max-w-[260px] text-[13px] font-light leading-relaxed text-muted-foreground">
-                      {plan.description}
-                    </p>
-
-                    <div className="mt-8 flex items-start">
-                      <span className="mt-2 text-xl font-semibold text-foreground">
+                    {/* Price */}
+                    <div className="mb-1 flex items-baseline gap-0.5">
+                      <span className="text-2xl font-semibold text-foreground">
                         {displaySymbol}
                       </span>
-                      <span
+                      <NumberFlow
+                        value={numericAmount}
+                        format={{
+                          minimumFractionDigits: priceDecimals,
+                          maximumFractionDigits: priceDecimals,
+                        }}
                         className={cn(
-                          "ml-0.5 text-5xl font-bold tracking-tight tabular-nums transition-opacity duration-300",
-                          live || currencyReady
-                            ? "text-foreground opacity-100"
-                            : "text-foreground opacity-40",
+                          "text-5xl font-bold tabular-nums tracking-tight",
+                          live || currencyReady ? "text-foreground" : "text-foreground/40",
                         )}
-                      >
-                        {priceLabel}
-                      </span>
+                      />
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Per month
+                    <p className="mb-6 text-sm text-muted-foreground">
+                      /month
                       {live && isApprox
                         ? ` \u00B7 approx. \u2014 billed in ${live.currency.toUpperCase()}`
                         : isApprox && displayCurrencyCode
@@ -373,59 +371,79 @@ function PricingPageInner() {
                           : ""}
                     </p>
 
-                    <div className="mt-8 flex flex-1 flex-col gap-3">
+                    {/* Description */}
+                    <p className="mb-6 text-[13px] font-light leading-relaxed text-muted-foreground">
+                      {plan.description}
+                    </p>
+
+                    {/* CTA button */}
+                    <button
+                      type="button"
+                      onClick={() => handleSubscribe(plan.id)}
+                      disabled={!!loadingPlan || isCurrent}
+                      className={cn(
+                        "mb-6 w-full rounded-xl py-4 text-base font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-70",
+                        isCurrent
+                          ? "border border-emerald-600 bg-gradient-to-t from-emerald-600 to-emerald-500 text-white shadow-lg shadow-emerald-500/25"
+                          : plan.popular
+                            ? "border border-primary/50 bg-gradient-to-t from-primary to-primary/80 text-white shadow-lg shadow-primary/30"
+                            : "border border-neutral-700 bg-gradient-to-t from-neutral-900 to-neutral-700 text-white shadow-lg shadow-neutral-900/20",
+                      )}
+                    >
+                      {isLoading ? (
+                        <SignalorLoader size="sm" />
+                      ) : isCurrent ? (
+                        "Current Plan"
+                      ) : session ? (
+                        "Subscribe now"
+                      ) : (
+                        "Get started"
+                      )}
+                    </button>
+
+                    {/* Features */}
+                    <div className="space-y-2.5 border-t border-neutral-200 pt-5">
                       {plan.features.map((f) => (
-                        <div key={f} className="flex items-start gap-2.5">
-                          <Check
-                            className="mt-0.5 h-4 w-4 shrink-0 text-foreground"
-                            strokeWidth={2.25}
-                            aria-hidden
-                          />
-                          <span className="text-[13px] leading-snug text-foreground/90">{f}</span>
+                        <div key={f} className="flex items-center gap-3">
+                          <span
+                            className={cn(
+                              "grid h-5 w-5 shrink-0 place-content-center rounded-full border bg-white",
+                              isCurrent
+                                ? "border-emerald-500"
+                                : plan.popular
+                                  ? "border-primary"
+                                  : "border-neutral-400",
+                            )}
+                          >
+                            <Check
+                              className={cn(
+                                "h-3 w-3",
+                                isCurrent
+                                  ? "text-emerald-600"
+                                  : plan.popular
+                                    ? "text-primary"
+                                    : "text-neutral-600",
+                              )}
+                              strokeWidth={2.5}
+                              aria-hidden
+                            />
+                          </span>
+                          <span className="text-sm text-foreground/80">{f}</span>
                         </div>
                       ))}
 
-                      {plan.comingSoonFeatures && plan.comingSoonFeatures.length > 0 ? (
+                      {plan.comingSoonFeatures && plan.comingSoonFeatures.length > 0 && (
                         <div className="mt-2 space-y-2.5">
                           {plan.comingSoonFeatures.map((f) => (
-                            <div key={f} className="flex items-start gap-2.5">
-                              <Clock
-                                className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
-                                aria-hidden
-                              />
-                              <span className="text-[13px] leading-snug text-muted-foreground">
-                                {f}
+                            <div key={f} className="flex items-center gap-3">
+                              <span className="grid h-5 w-5 shrink-0 place-content-center rounded-full border border-neutral-200 bg-white">
+                                <Clock className="h-3 w-3 text-muted-foreground" aria-hidden />
                               </span>
+                              <span className="text-sm text-muted-foreground">{f}</span>
                             </div>
                           ))}
                         </div>
-                      ) : null}
-                    </div>
-
-                    <div className="mt-10">
-                      <Button
-                        type="button"
-                        onClick={() => handleSubscribe(plan.id)}
-                        disabled={!!loadingPlan || isCurrent}
-                        className={cn(
-                          "h-12 w-full rounded-lg text-sm font-semibold shadow-sm",
-                          isCurrent
-                            ? "bg-emerald-600 text-white hover:brightness-110 disabled:opacity-100"
-                            : plan.popular
-                              ? "bg-primary text-white hover:brightness-110"
-                              : "border border-black/10 bg-white text-foreground hover:bg-neutral-50",
-                        )}
-                      >
-                        {isLoading ? (
-                          <SignalorLoader size="sm" />
-                        ) : isCurrent ? (
-                          <>Current Plan</>
-                        ) : session ? (
-                          <>Subscribe now</>
-                        ) : (
-                          <>Get started</>
-                        )}
-                      </Button>
+                      )}
                     </div>
                   </div>
                 );

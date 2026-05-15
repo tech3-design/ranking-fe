@@ -64,15 +64,13 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
   {
     items: [
       { icon: OverviewIcon, label: "Overview", path: "" },
-      // { icon: Compass, label: "Explorer", path: "/visibility/explorer" },
-      // { icon: GitFork, label: "Ranking", path: "/prompts/ranking" },
+      { icon: TasksIcon, label: "Tasks", path: "/recommendations" },
     ],
   },
   {
     heading: "Monitoring",
     items: [
       { icon: VisibilityIcon, label: "Visibility", path: "/visibility" },
-      { icon: TasksIcon, label: "Tasks", path: "/recommendations" },
       { icon: SitemapIcon, label: "Sitemap", path: "/sitemap" },
     ],
   },
