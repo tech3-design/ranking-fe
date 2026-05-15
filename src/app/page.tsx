@@ -11,7 +11,15 @@ import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
 import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
 import { JsonLd } from "@/components/seo/json-ld";
-import { breadcrumbJsonLd, buildMetadata, faqJsonLd, SITE_BRAND, SITE_URL } from "@/lib/seo";
+import {
+  AGGREGATE_RATING,
+  breadcrumbJsonLd,
+  buildMetadata,
+  faqJsonLd,
+  siteNavigationJsonLd,
+  SITE_BRAND,
+  SITE_URL,
+} from "@/lib/seo";
 
 const LLM_LOGOS = [
   { name: "ChatGPT", src: "/logos/chatgpt.svg" },
@@ -81,6 +89,7 @@ export default function Home() {
       offerCount: 3,
       url: `${SITE_URL}/pricing`,
     },
+    aggregateRating: AGGREGATE_RATING,
   };
 
   return (
@@ -88,6 +97,7 @@ export default function Home() {
       <JsonLd id="ld-home-breadcrumb" data={breadcrumbs} />
       <JsonLd id="ld-home-faq" data={faq} />
       <JsonLd id="ld-home-product" data={product} />
+      <JsonLd id="ld-home-sitenav" data={siteNavigationJsonLd()} />
 
       <LandingHero />
 
