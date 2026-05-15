@@ -242,7 +242,7 @@ function PricingPageInner() {
           <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
             Start free, upgrade when your GEO program outgrows the Starter slots — cancel any time.
           </p>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          <p className="sr-only">
             Every Signalor plan includes GEO scoring across six content pillars, citation monitoring
             across ChatGPT, Claude, Gemini, and Perplexity, schema validation, and one-click fix
             recommendations. The Starter plan covers solo brands with two projects and up to

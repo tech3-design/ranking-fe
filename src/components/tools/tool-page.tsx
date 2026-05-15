@@ -126,11 +126,7 @@ export function ToolPage({
           <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
             {description}
           </p>
-          {secondaryDescription && (
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              {secondaryDescription}
-            </p>
-          )}
+          {secondaryDescription && <p className="sr-only">{secondaryDescription}</p>}
           <div className="mt-8 max-w-xl">{form}</div>
         </div>
       </section>

@@ -22,17 +22,14 @@ export const metadata: Metadata = buildMetadata({
 export default function PromptTrackingPage() {
   return (
     <LandingMarketingShell>
-      <div className="mx-auto max-w-3xl px-6 pt-10 pb-2 text-center">
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          Signalor prompt tracking lets you monitor exactly which prompts trigger AI citations of
-          your brand across ChatGPT, Claude, Gemini, and Perplexity. You define the queries your
-          buyers use, and Signalor runs live probes on a schedule, recording every response,
-          paraphrase, and citation mention. The prompt library organises your tracked queries by
-          topic or campaign so you can spot which content gaps cost you AI visibility. AI surfaces
-          reporting shows per-engine breakdown so you know where to focus optimisation efforts
-          first.
-        </p>
-      </div>
+      <p className="sr-only">
+        Signalor prompt tracking lets you monitor exactly which prompts trigger AI citations of your
+        brand across ChatGPT, Claude, Gemini, and Perplexity. You define the queries your buyers
+        use, and Signalor runs live probes on a schedule, recording every response, paraphrase, and
+        citation mention. The prompt library organises your tracked queries by topic or campaign so
+        you can spot which content gaps cost you AI visibility. AI surfaces reporting shows
+        per-engine breakdown so you know where to focus optimisation efforts first.
+      </p>
       <JsonLd
         id="ld-prompt-tracking-breadcrumb"
         data={breadcrumbJsonLd([
