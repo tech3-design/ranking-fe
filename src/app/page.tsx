@@ -12,6 +12,7 @@ import { LandingMarketingShell } from "@/components/landing/landing-marketing-sh
 import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
 import { JsonLd } from "@/components/seo/json-ld";
 import {
+  AGGREGATE_RATING,
   breadcrumbJsonLd,
   buildMetadata,
   faqJsonLd,
@@ -88,6 +89,7 @@ export default function Home() {
       offerCount: 3,
       url: `${SITE_URL}/pricing`,
     },
+    aggregateRating: AGGREGATE_RATING,
   };
 
   return (
