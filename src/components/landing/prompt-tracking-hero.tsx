@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import { ArrowRight } from "@/components/icons";
 
@@ -6,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import { HeroBackgroundGrid } from "@/components/landing/hero-background-grid";
-import { PROMPT_TRACKING_HERO, PROMPT_TRACKING_HUB_CARDS } from "@/lib/landing-prompt-tracking-content";
+import {
+  PROMPT_TRACKING_HERO,
+  PROMPT_TRACKING_HUB_CARDS,
+} from "@/lib/landing-prompt-tracking-content";
 import type { LucideIcon } from "@/components/icons";
 
 type HeroContent = {
@@ -19,7 +21,14 @@ type HeroContent = {
   secondaryCta: string;
   footnote: string;
 };
-type HubCard = { slug: string; href: string; title: string; description: string; Icon: LucideIcon; cta: string };
+type HubCard = {
+  slug: string;
+  href: string;
+  title: string;
+  description: string;
+  Icon: LucideIcon;
+  cta: string;
+};
 
 export function PromptTrackingHero({
   hero = PROMPT_TRACKING_HERO,
@@ -51,7 +60,9 @@ export function PromptTrackingHero({
             </span>
           </h1>
 
-          <p className="mt-5 max-w-lg text-base font-light leading-relaxed text-accent-foreground sm:text-lg">{h.subhead}</p>
+          <p className="mt-5 max-w-lg text-base font-light leading-relaxed text-accent-foreground sm:text-lg">
+            {h.subhead}
+          </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "px-5")}>
@@ -61,7 +72,7 @@ export function PromptTrackingHero({
               </Link>
             </Button>
             <Button asChild variant="outline" className="border-black/15 px-5">
-              <Link href="/analyzer">{h.secondaryCta}</Link>
+              <Link href="/sign-up">{h.secondaryCta}</Link>
             </Button>
           </div>
 
@@ -80,11 +91,18 @@ export function PromptTrackingHero({
                 <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-black/8 bg-white">
                   <CardIcon className="h-5 w-5 text-[#e04a3d]" strokeWidth={1.75} aria-hidden />
                 </span>
-                <span className="mt-3 text-lg font-semibold tracking-tight text-neutral-900">{card.title}</span>
-                <span className="mt-1.5 text-sm font-light leading-snug text-muted-foreground">{card.description}</span>
+                <span className="mt-3 text-lg font-semibold tracking-tight text-neutral-900">
+                  {card.title}
+                </span>
+                <span className="mt-1.5 text-sm font-light leading-snug text-muted-foreground">
+                  {card.description}
+                </span>
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#e04a3d]">
                   {card.cta}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                  <ArrowRight
+                    className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                    aria-hidden
+                  />
                 </span>
               </Link>
             );

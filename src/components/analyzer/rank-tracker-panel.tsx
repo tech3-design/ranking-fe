@@ -33,7 +33,11 @@ import { Button } from "../ui/button";
 
 export type RankTrackerMode = "search" | "ai";
 
-const SEARCH_SURFACES: { key: RankSurface; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const SEARCH_SURFACES: {
+  key: RankSurface;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
   { key: "google", label: "Google", icon: Globe },
   { key: "reddit", label: "Reddit", icon: Users },
   { key: "quora", label: "Quora", icon: MessageCircle },
@@ -57,9 +61,8 @@ type QuerySeverity = "green" | "amber" | "red";
 
 function querySeverity(q: RankQuery, mode: RankTrackerMode): QuerySeverity {
   const all = q.results || [];
-  const scope = mode === "ai"
-    ? all.filter((r) => r.surface === "ai")
-    : all.filter((r) => r.surface !== "ai");
+  const scope =
+    mode === "ai" ? all.filter((r) => r.surface === "ai") : all.filter((r) => r.surface !== "ai");
   if (mode === "ai") {
     const anyBrand = scope.some((r) => r.is_brand_mentioned);
     if (anyBrand) return "green";
@@ -77,9 +80,7 @@ function surfaceCount(q: RankQuery, surface: RankSurface): number {
 }
 
 function engineCount(q: RankQuery, engine: string): number {
-  return (q.results || []).filter(
-    (r) => r.surface === "ai" && r.engine === engine,
-  ).length;
+  return (q.results || []).filter((r) => r.surface === "ai" && r.engine === engine).length;
 }
 
 function faviconFor(url: string): string {
@@ -277,8 +278,8 @@ function Header({
           What's ranking for your brand
         </h2>
         <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
-          10 queries tailored to your brand — we fetch the top Google, Reddit, and Quora
-          results and flag where you (and your competitors) show up.
+          10 queries tailored to your brand, we fetch the top Google, Reddit, and Quora results and
+          flag where you (and your competitors) show up.
         </p>
       </div>
       <div className="flex items-center gap-3">
@@ -312,23 +313,15 @@ function Header({
 // Empty state
 // ──────────────────────────────────────────────────────────────────────────
 
-function EmptyState({
-  onStart,
-  starting,
-}: {
-  onStart: () => void;
-  starting: boolean;
-}) {
+function EmptyState({ onStart, starting }: { onStart: () => void; starting: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/60 bg-card/40 p-10 text-center">
       <Target className="h-7 w-7 text-muted-foreground" />
       <div className="max-w-md">
-        <p className="text-sm font-medium text-foreground">
-          No rank audit yet
-        </p>
+        <p className="text-sm font-medium text-foreground">No rank audit yet</p>
         <p className="mt-1 text-[13px] text-muted-foreground">
-          Run one to see what's ranking for 10 queries tailored to your brand — across
-          Google, Reddit, and Quora.
+          Run one to see what's ranking for 10 queries tailored to your brand, across Google,
+          Reddit, and Quora.
         </p>
       </div>
       <Button
@@ -348,13 +341,7 @@ function EmptyState({
 // Stat tiles
 // ──────────────────────────────────────────────────────────────────────────
 
-function StatTiles({
-  audit,
-  queries,
-}: {
-  audit: RankAuditSummary;
-  queries: RankQuery[];
-}) {
+function StatTiles({ audit, queries }: { audit: RankAuditSummary; queries: RankQuery[] }) {
   const done = audit.queries_done || queries.filter((q) => q.status === "done").length;
   const total = audit.total_queries || queries.length || 10;
   const avgMentions = Number(audit.avg_brand_mentions || 0);
@@ -446,13 +433,8 @@ function QueryList({
       {queries.map((q) => {
         const sev = querySeverity(q, mode);
         const sevTone =
-          sev === "green"
-            ? "bg-emerald-500"
-            : sev === "amber"
-              ? "bg-amber-500"
-              : "bg-red-500";
-        const sevLabel =
-          sev === "green" ? "Top-3" : sev === "amber" ? "Mentioned" : "Absent";
+          sev === "green" ? "bg-emerald-500" : sev === "amber" ? "bg-amber-500" : "bg-red-500";
+        const sevLabel = sev === "green" ? "Top-3" : sev === "amber" ? "Mentioned" : "Absent";
         const isFocused = q.id === focusedId;
         return (
           <button
@@ -461,9 +443,7 @@ function QueryList({
             onClick={() => onSelect(q.id)}
             className={cn(
               "group flex flex-col gap-2 rounded-lg border bg-card/60 p-3 text-left transition",
-              isFocused
-                ? "border-foreground/70 shadow-sm"
-                : "border-border/60 hover:border-border",
+              isFocused ? "border-foreground/70 shadow-sm" : "border-border/60 hover:border-border",
             )}
           >
             <div className="flex items-start gap-2">
@@ -473,9 +453,7 @@ function QueryList({
               </p>
             </div>
             <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-              <span className="tabular-nums">
-                {q.brand_mention_count} brand mentions
-              </span>
+              <span className="tabular-nums">{q.brand_mention_count} brand mentions</span>
               <span className="font-medium text-foreground/70">{sevLabel}</span>
             </div>
           </button>
@@ -504,7 +482,12 @@ function FocusedQuery({
   onRefresh: () => void;
   refreshing: boolean;
 }) {
-  const tabs: { key: string; label: string; icon?: React.ComponentType<{ className?: string }>; count: number }[] =
+  const tabs: {
+    key: string;
+    label: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    count: number;
+  }[] =
     mode === "ai"
       ? AI_ENGINES.map((e) => ({
           key: e.key,
@@ -588,11 +571,7 @@ function FocusedQuery({
 
       <BrandCitationSummary query={query} mode={mode} />
 
-      <ResultList
-        results={results}
-        emptyMessage={emptyMessage}
-        queryStatus={query.status}
-      />
+      <ResultList results={results} emptyMessage={emptyMessage} queryStatus={query.status} />
     </div>
   );
 }
@@ -621,11 +600,7 @@ function ResultList({
     );
   }
   if (results.length === 0) {
-    return (
-      <div className="p-10 text-center text-sm text-muted-foreground">
-        {emptyMessage}
-      </div>
-    );
+    return <div className="p-10 text-center text-sm text-muted-foreground">{emptyMessage}</div>;
   }
   return (
     <div className="divide-y divide-border/50">
@@ -681,7 +656,7 @@ function ResultRow({ result }: { result: RankResult }) {
             {result.snippet}
           </p>
         ) : null}
-        {(result.is_brand_mentioned || result.competitors_mentioned.length > 0) ? (
+        {result.is_brand_mentioned || result.competitors_mentioned.length > 0 ? (
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {result.is_brand_mentioned ? (
               <span className="inline-flex items-center rounded-md border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
@@ -716,10 +691,7 @@ interface BrandStats {
   negative: number;
 }
 
-function aggregateBrandStats(
-  query: RankQuery,
-  mode: RankTrackerMode,
-): BrandStats[] {
+function aggregateBrandStats(query: RankQuery, mode: RankTrackerMode): BrandStats[] {
   const acc = new Map<string, BrandStats>();
   const bump = (key: string, isYou: boolean, sentiment: RankSentiment) => {
     const existing = acc.get(key) || {
@@ -751,13 +723,7 @@ function aggregateBrandStats(
   });
 }
 
-function BrandCitationSummary({
-  query,
-  mode,
-}: {
-  query: RankQuery;
-  mode: RankTrackerMode;
-}) {
+function BrandCitationSummary({ query, mode }: { query: RankQuery; mode: RankTrackerMode }) {
   const stats = useMemo(() => aggregateBrandStats(query, mode), [query, mode]);
   if (!stats.length) {
     return (

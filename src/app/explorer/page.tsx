@@ -36,8 +36,8 @@ export default function ExplorerPage() {
         pillarRows={REPORTING_PILLAR_ROWS}
         capabilityRows={REPORTING_CAPABILITY_ROWS}
         primaryCta={REPORTING_HERO.primaryCta}
-        secondaryCtaLabel="Run free GEO audit"
-        secondaryCtaHref="/analyzer"
+        secondaryCtaLabel="Get started"
+        secondaryCtaHref="/sign-up"
         headingId="reporting-why-heading"
       />
       <LandingFaq

@@ -35,14 +35,29 @@ const LINK_TYPE_LABEL: Record<BacklinkLinkType, string> = {
 };
 
 const STATUS_STYLES: Record<BacklinkOrderStatus, { label: string; cls: string }> = {
-  draft:           { label: "Draft",       cls: "bg-muted/40 text-muted-foreground border-border" },
-  pending_payment: { label: "Pay pending", cls: "bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-300" },
-  queued:          { label: "Queued",      cls: "bg-orange-500/10 text-orange-700 border-orange-500/30 dark:text-orange-300" },
-  in_progress:     { label: "In progress", cls: "bg-orange-500/15 text-orange-800 border-orange-500/40 dark:text-orange-300" },
-  delivered:       { label: "Delivered",   cls: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-300" },
-  rejected:        { label: "Rejected",    cls: "bg-rose-500/10 text-rose-700 border-rose-500/30 dark:text-rose-300" },
-  refunded:        { label: "Refunded",    cls: "bg-muted/40 text-muted-foreground border-border" },
-  cancelled:       { label: "Cancelled",   cls: "bg-muted/40 text-muted-foreground border-border" },
+  draft: { label: "Draft", cls: "bg-muted/40 text-muted-foreground border-border" },
+  pending_payment: {
+    label: "Pay pending",
+    cls: "bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-300",
+  },
+  queued: {
+    label: "Queued",
+    cls: "bg-orange-500/10 text-orange-700 border-orange-500/30 dark:text-orange-300",
+  },
+  in_progress: {
+    label: "In progress",
+    cls: "bg-orange-500/15 text-orange-800 border-orange-500/40 dark:text-orange-300",
+  },
+  delivered: {
+    label: "Delivered",
+    cls: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-300",
+  },
+  rejected: {
+    label: "Rejected",
+    cls: "bg-rose-500/10 text-rose-700 border-rose-500/30 dark:text-rose-300",
+  },
+  refunded: { label: "Refunded", cls: "bg-muted/40 text-muted-foreground border-border" },
+  cancelled: { label: "Cancelled", cls: "bg-muted/40 text-muted-foreground border-border" },
 };
 
 function formatPrice(cents: number, currency: string) {
@@ -119,7 +134,7 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
       const r = await listBacklinkOrders(slug, userEmail || undefined);
       setOrders(r.orders);
     } catch {
-      // Non-fatal — keep prior orders on screen.
+      // Non-fatal, keep prior orders on screen.
     }
   }, [slug, userEmail]);
 
@@ -219,9 +234,7 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <ShoppingBag className="size-3.5 text-orange-600 dark:text-orange-400" />
-          <p className="text-[11px] font-semibold text-foreground">
-            Buy backlinks for this prompt
-          </p>
+          <p className="text-[11px] font-semibold text-foreground">Buy backlinks for this prompt</p>
           <span className="text-[10px] text-muted-foreground">
             {visibleProducts.length} listings
           </span>
@@ -242,7 +255,8 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
               · {formatPrice(unpaidTotalCents, unpaidOrders[0]?.currency || "USD")}
             </p>
             <p className="mt-0.5 text-[11px] leading-snug text-amber-700 dark:text-amber-300/90">
-              Your order isn&apos;t sent to the provider until you click <strong>Pay</strong> on each row below.
+              Your order isn&apos;t sent to the provider until you click <strong>Pay</strong> on
+              each row below.
             </p>
           </div>
         </div>
@@ -257,10 +271,7 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
             const isPaying = payingOrderId === o.id;
             const rowError = payError && payError.id === o.id ? payError.msg : null;
             return (
-              <div
-                key={o.id}
-                className="rounded-md border border-border bg-muted/15"
-              >
+              <div key={o.id} className="rounded-md border border-border bg-muted/15">
                 <div className="flex min-w-0 items-center gap-2 px-2.5 py-1.5">
                   {o.status === "delivered" ? (
                     <CheckCircle2 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
@@ -293,9 +304,7 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
                       ) : (
                         <CreditCard className="size-3" />
                       )}
-                      {isPaying
-                        ? "Confirming…"
-                        : `Pay ${formatPrice(o.price_cents, o.currency)}`}
+                      {isPaying ? "Confirming…" : `Pay ${formatPrice(o.price_cents, o.currency)}`}
                     </button>
                   ) : null}
                   {o.proof_url ? (
@@ -357,7 +366,9 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
       <div className="mt-2.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
         {visibleProducts.length === 0 ? (
           <div className="col-span-full rounded-md border border-dashed border-border/70 bg-muted/15 px-3 py-6 text-center">
-            <p className="text-[11px] font-medium text-foreground">No listings match these filters</p>
+            <p className="text-[11px] font-medium text-foreground">
+              No listings match these filters
+            </p>
             <p className="mt-0.5 text-[10px] text-muted-foreground">
               Try removing the DA cutoff or switching link type.
             </p>
@@ -370,12 +381,8 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
             >
               <div className="flex min-w-0 items-start gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12px] font-semibold text-foreground">
-                    {p.domain}
-                  </p>
-                  <p className="line-clamp-1 text-[10px] text-muted-foreground">
-                    {p.title}
-                  </p>
+                  <p className="truncate text-[12px] font-semibold text-foreground">{p.domain}</p>
+                  <p className="line-clamp-1 text-[10px] text-muted-foreground">{p.title}</p>
                 </div>
                 <span className="shrink-0 rounded border border-border bg-card px-1.5 py-px text-[10px] font-semibold tabular-nums text-foreground">
                   {formatPrice(p.price_cents, p.currency)}
@@ -398,9 +405,7 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
                 <span className="rounded border border-border bg-muted/30 px-1.5 py-px text-[9px] text-muted-foreground">
                   {p.lead_time_days}d
                 </span>
-                <span className="ml-auto text-[10px] text-muted-foreground">
-                  {p.provider_name}
-                </span>
+                <span className="ml-auto text-[10px] text-muted-foreground">{p.provider_name}</span>
               </div>
               <Button
                 type="button"
@@ -474,17 +479,17 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
                 />
               </div>
 
-              {orderError ? (
-                <p className="text-[11px] text-destructive">{orderError}</p>
-              ) : null}
+              {orderError ? <p className="text-[11px] text-destructive">{orderError}</p> : null}
 
               <div className="rounded-md border border-orange-500/20 bg-orange-500/5 p-2.5">
                 <p className="text-[11px] font-medium text-foreground">
                   Estimated delivery: {buyingProduct.lead_time_days} days
                 </p>
                 <p className="mt-0.5 text-[10px] text-muted-foreground">
-                  You&apos;ll be charged {formatPrice(buyingProduct.price_cents, buyingProduct.currency)} once
-                  payment is wired up. The provider handles the placement and shares the live URL when it&apos;s done.
+                  You&apos;ll be charged{" "}
+                  {formatPrice(buyingProduct.price_cents, buyingProduct.currency)} once payment is
+                  wired up. The provider handles the placement and shares the live URL when
+                  it&apos;s done.
                 </p>
               </div>
             </div>
@@ -507,7 +512,9 @@ export function BacklinkMarketplacePanel({ slug, trackId, promptText, brandUrl }
                 className="gap-1.5 bg-orange-600 px-3 text-xs font-semibold text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-500"
               >
                 {placing ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                {placing ? "Placing…" : `Order ${formatPrice(buyingProduct.price_cents, buyingProduct.currency)}`}
+                {placing
+                  ? "Placing…"
+                  : `Order ${formatPrice(buyingProduct.price_cents, buyingProduct.currency)}`}
               </Button>
             </div>
           </div>

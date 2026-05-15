@@ -3,9 +3,9 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, SITE_BRAND, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Blog — GEO playbooks, AI visibility research",
+  title: "Blog, GEO playbooks, AI visibility research",
   description:
-    "Playbooks, research, and guides on GEO, AI search visibility, citation attribution, llms.txt, and the schemas that move the needle — written by operators shipping Signalor every day.",
+    "Playbooks, research, and guides on GEO, AI search visibility, citation attribution, llms.txt, and the schemas that move the needle, written by operators shipping Signalor every day.",
   path: "/blog",
 });
 

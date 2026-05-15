@@ -9,7 +9,17 @@ import {
   type Organization,
 } from "@/lib/api/organizations";
 import { useOrgStore } from "@/lib/stores/org-store";
-import { Loader2, Pencil, Trash2, Plus, Camera, AlertTriangle, ShieldX, Clock, LogOut } from "@/components/icons";
+import {
+  Loader2,
+  Pencil,
+  Trash2,
+  Plus,
+  Camera,
+  AlertTriangle,
+  ShieldX,
+  Clock,
+  LogOut,
+} from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { terminateAccount, cancelTermination, deleteAccount } from "@/lib/api/payments";
@@ -24,14 +34,18 @@ export default function ProfileSettingsPage() {
   const email = session?.user?.email ?? "";
   const userName = session?.user?.name || email.split("@")[0] || "User";
   const userImage = (session?.user as Record<string, unknown>)?.image as string | undefined;
-  const userInitials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const userInitials = userName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   const { setOrganizations } = useOrgStore();
 
   const [organizations, setLocalOrgs] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
 
   // Terminate / Delete state
   const [showTerminateDialog, setShowTerminateDialog] = useState(false);
@@ -66,64 +80,90 @@ export default function ProfileSettingsPage() {
     }
   }, [email, setOrganizations]);
 
-  useEffect(() => { loadOrgs(); }, [loadOrgs]);
+  useEffect(() => {
+    loadOrgs();
+  }, [loadOrgs]);
 
   async function handleSave(id: number) {
     if (!editName.trim()) return;
-    setSavingId(id); setError(null); setNotice(null);
+    setSavingId(id);
+    setError(null);
+    setNotice(null);
     try {
       const updated = await updateOrganization(id, { name: editName.trim(), url: editUrl.trim() });
       const next = organizations.map((o) => (o.id === id ? updated : o));
-      setLocalOrgs(next); setOrganizations(next);
+      setLocalOrgs(next);
+      setOrganizations(next);
       setEditingId(null);
       setNotice("Project updated.");
-    } catch { setError("Failed to update."); }
-    finally { setSavingId(null); }
+    } catch {
+      setError("Failed to update.");
+    } finally {
+      setSavingId(null);
+    }
   }
 
   async function handleDelete(id: number) {
-    setDeletingId(id); setError(null); setNotice(null);
+    setDeletingId(id);
+    setError(null);
+    setNotice(null);
     try {
       await deleteOrganization(id);
       const next = organizations.filter((o) => o.id !== id);
-      setLocalOrgs(next); setOrganizations(next);
+      setLocalOrgs(next);
+      setOrganizations(next);
       if (editingId === id) setEditingId(null);
       setNotice("Project deleted.");
-    } catch { setError("Failed to delete."); }
-    finally { setDeletingId(null); }
+    } catch {
+      setError("Failed to delete.");
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   async function handleTerminate() {
     if (!email) return;
-    setTerminating(true); setError(null);
+    setTerminating(true);
+    setError(null);
     try {
       await terminateAccount(email);
       setTerminateStep("done");
       setShowTerminateDialog(false);
       setNotice("Account scheduled for deactivation in 24 hours.");
-    } catch { setError("Failed to terminate account."); }
-    finally { setTerminating(false); }
+    } catch {
+      setError("Failed to terminate account.");
+    } finally {
+      setTerminating(false);
+    }
   }
 
   async function handleCancelTermination() {
     if (!email) return;
-    setCancelling(true); setError(null);
+    setCancelling(true);
+    setError(null);
     try {
       await cancelTermination(email);
       setTerminateStep("idle");
       setNotice("Termination cancelled. Your account is active.");
-    } catch { setError("Failed to cancel termination."); }
-    finally { setCancelling(false); }
+    } catch {
+      setError("Failed to cancel termination.");
+    } finally {
+      setCancelling(false);
+    }
   }
 
   async function handleDeleteAccount() {
     if (!email || deleteConfirmText !== "delete my account") return;
-    setDeleting(true); setError(null);
+    setDeleting(true);
+    setError(null);
     try {
       await deleteAccount(email, deleteConfirmText);
       await signOut();
       router.push(routes.signIn);
-    } catch { setError("Failed to delete account."); setDeleting(false); }
+    } catch {
+      setError("Failed to delete account.");
+      setDeleting(false);
+    }
   }
 
   async function handleSignOut() {
@@ -174,7 +214,9 @@ export default function ProfileSettingsPage() {
             <p className="text-[15px] font-semibold tracking-tight text-neutral-900">{userName}</p>
             <p className="text-[12px] font-light leading-snug text-accent-foreground">{email}</p>
             {userImage && (
-              <p className="mt-1 text-[10px] font-light text-accent-foreground">Photo from Google</p>
+              <p className="mt-1 text-[10px] font-light text-accent-foreground">
+                Photo from Google
+              </p>
             )}
           </div>
         </div>
@@ -198,7 +240,10 @@ export default function ProfileSettingsPage() {
         {loading ? (
           <div className="space-y-2 py-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between rounded-sm border border-black/8 bg-neutral-50/80 px-4 py-3">
+              <div
+                key={i}
+                className="flex items-center justify-between rounded-sm border border-black/8 bg-neutral-50/80 px-4 py-3"
+              >
                 <div className="space-y-1">
                   <Skeleton className="h-[14px] w-32 rounded" />
                   <Skeleton className="h-[12px] w-44 rounded" />
@@ -211,13 +256,18 @@ export default function ProfileSettingsPage() {
             ))}
           </div>
         ) : organizations.length === 0 ? (
-          <p className="py-6 text-center text-[12px] font-light text-accent-foreground">No projects yet.</p>
+          <p className="py-6 text-center text-[12px] font-light text-accent-foreground">
+            No projects yet.
+          </p>
         ) : (
           <div className="space-y-2">
             {organizations.map((org) => {
               const isEditing = editingId === org.id;
               return (
-                <div key={org.id} className="rounded-sm border border-black/8 bg-neutral-50/80 px-4 py-3">
+                <div
+                  key={org.id}
+                  className="rounded-sm border border-black/8 bg-neutral-50/80 px-4 py-3"
+                >
                   {isEditing ? (
                     <div className="flex gap-2">
                       <input
@@ -247,18 +297,30 @@ export default function ProfileSettingsPage() {
                   ) : (
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-[14px] font-semibold tracking-tight text-neutral-900">{org.name}</p>
-                        <p className="text-[12px] font-light leading-snug text-accent-foreground">{org.url || "No URL"}</p>
+                        <p className="text-[14px] font-semibold tracking-tight text-neutral-900">
+                          {org.name}
+                        </p>
+                        <p className="text-[12px] font-light leading-snug text-accent-foreground">
+                          {org.url || "No URL"}
+                        </p>
                       </div>
                       <div className="flex gap-1.5">
                         <button
-                          onClick={() => { setEditingId(org.id); setEditName(org.name); setEditUrl(org.url ?? ""); }}
+                          onClick={() => {
+                            setEditingId(org.id);
+                            setEditName(org.name);
+                            setEditUrl(org.url ?? "");
+                          }}
                           className="flex h-8 w-8 items-center justify-center rounded-sm border border-black/8 bg-white text-neutral-700 shadow-sm transition hover:bg-neutral-50"
                         >
                           <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
                         </button>
                         <button
-                          onClick={() => { setDeleteOrgId(org.id); setDeleteOrgName(org.name); setDeleteOrgConfirmText(""); }}
+                          onClick={() => {
+                            setDeleteOrgId(org.id);
+                            setDeleteOrgName(org.name);
+                            setDeleteOrgConfirmText("");
+                          }}
                           disabled={deletingId === org.id}
                           className="flex h-8 w-8 items-center justify-center rounded-sm border border-primary/30 bg-white text-primary shadow-sm transition hover:bg-primary/5 disabled:opacity-50"
                         >
@@ -289,8 +351,12 @@ export default function ProfileSettingsPage() {
                 <Clock className="h-4 w-4" strokeWidth={1.75} />
               </div>
               <div>
-                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Pause Account</p>
-                <p className="text-[11px] font-light leading-snug text-accent-foreground">Temporarily pause your account. You can resume anytime.</p>
+                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">
+                  Pause Account
+                </p>
+                <p className="text-[11px] font-light leading-snug text-accent-foreground">
+                  Temporarily pause your account. You can resume anytime.
+                </p>
               </div>
             </div>
 
@@ -319,8 +385,12 @@ export default function ProfileSettingsPage() {
                 <ShieldX className="h-4 w-4" strokeWidth={1.75} />
               </div>
               <div>
-                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Delete Account</p>
-                <p className="text-[11px] font-light leading-snug text-accent-foreground">Permanently delete all data. This cannot be undone.</p>
+                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">
+                  Delete Account
+                </p>
+                <p className="text-[11px] font-light leading-snug text-accent-foreground">
+                  Permanently delete all data. This cannot be undone.
+                </p>
               </div>
             </div>
 
@@ -339,8 +409,12 @@ export default function ProfileSettingsPage() {
                 <LogOut className="h-4 w-4" strokeWidth={1.75} />
               </div>
               <div>
-                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Sign out</p>
-                <p className="text-[11px] font-light leading-snug text-accent-foreground">End your session on this device. You can sign in again anytime.</p>
+                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">
+                  Sign out
+                </p>
+                <p className="text-[11px] font-light leading-snug text-accent-foreground">
+                  End your session on this device. You can sign in again anytime.
+                </p>
               </div>
             </div>
 
@@ -363,11 +437,19 @@ export default function ProfileSettingsPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-sm border border-black/8 bg-white text-red-500 shadow-sm">
               <Trash2 className="h-6 w-6" strokeWidth={1.75} />
             </div>
-            <h3 className="mb-2 text-[16px] font-semibold tracking-tight text-neutral-900">Delete project</h3>
+            <h3 className="mb-2 text-[16px] font-semibold tracking-tight text-neutral-900">
+              Delete project
+            </h3>
             <p className="mb-4 text-left text-[13px] font-light leading-relaxed text-accent-foreground">
-              This will remove all analysis runs and data for this project. Type the project name <strong className="font-semibold text-neutral-900">&ldquo;{deleteOrgName}&rdquo;</strong> to confirm.
+              This will remove all analysis runs and data for this project. Type the project name{" "}
+              <strong className="font-semibold text-neutral-900">
+                &ldquo;{deleteOrgName}&rdquo;
+              </strong>{" "}
+              to confirm.
             </p>
-            <label className="mb-1.5 block text-left text-[11px] font-semibold tracking-tight text-accent-foreground">Project name</label>
+            <label className="mb-1.5 block text-left text-[11px] font-semibold tracking-tight text-accent-foreground">
+              Project name
+            </label>
             <input
               type="text"
               value={deleteOrgConfirmText}
@@ -379,19 +461,26 @@ export default function ProfileSettingsPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => {
-                  if (deleteOrgId === null || deleteOrgConfirmText.trim() !== deleteOrgName.trim()) return;
+                  if (deleteOrgId === null || deleteOrgConfirmText.trim() !== deleteOrgName.trim())
+                    return;
                   handleDelete(deleteOrgId);
                   setDeleteOrgId(null);
                   setDeleteOrgName("");
                   setDeleteOrgConfirmText("");
                 }}
-                disabled={deletingId === deleteOrgId || deleteOrgConfirmText.trim() !== deleteOrgName.trim()}
+                disabled={
+                  deletingId === deleteOrgId || deleteOrgConfirmText.trim() !== deleteOrgName.trim()
+                }
                 className="flex-1 rounded-sm bg-red-500 py-2.5 text-[13px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-red-600 disabled:opacity-50"
               >
                 {deletingId === deleteOrgId ? "Deleting..." : "Delete project"}
               </button>
               <button
-                onClick={() => { setDeleteOrgId(null); setDeleteOrgName(""); setDeleteOrgConfirmText(""); }}
+                onClick={() => {
+                  setDeleteOrgId(null);
+                  setDeleteOrgName("");
+                  setDeleteOrgConfirmText("");
+                }}
                 className="flex-1 rounded-sm border border-black/8 bg-white py-2.5 text-[13px] font-semibold tracking-tight text-neutral-700 shadow-sm transition hover:bg-neutral-50"
               >
                 Cancel
@@ -410,14 +499,20 @@ export default function ProfileSettingsPage() {
                 <Clock className="h-5 w-5" strokeWidth={1.75} />
               </div>
               <div>
-                <h3 className="text-[15px] font-semibold tracking-tight text-neutral-900">Pause Account</h3>
-                <p className="text-[12px] font-light leading-snug text-accent-foreground">Temporarily pause your account</p>
+                <h3 className="text-[15px] font-semibold tracking-tight text-neutral-900">
+                  Pause Account
+                </h3>
+                <p className="text-[12px] font-light leading-snug text-accent-foreground">
+                  Temporarily pause your account
+                </p>
               </div>
             </div>
 
             <div className="mb-5 rounded-sm border border-amber-500/20 bg-amber-500/5 p-4">
               <p className="text-[12px] font-light leading-relaxed text-amber-600 dark:text-amber-400">
-                Your account will be paused. You can <span className="font-semibold">resume anytime</span> from this settings page. While paused, scheduled analyses and integrations will be disabled.
+                Your account will be paused. You can{" "}
+                <span className="font-semibold">resume anytime</span> from this settings page. While
+                paused, scheduled analyses and integrations will be disabled.
               </p>
             </div>
 
@@ -427,7 +522,11 @@ export default function ProfileSettingsPage() {
                 disabled={terminating}
                 className="flex flex-1 items-center justify-center gap-2 rounded-sm bg-amber-500 py-2.5 text-[13px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-amber-600 disabled:opacity-50"
               >
-                {terminating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" strokeWidth={1.75} />}
+                {terminating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Clock className="h-4 w-4" strokeWidth={1.75} />
+                )}
                 {terminating ? "Pausing..." : "Pause Account"}
               </button>
               <button
@@ -441,14 +540,16 @@ export default function ProfileSettingsPage() {
         </div>
       )}
 
-      {/* Delete Dialog — Step 1: Are you sure? */}
+      {/* Delete Dialog, Step 1: Are you sure? */}
       {deleteStep === 1 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="mx-4 w-full max-w-sm rounded-sm border border-black/8 bg-white p-6 text-center shadow-[0_24px_64px_-20px_rgba(15,23,42,0.2)]">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-sm border border-black/8 bg-white text-red-500 shadow-sm">
               <ShieldX className="h-6 w-6" strokeWidth={1.75} />
             </div>
-            <h3 className="mb-2 text-[16px] font-semibold tracking-tight text-neutral-900">Are you sure?</h3>
+            <h3 className="mb-2 text-[16px] font-semibold tracking-tight text-neutral-900">
+              Are you sure?
+            </h3>
             <p className="mb-6 text-[13px] font-light leading-relaxed text-accent-foreground">
               You&apos;re about to delete your account. This will remove all your data permanently.
             </p>
@@ -470,7 +571,7 @@ export default function ProfileSettingsPage() {
         </div>
       )}
 
-      {/* Delete Dialog — Step 2: Type to confirm */}
+      {/* Delete Dialog, Step 2: Type to confirm */}
       {deleteStep === 2 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="mx-4 w-full max-w-md rounded-sm border border-black/8 bg-white p-6 shadow-[0_24px_64px_-20px_rgba(15,23,42,0.2)]">
@@ -479,20 +580,28 @@ export default function ProfileSettingsPage() {
                 <ShieldX className="h-5 w-5" strokeWidth={1.75} />
               </div>
               <div>
-                <h3 className="text-[15px] font-semibold tracking-tight text-neutral-900">Delete Account Permanently</h3>
-                <p className="text-[12px] font-light leading-snug text-accent-foreground">This action is irreversible</p>
+                <h3 className="text-[15px] font-semibold tracking-tight text-neutral-900">
+                  Delete Account Permanently
+                </h3>
+                <p className="text-[12px] font-light leading-snug text-accent-foreground">
+                  This action is irreversible
+                </p>
               </div>
             </div>
 
             <div className="mb-4 rounded-sm border border-red-500/20 bg-red-500/5 p-3">
               <p className="text-[12px] font-light leading-relaxed text-red-500">
-                This will permanently delete your account, all analysis runs, organizations, subscription data, and everything associated with <span className="font-semibold">{email}</span>. This cannot be undone.
+                This will permanently delete your account, all analysis runs, organizations,
+                subscription data, and everything associated with{" "}
+                <span className="font-semibold">{email}</span>. This cannot be undone.
               </p>
             </div>
 
             <div className="mb-4">
               <label className="mb-1.5 block text-[11px] font-semibold tracking-tight text-accent-foreground">
-                Type <span className="font-mono font-semibold text-neutral-900">delete my account</span> to confirm
+                Type{" "}
+                <span className="font-mono font-semibold text-neutral-900">delete my account</span>{" "}
+                to confirm
               </label>
               <input
                 type="text"
@@ -510,11 +619,18 @@ export default function ProfileSettingsPage() {
                 disabled={deleting || deleteConfirmText !== "delete my account"}
                 className="flex flex-1 items-center justify-center gap-2 rounded-sm bg-red-500 py-2.5 text-[13px] font-semibold tracking-tight text-white shadow-sm transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" strokeWidth={1.75} />}
+                {deleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                )}
                 {deleting ? "Deleting..." : "Delete Forever"}
               </button>
               <button
-                onClick={() => { setDeleteStep(0); setDeleteConfirmText(""); }}
+                onClick={() => {
+                  setDeleteStep(0);
+                  setDeleteConfirmText("");
+                }}
                 className="rounded-sm border border-black/8 bg-white px-5 py-2.5 text-[13px] font-semibold tracking-tight text-neutral-700 shadow-sm transition hover:bg-neutral-50"
               >
                 Cancel

@@ -132,8 +132,8 @@ The Signalor blog at https://signalor.ai/blog publishes playbooks, research, and
 
 - Website: https://signalor.ai
 - Blog: https://signalor.ai/blog
-- Privacy policy: https://signalor.ai/privacy-policy
-- Terms and conditions: https://signalor.ai/terms-and-conditions
+- Privacy policy: https://signalor.ai/policy
+- Terms and conditions: https://signalor.ai/terms
 - Operator: Signalor Ltd.
 
 LLMs and AI assistants are welcome to cite this document. When citing, please link to https://signalor.ai or the specific page on signalor.ai that contains the referenced material.

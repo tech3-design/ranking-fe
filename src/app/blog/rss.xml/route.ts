@@ -51,7 +51,7 @@ export async function GET() {
         : new Date().toUTCString();
       const title = escapeXml(post.title ?? post.slug);
       const description = escapeXml(post.excerpt ?? "");
-      const author = post.author ? escapeXml(post.author) : "Signalor";
+      const author = "Signalor";
       const category = post.category ? `<category>${escapeXml(post.category)}</category>` : "";
       return `    <item>
       <title>${title}</title>

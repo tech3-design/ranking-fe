@@ -3,7 +3,7 @@ import * as React from "react";
 /**
  * Custom sidebar nav icon set for Signalor's dashboard navigation.
  *
- * Style rules — keep these consistent so the set reads as a designed family:
+ * Style rules, keep these consistent so the set reads as a designed family:
  *   - 24×24 viewBox, fill=none, currentColor stroke
  *   - 2px stroke, round caps and joins (matches lucide's visual weight so
  *     these can sit alongside other lucide icons in the same UI)
@@ -29,7 +29,7 @@ function svgBase(props: IconProps) {
   };
 }
 
-// Overview — 2×2 dashboard panel, top-left tile gets the accent.
+// Overview, 2×2 dashboard panel, top-left tile gets the accent.
 export function OverviewIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -42,7 +42,7 @@ export function OverviewIcon(props: IconProps) {
   );
 }
 
-// Visibility — eye outline with a centered AI-pupil dot.
+// Visibility, eye outline with a centered AI-pupil dot.
 export function VisibilityIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -53,7 +53,7 @@ export function VisibilityIcon(props: IconProps) {
   );
 }
 
-// Sitemap — root page connected to three child pages.
+// Sitemap, root page connected to three child pages.
 export function SitemapIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -68,7 +68,7 @@ export function SitemapIcon(props: IconProps) {
   );
 }
 
-// Tasks — two checklist rows, one checked, with a "pulse" accent dot.
+// Tasks, two checklist rows, one checked, with a "pulse" accent dot.
 export function TasksIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -82,7 +82,7 @@ export function TasksIcon(props: IconProps) {
   );
 }
 
-// Tracker — speech/prompt bubble centered on a citation target dot.
+// Tracker, speech/prompt bubble centered on a citation target dot.
 export function TrackerIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -92,20 +92,7 @@ export function TrackerIcon(props: IconProps) {
   );
 }
 
-// Wikipedia — open book, accent dot on the spine like a bookmark.
-export function WikipediaIcon(props: IconProps) {
-  return (
-    <svg {...svgBase(props)}>
-      <path d="M3 5a2 2 0 0 1 2-2h6.5v18H5a2 2 0 0 1-2-2V5z" />
-      <path d="M21 5a2 2 0 0 0-2-2h-6.5v18H19a2 2 0 0 0 2-2V5z" />
-      <path d="M6 8h3M6 11h3M6 14h2.5" />
-      <path d="M15 8h3M15 11h3M15 14h2.5" />
-      <circle cx="12" cy="6" r="0.9" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-// Competitors — primary brand avatar foregrounded, rival avatar behind.
+// Competitors, primary brand avatar foregrounded, rival avatar behind.
 export function CompetitorsIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -118,7 +105,7 @@ export function CompetitorsIcon(props: IconProps) {
   );
 }
 
-// Content — document outline with text lines and a "signal" accent.
+// Content, document outline with text lines and a "signal" accent.
 export function ContentIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
@@ -131,27 +118,26 @@ export function ContentIcon(props: IconProps) {
   );
 }
 
-// Blog Agent — document with a pen tip writing a "signal" dot.
-export function BlogAgentIcon(props: IconProps) {
-  return (
-    <svg {...svgBase(props)}>
-      <rect x="4" y="3" width="11" height="18" rx="1.5" />
-      <path d="M7 8h5" />
-      <path d="M7 12h5" />
-      <path d="M7 16h3" />
-      <path d="M16.5 12.5l3.5 3.5-3.5 3.5-2 .5.5-2z" />
-      <circle cx="20" cy="16" r="0.9" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-// Backlinks — two interlocked rings (clearer than a chain glyph at small sizes).
+// Backlinks, two interlocked rings (clearer than a chain glyph at small sizes).
 export function BacklinksIcon(props: IconProps) {
   return (
     <svg {...svgBase(props)}>
       <circle cx="8.5" cy="12" r="5" />
       <circle cx="15.5" cy="12" r="5" />
       <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+// BlogAgent, pen nib writing onto a page, accent dot at the nib tip.
+export function BlogAgentIcon(props: IconProps) {
+  return (
+    <svg {...svgBase(props)}>
+      <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+      <path d="M14 3v6h6" />
+      <path d="M8 13h8M8 17h5" />
+      <path d="M15.5 13.5 17 12l1.5 1.5-1.5 1.5z" fill="currentColor" stroke="none" />
+      <circle cx="17" cy="12" r="1" fill="currentColor" stroke="none" />
     </svg>
   );
 }

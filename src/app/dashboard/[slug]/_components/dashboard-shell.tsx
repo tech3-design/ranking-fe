@@ -14,11 +14,31 @@ import {
 } from "@/components/icons";
 
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: "Overview", route: (slug: string) => routes.dashboardProject(slug) },
-  { icon: ListChecks, label: "Fixes", route: (slug: string) => routes.dashboardProjectRecommendations(slug) },
-  { icon: Eye, label: "Visibility", route: (slug: string) => routes.dashboardProjectVisibility(slug) },
-  { icon: MessageSquare, label: "Prompts", route: (slug: string) => routes.dashboardProjectPrompts(slug) },
-  { icon: BarChart3, label: "Analytics", route: (slug: string) => routes.dashboardProjectAnalytics(slug) },
+  {
+    icon: LayoutDashboard,
+    label: "Overview",
+    route: (slug: string) => routes.dashboardProject(slug),
+  },
+  {
+    icon: ListChecks,
+    label: "Fixes",
+    route: (slug: string) => routes.dashboardProjectRecommendations(slug),
+  },
+  {
+    icon: Eye,
+    label: "Visibility",
+    route: (slug: string) => routes.dashboardProjectVisibility(slug),
+  },
+  {
+    icon: MessageSquare,
+    label: "Prompts",
+    route: (slug: string) => routes.dashboardProjectPrompts(slug),
+  },
+  {
+    icon: BarChart3,
+    label: "Analytics",
+    route: (slug: string) => routes.dashboardProjectAnalytics(slug),
+  },
 ];
 
 interface DashboardShellProps {
@@ -32,7 +52,12 @@ export function DashboardShell({ slug, activeNav, children }: DashboardShellProp
   const { data: session } = useSession();
 
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
-  const userInitials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const userInitials = userName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <div className="flex h-screen w-full bg-[#f4f2eb] font-sans text-[#2a2b2a] overflow-hidden">
@@ -84,7 +109,11 @@ export function DashboardShell({ slug, activeNav, children }: DashboardShellProp
 
         {/* CTA Card */}
         <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 mb-4">
-          <p className="text-sm font-bold leading-snug text-[#2a2b2a] mb-1">Boost Your<br />AI Visibility</p>
+          <p className="text-sm font-bold leading-snug text-[#2a2b2a] mb-1">
+            Boost Your
+            <br />
+            AI Visibility
+          </p>
           <p className="text-[11px] text-gray-500 mb-3">Elevate Your Site&apos;s Authority</p>
           <button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold py-2 rounded-xl transition-colors">
             Get Signalor Pro
@@ -93,7 +122,12 @@ export function DashboardShell({ slug, activeNav, children }: DashboardShellProp
 
         {/* Social icons */}
         <div className="flex items-center justify-center gap-3 text-gray-400 text-[11px] mt-1">
-          <span>f</span><span>X</span><span>in</span><span>o</span><span>yt</span><span>in</span>
+          <span>f</span>
+          <span>X</span>
+          <span>in</span>
+          <span>o</span>
+          <span>yt</span>
+          <span>in</span>
         </div>
       </aside>
 
@@ -105,8 +139,8 @@ export function DashboardShell({ slug, activeNav, children }: DashboardShellProp
         {/* <footer className="px-6 py-4 flex items-center justify-between text-[11px] text-gray-400 border-t border-gray-200/60">
           <p>Copyright &copy; 2026 Signalor Ltd.</p>
           <div className="flex items-center gap-4">
-            <a href="/privacy-policy" className="hover:text-gray-600 transition">Privacy Policy</a>
-            <a href="/terms-and-conditions" className="hover:text-gray-600 transition">Terms & conditions</a>
+            <a href="/policy" className="hover:text-gray-600 transition">Privacy Policy</a>
+            <a href="/terms" className="hover:text-gray-600 transition">Terms & conditions</a>
             <a href="#" className="hover:text-gray-600 transition">Contact</a>
           </div>
           <div className="flex items-center gap-2 text-gray-400">

@@ -4,8 +4,12 @@ import "./globals.css";
 import { Suspense } from "react";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ClarityInit } from "@/components/analytics/clarity";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { ReferralCapture } from "@/components/analytics/referral-capture";
 import { AffiliateCapture } from "@/components/analytics/affiliate-capture";
+import { Amplitude } from "@/amplitude";
+import { CookieConsentBanner } from "@/components/cookies/cookie-consent";
+import { QueryProvider } from "@/components/providers/query-provider";
 import {
   buildMetadata,
   organizationJsonLd,
@@ -38,7 +42,7 @@ export const metadata: Metadata = {
     path: "/",
   }),
   title: {
-    default: "Signalor.ai — AI search visibility & GEO platform",
+    default: "Signalor.ai | AI search visibility & GEO platform",
     template: "%s | Signalor.ai",
   },
 };
@@ -64,7 +68,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="alternate" type="application/rss+xml" title="Signalor Blog" href="/blog/rss.xml" />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Signalor Blog"
+          href="/blog/rss.xml"
+        />
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
         <JsonLd id="ld-organization" data={organizationJsonLd()} />
         <JsonLd id="ld-website" data={websiteJsonLd()} />
@@ -74,12 +83,15 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`signalor-body ${fontSerif.variable} ${fontMono.variable} overflow-x-hidden antialiased`}
       >
+        <Amplitude />
         <ClarityInit />
+        <GoogleAnalytics />
         <Suspense fallback={null}>
           <ReferralCapture />
           <AffiliateCapture />
         </Suspense>
-        {children}
+        <QueryProvider>{children}</QueryProvider>
+        <CookieConsentBanner />
       </body>
     </html>
   );

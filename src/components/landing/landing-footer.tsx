@@ -2,13 +2,24 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ExternalLink, Github, Linkedin, Twitter, Youtube } from "@/components/icons";
+import { useEffect, useState } from "react";
+import { groq } from "next-sanity";
+import {
+  ArrowRight,
+  ExternalLink,
+  Github,
+  Linkedin,
+  Twitter,
+  Youtube,
+  CirclePlus,
+} from "@/components/icons";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import LogoComp from "@/components/LogoComp";
 import { AiChip } from "@/components/ui/ai-chip";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CornerDiamonds } from "@/components/ui/intersection-diamonds";
+import { client } from "@/sanity/lib/client";
 
 type FooterLink = {
   href: string;
@@ -25,12 +36,10 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   {
     title: "Platform",
     links: [
+      { href: "/sign-up", label: "Get started" },
       { href: "/pricing", label: "Pricing" },
       { href: "/integration", label: "Integrations" },
       { href: "/prompt-tracking", label: "Prompt tracking" },
-      { href: "/analyzer", label: "Free GEO audit" },
-      { href: "/sign-up", label: "Get started" },
-      { href: "#features", label: "Product tour" },
     ],
   },
   {
@@ -53,21 +62,47 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   },
   {
     title: "Blog & resources",
-    links: [
-      { href: "/blog", label: "Blog" },
-      { href: "/blog?category=Playbooks", label: "GEO playbooks" },
-      { href: "/blog?category=AI%20visibility", label: "AI visibility guides" },
-      { href: "/blog?category=Product", label: "Product changelog" },
-    ],
+    links: [{ href: "/blog", label: "Blog" }],
   },
 ];
 
-const SOCIAL = [
-  { href: "https://twitter.com", label: "X (Twitter)", icon: Twitter },
-  { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin },
-  { href: "https://youtube.com", label: "YouTube", icon: Youtube },
-  { href: "https://github.com", label: "GitHub", icon: Github },
-] as const;
+const SOCIAL = [{ href: "https://x.com/SignalorAI", label: "X (Twitter)", icon: Twitter }] as const;
+
+const RECENT_POSTS_QUERY = groq`*[_type == "post" && defined(slug.current)] | order(publishedAt desc)[0...3] {
+  "slug": slug.current,
+  title
+}`;
+
+interface RecentPost {
+  slug: string;
+  title: string;
+}
+
+function truncateTitle(title: string, max = 34): string {
+  if (title.length <= max) return title;
+  return title.slice(0, max).trimEnd() + "…";
+}
+
+function RecentBlogLinks() {
+  const [posts, setPosts] = useState<RecentPost[]>([]);
+
+  useEffect(() => {
+    client
+      .fetch<RecentPost[]>(RECENT_POSTS_QUERY)
+      .then(setPosts)
+      .catch(() => {});
+  }, []);
+
+  return (
+    <>
+      {posts.map((post) => (
+        <li key={post.slug}>
+          <FooterLinkRow href={`/blog/${post.slug}`} label={truncateTitle(post.title)} />
+        </li>
+      ))}
+    </>
+  );
+}
 
 function FooterLinkRow({ href, label, external }: FooterLink) {
   const className = cn(
@@ -157,15 +192,14 @@ export function LandingFooter() {
                 <LogoComp compact size={32} />
               </Link>
               <p className="mt-5 max-w-xs text-sm font-normal leading-relaxed text-neutral-600">
-                The AI visibility platform to monitor, score, and grow how generative search cites your
-                brand.{" "}
+                The AI visibility platform to monitor, score, and grow how generative search cites
+                your brand.{" "}
                 <a
                   href="mailto:hello@signalor.ai?subject=Careers"
-                  className="font-medium text-[#2563eb] underline decoration-[#2563eb]/35 underline-offset-2 transition-colors hover:decoration-[#2563eb]"
+                  className="inline-flex align-middle hover:text-neutral-900 transition-colors text-sm font-medium text-primary"
                 >
-                  Join our team
+                  <CirclePlus width={16} height={16} />
                 </a>
-                .
               </p>
               <ul className="mt-6 flex flex-wrap items-center gap-2">
                 {SOCIAL.map(({ href, label, icon: Icon }) => (
@@ -187,7 +221,10 @@ export function LandingFooter() {
             <div className="min-w-0 flex-1 bg-neutral-50">
               <div className="grid grid-cols-1 divide-y divide-black/8 lg:grid-cols-4 lg:divide-x lg:divide-y-0">
                 {FOOTER_COLUMNS.map((col) => (
-                  <div key={col.title} className="min-w-0 px-6 py-10 sm:px-8 sm:py-12 lg:px-8 lg:py-14">
+                  <div
+                    key={col.title}
+                    className="min-w-0 px-6 py-10 sm:px-8 sm:py-12 lg:px-8 lg:py-14"
+                  >
                     <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-900">
                       {col.title}
                     </p>
@@ -197,6 +234,7 @@ export function LandingFooter() {
                           <FooterLinkRow {...item} />
                         </li>
                       ))}
+                      {col.title === "Blog & resources" && <RecentBlogLinks />}
                     </ul>
                   </div>
                 ))}
@@ -210,25 +248,28 @@ export function LandingFooter() {
                 aria-label="Legal"
                 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium text-neutral-600"
               >
-                <Link href="/privacy-policy" className="transition-colors hover:text-neutral-900">
+                <Link href="/policy" className="transition-colors hover:text-neutral-900">
                   Privacy policy
                 </Link>
                 <span className="text-neutral-300" aria-hidden>
                   ·
                 </span>
-                <Link href="/terms-and-conditions" className="transition-colors hover:text-neutral-900">
+                <Link href="/terms" className="transition-colors hover:text-neutral-900">
                   Terms of service
                 </Link>
                 <span className="text-neutral-300" aria-hidden>
                   ·
                 </span>
-                <a href="mailto:hello@signalor.ai" className="transition-colors hover:text-neutral-900">
+                <a
+                  href="mailto:hello@signalor.ai"
+                  className="transition-colors hover:text-neutral-900"
+                >
                   Contact us
                 </a>
                 <span className="text-neutral-300" aria-hidden>
                   ·
                 </span>
-                <Link href="/about" className="transition-colors hover:text-neutral-900">
+                <Link href="/about-us" className="transition-colors hover:text-neutral-900">
                   About
                 </Link>
                 <span className="text-neutral-300" aria-hidden>
@@ -242,15 +283,17 @@ export function LandingFooter() {
                 </a>
               </nav>
 
-              <div className="flex flex-col items-start gap-2 lg:items-end">
-                <div className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white px-3 py-1.5 text-[11px] font-medium text-neutral-800 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
-                  All systems online
+              <Link href="https://status.signalor.ai/" target="_blank">
+                <div className="flex flex-col items-start gap-2 lg:items-end">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white px-3 py-1.5 text-[11px] font-medium text-neutral-800 shadow-[0_1px_0_rgba(0,0,0,0.03)]">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                    All systems online
+                  </div>
+                  <p className="text-[11px] leading-snug text-neutral-500">
+                    © {new Date().getFullYear()} Signalor. All rights reserved.
+                  </p>
                 </div>
-                <p className="text-[11px] leading-snug text-neutral-500">
-                  © {new Date().getFullYear()} Signalor. All rights reserved.
-                </p>
-              </div>
+              </Link>
             </div>
           </div>
         </div>

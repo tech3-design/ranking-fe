@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { GADataSnapshot } from "@/lib/api/integrations";
 
 interface TrafficOverviewCardProps {
@@ -14,9 +9,7 @@ interface TrafficOverviewCardProps {
 
 export function TrafficOverviewCard({ data }: TrafficOverviewCardProps) {
   const organicPct =
-    data.sessions > 0
-      ? Math.round((data.organic_sessions / data.sessions) * 100)
-      : 0;
+    data.sessions > 0 ? Math.round((data.organic_sessions / data.sessions) * 100) : 0;
 
   const avgMinutes = Math.floor(data.avg_session_duration / 60);
   const avgSeconds = Math.round(data.avg_session_duration % 60);
@@ -50,7 +43,7 @@ export function TrafficOverviewCard({ data }: TrafficOverviewCardProps) {
           ))}
         </div>
         <p className="text-xs text-muted-foreground mt-4">
-          {data.date_start} — {data.date_end}
+          {data.date_start}, {data.date_end}
         </p>
       </CardContent>
     </Card>

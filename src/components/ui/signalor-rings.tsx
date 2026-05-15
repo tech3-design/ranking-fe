@@ -20,7 +20,7 @@ function randomBetween(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-/** Canonical signal-wave rings — the classic Signalor loader visual. */
+/** Canonical signal-wave rings, the classic Signalor loader visual. */
 export function SignalorRings({ size = "md", label }: SignalorRingsProps) {
   const px = SIZES[size];
   const svgRef = useRef<SVGSVGElement>(null);
@@ -31,7 +31,8 @@ export function SignalorRings({ size = "md", label }: SignalorRingsProps) {
     if (!svg) return;
 
     const paths = svg.querySelectorAll<SVGPathElement>("[data-ring]");
-    const cx = 540, cy = 540;
+    const cx = 540,
+      cy = 540;
 
     const states = Array.from(paths).map((_, i) => ({
       scale: 1,
@@ -48,7 +49,7 @@ export function SignalorRings({ size = "md", label }: SignalorRingsProps) {
       duration: randomBetween(1.5, 3),
     }));
 
-    function pickNewTarget(s: typeof states[0], i: number) {
+    function pickNewTarget(s: (typeof states)[0], i: number) {
       const outerFactor = 1 - i * 0.15;
       s.targetScale = randomBetween(0.94, 1.08) * (1 + outerFactor * 0.02);
       s.targetRotate = randomBetween(-3, 3) * outerFactor;
@@ -80,7 +81,10 @@ export function SignalorRings({ size = "md", label }: SignalorRingsProps) {
         s.ty += (s.targetTy - s.ty) * ease * 0.08;
         s.opacity += (s.targetOpacity - s.opacity) * ease * 0.08;
 
-        el.setAttribute("transform", `translate(${s.tx} ${s.ty}) rotate(${s.rotate} ${cx} ${cy}) scale(${s.scale})`);
+        el.setAttribute(
+          "transform",
+          `translate(${s.tx} ${s.ty}) rotate(${s.rotate} ${cx} ${cy}) scale(${s.scale})`,
+        );
         el.setAttribute("opacity", String(s.opacity));
         el.style.transformOrigin = `${cx}px ${cy}px`;
 

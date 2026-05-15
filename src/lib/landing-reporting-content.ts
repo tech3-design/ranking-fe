@@ -4,7 +4,7 @@ import type { LucideIcon } from "@/components/icons";
 export const REPORTING_SITE = {
   title: "Explorer",
   description:
-    "Surface emerging prompts, citations, and competitor gaps — so your GEO roadmap stays ahead of the prompts buyers are starting to ask.",
+    "Surface emerging prompts, citations, and competitor gaps, so your GEO roadmap stays ahead of the prompts buyers are starting to ask.",
 } as const;
 
 export const REPORTING_HERO = {
@@ -13,9 +13,8 @@ export const REPORTING_HERO = {
   titleLine2: "prompts buyers are",
   titleAccent: "about to ask",
   subhead:
-    "Convert GEO scores, citation trends, and fix deltas into summaries, decks, and exports your stakeholders and clients actually read—without copy-pasting screenshots.",
-  footnote:
-    "PDF + CSV exports · branded decks · recurring email digests on higher tiers",
+    "Convert GEO scores, citation trends, and fix deltas into summaries, decks, and exports your stakeholders and clients actually read,without copy-pasting screenshots.",
+  footnote: "PDF + CSV exports · branded decks · recurring email digests on higher tiers",
   primaryCta: "Build a report",
   secondaryCta: "Run free GEO audit",
 } as const;
@@ -33,7 +32,7 @@ export const REPORTING_HUB_CARDS: {
     href: "/sign-up",
     title: "Executive summaries",
     description:
-      "One-page reads highlighting AI visibility, citation share, and shipped fixes—ready to drop into board decks.",
+      "One-page reads highlighting AI visibility, citation share, and shipped fixes,ready to drop into board decks.",
     Icon: Presentation,
     cta: "Learn more",
   },
@@ -42,7 +41,7 @@ export const REPORTING_HUB_CARDS: {
     href: "/sign-up",
     title: "Agency reports",
     description:
-      "Branded, client-ready PDF and CSV exports for recurring visibility reviews—no slide rebuilding required.",
+      "Branded, client-ready PDF and CSV exports for recurring visibility reviews,no slide rebuilding required.",
     Icon: FileDown,
     cta: "Learn more",
   },
@@ -66,13 +65,13 @@ export const REPORTING_CAPABILITY_ROWS = [
     icon: Presentation,
     title: "Executive summaries",
     description:
-      "One-pager AI visibility digests highlighting score moves, citation wins, and shipped fixes—ready for leadership review.",
+      "One-pager AI visibility digests highlighting score moves, citation wins, and shipped fixes,ready for leadership review.",
   },
   {
     icon: FileDown,
     title: "PDF & CSV exports",
     description:
-      "Brandable reports, audit snapshots, and row-level data for deeper analysis—downloadable in a click.",
+      "Brandable reports, audit snapshots, and row-level data for deeper analysis,downloadable in a click.",
   },
   {
     icon: Users,
@@ -84,7 +83,7 @@ export const REPORTING_CAPABILITY_ROWS = [
     icon: BarChart3,
     title: "Recurring digests",
     description:
-      "Schedule weekly or monthly email summaries for stakeholders—citation moves, new fixes, and competitor drift in one read.",
+      "Schedule weekly or monthly email summaries for stakeholders,citation moves, new fixes, and competitor drift in one read.",
   },
 ] as const;
 
@@ -93,66 +92,129 @@ export const REPORTING_FEATURES_INTRO = {
   titleBefore: "Everything you need to",
   titleAccent: "show the impact",
   description:
-    "GEO investment only lands when stakeholders see the wins. Reporting turns scores, citations, and fixes into executive-ready stories—no slide rebuilding.",
+    "GEO investment only lands when stakeholders see the wins. Reporting turns scores, citations, and fixes into executive-ready stories,no slide rebuilding.",
 } as const;
 
 export const REPORTING_FEATURE_CELLS = [
   {
     title: "Trending prompts",
     description:
-      "Spot brand-new buyer prompts the week they start appearing — before competitors notice the shift in their own tooling.",
+      "Spot brand-new buyer prompts the week they start appearing, before competitors notice the shift in their own tooling.",
     mock: {
       kind: "trendingList" as const,
       items: [
-        { prompt: "Best AI visibility tools 2026", velocity: "+240% · 7d", direction: "new" as const, surface: "ChatGPT" },
-        { prompt: "GEO vs SEO for ecommerce", velocity: "+180% · 7d", direction: "up" as const, surface: "Perplexity" },
-        { prompt: "How to rank in AI Overviews", velocity: "+420% · 7d", direction: "new" as const, surface: "Gemini" },
+        {
+          prompt: "Best AI visibility tools 2026",
+          velocity: "+240% · 7d",
+          direction: "new" as const,
+          surface: "ChatGPT",
+        },
+        {
+          prompt: "GEO vs SEO for ecommerce",
+          velocity: "+180% · 7d",
+          direction: "up" as const,
+          surface: "Perplexity",
+        },
+        {
+          prompt: "How to rank in AI Overviews",
+          velocity: "+420% · 7d",
+          direction: "new" as const,
+          surface: "Gemini",
+        },
       ],
     },
   },
   {
     title: "Emerging citations",
     description:
-      "Catch pages and competitors beginning to earn AI mentions on prompts you care about — flag gaps before they calcify.",
+      "Catch pages and competitors beginning to earn AI mentions on prompts you care about, flag gaps before they calcify.",
     mock: {
       kind: "trendingList" as const,
       items: [
-        { prompt: "New cite: Acme on 'best CRM'", velocity: "First seen · 2d", direction: "new" as const, surface: "ChatGPT" },
-        { prompt: "Rising: /pricing on Gemini", velocity: "+6 cites · 7d", direction: "up" as const, surface: "Gemini" },
-        { prompt: "Northwind · 'GEO scoring'", velocity: "First seen · 5d", direction: "new" as const, surface: "Claude" },
+        {
+          prompt: "New cite: Acme on 'best CRM'",
+          velocity: "First seen · 2d",
+          direction: "new" as const,
+          surface: "ChatGPT",
+        },
+        {
+          prompt: "Rising: /pricing on Gemini",
+          velocity: "+6 cites · 7d",
+          direction: "up" as const,
+          surface: "Gemini",
+        },
+        {
+          prompt: "Northwind · 'GEO scoring'",
+          velocity: "First seen · 5d",
+          direction: "new" as const,
+          surface: "Claude",
+        },
       ],
     },
   },
   {
     title: "Competitor gaps",
     description:
-      "Prompts where rivals are mentioned and you are not — so marketing knows exactly where to invest in content next.",
+      "Prompts where rivals are mentioned and you are not, so marketing knows exactly where to invest in content next.",
     mock: {
       kind: "trendingList" as const,
       items: [
-        { prompt: "Top ecommerce SEO platforms", velocity: "Acme cited · you missing", direction: "new" as const, surface: "Perplexity" },
-        { prompt: "AI audit tools for agencies", velocity: "Northwind cited · 4x", direction: "up" as const, surface: "ChatGPT" },
-        { prompt: "Enterprise GEO vendors", velocity: "3 rivals cited", direction: "new" as const, surface: "Gemini" },
+        {
+          prompt: "Top ecommerce SEO platforms",
+          velocity: "Acme cited · you missing",
+          direction: "new" as const,
+          surface: "Perplexity",
+        },
+        {
+          prompt: "AI audit tools for agencies",
+          velocity: "Northwind cited · 4x",
+          direction: "up" as const,
+          surface: "ChatGPT",
+        },
+        {
+          prompt: "Enterprise GEO vendors",
+          velocity: "3 rivals cited",
+          direction: "new" as const,
+          surface: "Gemini",
+        },
       ],
     },
   },
   {
     title: "Fix showcase",
     description:
-      "Tell the story of shipped GEO work—fix queue deltas, schema wins, and which launches actually moved citations.",
+      "Tell the story of shipped GEO work,fix queue deltas, schema wins, and which launches actually moved citations.",
     mock: {
       kind: "alertList" as const,
       items: [
-        { title: "Added Organization JSON-LD", meta: "+4 GEO · 12 AI cites", dot: "emerald" as const, badge: "Win", badgeTone: "emerald" as const },
-        { title: "Rewrote /pricing copy", meta: "+3 citability", dot: "amber" as const, badge: "Partial", badgeTone: "neutral" as const },
-        { title: "Schema regression · /docs", meta: "Rolled back", dot: "red" as const, badge: "Alert", badgeTone: "red" as const },
+        {
+          title: "Added Organization JSON-LD",
+          meta: "+4 GEO · 12 AI cites",
+          dot: "emerald" as const,
+          badge: "Win",
+          badgeTone: "emerald" as const,
+        },
+        {
+          title: "Rewrote /pricing copy",
+          meta: "+3 citability",
+          dot: "amber" as const,
+          badge: "Partial",
+          badgeTone: "neutral" as const,
+        },
+        {
+          title: "Schema regression · /docs",
+          meta: "Rolled back",
+          dot: "red" as const,
+          badge: "Alert",
+          badgeTone: "red" as const,
+        },
       ],
     },
   },
   {
     title: "Competitor benchmark",
     description:
-      "Side-by-side share of AI citations across the prompt baskets that matter—ready for board decks and investor updates.",
+      "Side-by-side share of AI citations across the prompt baskets that matter,ready for board decks and investor updates.",
     mock: {
       kind: "competitorBars" as const,
       title: "Share of AI mentions",
@@ -167,7 +229,7 @@ export const REPORTING_FEATURE_CELLS = [
   {
     title: "Recurring digests",
     description:
-      "Schedule weekly or monthly summaries for stakeholders—score moves, new recommendations, and competitor drift delivered automatically.",
+      "Schedule weekly or monthly summaries for stakeholders,score moves, new recommendations, and competitor drift delivered automatically.",
     mock: {
       kind: "chat" as const,
       prompt: "Signalor · weekly digest",
@@ -185,7 +247,7 @@ export const REPORTING_FEATURE_CELLS = [
 export const REPORTING_FEATURES_FOOTER_CTAS = {
   primary: "Build a report",
   secondary: "Run free GEO audit",
-  secondaryHref: "/analyzer",
+  secondaryHref: "/sign-up",
 } as const;
 
 export const REPORTING_WHY = {
@@ -194,25 +256,24 @@ export const REPORTING_WHY = {
   titleAccent: "when leadership sees them",
   titleAfter: "",
   intro:
-    "The score moved. The citations grew. But none of that matters if it never makes it into an exec review. Reporting turns Signalor runs into stakeholder-ready stories—no slide rebuilding, no copy-paste.",
+    "The score moved. The citations grew. But none of that matters if it never makes it into an exec review. Reporting turns Signalor runs into stakeholder-ready stories,no slide rebuilding, no copy-paste.",
   proofTitle: "Proof in numbers",
   proofBody:
     "What reporting looks like for teams that ship GEO wins into boardrooms and client reviews on a weekly cadence.",
   liveTitle: "Live preview",
   liveBody:
-    "An executive summary your CFO actually reads—three lines on what moved, one on what's next, and a link to the deeper dashboard for analysts.",
-  livePrompt:
-    "Summarize this month's AI visibility for the leadership review",
+    "An executive summary your CFO actually reads,three lines on what moved, one on what's next, and a link to the deeper dashboard for analysts.",
+  livePrompt: "Summarize this month's AI visibility for the leadership review",
   liveAnswerParts: [
     { t: "GEO score moved from 66 → 78 (+12). " },
     { t: "Signalor", variant: "brand" as const },
-    { t: " now earns 41% share of AI citations on priority prompts—up 14% after the " },
+    { t: " now earns 41% share of AI citations on priority prompts,up 14% after the " },
     { t: "Organization schema", variant: "link" as const },
     { t: " launch. Next sprint: tighten /docs FAQ schema to close the last content gap." },
   ],
   coverageTitle: "Report coverage",
   coverageBody:
-    "Roll up which stakeholder groups have live, scheduled, or missing reports—so weekly cadences cover the teams that influence budget and investment.",
+    "Roll up which stakeholder groups have live, scheduled, or missing reports,so weekly cadences cover the teams that influence budget and investment.",
   coverageScoreLabel: "Coverage",
   coverageScore: "74",
   coverageSuffix: "/100",
@@ -224,7 +285,7 @@ export const REPORTING_WHY = {
   coverageCitedBarPct: 68,
   shipTitle: "What you ship",
   shipBody:
-    "The reporting work your team turns on weekly—from executive digests to recurring agency deliverables and board-ready benchmarks.",
+    "The reporting work your team turns on weekly,from executive digests to recurring agency deliverables and board-ready benchmarks.",
 } as const;
 
 export const REPORTING_FAQ = [
@@ -236,7 +297,7 @@ export const REPORTING_FAQ = [
   {
     question: "Can I white-label reports for clients?",
     answer:
-      "Agency plans let you add client logos, color, and domain to recurring reports—so deliverables look native to the agency producing them.",
+      "Agency plans let you add client logos, color, and domain to recurring reports,so deliverables look native to the agency producing them.",
   },
   {
     question: "Are recurring digests included?",
@@ -246,6 +307,6 @@ export const REPORTING_FAQ = [
   {
     question: "Can analysts get raw data alongside summaries?",
     answer:
-      "Yes—every report has a row-level CSV companion export. Pair it with the API for custom BI dashboards beyond what built-in reporting covers.",
+      "Yes,every report has a row-level CSV companion export. Pair it with the API for custom BI dashboards beyond what built-in reporting covers.",
   },
 ] as const;

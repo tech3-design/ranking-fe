@@ -1,6 +1,6 @@
 // TODO: replace with real customer quotes before production.
 // These are plausible mocks shaped from the kind of feedback operators give
-// GEO tools — intentionally specific about outcomes (not vague "great product" fluff).
+// GEO tools, intentionally specific about outcomes (not vague "great product" fluff).
 
 export type Testimonial = {
   quote: string;
@@ -14,7 +14,7 @@ export type Testimonial = {
 export const TESTIMONIALS: Testimonial[] = [
   {
     quote:
-      "We stopped guessing which pages ChatGPT cites. Signalor's citation attribution showed us three URLs we'd never have prioritized — one of them now drives 40% of our AI traffic.",
+      "We stopped guessing which pages ChatGPT cites. Signalor's citation attribution showed us three URLs we'd never have prioritized, one of them now drives 40% of our AI traffic.",
     name: "Priya M.",
     role: "Head of Growth",
     company: "Nimbus Commerce",

@@ -17,21 +17,25 @@ import { Label } from "@/components/ui/label";
 import { createOrganization } from "@/lib/api/organizations";
 import { startAnalysis } from "@/lib/api/analyzer";
 import { getSubscriptionStatus } from "@/lib/api/payments";
-import {
-  getShopifyAuthUrl,
-  connectWordPress,
-} from "@/lib/api/integrations";
+import { getShopifyAuthUrl, connectWordPress } from "@/lib/api/integrations";
 import { OnboardingStepper } from "@/components/auth/onboarding-stepper";
 import { config, routes, signalorWpPlugin } from "@/lib/config";
-import {
-  ONBOARDING_DRAFT_KEY,
-  storePendingAnalysisAfterPayment,
-} from "@/lib/internal-nav";
+import { ONBOARDING_DRAFT_KEY, storePendingAnalysisAfterPayment } from "@/lib/internal-nav";
 import axios from "axios";
 import {
-  Loader2, ArrowRight, ArrowLeft, ShoppingBag, Globe,
-  Plus, X, Pencil, Rocket, Download, ExternalLink,
-  CheckCircle2, BarChart3,
+  Loader2,
+  ArrowRight,
+  ArrowLeft,
+  ShoppingBag,
+  Globe,
+  Plus,
+  X,
+  Pencil,
+  Rocket,
+  Download,
+  ExternalLink,
+  CheckCircle2,
+  BarChart3,
 } from "@/components/icons";
 
 type Platform = "shopify" | "wordpress";
@@ -50,7 +54,7 @@ const STEP_ORDER: Step[] = [
 const STEP_HERO: Record<Step, { headline: string; sub: string }> = {
   company: {
     headline: "Set up your workspace",
-    sub: "Tell us your brand name — we use it for your project and default prompts.",
+    sub: "Tell us your brand name, we use it for your project and default prompts.",
   },
   platform: {
     headline: "Choose your platform",
@@ -67,7 +71,7 @@ const STEP_HERO: Record<Step, { headline: string; sub: string }> = {
   },
   analytics: {
     headline: "Connect Analytics",
-    sub: "Optional — link Google Analytics to see AI referral traffic.",
+    sub: "Optional, link Google Analytics to see AI referral traffic.",
   },
   launch: {
     headline: "Launch analysis",
@@ -127,15 +131,28 @@ function fmtErr(err: unknown): string {
 }
 
 type Draft = {
-  v: 5; email: string; step: Step; companyName: string; platform: Platform;
-  siteUrl: string; shopDomain: string; storePassword: string;
-  wpSiteUrl: string; wpApiKey: string; wpStep: number;
-  orgId: number | null; prompts: string[]; appInstalled: boolean;
+  v: 5;
+  email: string;
+  step: Step;
+  companyName: string;
+  platform: Platform;
+  siteUrl: string;
+  shopDomain: string;
+  storePassword: string;
+  wpSiteUrl: string;
+  wpApiKey: string;
+  wpStep: number;
+  orgId: number | null;
+  prompts: string[];
+  appInstalled: boolean;
 };
 
 function SiteFavicon({ url }: { url: string }) {
   const [failed, setFailed] = useState(false);
-  const domain = url.replace(/^https?:\/\//, "").replace(/\/$/, "").split("/")[0];
+  const domain = url
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "")
+    .split("/")[0];
   if (failed || !domain) {
     return <Globe className="inline-block size-3.5 shrink-0 text-muted-foreground/60" />;
   }
@@ -177,7 +194,9 @@ export default function CompanyInfoPage() {
   const [error, setError] = useState("");
   const [statusMsg, setStatusMsg] = useState("");
 
-  useEffect(() => { if (!isPending && !session) router.replace(routes.signIn); }, [isPending, session, router]);
+  useEffect(() => {
+    if (!isPending && !session) router.replace(routes.signIn);
+  }, [isPending, session, router]);
 
   // Handle return from Shopify OAuth / app install
   useLayoutEffect(() => {
@@ -201,44 +220,110 @@ export default function CompanyInfoPage() {
           genPrompts(d.companyName, d.siteUrl);
           sessionStorage.removeItem("signalor_onboarding");
         }
-      } catch { /**/ }
+      } catch {
+        /**/
+      }
       window.history.replaceState({}, "", "/onboarding/company-info");
       setCanPersist(true);
       return;
     }
 
-    if (skipDraft.current || applied.current) { setCanPersist(true); return; }
+    if (skipDraft.current || applied.current) {
+      setCanPersist(true);
+      return;
+    }
     applied.current = true;
     try {
       const raw = sessionStorage.getItem(ONBOARDING_DRAFT_KEY);
-      if (!raw) { setCanPersist(true); return; }
+      if (!raw) {
+        setCanPersist(true);
+        return;
+      }
       const d = JSON.parse(raw);
-      if (d.email !== session.user.email) { sessionStorage.removeItem(ONBOARDING_DRAFT_KEY); setCanPersist(true); return; }
-      setStep(d.step ?? "company"); setCompanyName(d.companyName ?? ""); setPlatform(d.platform ?? "shopify");
-      setSiteUrl(d.siteUrl ?? ""); setShopDomain(d.shopDomain ?? ""); setStorePassword(d.storePassword ?? "");
-      setWpSiteUrl(d.wpSiteUrl ?? ""); setWpApiKey(d.wpApiKey ?? ""); setWpStep(d.wpStep ?? 1);
-      setOrgId(d.orgId ?? null); setPrompts(Array.isArray(d.prompts) ? d.prompts : []);
+      if (d.email !== session.user.email) {
+        sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+        setCanPersist(true);
+        return;
+      }
+      setStep(d.step ?? "company");
+      setCompanyName(d.companyName ?? "");
+      setPlatform(d.platform ?? "shopify");
+      setSiteUrl(d.siteUrl ?? "");
+      setShopDomain(d.shopDomain ?? "");
+      setStorePassword(d.storePassword ?? "");
+      setWpSiteUrl(d.wpSiteUrl ?? "");
+      setWpApiKey(d.wpApiKey ?? "");
+      setWpStep(d.wpStep ?? 1);
+      setOrgId(d.orgId ?? null);
+      setPrompts(Array.isArray(d.prompts) ? d.prompts : []);
       setAppInstalled(d.appInstalled ?? false);
-    } catch { sessionStorage.removeItem(ONBOARDING_DRAFT_KEY); }
+    } catch {
+      sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+    }
     setCanPersist(true);
   }, [session?.user?.email]);
 
   // Persist draft
   useEffect(() => {
     if (typeof window === "undefined" || !session?.user?.email || !canPersist) return;
-    const draft: Draft = { v: 5, email: session.user.email, step, companyName, platform, siteUrl, shopDomain, storePassword, wpSiteUrl, wpApiKey, wpStep, orgId, prompts, appInstalled };
-    try { sessionStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(draft)); } catch { /**/ }
-  }, [canPersist, session?.user?.email, step, companyName, platform, siteUrl, shopDomain, storePassword, wpSiteUrl, wpApiKey, wpStep, orgId, prompts, appInstalled]);
+    const draft: Draft = {
+      v: 5,
+      email: session.user.email,
+      step,
+      companyName,
+      platform,
+      siteUrl,
+      shopDomain,
+      storePassword,
+      wpSiteUrl,
+      wpApiKey,
+      wpStep,
+      orgId,
+      prompts,
+      appInstalled,
+    };
+    try {
+      sessionStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      /**/
+    }
+  }, [
+    canPersist,
+    session?.user?.email,
+    step,
+    companyName,
+    platform,
+    siteUrl,
+    shopDomain,
+    storePassword,
+    wpSiteUrl,
+    wpApiKey,
+    wpStep,
+    orgId,
+    prompts,
+    appInstalled,
+  ]);
 
-  function handleCompanyNext(e: React.FormEvent) { e.preventDefault(); if (!companyName.trim()) return; setError(""); setStep("platform"); }
+  function handleCompanyNext(e: React.FormEvent) {
+    e.preventDefault();
+    if (!companyName.trim()) return;
+    setError("");
+    setStep("platform");
+  }
 
-  function handlePlatformSelect(p: Platform) { setPlatform(p); setError(""); setStep("url"); }
+  function handlePlatformSelect(p: Platform) {
+    setPlatform(p);
+    setError("");
+    setStep("url");
+  }
 
   // Step 3: Save URL + create org, move to install step
   async function handleUrlNext(e: React.FormEvent) {
     e.preventDefault();
     if (!session) return;
-    setLoading(true); setError(""); setStatusMsg("Setting up project...");
+    setLoading(true);
+    setError("");
+    setStatusMsg("Setting up project...");
     const email = session.user.email;
 
     try {
@@ -254,8 +339,12 @@ export default function CompanyInfoPage() {
 
       // Create org
       let org;
-      try { org = await createOrganization({ name: companyName.trim(), url, email }); }
-      catch (err) { if (axios.isAxiosError(err) && err.response?.status === 409) org = err.response.data; else throw err; }
+      try {
+        org = await createOrganization({ name: companyName.trim(), url, email });
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 409) org = err.response.data;
+        else throw err;
+      }
       setOrgId(org?.id);
 
       if (platform === "shopify") {
@@ -264,25 +353,34 @@ export default function CompanyInfoPage() {
         // WordPress goes to install step too (plugin install)
         setStep("install");
       }
-    } catch (err) { setError(fmtErr(err)); }
-    finally { setLoading(false); setStatusMsg(""); }
+    } catch (err) {
+      setError(fmtErr(err));
+    } finally {
+      setLoading(false);
+      setStatusMsg("");
+    }
   }
 
   // Shopify: redirect to install app via OAuth
   async function handleShopifyInstall() {
     if (!session) return;
-    setLoading(true); setError(""); setStatusMsg("Redirecting to Shopify...");
+    setLoading(true);
+    setError("");
+    setStatusMsg("Redirecting to Shopify...");
     const email = session.user.email;
     const domain = shopDomain.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
     try {
       // Save state before redirect
-      sessionStorage.setItem("signalor_onboarding", JSON.stringify({
-        companyName: companyName.trim(),
-        orgId,
-        siteUrl,
-        shopDomain: domain,
-      }));
+      sessionStorage.setItem(
+        "signalor_onboarding",
+        JSON.stringify({
+          companyName: companyName.trim(),
+          orgId,
+          siteUrl,
+          shopDomain: domain,
+        }),
+      );
 
       // Get OAuth URL from backend (this also creates the Integration)
       const resp = await getShopifyAuthUrl(
@@ -295,7 +393,8 @@ export default function CompanyInfoPage() {
 
       if (!resp.auth_url) {
         setError("No auth URL returned. Check backend configuration.");
-        setLoading(false); setStatusMsg("");
+        setLoading(false);
+        setStatusMsg("");
         return;
       }
 
@@ -310,14 +409,20 @@ export default function CompanyInfoPage() {
   // WordPress: connect after plugin installed
   async function handleWordPressConnect() {
     if (!session) return;
-    setLoading(true); setError(""); setStatusMsg("Connecting WordPress...");
+    setLoading(true);
+    setError("");
+    setStatusMsg("Connecting WordPress...");
     try {
       await connectWordPress(session.user.email, siteUrl, wpApiKey.trim(), "");
       setAppInstalled(true);
       setStep("prompts");
       genPrompts(companyName.trim(), siteUrl);
-    } catch (err) { setError(fmtErr(err)); }
-    finally { setLoading(false); setStatusMsg(""); }
+    } catch (err) {
+      setError(fmtErr(err));
+    } finally {
+      setLoading(false);
+      setStatusMsg("");
+    }
   }
 
   // Skip install step (user can install later)
@@ -329,34 +434,94 @@ export default function CompanyInfoPage() {
   async function genPrompts(brand: string, url: string) {
     setLoadingPrompts(true);
     try {
-      const r = await fetch(`${config.apiBaseUrl}/api/analyzer/generate-prompts/`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ brand_name: brand, brand_url: url }) });
-      if (r.ok) { const d = await r.json(); setPrompts(d.prompts || []); }
-      else setPrompts([`What are the best ${brand} alternatives?`, `Is ${brand} worth it?`, `Compare ${brand} with competitors`, `What do experts say about ${brand}?`, `Best tools similar to ${brand}`]);
-    } catch { setPrompts([`Best tools in this space?`, `Which solution do experts recommend?`, `Compare top options`]); }
-    finally { setLoadingPrompts(false); }
+      const r = await fetch(`${config.apiBaseUrl}/api/analyzer/generate-prompts/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brand_name: brand, brand_url: url }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        setPrompts(d.prompts || []);
+      } else
+        setPrompts([
+          `What are the best ${brand} alternatives?`,
+          `Is ${brand} worth it?`,
+          `Compare ${brand} with competitors`,
+          `What do experts say about ${brand}?`,
+          `Best tools similar to ${brand}`,
+        ]);
+    } catch {
+      setPrompts([
+        `Best tools in this space?`,
+        `Which solution do experts recommend?`,
+        `Compare top options`,
+      ]);
+    } finally {
+      setLoadingPrompts(false);
+    }
   }
 
-  function rmPrompt(i: number) { setPrompts((p) => p.filter((_, j) => j !== i)); }
-  function editPrompt(i: number) { setEditingIdx(i); setEditText(prompts[i]); }
-  function saveEdit(i: number) { if (editText.trim()) setPrompts((p) => p.map((v, j) => j === i ? editText.trim() : v)); setEditingIdx(null); setEditText(""); }
+  function rmPrompt(i: number) {
+    setPrompts((p) => p.filter((_, j) => j !== i));
+  }
+  function editPrompt(i: number) {
+    setEditingIdx(i);
+    setEditText(prompts[i]);
+  }
+  function saveEdit(i: number) {
+    if (editText.trim()) setPrompts((p) => p.map((v, j) => (j === i ? editText.trim() : v)));
+    setEditingIdx(null);
+    setEditText("");
+  }
 
   async function handleLaunch() {
     if (!session || !orgId) return;
     const promptList = prompts.map((p) => p.trim()).filter(Boolean);
-    if (promptList.length < 1) { setError("Add at least one tracking prompt."); setStep("prompts"); return; }
-    setLoading(true); setError(""); setStatusMsg("Checking plan...");
+    if (promptList.length < 1) {
+      setError("Add at least one tracking prompt.");
+      setStep("prompts");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setStatusMsg("Checking plan...");
     try {
       const sub = await getSubscriptionStatus(session.user.email);
       if (!sub.is_active) {
-        storePendingAnalysisAfterPayment({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId, prompts: promptList });
-        setStatusMsg(""); setLoading(false);
-        router.push(`/pricing?returnTo=${encodeURIComponent(routes.onboardingCompanyInfo)}`); return;
+        storePendingAnalysisAfterPayment({
+          url: siteUrl,
+          run_type: "single_page",
+          email: session.user.email,
+          brand_name: companyName.trim(),
+          org_id: orgId,
+          prompts: promptList,
+        });
+        setStatusMsg("");
+        setLoading(false);
+        router.push(`/pricing?returnTo=${encodeURIComponent(routes.onboardingCompanyInfo)}`);
+        return;
       }
       setStatusMsg("Starting analysis...");
-      const a = await startAnalysis({ url: siteUrl, run_type: "single_page", email: session.user.email, brand_name: companyName.trim(), org_id: orgId, verify_org_workspace: true, prompts: promptList });
-      try { sessionStorage.removeItem(ONBOARDING_DRAFT_KEY); } catch { /**/ }
+      const a = await startAnalysis({
+        url: siteUrl,
+        run_type: "single_page",
+        email: session.user.email,
+        brand_name: companyName.trim(),
+        org_id: orgId,
+        verify_org_workspace: true,
+        prompts: promptList,
+      });
+      try {
+        sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+      } catch {
+        /**/
+      }
       router.push(routes.dashboardProject(a.slug));
-    } catch (err) { setError(fmtErr(err)); setStatusMsg(""); setLoading(false); }
+    } catch (err) {
+      setError(fmtErr(err));
+      setStatusMsg("");
+      setLoading(false);
+    }
   }
 
   const totalSteps = STEP_ORDER.length;
@@ -396,7 +561,7 @@ export default function CompanyInfoPage() {
             <div className="flex items-center justify-between gap-2">
               <div>Loading</div>
               <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
-                Step —/{totalSteps}
+                Step ,/{totalSteps}
               </span>
             </div>
           </CardTitle>
@@ -472,10 +637,24 @@ export default function CompanyInfoPage() {
         {step === "platform" && (
           <div className="space-y-3">
             <div className="space-y-3">
-              {([
-                { id: "shopify" as Platform, label: "Shopify", desc: "Connect via app install", icon: <ShoppingBag className="h-5 w-5" />, wrap: "bg-[#96bf48]/10", accent: "text-[#96bf48]" },
-                { id: "wordpress" as Platform, label: "WordPress", desc: "Connect via plugin", icon: <Globe className="h-5 w-5" />, wrap: "bg-[#21759b]/10", accent: "text-[#21759b]" },
-              ]).map((p) => (
+              {[
+                {
+                  id: "shopify" as Platform,
+                  label: "Shopify",
+                  desc: "Connect via app install",
+                  icon: <ShoppingBag className="h-5 w-5" />,
+                  wrap: "bg-[#96bf48]/10",
+                  accent: "text-[#96bf48]",
+                },
+                {
+                  id: "wordpress" as Platform,
+                  label: "WordPress",
+                  desc: "Connect via plugin",
+                  icon: <Globe className="h-5 w-5" />,
+                  wrap: "bg-[#21759b]/10",
+                  accent: "text-[#21759b]",
+                },
+              ].map((p) => (
                 <button
                   key={p.id}
                   type="button"
@@ -523,7 +702,8 @@ export default function CompanyInfoPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="onboarding-store-password" className="text-[12px] font-medium">
-                Storefront password <span className="font-normal text-muted-foreground">(optional)</span>
+                Storefront password{" "}
+                <span className="font-normal text-muted-foreground">(optional)</span>
               </Label>
               <Input
                 id="onboarding-store-password"
@@ -642,10 +822,12 @@ export default function CompanyInfoPage() {
                   <ShoppingBag className="h-5 w-5 text-[#96bf48]" />
                 </div>
                 <div>
-                  <p className="mb-1 text-[13px] font-medium text-foreground">Signalor GEO for Shopify</p>
+                  <p className="mb-1 text-[13px] font-medium text-foreground">
+                    Signalor GEO for Shopify
+                  </p>
                   <p className="text-[12px] leading-relaxed text-muted-foreground">
-                    This installs our app on your store to enable auto-fixes, schema injection, AI meta tags, and
-                    llms.txt generation.
+                    This installs our app on your store to enable auto-fixes, schema injection, AI
+                    meta tags, and llms.txt generation.
                   </p>
                 </div>
               </div>
@@ -740,7 +922,9 @@ export default function CompanyInfoPage() {
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-[12px] font-bold text-white">
                       2
                     </span>
-                    <p className="text-[13px] font-medium text-foreground">Upload & activate in WordPress</p>
+                    <p className="text-[13px] font-medium text-foreground">
+                      Upload & activate in WordPress
+                    </p>
                   </div>
                   <a
                     href={`${siteUrl.replace(/\/$/, "")}/wp-admin/plugin-install.php?tab=upload`}
@@ -872,7 +1056,7 @@ export default function CompanyInfoPage() {
                         </div>
                       ) : (
                         <>
-                          {/* Idle row — fixed height, single line with ellipsis */}
+                          {/* Idle row, fixed height, single line with ellipsis */}
                           <div className="flex h-full items-center gap-3 px-4">
                             <span className="w-4 shrink-0 text-right font-mono text-[11px] text-muted-foreground">
                               {idx + 1}
@@ -882,7 +1066,7 @@ export default function CompanyInfoPage() {
                             </span>
                           </div>
 
-                          {/* Hover card — absolutely positioned, floats over rows, zero layout shift */}
+                          {/* Hover card, absolutely positioned, floats over rows, zero layout shift */}
                           <div
                             className={[
                               "absolute inset-x-0 top-0 z-20",
@@ -975,8 +1159,8 @@ export default function CompanyInfoPage() {
                 <div>
                   <p className="mb-1 text-[13px] font-medium text-foreground">Google Analytics</p>
                   <p className="text-[12px] leading-relaxed text-muted-foreground">
-                    See how much traffic AI engines send to your site. Track referrals from ChatGPT, Gemini, Perplexity,
-                    and more.
+                    See how much traffic AI engines send to your site. Track referrals from ChatGPT,
+                    Gemini, Perplexity, and more.
                   </p>
                 </div>
               </div>

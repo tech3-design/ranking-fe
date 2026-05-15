@@ -13,13 +13,29 @@ export default function SchemaValidatorToolPage() {
         eyebrow="[ free tool · schema validator ]"
         title="Check JSON-LD coverage in"
         titleAccent="seconds"
-        description="Paste any URL and we'll scan the page for Organization, Product, Article, FAQ, and other JSON-LD schemas — flagging missing, partial, or malformed entries."
+        description="Paste any URL and we'll scan the page for Organization, Product, Article, FAQ, and other JSON-LD schemas, flagging missing, partial, or malformed entries."
+        secondaryDescription="The validator checks 18 schema types including Organization, Product, Article, FAQPage, HowTo, BreadcrumbList, Event, and more. It surfaces missing required fields, partial definitions, and conflicting duplicate blocks that confuse AI engines and cost you citation opportunities. Free, no account needed."
         form={<SchemaValidatorInline />}
         features={[
-          { title: "18 schema types", description: "Organization, Product, Article, FAQ, HowTo, BreadcrumbList, and more checked automatically." },
-          { title: "Field-level flags", description: "Missing required fields highlighted with the property name so engineers fix fast." },
-          { title: "Duplicate detection", description: "Catch duplicate or conflicting JSON-LD blocks that confuse AI engines." },
-          { title: "Exportable", description: "Download a JSON summary of all findings for your engineering or SEO team." },
+          {
+            title: "18 schema types",
+            description:
+              "Organization, Product, Article, FAQ, HowTo, BreadcrumbList, and more checked automatically.",
+          },
+          {
+            title: "Field-level flags",
+            description:
+              "Missing required fields highlighted with the property name so engineers fix fast.",
+          },
+          {
+            title: "Duplicate detection",
+            description: "Catch duplicate or conflicting JSON-LD blocks that confuse AI engines.",
+          },
+          {
+            title: "Exportable",
+            description:
+              "Download a JSON summary of all findings for your engineering or SEO team.",
+          },
         ]}
         previewEyebrow="[ what's inside the full report ]"
         previewTitle="Unlock"
@@ -40,7 +56,8 @@ function PreviewSiteRollup() {
     <div>
       <p className="text-sm font-semibold text-foreground">Site-wide coverage</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Roll-up per template: which URLs ship Organization, which are missing Product, where FAQ is inconsistent.
+        Roll-up per template: which URLs ship Organization, which are missing Product, where FAQ is
+        inconsistent.
       </p>
     </div>
   );

@@ -6,14 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { getOrganizations } from "@/lib/api/organizations";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { routes } from "@/lib/config";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getIntegrationStatus,
   disconnectShopify,
@@ -41,20 +34,18 @@ function IntegrationsSettingsContent() {
   const [disconnectingShopify, setDisconnectingShopify] = useState(false);
   const [disconnectingWordPress, setDisconnectingWordPress] = useState(false);
 
-  const shopifyIntegration = integrations.find(
-    (i) => i.provider === "shopify" && i.is_active,
-  );
+  const shopifyIntegration = integrations.find((i) => i.provider === "shopify" && i.is_active);
 
-  const wordpressIntegration = integrations.find(
-    (i) => i.provider === "wordpress" && i.is_active,
-  );
+  const wordpressIntegration = integrations.find((i) => i.provider === "wordpress" && i.is_active);
   const connectedCount = [shopifyIntegration, wordpressIntegration].filter(Boolean).length;
 
   // Resolve org by email
   useEffect(() => {
     if (!email) return;
     getOrganizations(email)
-      .then((orgs) => { if (orgs.length > 0) setOrgId(orgs[0].id); })
+      .then((orgs) => {
+        if (orgs.length > 0) setOrgId(orgs[0].id);
+      })
       .catch(() => {});
   }, [email]);
 
@@ -75,7 +66,7 @@ function IntegrationsSettingsContent() {
   }, [loadIntegrations]);
 
   // ...existing code...
-useEffect(() => {
+  useEffect(() => {
     const shopifyStatus = searchParams.get("shopify");
     const wordpressStatus = searchParams.get("wordpress");
     const reason = searchParams.get("reason");
@@ -167,12 +158,6 @@ useEffect(() => {
                 <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-xs text-muted-foreground">
                   {connectedCount}/2 connected
                 </span>
-                <Link
-                  href={routes.analyzer}
-                  className="rounded-md border border-white/[0.08] px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                >
-                  Analyzer
-                </Link>
               </div>
             </div>
 

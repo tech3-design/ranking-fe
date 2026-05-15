@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowLeft, Home, RefreshCw } from "@/components/icons";
 import LogoComp from "@/components/LogoComp";
 import { Button } from "@/components/ui/button";
-import { routes } from "@/lib/config";
 
 export default function ErrorBoundary({
   error,
@@ -45,8 +44,7 @@ export default function ErrorBoundary({
             Something went wrong
           </p>
           <h1 className="font-sans text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">
-            We hit a{" "}
-            <span className="text-muted-foreground">snag</span>
+            We hit a <span className="text-muted-foreground">snag</span>
           </h1>
           <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
             This section couldn&apos;t load. Try again, or go back to the homepage.
@@ -69,13 +67,6 @@ export default function ErrorBoundary({
               </Link>
             </Button>
           </div>
-
-          <p className="mt-12 text-xs text-muted-foreground">
-            Free GEO check —{" "}
-            <Link href={routes.analyzer} className="font-medium text-primary underline-offset-4 hover:underline">
-              Run an audit
-            </Link>
-          </p>
         </div>
       </main>
     </div>

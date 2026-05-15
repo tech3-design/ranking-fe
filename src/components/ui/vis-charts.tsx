@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, type ReactNode } from "react";
 import {
   BarChart,
   Bar,
@@ -49,15 +49,16 @@ export const ScoreGauge = memo(function ScoreGauge({
   color = BRAND_COLOR,
   className,
 }: ScoreGaugeProps) {
-  const config: ChartConfig = useMemo(
-    () => ({ score: { label: "Score", color } }),
-    [color],
-  );
+  const config: ChartConfig = useMemo(() => ({ score: { label: "Score", color } }), [color]);
   const data = useMemo(() => [{ name: "score", value, fill: color }], [value, color]);
 
   return (
     <div className={cn("relative", className)} style={{ width: size, height: size }}>
-      <ChartContainer config={config} className="!aspect-square" style={{ width: size, height: size }}>
+      <ChartContainer
+        config={config}
+        className="!aspect-square"
+        style={{ width: size, height: size }}
+      >
         <RadialBarChart
           cx="50%"
           cy="50%"
@@ -73,7 +74,9 @@ export const ScoreGauge = memo(function ScoreGauge({
         </RadialBarChart>
       </ChartContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold tabular-nums tracking-tight text-foreground">{value}</span>
+        <span className="text-2xl font-bold tabular-nums tracking-tight text-foreground">
+          {value}
+        </span>
         <span className="-mt-0.5 text-[10px] font-medium text-muted-foreground">/100</span>
       </div>
     </div>
@@ -209,11 +212,8 @@ export const BrandBarChart = memo(function BrandBarChart({
                 const v = typeof value === "number" ? value : Number(value ?? 0);
                 const d = data.find((d) => d.label === (payload as Record<string, unknown>)?.label);
                 const formatted =
-                  tooltipFormatter && d
-                    ? tooltipFormatter(v, d)[0]
-                    : yTickFormatter(v);
-                const fill =
-                  ((payload as Record<string, unknown>)?.fill as string) ?? BRAND_COLOR;
+                  tooltipFormatter && d ? tooltipFormatter(v, d)[0] : yTickFormatter(v);
+                const fill = ((payload as Record<string, unknown>)?.fill as string) ?? BRAND_COLOR;
                 return (
                   <>
                     <div
@@ -239,7 +239,7 @@ export const BrandBarChart = memo(function BrandBarChart({
   );
 });
 
-// ─── BrandDonutChart — outer-arc label on hover ──────────────────────────────
+// ─── BrandDonutChart, outer-arc label on hover ──────────────────────────────
 
 export interface DonutDatum {
   name: string;
@@ -255,35 +255,37 @@ interface BrandDonutChartProps {
   centerLabel?: string;
   centerSub?: string;
   className?: string;
-  /** @deprecated — label now renders outside the arc; this prop is no longer used */
+  logoMap?: Record<string, ReactNode>;
+  /** @deprecated, label now renders outside the arc; this prop is no longer used */
   tooltipFormatter?: (value: number, name: string) => [string, string];
 }
 
 const RADIAN = Math.PI / 180;
 
-// Renders only the visual expansion + connector dot — label is an HTML overlay
+// Renders only the visual expansion + connector dot, label is an HTML overlay
 function DonutActiveShape(props: Record<string, unknown>) {
-  const {
-    cx, cy, innerRadius, outerRadius,
-    startAngle, endAngle, fill,
-  } = props as {
-    cx: number; cy: number;
-    innerRadius: number; outerRadius: number;
-    startAngle: number; endAngle: number;
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props as {
+    cx: number;
+    cy: number;
+    innerRadius: number;
+    outerRadius: number;
+    startAngle: number;
+    endAngle: number;
     fill: string;
   };
 
-  const midAngle  = (startAngle + endAngle) / 2;
-  const cos       = Math.cos(-midAngle * RADIAN);
-  const sin       = Math.sin(-midAngle * RADIAN);
+  const midAngle = (startAngle + endAngle) / 2;
+  const cos = Math.cos(-midAngle * RADIAN);
+  const sin = Math.sin(-midAngle * RADIAN);
   const expandedOuter = outerRadius + 5;
-  const dotR          = expandedOuter + 10;
+  const dotR = expandedOuter + 10;
 
   return (
     <g>
       {/* Expanded active sector */}
       <Sector
-        cx={cx} cy={cy}
+        cx={cx}
+        cy={cy}
         innerRadius={innerRadius - 2}
         outerRadius={expandedOuter}
         startAngle={startAngle}
@@ -315,10 +317,15 @@ export const BrandDonutChart = memo(function BrandDonutChart({
   centerLabel,
   centerSub,
   className,
+  logoMap,
 }: BrandDonutChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [activeData, setActiveData] = useState<{
-    startAngle: number; endAngle: number; fill: string; name: string; value: number;
+    startAngle: number;
+    endAngle: number;
+    fill: string;
+    name: string;
+    value: number;
   } | null>(null);
 
   const nonEmpty = useMemo(() => data.filter((d) => d.value > 0), [data]);
@@ -362,10 +369,7 @@ export const BrandDonutChart = memo(function BrandDonutChart({
   if (nonEmpty.length === 0) {
     return (
       <div
-        className={cn(
-          "flex items-center justify-center text-xs text-muted-foreground",
-          className,
-        )}
+        className={cn("flex items-center justify-center text-xs text-muted-foreground", className)}
         style={{ width: size, height: size }}
       >
         No data
@@ -380,10 +384,7 @@ export const BrandDonutChart = memo(function BrandDonutChart({
   const labelFontSize = Math.min(24, Math.round(size * 0.17));
 
   return (
-    <div
-      className={cn("relative", className)}
-      style={{ width: size, height: size }}
-    >
+    <div className={cn("relative", className)} style={{ width: size, height: size }}>
       <ChartContainer
         config={chartConfig}
         className="!aspect-square"
@@ -391,7 +392,7 @@ export const BrandDonutChart = memo(function BrandDonutChart({
       >
         <PieChart style={{ overflow: "visible" }}>
           {/*
-           * Center label lives inside the SVG — rendered BEFORE <Pie> so it
+           * Center label lives inside the SVG, rendered BEFORE <Pie> so it
            * paints first. DonutActiveShape (rendered last by recharts as the
            * active sector) then paints on top, keeping outer labels visible.
            * This avoids the CSS stacking-context conflict caused by the old
@@ -435,7 +436,7 @@ export const BrandDonutChart = memo(function BrandDonutChart({
             </g>
           )}
 
-          {/* Pie renders after center text — active shape paints last, on top */}
+          {/* Pie renders after center text, active shape paints last, on top */}
           <Pie
             data={chartData}
             dataKey="value"
@@ -451,9 +452,18 @@ export const BrandDonutChart = memo(function BrandDonutChart({
               setActiveIndex(index);
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const d = data as any;
-              setActiveData({ startAngle: d.startAngle, endAngle: d.endAngle, fill: d.fill, name: d.name, value: d.value });
+              setActiveData({
+                startAngle: d.startAngle,
+                endAngle: d.endAngle,
+                fill: d.fill,
+                name: d.name,
+                value: d.value,
+              });
             }}
-            onMouseLeave={() => { setActiveIndex(null); setActiveData(null); }}
+            onMouseLeave={() => {
+              setActiveIndex(null);
+              setActiveData(null);
+            }}
             isAnimationActive={false}
           >
             {chartData.map((entry, i) => (
@@ -468,7 +478,7 @@ export const BrandDonutChart = memo(function BrandDonutChart({
         </PieChart>
       </ChartContainer>
 
-      {/* HTML overlay label — paints above adjacent grid columns via z-index */}
+      {/* HTML overlay label, paints above adjacent grid columns via z-index */}
       {labelInfo && (
         <div
           className="pointer-events-none"
@@ -482,16 +492,42 @@ export const BrandDonutChart = memo(function BrandDonutChart({
             background: "var(--card)",
             border: "1px solid var(--border)",
             borderRadius: 6,
-            padding: "3px 8px",
+            padding: "4px 8px",
             boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
           }}
         >
-          <p style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)", lineHeight: 1.3, margin: 0 }}>
-            {labelInfo.name}
-          </p>
-          <p style={{ fontSize: 10, fontWeight: 500, color: labelInfo.color, lineHeight: 1.3, margin: 0 }}>
-            {labelInfo.value}
-          </p>
+          {logoMap?.[labelInfo.name] && (
+            <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+              {logoMap[labelInfo.name]}
+            </span>
+          )}
+          <span>
+            <p
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "var(--foreground)",
+                lineHeight: 1.3,
+                margin: 0,
+              }}
+            >
+              {labelInfo.name}
+            </p>
+            <p
+              style={{
+                fontSize: 10,
+                fontWeight: 500,
+                color: labelInfo.color,
+                lineHeight: 1.3,
+                margin: 0,
+              }}
+            >
+              {labelInfo.value}
+            </p>
+          </span>
         </div>
       )}
     </div>

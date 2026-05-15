@@ -123,11 +123,9 @@ export function SitemapAuditPanel({ slug }: { slug: string }) {
     return <SitemapAuditSkeleton />;
   }
 
-  // No audit yet — empty state
+  // No audit yet, empty state
   if (!audit) {
-    return (
-      <EmptyAudit onStart={handleStart} starting={starting} error={error} />
-    );
+    return <EmptyAudit onStart={handleStart} starting={starting} error={error} />;
   }
 
   return (
@@ -138,12 +136,7 @@ export function SitemapAuditPanel({ slug }: { slug: string }) {
         </div>
       ) : null}
 
-      <HeaderBar
-        audit={audit}
-        isRunning={isRunning}
-        starting={starting}
-        onStart={handleStart}
-      />
+      <HeaderBar audit={audit} isRunning={isRunning} starting={starting} onStart={handleStart} />
 
       <StatTiles audit={audit} />
 
@@ -167,8 +160,10 @@ export function SitemapAuditPanel({ slug }: { slug: string }) {
 
       {audit.truncated ? (
         <div className="rounded-lg border border-amber-300/50 bg-amber-50 px-4 py-3 text-[12px] text-amber-800">
-          <strong className="font-semibold">Showing first {audit.crawl_limit} of {audit.discovered_url_count}</strong> URLs —
-          lifting this cap is on the roadmap. Contact sales for full-site scans.
+          <strong className="font-semibold">
+            Showing first {audit.crawl_limit} of {audit.discovered_url_count}
+          </strong>{" "}
+          URLs , lifting this cap is on the roadmap. Contact sales for full-site scans.
         </div>
       ) : null}
     </div>
@@ -249,9 +244,7 @@ function SitemapAuditSkeleton() {
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         {/* thead */}
         <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-4 py-3">
-          {[
-            "30%", "6%", "10%", "6%", "6%", "6%", "6%", "8%", "8%", "10%", "8%",
-          ].map((w, i) => (
+          {["30%", "6%", "10%", "6%", "6%", "6%", "6%", "8%", "8%", "10%", "8%"].map((w, i) => (
             <Skeleton
               key={i}
               className="h-[9px] shrink-0 rounded"
@@ -266,19 +259,22 @@ function SitemapAuditSkeleton() {
             key={i}
             className="flex items-center gap-2 border-b border-border/60 px-4 py-3 last:border-0"
           >
-            {/* URL col — path + title */}
+            {/* URL col, path + title */}
             <div className="shrink-0 space-y-1" style={{ width: "calc(30% - 8px)" }}>
               <Skeleton className="h-[12px] w-4/5 rounded" />
               <Skeleton className="h-[10px] w-3/5 rounded" />
             </div>
             {/* Status pill */}
-            <Skeleton className="h-5 w-8 shrink-0 rounded-full" style={{ minWidth: "calc(6% - 8px)" }} />
+            <Skeleton
+              className="h-5 w-8 shrink-0 rounded-full"
+              style={{ minWidth: "calc(6% - 8px)" }}
+            />
             {/* Content words + ratio */}
             <div className="shrink-0 space-y-1" style={{ width: "calc(10% - 8px)" }}>
               <Skeleton className="h-[11px] w-full rounded" />
               <Skeleton className="h-[10px] w-3/4 rounded" />
             </div>
-            {/* LCP / FCP / TTFB / Server — single line each */}
+            {/* LCP / FCP / TTFB / Server, single line each */}
             {[1, 2, 3, 4].map((j) => (
               <Skeleton
                 key={j}
@@ -297,7 +293,10 @@ function SitemapAuditSkeleton() {
               <Skeleton className="h-[10px] w-3/4 rounded" />
             </div>
             {/* AI score bar + chip */}
-            <div className="shrink-0 flex items-center gap-1.5" style={{ width: "calc(10% - 8px)" }}>
+            <div
+              className="shrink-0 flex items-center gap-1.5"
+              style={{ width: "calc(10% - 8px)" }}
+            >
               <div className="min-w-0 flex-1 space-y-1">
                 <Skeleton className="h-[11px] w-8 rounded" />
                 <Skeleton className="h-1.5 w-full rounded-full" />
@@ -305,10 +304,7 @@ function SitemapAuditSkeleton() {
               <Skeleton className="h-4 w-7 shrink-0 rounded-full" />
             </div>
             {/* Crawled date */}
-            <Skeleton
-              className="h-[10px] shrink-0 rounded"
-              style={{ width: "calc(8% - 8px)" }}
-            />
+            <Skeleton className="h-[10px] shrink-0 rounded" style={{ width: "calc(8% - 8px)" }} />
           </div>
         ))}
       </div>
@@ -336,8 +332,8 @@ function EmptyAudit({
       </div>
       <h3 className="mt-4 text-lg font-semibold text-foreground">No sitemap audit yet</h3>
       <p className="mx-auto mt-2 max-w-md text-[13px] leading-relaxed text-muted-foreground">
-        Fetch your sitemap, score every page for Core Web Vitals, structure, and AI readiness.
-        Up to 200 URLs per run.
+        Fetch your sitemap, score every page for Core Web Vitals, structure, and AI readiness. Up to
+        200 URLs per run.
       </p>
       <button
         type="button"
@@ -351,9 +347,7 @@ function EmptyAudit({
         {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
         Run audit
       </button>
-      {error ? (
-        <p className="mt-3 text-[12px] text-destructive">{error}</p>
-      ) : null}
+      {error ? <p className="mt-3 text-[12px] text-destructive">{error}</p> : null}
     </div>
   );
 }
@@ -387,7 +381,7 @@ function HeaderBar({
             Sitemap
           </p>
           <p className="truncate text-[13px] font-semibold text-foreground">
-            {audit.sitemap_url || "—"}
+            {audit.sitemap_url || ","}
           </p>
         </div>
       </div>
@@ -466,7 +460,8 @@ function StatTiles({ audit }: { audit: SitemapAuditSummary }) {
 }
 
 function IndexedTile({ audit }: { audit: SitemapAuditSummary }) {
-  const pct = audit.crawl_limit > 0 ? Math.min(100, (audit.total_urls / audit.crawl_limit) * 100) : 0;
+  const pct =
+    audit.crawl_limit > 0 ? Math.min(100, (audit.total_urls / audit.crawl_limit) * 100) : 0;
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center justify-between">
@@ -477,7 +472,9 @@ function IndexedTile({ audit }: { audit: SitemapAuditSummary }) {
       </div>
       <p className="mt-2 text-3xl font-bold tabular-nums text-foreground">
         {audit.indexed_count}
-        <span className="ml-1 text-base font-semibold text-muted-foreground">/ {audit.total_urls}</span>
+        <span className="ml-1 text-base font-semibold text-muted-foreground">
+          / {audit.total_urls}
+        </span>
       </p>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-emerald-100">
         <div
@@ -485,9 +482,7 @@ function IndexedTile({ audit }: { audit: SitemapAuditSummary }) {
           style={{ width: `${(audit.indexed_count / Math.max(1, audit.total_urls)) * 100}%` }}
         />
       </div>
-      <p className="mt-1.5 text-[11px] text-muted-foreground">
-        Successful: {audit.indexed_count}
-      </p>
+      <p className="mt-1.5 text-[11px] text-muted-foreground">Successful: {audit.indexed_count}</p>
       <div className="mt-3 h-1 overflow-hidden rounded-full bg-neutral-200">
         <div className="h-full rounded-full bg-neutral-500" style={{ width: `${pct}%` }} />
       </div>
@@ -517,27 +512,35 @@ function VitalTile({
   const color = !hasValue
     ? "text-muted-foreground"
     : value! <= good
-    ? "text-emerald-600"
-    : value! <= warn
-    ? "text-amber-600"
-    : "text-red-600";
+      ? "text-emerald-600"
+      : value! <= warn
+        ? "text-amber-600"
+        : "text-red-600";
   const markerPct = !hasValue ? 0 : Math.min(100, (value! / bandMax) * 100);
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          {label}
+        </p>
         <span className="text-muted-foreground">{icon}</span>
       </div>
       <p className={cn("mt-2 text-3xl font-bold tabular-nums", color)}>
-        {hasValue ? value : "—"}
+        {hasValue ? value : ","}
         {hasValue ? <span className="ml-1 text-sm font-semibold">{unit}</span> : null}
       </p>
       <div className="relative mt-4 h-1.5 overflow-hidden rounded-full bg-neutral-200">
-        <div className="absolute inset-y-0 left-0 bg-emerald-500" style={{ width: `${(good / bandMax) * 100}%` }} />
+        <div
+          className="absolute inset-y-0 left-0 bg-emerald-500"
+          style={{ width: `${(good / bandMax) * 100}%` }}
+        />
         <div
           className="absolute inset-y-0 bg-amber-500"
-          style={{ left: `${(good / bandMax) * 100}%`, width: `${((warn - good) / bandMax) * 100}%` }}
+          style={{
+            left: `${(good / bandMax) * 100}%`,
+            width: `${((warn - good) / bandMax) * 100}%`,
+          }}
         />
         <div
           className="absolute inset-y-0 right-0 bg-red-500"
@@ -582,32 +585,34 @@ function StateTabs({
       <div>
         {/* <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">Sitemap</p> */}
         <h2 className="text-2xl font-semibold tracking-tight text-foreground">Sitemap Audit</h2>
-        <p className="mt-1 text-xs text-muted-foreground">Fetch your sitemap, score every page for Core Web Vitals, structure, and AI readiness. Up to 200 URLs per run.</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Fetch your sitemap, score every page for Core Web Vitals, structure, and AI readiness. Up
+          to 200 URLs per run.
+        </p>
       </div>
       <div>
-      {items.map((it) => {
-        const isActive = it.key === active;
-        return (
-          <button
-            key={it.key}
-            type="button"
-            onClick={() => onChange(it.key)}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[12px] font-semibold transition",
-              isActive
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground hover:border-border hover:text-foreground",
-            )}
-          >
-            {it.label}
-            <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
-              {it.count}
-            </span>
-          </button>
-        );
-      })}
+        {items.map((it) => {
+          const isActive = it.key === active;
+          return (
+            <button
+              key={it.key}
+              type="button"
+              onClick={() => onChange(it.key)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[12px] font-semibold transition",
+                isActive
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:border-border hover:text-foreground",
+              )}
+            >
+              {it.label}
+              <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
+                {it.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
-      
     </div>
   );
 }
@@ -628,10 +633,7 @@ function Toolbar({
   onSeverity: (v: SeverityFilter) => void;
 }) {
   return (
-    <div
-      className="flex flex-wrap items-center justify-end gap-3"
-      data-tour-card="sitemap-toolbar"
-    >
+    <div className="flex flex-wrap items-center justify-end gap-3" data-tour-card="sitemap-toolbar">
       <div className="relative min-w-[220px] flex-1 md:flex-initial md:w-80">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -653,27 +655,21 @@ function Toolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        <Select
-          value={severity}
-          onValueChange={(v) => onSeverity(v as SeverityFilter)}
-        >
+        <Select value={severity} onValueChange={(v) => onSeverity(v as SeverityFilter)}>
           <SelectTrigger
             size="sm"
             className="h-9 w-34 shrink-0 border border-border/80 bg-white text-foreground shadow-sm sm:w-36 dark:bg-white dark:text-foreground dark:hover:bg-neutral-50"
           >
             <SelectValue placeholder="All severities" />
           </SelectTrigger>
-          <SelectContent> 
+          <SelectContent>
             <SelectItem value="all">All severities</SelectItem>
             <SelectItem value="ok">OK</SelectItem>
             <SelectItem value="warn">Warning</SelectItem>
             <SelectItem value="fail">Fail</SelectItem>
           </SelectContent>
         </Select>
-        <Select
-          value={sort}
-          onValueChange={(v) => onSort(v as string)}
-        >
+        <Select value={sort} onValueChange={(v) => onSort(v as string)}>
           <SelectTrigger
             size="sm"
             className="h-9 w-34 shrink-0 border border-border/80 bg-white text-foreground shadow-sm sm:w-36 dark:bg-white dark:text-foreground dark:hover:bg-neutral-50"
@@ -687,7 +683,7 @@ function Toolbar({
               </SelectItem>
             ))}
           </SelectContent>
-        </Select> 
+        </Select>
       </div>
     </div>
   );
@@ -714,7 +710,7 @@ function PagesTable({
         {running ? (
           <span className="inline-flex items-center gap-2">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Crawling pages — results appear here as each URL finishes.
+            Crawling pages, results appear here as each URL finishes.
           </span>
         ) : (
           <>No {state} pages yet.</>
@@ -789,18 +785,35 @@ function PageRow({ page, dataTour }: { page: SitemapAuditPage; dataTour?: string
           <StatusPill code={page.status_code} />
         </td>
         <td className="px-2 py-3 align-top tabular-nums">
-          <p className="whitespace-nowrap font-medium text-foreground">{page.word_count.toLocaleString()} words</p>
+          <p className="whitespace-nowrap font-medium text-foreground">
+            {page.word_count.toLocaleString()} words
+          </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             {(page.text_ratio * 100).toFixed(0)}% text ratio
           </p>
         </td>
-        <td className={cn("px-2 py-3 align-top tabular-nums whitespace-nowrap", vitalColor(page.lcp_ms, [2500, 4000]))}>
+        <td
+          className={cn(
+            "px-2 py-3 align-top tabular-nums whitespace-nowrap",
+            vitalColor(page.lcp_ms, [2500, 4000]),
+          )}
+        >
           {fmtMs(page.lcp_ms)}
         </td>
-        <td className={cn("px-2 py-3 align-top tabular-nums whitespace-nowrap", vitalColor(page.fcp_ms, [1800, 3000]))}>
+        <td
+          className={cn(
+            "px-2 py-3 align-top tabular-nums whitespace-nowrap",
+            vitalColor(page.fcp_ms, [1800, 3000]),
+          )}
+        >
           {fmtMs(page.fcp_ms)}
         </td>
-        <td className={cn("px-2 py-3 align-top tabular-nums whitespace-nowrap", vitalColor(page.ttfb_ms, [800, 1800]))}>
+        <td
+          className={cn(
+            "px-2 py-3 align-top tabular-nums whitespace-nowrap",
+            vitalColor(page.ttfb_ms, [800, 1800]),
+          )}
+        >
           {fmtMs(page.ttfb_ms)}
         </td>
         <td className="px-2 py-3 align-top tabular-nums whitespace-nowrap text-muted-foreground">
@@ -808,7 +821,9 @@ function PageRow({ page, dataTour }: { page: SitemapAuditPage; dataTour?: string
         </td>
         <td className="px-2 py-3 align-top tabular-nums">
           <p>{page.resource_count} files</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">{fmtBytes(page.resource_bytes)}</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            {fmtBytes(page.resource_bytes)}
+          </p>
         </td>
         <td className="px-2 py-3 align-top tabular-nums">
           <p>{page.link_count_total} Links</p>
@@ -869,9 +884,9 @@ function PageDetails({ page }: { page: SitemapAuditPage }) {
           <dt className="text-muted-foreground">H1 count</dt>
           <dd className="font-medium">{page.h1_count}</dd>
           <dt className="text-muted-foreground">Canonical</dt>
-          <dd className="font-medium">{page.has_canonical ? "✓" : "—"}</dd>
+          <dd className="font-medium">{page.has_canonical ? "✓" : ","}</dd>
           <dt className="text-muted-foreground">Open Graph</dt>
-          <dd className="font-medium">{page.has_og ? "✓" : "—"}</dd>
+          <dd className="font-medium">{page.has_og ? "✓" : ","}</dd>
           <dt className="text-muted-foreground">noindex</dt>
           <dd className="font-medium">{page.is_noindex ? "yes" : "no"}</dd>
           <dt className="text-muted-foreground">GPTBot</dt>
@@ -879,7 +894,9 @@ function PageDetails({ page }: { page: SitemapAuditPage }) {
           <dt className="text-muted-foreground">ClaudeBot</dt>
           <dd className="font-medium">{page.robots_allows_claudebot ? "allowed" : "blocked"}</dd>
           <dt className="text-muted-foreground">PerplexityBot</dt>
-          <dd className="font-medium">{page.robots_allows_perplexitybot ? "allowed" : "blocked"}</dd>
+          <dd className="font-medium">
+            {page.robots_allows_perplexitybot ? "allowed" : "blocked"}
+          </dd>
         </dl>
         <a
           href={page.final_url || page.url}
@@ -904,36 +921,38 @@ function StatusPill({ code }: { code: number }) {
   const cls = ok
     ? "bg-emerald-100 text-emerald-700"
     : redirect
-    ? "bg-amber-100 text-amber-700"
-    : code
-    ? "bg-red-100 text-red-700"
-    : "bg-neutral-100 text-neutral-600";
+      ? "bg-amber-100 text-amber-700"
+      : code
+        ? "bg-red-100 text-red-700"
+        : "bg-neutral-100 text-neutral-600";
   return (
-    <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums", cls)}>
-      {code || "—"}
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums",
+        cls,
+      )}
+    >
+      {code || ","}
     </span>
   );
 }
 
 function SeverityIcon({ severity }: { severity: SitemapPageSeverity }) {
   if (severity === "fail") return <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />;
-  if (severity === "warn") return <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />;
+  if (severity === "warn")
+    return <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />;
   return <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" />;
 }
 
-function AiScoreCell({
-  score,
-  severity,
-}: {
-  score: number;
-  severity: SitemapPageSeverity;
-}) {
-  const bar = severity === "fail" ? "bg-red-500" : severity === "warn" ? "bg-amber-500" : "bg-emerald-500";
-  const chip = severity === "fail"
-    ? "bg-red-100 text-red-700"
-    : severity === "warn"
-    ? "bg-amber-100 text-amber-700"
-    : "bg-emerald-100 text-emerald-700";
+function AiScoreCell({ score, severity }: { score: number; severity: SitemapPageSeverity }) {
+  const bar =
+    severity === "fail" ? "bg-red-500" : severity === "warn" ? "bg-amber-500" : "bg-emerald-500";
+  const chip =
+    severity === "fail"
+      ? "bg-red-100 text-red-700"
+      : severity === "warn"
+        ? "bg-amber-100 text-amber-700"
+        : "bg-emerald-100 text-emerald-700";
   return (
     <div className="flex items-center gap-1.5">
       <div className="w-14 min-w-0">
@@ -959,7 +978,7 @@ function vitalColor(value: number | null, [good, warn]: [number, number]): strin
 }
 
 function fmtMs(value: number | null): string {
-  if (value == null) return "—";
+  if (value == null) return ",";
   if (value >= 1000) return `${(value / 1000).toFixed(2)}s`;
   return `${Math.round(value)}ms`;
 }

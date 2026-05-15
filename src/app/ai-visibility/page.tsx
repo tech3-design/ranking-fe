@@ -36,8 +36,8 @@ export default function ContentSignalsPage() {
         pillarRows={CONTENT_SIGNALS_PILLAR_ROWS}
         capabilityRows={CONTENT_SIGNALS_CAPABILITY_ROWS}
         primaryCta={CONTENT_SIGNALS_HERO.primaryCta}
-        secondaryCtaLabel="Run free GEO audit"
-        secondaryCtaHref="/analyzer"
+        secondaryCtaLabel="Get started"
+        secondaryCtaHref="/sign-up"
         headingId="content-signals-why-heading"
       />
       <LandingFaq

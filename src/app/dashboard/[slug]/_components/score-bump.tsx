@@ -19,12 +19,15 @@ export function ScoreBump() {
         >
           <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-[#22c55e]/10">
             <TrendingUp className="h-6 w-6 text-[#22c55e]" />
-            <Sparkle className="absolute -right-1 -top-1 h-3.5 w-3.5 text-amber-400" fill="currentColor" />
+            <Sparkle
+              className="absolute -right-1 -top-1 h-3.5 w-3.5 text-amber-400"
+              fill="currentColor"
+            />
           </div>
           <div>
             <p className="text-2xl font-bold text-[#22c55e]">+{scoreBump} pts</p>
             <p className="text-xs text-muted-foreground">
-              Re-analysis complete — score improved since last run
+              Re-analysis complete, score improved since last run
             </p>
           </div>
         </motion.div>

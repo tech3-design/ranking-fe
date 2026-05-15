@@ -11,12 +11,10 @@ import {
   type AnalysisRunDetail,
   type PageScore,
 } from "@/lib/api/analyzer";
-import {
-  getSubscriptionStatus,
-  type SubscriptionStatus,
-} from "@/lib/api/payments";
+import { getSubscriptionStatus, type SubscriptionStatus } from "@/lib/api/payments";
 import { routes } from "@/lib/config";
 import { Button } from "@/components/ui/button";
+import { SignupGateOverlay } from "@/components/tools/signup-gate-modal";
 import { cn } from "@/lib/utils";
 
 type RunState =
@@ -175,15 +173,21 @@ export function UrlAnalyzerToolInline() {
 
       {state.kind === "running" && <RunningCard progress={state.progress} />}
       {state.kind === "error" && <ErrorCard message={state.message} onRetry={reset} />}
-      {state.kind === "done" && (
-        <ResultCards
-          detail={state.detail}
-          session={session}
-          sessionPending={isPending}
-          sub={sub}
-          onReset={reset}
-        />
-      )}
+      <SignupGateOverlay
+        when={state.kind === "done"}
+        title="Sign up to see your audit"
+        body="Your URL audit is ready. Create a free Signalor account or log in to view your score, pillar breakdown, and recommendations."
+      >
+        {state.kind === "done" && (
+          <ResultCards
+            detail={state.detail}
+            session={session}
+            sessionPending={isPending}
+            sub={sub}
+            onReset={reset}
+          />
+        )}
+      </SignupGateOverlay>
     </div>
   );
 }
@@ -194,7 +198,7 @@ function RunningCard({ progress }: { progress: number }) {
       <div className="flex items-center gap-3">
         <Loader2 className="h-4 w-4 animate-spin text-primary" />
         <p className="text-sm font-medium text-foreground">
-          Running your audit — fetching the page, parsing schema, scoring pillars…
+          Running your audit, fetching the page, parsing schema, scoring pillars…
         </p>
       </div>
       <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-neutral-100">
@@ -203,9 +207,7 @@ function RunningCard({ progress }: { progress: number }) {
           style={{ width: `${Math.max(6, Math.min(100, progress))}%` }}
         />
       </div>
-      <p className="mt-2 text-[11px] text-muted-foreground">
-        This usually takes 20–60 seconds.
-      </p>
+      <p className="mt-2 text-[11px] text-muted-foreground">This usually takes 20–60 seconds.</p>
     </div>
   );
 }
@@ -239,11 +241,8 @@ function ResultCards({
   onReset: () => void;
 }) {
   const mainPage =
-    detail.page_scores?.find((p) => p.url === detail.url) ||
-    detail.page_scores?.[0] ||
-    null;
-  const composite =
-    detail.composite_score ?? mainPage?.composite_score ?? 0;
+    detail.page_scores?.find((p) => p.url === detail.url) || detail.page_scores?.[0] || null;
+  const composite = detail.composite_score ?? mainPage?.composite_score ?? 0;
   const topRec = detail.recommendations?.[0];
 
   return (
@@ -364,12 +363,12 @@ function GateCard({
         </div>
         <p className="mt-2 text-sm font-semibold text-foreground">
           {hiddenFixes > 0
-            ? `${hiddenFixes} more fixes, per-engine AI probes, and monitoring are ready — sign up to view them.`
-            : "Per-engine AI probes, competitor share, and monitoring are ready — sign up to view them."}
+            ? `${hiddenFixes} more fixes, per-engine AI probes, and monitoring are ready, sign up to view them.`
+            : "Per-engine AI probes, competitor share, and monitoring are ready, sign up to view them."}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
-            href={`${routes.signUp}?returnTo=${encodeURIComponent(`/analyzer/${detail.id}`)}`}
+            href={routes.signUp}
             className="inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-xs font-semibold text-white shadow-sm hover:brightness-110"
           >
             Create a free account
@@ -415,15 +414,15 @@ function GateCard({
 
   return (
     <div className="rounded-sm border border-black/6 bg-neutral-50 p-5">
-      <p className="text-sm font-semibold text-foreground">Open your full report</p>
+      <p className="text-sm font-semibold text-foreground">Unlock your full report</p>
       <p className="mt-1 text-[13px] text-muted-foreground">
         Full pillar details, per-engine AI probes, recommendations, and monitoring.
       </p>
       <Link
-        href={routes.analyzerResults(detail.id)}
+        href={routes.signUp}
         className="mt-3 inline-flex items-center gap-1.5 rounded-sm bg-primary px-4 py-2 text-xs font-semibold text-white shadow-sm hover:brightness-110"
       >
-        Open report
+        Get started free
         <ArrowRight className="h-3.5 w-3.5" />
       </Link>
     </div>

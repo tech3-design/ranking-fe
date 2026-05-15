@@ -4,9 +4,9 @@ import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 import { INTEGRATIONS_FAQ } from "@/lib/landing-integrations-feature-content";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Recommendations — prioritized GEO fixes",
+  title: "Recommendations, prioritized GEO fixes",
   description:
-    "Prioritized fixes ranked by impact on your GEO score and AI citations — schema, structure, content, and trust signals in one queue you can ship from.",
+    "Prioritized fixes ranked by impact on your GEO score and AI citations, schema, structure, content, and trust signals in one queue you can ship from.",
   path: "/recommendations",
 });
 

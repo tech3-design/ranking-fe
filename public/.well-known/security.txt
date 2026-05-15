@@ -6,4 +6,4 @@ Contact: mailto:security@signalor.ai
 Expires: 2027-05-07T00:00:00.000Z
 Preferred-Languages: en
 Canonical: https://signalor.ai/.well-known/security.txt
-Policy: https://signalor.ai/privacy-policy
+Policy: https://signalor.ai/policy

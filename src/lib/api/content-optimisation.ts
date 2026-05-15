@@ -1,10 +1,6 @@
 import { apiClient, apiClientLong } from "./client";
 
-export type ContentField =
-  | "title"
-  | "meta_description"
-  | "body_html"
-  | "schema_jsonld";
+export type ContentField = "title" | "meta_description" | "body_html" | "schema_jsonld";
 
 export interface ContentPage {
   url: string;
@@ -66,12 +62,9 @@ export async function getContentPages(slug: string): Promise<ContentPage[]> {
   return data.pages || [];
 }
 
-export async function getContentPageFields(
-  slug: string,
-  url: string,
-): Promise<ContentPageFields> {
+export async function getContentPageFields(slug: string, url: string): Promise<ContentPageFields> {
   // Long timeout because the BE renders the URL in headless Chromium to
-  // produce the preview screenshot — typically 4–10s per page.
+  // produce the preview screenshot, typically 4–10s per page.
   const { data } = await apiClientLong.get<ContentPageFields>(
     `/api/analyzer/runs/s/${slug}/content/page/`,
     { params: { url }, timeout: 45_000 },
@@ -91,13 +84,8 @@ export async function getContentSuggestions(
   return data.suggestions || [];
 }
 
-export async function dismissContentSuggestion(
-  slug: string,
-  suggestionId: number,
-): Promise<void> {
-  await apiClient.post(
-    `/api/analyzer/runs/s/${slug}/content/suggestions/${suggestionId}/dismiss/`,
-  );
+export async function dismissContentSuggestion(slug: string, suggestionId: number): Promise<void> {
+  await apiClient.post(`/api/analyzer/runs/s/${slug}/content/suggestions/${suggestionId}/dismiss/`);
 }
 
 export async function saveContentPageEdits(

@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/json-ld";
-import {
-  breadcrumbJsonLd,
-  buildMetadata,
-  faqJsonLd,
-  SITE_BRAND,
-  SITE_URL,
-} from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd, SITE_BRAND, SITE_URL } from "@/lib/seo";
 import { PRICING_FAQ_ITEMS } from "@/lib/pricing-marketing-content";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Pricing — GEO + AEO platform plans",
+  title: "Pricing, GEO + AEO platform plans",
   description:
     "Signalor pricing for GEO scoring, AI visibility tracking, and team workflows. GBP plans: Starter (£19.99), Pro (£49.99), Max (£59.99). Cancel anytime.",
   path: "/pricing",

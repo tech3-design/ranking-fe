@@ -6,11 +6,7 @@ import { addPromptTrack } from "@/lib/api/analyzer";
 import { useRun } from "../../_components/run-context";
 import { useSession } from "@/lib/auth-client";
 import { apiClient } from "@/lib/api/client";
-import {
-  getGAData,
-  getIntegrationStatus,
-  type GADataSnapshot,
-} from "@/lib/api/integrations";
+import { getGAData, getIntegrationStatus, type GADataSnapshot } from "@/lib/api/integrations";
 import { Lightbulb, Loader2, AlertCircle, Plus, Copy, Check, Search } from "@/components/icons";
 
 type SuggestionSource = "google" | "duckduckgo";
@@ -115,7 +111,7 @@ function mergeRankedIdeas(input: {
     });
   });
 
-  // AI generator: keep at medium-low — ideas, not search evidence
+  // AI generator: keep at medium-low, ideas, not search evidence
   input.ai.forEach((text, idx) => {
     const score = Math.max(15, 55 - idx * 2);
     put({
@@ -223,9 +219,7 @@ export default function PromptsRecommendationsPage() {
         const email = session?.user?.email ?? "";
         if (!email) return [] as string[];
         const integrations = await getIntegrationStatus(email).catch(() => []);
-        const gaActive = integrations.some(
-          (i) => i.provider === "google_analytics" && i.is_active,
-        );
+        const gaActive = integrations.some((i) => i.provider === "google_analytics" && i.is_active);
         if (!gaActive) return [] as string[];
         const gaData = await getGAData(email, brandUrl || undefined).catch(() => null);
         if (!gaData) return [] as string[];
@@ -249,7 +243,8 @@ export default function PromptsRecommendationsPage() {
 
       const generated = dedupe(generatedPrompts.map((p) => String(p).trim()).filter(Boolean));
       if (generated.length > 0) sourcesUsed.push(`AI generator (${generated.length})`);
-      if (gaPrompts.length > 0) sourcesUsed.push(`Google Analytics pages/sources (${gaPrompts.length})`);
+      if (gaPrompts.length > 0)
+        sourcesUsed.push(`Google Analytics pages/sources (${gaPrompts.length})`);
 
       const merged = mergeRankedIdeas({
         search: insightsData?.rankedSuggestions,
@@ -262,7 +257,9 @@ export default function PromptsRecommendationsPage() {
       setSourceSummary(sourcesUsed);
 
       if (merged.length === 0) {
-        setError("No prompt signals found yet. Connect GA or try again with a broader brand query.");
+        setError(
+          "No prompt signals found yet. Connect GA or try again with a broader brand query.",
+        );
       }
     } catch {
       setError("Could not run search insight engine.");
@@ -304,16 +301,20 @@ export default function PromptsRecommendationsPage() {
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-bold text-foreground">Recommendations</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              How to rank your prompts so AI engines mention <span className="text-foreground font-medium">{brandName || "your brand"}</span> more often — plus ideas you can drop straight into the tracker.
+              How to rank your prompts so AI engines mention <span className="text-foreground font-medium">{brandName || "your brand"}</span> more often, plus ideas you can drop straight into the tracker.
             </p>
           </div>
         </div>
       </div> */}
-       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Recommendations</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            Recommendations
+          </h2>
           <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-            How to rank your prompts so AI engines mention <span className="text-foreground font-medium">{brandName || "your brand"}</span> more often — plus ideas you can drop straight into the tracker.
+            How to rank your prompts so AI engines mention{" "}
+            <span className="text-foreground font-medium">{brandName || "your brand"}</span> more
+            often, plus ideas you can drop straight into the tracker.
           </p>
         </div>
       </div>
@@ -324,8 +325,8 @@ export default function PromptsRecommendationsPage() {
           <h2 className="text-sm font-semibold text-foreground">Internet search insight engine</h2>
         </div>
         <p className="text-xs text-muted-foreground">
-          Pulls and merges multiple sources: internet autocomplete, AI generation, and Google Analytics
-          signals (if connected) to find more accurate prompts for{" "}
+          Pulls and merges multiple sources: internet autocomplete, AI generation, and Google
+          Analytics signals (if connected) to find more accurate prompts for{" "}
           <span className="text-foreground font-medium">{brandName || "your brand"}</span>.
         </p>
         <button
@@ -338,7 +339,9 @@ export default function PromptsRecommendationsPage() {
           {loading ? "Analyzing searches..." : "Run search insight engine"}
         </button>
         {!brandName && (
-          <p className="text-xs text-muted-foreground mt-3">Complete an analysis run to enable generation.</p>
+          <p className="text-xs text-muted-foreground mt-3">
+            Complete an analysis run to enable generation.
+          </p>
         )}
       </div>
 
@@ -385,7 +388,6 @@ export default function PromptsRecommendationsPage() {
               </div>
             )}
           </div>
-
         </>
       )}
 
@@ -440,8 +442,7 @@ function PromptIdeaRow({
       : idea.tier === "medium"
         ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
         : "border-neutral-300/60 bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400";
-  const tierLabel =
-    idea.tier === "high" ? "High" : idea.tier === "medium" ? "Medium" : "Low";
+  const tierLabel = idea.tier === "high" ? "High" : idea.tier === "medium" ? "Medium" : "Low";
   const originLabel =
     idea.origin === "search"
       ? idea.sources.length > 1

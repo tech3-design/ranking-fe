@@ -18,8 +18,9 @@ export function SitemapAuditShell({ slug }: { slug: string }) {
 
   useEffect(() => {
     const qp = (searchParams.get("tab") as Tab) === "agent" ? "agent" : "sitemap";
-    if (qp !== tab) setTab(qp);
-  }, [searchParams, tab]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTab(qp);
+  }, [searchParams]);
 
   function switchTab(next: Tab) {
     setTab(next);

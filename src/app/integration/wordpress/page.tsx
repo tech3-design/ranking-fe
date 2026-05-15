@@ -5,12 +5,15 @@ import { IntegrationPlatformHero } from "@/components/landing/integration-platfo
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
-import { INTEGRATION_DETAIL_FAQ, WORDPRESS_INTEGRATION_PAGE } from "@/lib/landing-integration-content";
+import {
+  INTEGRATION_DETAIL_FAQ,
+  WORDPRESS_INTEGRATION_PAGE,
+} from "@/lib/landing-integration-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "WordPress plugin — GEO scoring & schema fixes",
+  title: "WordPress plugin, GEO scoring & schema fixes",
   description: WORDPRESS_INTEGRATION_PAGE.subhead,
   path: "/integration/wordpress",
 });
@@ -26,12 +29,19 @@ const wordpressPluginJsonLd = {
   downloadUrl: `${SITE_URL}/downloads/signalor-geo.zip`,
   description:
     "Self-hosted WordPress plugin that surfaces Signalor GEO recommendations and applies one-click schema fixes inside the WordPress admin.",
-  publisher: { "@id": `${SITE_URL}#organization` },
 };
 
 export default function WordPressIntegrationPage() {
   return (
     <LandingMarketingShell>
+      <p className="sr-only">
+        The Signalor WordPress plugin brings GEO recommendations and one-click schema fixes directly
+        into your WordPress admin panel. After installing the self-hosted plugin, Signalor audits
+        your posts and pages for missing or malformed JSON-LD, incomplete Organization markup, and
+        weak AI citability signals, then lets you apply fixes without touching code. The plugin
+        works with any WordPress theme and requires no API keys to install. Download is free;
+        advanced monitoring and bulk fixes require a Signalor plan.
+      </p>
       <JsonLd
         id="ld-wordpress-breadcrumb"
         data={breadcrumbJsonLd([

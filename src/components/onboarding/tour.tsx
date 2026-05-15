@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 type TourMedia = {
   /** Static screenshot/illustration. Ignored when `video` is set. */
   image?: string;
-  /** MP4/WebM URL — autoplays muted on loop. */
+  /** MP4/WebM URL, autoplays muted on loop. */
   video?: string;
   /** Poster shown before the video buffers. Falls back to `image` if absent. */
   videoPoster?: string;
@@ -23,7 +23,6 @@ export type TourSection =
   | "sitemap"
   | "tasks"
   | "tracker"
-  | "wikipedia"
   | "competitors"
   | "content"
   | "backlinks";
@@ -49,15 +48,11 @@ export type TourStep =
       route?: string;
     } & TourMedia);
 
-export function sectionForPathname(
-  pathname: string,
-  basePath: string,
-): TourSection {
+export function sectionForPathname(pathname: string, basePath: string): TourSection {
   const rel = pathname === basePath ? "/" : pathname.slice(basePath.length) || "/";
   if (rel.startsWith("/visibility")) return "visibility";
   if (rel.startsWith("/sitemap")) return "sitemap";
   if (rel.startsWith("/recommendations")) return "tasks";
-  if (rel.startsWith("/prompts/wikipedia")) return "wikipedia";
   if (rel.startsWith("/prompts")) return "tracker";
   if (rel.startsWith("/competitors")) return "competitors";
   if (rel.startsWith("/optimisation/content")) return "content";
@@ -176,7 +171,7 @@ export function TourProvider({
     () => ({
       active,
       index,
-      step: active ? sectionSteps[index] ?? null : null,
+      step: active ? (sectionSteps[index] ?? null) : null,
       total: sectionSteps.length,
       start,
       next,
@@ -202,11 +197,13 @@ function TourRenderer() {
 
   return createPortal(
     <AnimatePresence mode="wait">
-      {active && step
-        ? step.kind === "modal"
-          ? <ModalStep key={step.id} step={step} />
-          : <SpotlightStep key={step.id} step={step} />
-        : null}
+      {active && step ? (
+        step.kind === "modal" ? (
+          <ModalStep key={step.id} step={step} />
+        ) : (
+          <SpotlightStep key={step.id} step={step} />
+        )
+      ) : null}
     </AnimatePresence>,
     document.body,
   );
@@ -226,11 +223,7 @@ function ModalStep({ step }: { step: Extract<TourStep, { kind: "modal" }> }) {
   );
 }
 
-function SpotlightStep({
-  step,
-}: {
-  step: Extract<TourStep, { kind: "spotlight" }>;
-}) {
+function SpotlightStep({ step }: { step: Extract<TourStep, { kind: "spotlight" }> }) {
   const [rect, setRect] = React.useState<{
     x: number;
     y: number;
@@ -293,7 +286,7 @@ function SpotlightStep({
   }, [step.selector]);
 
   if (gaveUp) {
-    // Target missing — fall back to centered modal so the tour keeps moving.
+    // Target missing, fall back to centered modal so the tour keeps moving.
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -387,12 +380,7 @@ function SpotlightOverlay({
           />
         </mask>
       </defs>
-      <rect
-        width="100%"
-        height="100%"
-        fill="rgba(0,0,0,0.68)"
-        mask="url(#signalor-tour-mask)"
-      />
+      <rect width="100%" height="100%" fill="rgba(0,0,0,0.68)" mask="url(#signalor-tour-mask)" />
       <motion.rect
         initial={false}
         animate={{
@@ -435,25 +423,14 @@ function TourMediaPanel({ step }: { step: TourStep }) {
     return (
       <div className="border-b border-border bg-muted/30">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={step.image}
-          alt=""
-          draggable={false}
-          className="h-44 w-full object-cover"
-        />
+        <img src={step.image} alt="" draggable={false} className="h-44 w-full object-cover" />
       </div>
     );
   }
   return null;
 }
 
-function TourCard({
-  step,
-  centered = false,
-}: {
-  step: TourStep;
-  centered?: boolean;
-}) {
+function TourCard({ step, centered = false }: { step: TourStep; centered?: boolean }) {
   const { index, total, next, prev, close } = useTour();
   const isFirst = index === 0;
   const isLast = index === total - 1;
@@ -478,12 +455,8 @@ function TourCard({
             Step {index + 1} of {total}
           </span>
         </div>
-        <h3 className="text-[15px] font-semibold leading-tight text-foreground">
-          {step.title}
-        </h3>
-        <div className="text-[13px] leading-relaxed text-muted-foreground">
-          {step.body}
-        </div>
+        <h3 className="text-[15px] font-semibold leading-tight text-foreground">{step.title}</h3>
+        <div className="text-[13px] leading-relaxed text-muted-foreground">{step.body}</div>
       </div>
 
       <div className="flex items-center justify-center gap-1 px-4 pb-3">

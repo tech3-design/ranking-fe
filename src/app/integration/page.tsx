@@ -10,7 +10,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Integrations — Shopify & WordPress",
+  title: "Integrations, Shopify & WordPress",
   description:
     "Connect Shopify and WordPress to Signalor so GEO audits and AI visibility scores reflect your live catalog and CMS. One-click schema fixes from inside the admin.",
   path: "/integration",
@@ -19,6 +19,14 @@ export const metadata: Metadata = buildMetadata({
 export default function IntegrationPage() {
   return (
     <LandingMarketingShell>
+      <p className="sr-only">
+        Signalor connects to Shopify and WordPress so your GEO audits and AI visibility scores
+        reflect live catalog and CMS data. The Shopify integration pulls product titles,
+        descriptions, and schema into Signalor so AI engines can correctly cite your inventory. The
+        WordPress plugin surfaces GEO recommendations and applies one-click JSON-LD schema fixes
+        directly from your WordPress admin dashboard. Both connectors use read-oriented syncs and
+        can be disconnected at any time from your workspace settings.
+      </p>
       <JsonLd
         id="ld-integration-breadcrumb"
         data={breadcrumbJsonLd([

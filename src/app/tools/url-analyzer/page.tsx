@@ -13,13 +13,27 @@ export default function UrlAnalyzerToolPage() {
         eyebrow="[ free tool · url analyzer ]"
         title="Score any URL for"
         titleAccent="AI visibility"
-        description="Paste a domain and see how AI engines summarize, cite, or skip it. Free — no sign-up required for the summary."
+        description="Paste a domain and see how AI engines summarize, cite, or skip it. Free, no sign-up required for the summary."
+        secondaryDescription="The analyzer checks schema coverage, on-page trust signals, llms.txt, AI-bot crawler permissions, and citation patterns across ChatGPT, Claude, Gemini, and Perplexity. You get a 0–100 GEO score plus the three highest-impact fixes, no account needed."
         form={<UrlAnalyzerToolInline />}
         features={[
-          { title: "Full GEO score", description: "Structure, schema, citability and trust signals rolled into one 0-100 read." },
-          { title: "Per-engine view", description: "See how each AI surface sees the page—cited, paraphrased, or absent." },
-          { title: "Fix list", description: "Prioritized recommendations ranked by impact on the score." },
-          { title: "Free forever", description: "Run unlimited audits on public URLs without an account." },
+          {
+            title: "Full GEO score",
+            description:
+              "Structure, schema, citability and trust signals rolled into one 0-100 read.",
+          },
+          {
+            title: "Per-engine view",
+            description: "See how each AI surface sees the page,cited, paraphrased, or absent.",
+          },
+          {
+            title: "Fix list",
+            description: "Prioritized recommendations ranked by impact on the score.",
+          },
+          {
+            title: "Free forever",
+            description: "Run unlimited audits on public URLs without an account.",
+          },
         ]}
         previewEyebrow="[ what's inside the full report ]"
         previewTitle="Unlock the full"
@@ -41,7 +55,8 @@ function PreviewPerEngine() {
     <div>
       <p className="text-sm font-semibold text-foreground">Per-engine AI probes</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        ChatGPT, Claude, Gemini, and Perplexity tested against your brand prompts — see every response, mention, and citation.
+        ChatGPT, Claude, Gemini, and Perplexity tested against your brand prompts, see every
+        response, mention, and citation.
       </p>
     </div>
   );
@@ -52,7 +67,8 @@ function PreviewFullFixQueue() {
     <div>
       <p className="text-sm font-semibold text-foreground">Full fix queue</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Every recommendation ranked by projected lift, with ready-to-paste code and one-click auto-fix on Shopify & WordPress.
+        Every recommendation ranked by projected lift, with ready-to-paste code and one-click
+        auto-fix on Shopify & WordPress.
       </p>
     </div>
   );
@@ -63,7 +79,8 @@ function PreviewMonitoring() {
     <div>
       <p className="text-sm font-semibold text-foreground">Scheduled re-analysis</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Weekly or monthly re-runs, score history, and competitor benchmarks so you spot drift before it hurts.
+        Weekly or monthly re-runs, score history, and competitor benchmarks so you spot drift before
+        it hurts.
       </p>
     </div>
   );

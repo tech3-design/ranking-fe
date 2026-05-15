@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import {
+  getInvoiceList,
   getSubscriptionStatus,
   getUsage,
   type SubscriptionStatus,
@@ -94,7 +96,7 @@ export default function BillingSettingsPage() {
     });
   }, [email]);
 
-  const PlanIcon = sub ? (PLAN_ICONS[sub.plan] || Zap) : Zap;
+  const PlanIcon = sub ? PLAN_ICONS[sub.plan] || Zap : Zap;
   const atAnyLimit = usage?.at_limit.projects || usage?.at_limit.prompts;
 
   return (
@@ -129,9 +131,7 @@ export default function BillingSettingsPage() {
                 <div>
                   <p className="flex items-center gap-2 text-[14px] font-semibold tracking-tight text-neutral-900">
                     <PlanIcon className="h-4 w-4 text-primary" strokeWidth={1.75} />
-                    {sub?.is_active
-                      ? `${sub.plan_label} Plan — Active`
-                      : "No Active Subscription"}
+                    {sub?.is_active ? `${sub.plan_label} Plan, Active` : "No Active Subscription"}
                   </p>
                   <p className="text-[12px] font-light leading-snug text-accent-foreground">
                     {sub?.is_active && sub.current_period_end
@@ -164,11 +164,13 @@ export default function BillingSettingsPage() {
           {usage && (
             <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm space-y-5">
               <div className="flex items-center justify-between">
-                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Usage this period</p>
+                <p className="text-[14px] font-semibold tracking-tight text-neutral-900">
+                  Usage this period
+                </p>
                 {atAnyLimit && (
                   <span className="flex items-center gap-1 text-[11px] font-semibold tracking-tight text-[#E04D00]">
                     <AlertTriangle className="h-3.5 w-3.5" />
-                    At limit — upgrade to continue
+                    At limit, upgrade to continue
                   </span>
                 )}
               </div>
@@ -187,7 +189,9 @@ export default function BillingSettingsPage() {
               />
 
               <div className="pt-1">
-                <p className="mb-2 text-[12px] font-light leading-snug text-accent-foreground">AI Engines included</p>
+                <p className="mb-2 text-[12px] font-light leading-snug text-accent-foreground">
+                  AI Engines included
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {["gemini", "google", "chatgpt", "perplexity", "claude"].map((eng) => {
                     const allowed = usage.limits.engines.includes(eng);
@@ -211,8 +215,15 @@ export default function BillingSettingsPage() {
               </div>
 
               <div className="flex items-center justify-between border-t border-black/8 pt-3 text-[12px] font-light text-accent-foreground">
-                <span>Runs this month: <strong className="font-semibold text-neutral-900">{usage.usage.runs_this_month}</strong></span>
-                <span className="capitalize font-semibold text-neutral-900">{sub?.plan_label || "Starter"} plan</span>
+                <span>
+                  Runs this month:{" "}
+                  <strong className="font-semibold text-neutral-900">
+                    {usage.usage.runs_this_month}
+                  </strong>
+                </span>
+                <span className="capitalize font-semibold text-neutral-900">
+                  {sub?.plan_label || "Starter"} plan
+                </span>
               </div>
             </div>
           )}
@@ -234,36 +245,22 @@ export default function BillingSettingsPage() {
                       !f.toLowerCase().startsWith("1 project") &&
                       !f.toLowerCase().startsWith("3 project") &&
                       !f.toLowerCase().startsWith("4 project") &&
-                      !f.toLowerCase().startsWith("engines")
+                      !f.toLowerCase().startsWith("engines"),
                   ),
                 ].map((f) => (
                   <div key={f} className="flex items-center gap-2">
                     <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#16a34a]" strokeWidth={2} />
-                    <span className="text-[13px] font-light leading-snug text-neutral-900">{f}</span>
+                    <span className="text-[13px] font-light leading-snug text-neutral-900">
+                      {f}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Invoice */}
-          {sub?.is_active && sub.invoice_available && email && (
-            <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm">
-              <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Invoices</p>
-              <p className="mb-4 mt-1 text-[12px] font-light leading-snug text-accent-foreground">
-                Download the PDF receipt for your latest successful payment.
-              </p>
-              <a
-                href={`${config.apiBaseUrl}/api/payments/invoice/?email=${encodeURIComponent(email)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-sm border border-black/8 bg-white px-4 py-2.5 text-[12px] font-semibold tracking-tight text-neutral-900 shadow-sm transition hover:bg-neutral-50"
-              >
-                <FileDown className="h-4 w-4" strokeWidth={1.75} />
-                Download latest invoice
-              </a>
-            </div>
-          )}
+          {/* Invoices */}
+          {sub?.is_active && email && <InvoicesSection email={email} />}
 
           {/* Upgrade prompt */}
           {sub?.is_active && sub.plan !== "business" && (
@@ -296,5 +293,106 @@ export default function BillingSettingsPage() {
         </>
       )}
     </div>
+  );
+}
+
+function InvoicesSection({ email }: { email: string }) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["invoices", email],
+    queryFn: () => getInvoiceList(email),
+    enabled: !!email,
+  });
+
+  const items = data?.items ?? [];
+
+  return (
+    <div className="rounded-sm border border-black/8 bg-white p-6 shadow-sm">
+      <p className="text-[14px] font-semibold tracking-tight text-neutral-900">Invoices</p>
+      <p className="mb-4 mt-1 text-[12px] font-light leading-snug text-accent-foreground">
+        Download a PDF receipt for any successful payment. Receipts come straight from Dodo
+        Payments.
+      </p>
+
+      {isLoading ? (
+        <p className="text-[12px] text-accent-foreground">Loading invoices…</p>
+      ) : error ? (
+        <p className="text-[12px] text-accent-foreground">
+          Could not load invoices right now. Try again in a moment.
+        </p>
+      ) : items.length === 0 ? (
+        <p className="text-[12px] text-accent-foreground">
+          No invoices yet, they’ll appear here after your first successful charge.
+        </p>
+      ) : (
+        <div className="overflow-hidden rounded-sm border border-black/8">
+          <table className="w-full text-left text-[12px]">
+            <thead className="border-b border-black/8 bg-neutral-50 text-[10px] font-semibold uppercase tracking-wide text-accent-foreground">
+              <tr>
+                <th className="px-3 py-2">Date</th>
+                <th className="px-3 py-2">Amount</th>
+                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2 text-right">Invoice</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((row) => (
+                <tr key={row.payment_id} className="border-b border-black/8 last:border-0">
+                  <td className="px-3 py-2.5 text-neutral-900">
+                    {row.created_at
+                      ? new Date(row.created_at).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : ","}
+                  </td>
+                  <td className="px-3 py-2.5 font-medium tabular-nums text-neutral-900">
+                    {row.amount != null
+                      ? `${row.currency ?? ""} ${row.amount.toFixed(2)}`.trim()
+                      : ","}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <InvoiceStatusPill status={row.status} />
+                  </td>
+                  <td className="px-3 py-2.5 text-right">
+                    <a
+                      href={`${config.apiBaseUrl}/api/payments/invoice/?email=${encodeURIComponent(email)}&payment_id=${encodeURIComponent(row.payment_id)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-sm border border-black/8 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-neutral-900 hover:bg-neutral-50"
+                    >
+                      <FileDown className="h-3.5 w-3.5" strokeWidth={1.75} />
+                      PDF
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InvoiceStatusPill({ status }: { status: string | null }) {
+  if (!status) return <span className="text-accent-foreground">,</span>;
+  const s = status.toLowerCase();
+  let cls = "bg-neutral-100 text-neutral-700 border-black/10";
+  if (s === "succeeded" || s === "paid" || s === "completed") {
+    cls = "bg-emerald-50 text-emerald-700 border-emerald-200";
+  } else if (s === "failed" || s === "declined") {
+    cls = "bg-red-50 text-red-700 border-red-200";
+  } else if (s === "refunded" || s === "partially_refunded") {
+    cls = "bg-amber-50 text-amber-700 border-amber-200";
+  } else if (s === "pending" || s === "processing") {
+    cls = "bg-blue-50 text-blue-700 border-blue-200";
+  }
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold capitalize ${cls}`}
+    >
+      {status.replace(/_/g, " ")}
+    </span>
   );
 }

@@ -26,6 +26,7 @@ export function SentimentBreakdown({ tracks }: SentimentBreakdownProps) {
   useEffect(() => {
     const email = session?.user?.email;
     if (!email) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPlanEngines(null);
       return;
     }
@@ -64,9 +65,7 @@ export function SentimentBreakdown({ tracks }: SentimentBreakdownProps) {
     }
   }
 
-  const hasData = allEngines.some((e) =>
-    sentiments.some((sent) => stats[e][sent] > 0),
-  );
+  const hasData = allEngines.some((e) => sentiments.some((sent) => stats[e][sent] > 0));
 
   if (!hasData) {
     return <p className="text-sm text-muted-foreground">No sentiment data yet.</p>;
@@ -83,7 +82,10 @@ export function SentimentBreakdown({ tracks }: SentimentBreakdownProps) {
             <EngineBadge engine={engine} size={18} className="text-sm font-semibold" />
             <div className="flex flex-wrap gap-1.5">
               {sentiments.map((sent) => (
-                <span key={sent} className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs capitalize ${SENTIMENT_CLASS[sent]}`}>
+                <span
+                  key={sent}
+                  className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs capitalize ${SENTIMENT_CLASS[sent]}`}
+                >
                   {sent} {counts[sent]}
                 </span>
               ))}

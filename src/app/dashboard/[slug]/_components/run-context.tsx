@@ -68,10 +68,11 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
 
       // Build fix results map
       const fMap: FixResultMap = {};
-      for (const r of fixStatuses) fMap[r.recommendation_id] = { status: r.status, message: r.message };
+      for (const r of fixStatuses)
+        fMap[r.recommendation_id] = { status: r.status, message: r.message };
       setFixResults(fMap);
 
-      // Unblock rendering now — score history loads in the background
+      // Unblock rendering now, score history loads in the background
       setLoading(false);
 
       if (detail.email) {
@@ -91,7 +92,9 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
   }, [slug]);
 
   // Initial fetch
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Track status transitions for confetti
   useEffect(() => {
@@ -147,7 +150,8 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
           // Fetch fix statuses on completion
           const fixStatuses = await getAutoFixStatus(slug).catch(() => [] as AutoFixResult[]);
           const fMap: FixResultMap = {};
-          for (const r of fixStatuses) fMap[r.recommendation_id] = { status: r.status, message: r.message };
+          for (const r of fixStatuses)
+            fMap[r.recommendation_id] = { status: r.status, message: r.message };
           setFixResults(fMap);
         }
       } catch (e) {
@@ -166,7 +170,18 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
   }, []);
 
   return (
-    <RunContext.Provider value={{ run, scoreHistory, fixResults, loading, error, scoreBump, refetch: fetchData, setFixResult }}>
+    <RunContext.Provider
+      value={{
+        run,
+        scoreHistory,
+        fixResults,
+        loading,
+        error,
+        scoreBump,
+        refetch: fetchData,
+        setFixResult,
+      }}
+    >
       {children}
     </RunContext.Provider>
   );

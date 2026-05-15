@@ -5,6 +5,7 @@ import { ArrowRight, CircleCheck, CircleX, Globe, Loader2, MinusCircle } from "@
 
 import { Button } from "@/components/ui/button";
 import { ToolGateCard } from "@/components/tools/tool-gate-card";
+import { SignupGateOverlay } from "@/components/tools/signup-gate-modal";
 import { cn } from "@/lib/utils";
 
 interface LlmsResult {
@@ -64,7 +65,7 @@ export function LlmsCheckInline() {
     <div className="w-full">
       <form
         onSubmit={submit}
-        className="flex w-full items-center gap-2 rounded-lg border border-[#2563eb]/25 bg-white p-1.5 shadow-sm"
+        className="flex w-full items-center gap-2 rounded-sm border border-primary/25 bg-white p-1.5 shadow-sm"
       >
         <Globe className="ml-2 h-4 w-4 text-muted-foreground" aria-hidden />
         <input
@@ -78,7 +79,7 @@ export function LlmsCheckInline() {
         <Button
           type="submit"
           disabled={!url.trim() || state.kind === "running"}
-          className="shrink-0 rounded-md bg-[#2563eb] px-4 text-xs font-semibold text-white hover:brightness-110"
+          className="shrink-0 rounded-sm bg-primary px-4 text-xs font-semibold text-white hover:brightness-110"
         >
           {state.kind === "running" ? (
             <>
@@ -95,21 +96,29 @@ export function LlmsCheckInline() {
       </form>
 
       {state.kind === "running" && (
-        <div className="mt-5 rounded-lg border border-black/6 bg-white p-5 shadow-sm">
+        <div className="mt-5 rounded-sm border border-black/6 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm text-foreground">
-            <Loader2 className="h-4 w-4 animate-spin text-[#2563eb]" />
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
             Checking llms.txt, robots.txt, sitemap, and homepage signals…
           </div>
         </div>
       )}
 
       {state.kind === "error" && (
-        <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mt-5 rounded-sm border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {state.message}
         </div>
       )}
 
-      {state.kind === "done" && <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />}
+      <SignupGateOverlay
+        when={state.kind === "done"}
+        title="Sign up to see your AI readiness check"
+        body="Your llms.txt + robots + schema check is ready. Create a free Signalor account or log in to view the full breakdown."
+      >
+        {state.kind === "done" && (
+          <ResultView data={state.data} onReset={() => setState({ kind: "idle" })} />
+        )}
+      </SignupGateOverlay>
     </div>
   );
 }
@@ -126,10 +135,15 @@ function BotChip({ bot, allowed }: { bot: string; allowed: boolean | null }) {
     allowed === true
       ? "border-emerald-200 bg-emerald-50 text-emerald-700"
       : allowed === false
-      ? "border-red-200 bg-red-50 text-red-700"
-      : "border-neutral-200 bg-neutral-50 text-neutral-600";
+        ? "border-red-200 bg-red-50 text-red-700"
+        : "border-neutral-200 bg-neutral-50 text-neutral-600";
   return (
-    <div className={cn("flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium", tone)}>
+    <div
+      className={cn(
+        "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium",
+        tone,
+      )}
+    >
       {allowed === true && <CircleCheck className="h-3 w-3" />}
       {allowed === false && <CircleX className="h-3 w-3" />}
       {allowed === null && <MinusCircle className="h-3 w-3" />}
@@ -158,7 +172,7 @@ function ResultView({ data, onReset }: { data: LlmsResult; onReset: () => void }
   return (
     <div className="mt-6 space-y-4">
       {/* Score card */}
-      <div className="rounded-lg border border-black/6 bg-white p-5 shadow-sm">
+      <div className="rounded-sm border border-black/6 bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
@@ -181,22 +195,24 @@ function ResultView({ data, onReset }: { data: LlmsResult; onReset: () => void }
       </div>
 
       {/* AI bot access */}
-      <div className="rounded-lg border border-black/6 bg-white p-5 shadow-sm">
+      <div className="rounded-sm border border-black/6 bg-white p-5 shadow-sm">
         <p className="text-sm font-semibold text-foreground">AI crawler access (robots.txt)</p>
         <p className="mt-1 text-[12px] text-muted-foreground">
           {data.robots.present
             ? "Green = explicitly allowed · Red = disallowed · Gray = no rule (default allow)."
-            : "No robots.txt found — bots will crawl by default."}
+            : "No robots.txt found, bots will crawl by default."}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {data.robots.aiBots.length === 0
-            ? <p className="text-[12px] text-muted-foreground">No rules to display.</p>
-            : data.robots.aiBots.map((b) => <BotChip key={b.bot} bot={b.bot} allowed={b.allowed} />)}
+          {data.robots.aiBots.length === 0 ? (
+            <p className="text-[12px] text-muted-foreground">No rules to display.</p>
+          ) : (
+            data.robots.aiBots.map((b) => <BotChip key={b.bot} bot={b.bot} allowed={b.allowed} />)
+          )}
         </div>
       </div>
 
       {/* Page signals */}
-      <div className="rounded-lg border border-black/6 bg-white p-5 shadow-sm">
+      <div className="rounded-sm border border-black/6 bg-white p-5 shadow-sm">
         <p className="text-sm font-semibold text-foreground">LLM-readable signals</p>
         <ul className="mt-3 divide-y divide-black/6">
           <SignalRow
@@ -205,26 +221,26 @@ function ResultView({ data, onReset }: { data: LlmsResult; onReset: () => void }
             detail={
               data.llmsTxt.present
                 ? `Present · ${data.llmsTxt.sections} section${data.llmsTxt.sections === 1 ? "" : "s"}`
-                : "Not published — LLMs can't read a guided index of your content."
+                : "Not published, LLMs can't read a guided index of your content."
             }
           />
           <SignalRow
             ok={!!data.page.title}
             label="<title> tag"
-            detail={data.page.title ?? "Missing — add a descriptive title."}
+            detail={data.page.title ?? "Missing, add a descriptive title."}
           />
           <SignalRow
             ok={!!data.page.description}
             label="Meta description"
-            detail={data.page.description ?? "Missing — AI models often cite this directly."}
+            detail={data.page.description ?? "Missing, AI models often cite this directly."}
           />
           <SignalRow
             ok={data.page.hasOrganizationSchema}
             label="Organization schema"
             detail={
               data.page.hasOrganizationSchema
-                ? "Detected — AI engines can identify your brand."
-                : "Missing — add Organization JSON-LD to make the brand identifiable."
+                ? "Detected, AI engines can identify your brand."
+                : "Missing, add Organization JSON-LD to make the brand identifiable."
             }
           />
           <SignalRow ok={data.page.hasOgTags} label="Open Graph tags" />
@@ -235,7 +251,7 @@ function ResultView({ data, onReset }: { data: LlmsResult; onReset: () => void }
 
       <ToolGateCard
         theme="blue"
-        signedOutMessage="Sign up to run real AI probes across ChatGPT, Claude, Gemini, and Perplexity — see how each engine actually describes your brand."
+        signedOutMessage="Sign up to run real AI probes across ChatGPT, Claude, Gemini, and Perplexity, see how each engine actually describes your brand."
         upgradeMessage="Upgrade to Pro to run live probes across 4 AI engines, track sentiment over time, and benchmark against competitors."
         signedInActiveMessage="Run AI probes on your connected projects."
         signedInActiveLabel="Open dashboard"

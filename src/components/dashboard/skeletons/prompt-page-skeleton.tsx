@@ -1,12 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-// ── Shared skeleton for Actions / Backlinks / Wikipedia prompt pages ──────────
+// ── Shared skeleton for prompt tracking pages ─────────────────────────────────
 // Mirrors the PromptTracker layout: toolbar → KPI card → prompt cards
 
 export function PromptPageSkeleton() {
   return (
     <div className="space-y-2.5">
-
       {/* ── Toolbar row ──────────────────────────────────────────────────── */}
       {/* mirrors: flex justify-between with count text on left, buttons on right */}
       <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -48,26 +47,22 @@ export function PromptPageSkeleton() {
       {/* mirrors: space-y-1.5 with overflow-hidden rounded-md border bg-card */}
       <div className="space-y-1.5">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="overflow-hidden rounded-md border border-border/80 bg-card"
-          >
+          <div key={i} className="overflow-hidden rounded-md border border-border/80 bg-card">
             {/* Card header row */}
             {/* mirrors: flex items-center gap-2.5 px-3 py-2.5 sm:gap-3 sm:px-3.5 sm:py-3 */}
             <div className="flex items-center gap-2.5 px-3 py-2.5 sm:gap-3 sm:px-3.5 sm:py-3">
-
               {/* Chevron icon */}
               <Skeleton className="size-4 shrink-0 rounded" />
 
-              {/* Score badge — size-10 rounded-md */}
+              {/* Score badge, size-10 rounded-md */}
               <Skeleton className="size-10 shrink-0 rounded-md" />
 
               {/* Prompt text + meta badges */}
               <div className="min-w-0 flex-1 space-y-1.5">
-                {/* prompt text line — varies width per card */}
+                {/* prompt text line, varies width per card */}
                 <Skeleton
                   className="h-[14px] rounded"
-                  style={{ width: `${55 + (i * 11) % 35}%` }}
+                  style={{ width: `${55 + ((i * 11) % 35)}%` }}
                 />
                 {/* intent + type + score badges row */}
                 <div className="flex items-center gap-2">
@@ -77,7 +72,7 @@ export function PromptPageSkeleton() {
                 </div>
               </div>
 
-              {/* Engine logos — hidden on mobile, 6 icons */}
+              {/* Engine logos, hidden on mobile, 6 icons */}
               <div className="hidden shrink-0 items-center gap-1 sm:flex">
                 {[1, 2, 3, 4, 5, 6].map((j) => (
                   <Skeleton key={j} className="size-6 rounded-full" />
@@ -93,7 +88,6 @@ export function PromptPageSkeleton() {
           </div>
         ))}
       </div>
-
     </div>
   );
 }

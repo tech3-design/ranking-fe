@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 
 /**
- * AnalyzingRadar — premium loader for long-running analysis states.
+ * AnalyzingRadar, premium loader for long-running analysis states.
  *
  * Pure SVG + framer-motion (no external deps). Layers:
  *   1. Soft radial glow (ambient)
@@ -18,11 +18,7 @@ interface AnalyzingRadarProps {
   className?: string;
 }
 
-export function AnalyzingRadar({
-  size = 180,
-  color = "#E04D00",
-  className,
-}: AnalyzingRadarProps) {
+export function AnalyzingRadar({ size = 180, color = "#E04D00", className }: AnalyzingRadarProps) {
   const halo = `${color}22`; // 13% alpha
   const ring = `${color}33`; // 20% alpha
   const dim = `${color}14`; // 8% alpha
@@ -50,7 +46,7 @@ export function AnalyzingRadar({
         }}
       />
 
-      {/* Radar sweep — conic gradient rotating */}
+      {/* Radar sweep, conic gradient rotating */}
       <motion.div
         aria-hidden
         style={{
@@ -81,15 +77,8 @@ export function AnalyzingRadar({
         <circle cx="50" cy="50" r="34" fill="none" stroke={ring} strokeWidth="0.5" />
       </svg>
 
-      {/* Orbit dots — ring 1 (slow, counter-clockwise) */}
-      <Orbit
-        radius={size * 0.46}
-        count={3}
-        duration={7}
-        direction={1}
-        dotSize={4}
-        color={color}
-      />
+      {/* Orbit dots, ring 1 (slow, counter-clockwise) */}
+      <Orbit radius={size * 0.46} count={3} duration={7} direction={1} dotSize={4} color={color} />
       {/* Ring 2 (fast, clockwise) */}
       <Orbit
         radius={size * 0.34}

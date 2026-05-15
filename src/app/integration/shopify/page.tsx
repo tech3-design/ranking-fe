@@ -5,12 +5,15 @@ import { IntegrationPlatformHero } from "@/components/landing/integration-platfo
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
-import { INTEGRATION_DETAIL_FAQ, SHOPIFY_INTEGRATION_PAGE } from "@/lib/landing-integration-content";
+import {
+  INTEGRATION_DETAIL_FAQ,
+  SHOPIFY_INTEGRATION_PAGE,
+} from "@/lib/landing-integration-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Shopify integration — GEO scoring for Shopify",
+  title: "Shopify integration, GEO scoring for Shopify",
   description: SHOPIFY_INTEGRATION_PAGE.subhead,
   path: "/integration/shopify",
 });
@@ -18,6 +21,14 @@ export const metadata: Metadata = buildMetadata({
 export default function ShopifyIntegrationPage() {
   return (
     <LandingMarketingShell>
+      <p className="sr-only">
+        The Signalor Shopify integration pulls your live product catalog into GEO scoring so AI
+        engines can accurately cite your inventory. Once connected, Signalor reads product titles,
+        descriptions, prices, and existing schema markup, then surfaces prioritized recommendations
+        for improving how ChatGPT, Claude, Gemini, and Perplexity describe and link to your store.
+        The integration uses a read-only sync and does not modify your storefront. You can
+        disconnect at any time from your Signalor workspace settings.
+      </p>
       <JsonLd
         id="ld-shopify-breadcrumb"
         data={breadcrumbJsonLd([

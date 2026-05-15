@@ -23,12 +23,10 @@ function GACallbackContent() {
 
     sendGACallback(code, state)
       .then(() => {
-        router.replace(routes.analyzer);
+        router.replace(routes.settingsIntegrations);
       })
       .catch((err) => {
-        const msg =
-          err?.response?.data?.error ||
-          "Failed to connect Google Analytics.";
+        const msg = err?.response?.data?.error || "Failed to connect Google Analytics.";
         setError(msg);
       });
   }, [searchParams, router]);
@@ -40,10 +38,10 @@ function GACallbackContent() {
           {error}
         </div>
         <button
-          onClick={() => router.push(routes.analyzer)}
+          onClick={() => router.push(routes.settingsIntegrations)}
           className="text-sm text-muted-foreground hover:text-foreground underline"
         >
-          Back to Analyzer
+          Back to Integrations
         </button>
       </div>
     );
@@ -51,9 +49,7 @@ function GACallbackContent() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <p className="text-muted-foreground">
-        Connecting Google Analytics...
-      </p>
+      <p className="text-muted-foreground">Connecting Google Analytics...</p>
     </div>
   );
 }

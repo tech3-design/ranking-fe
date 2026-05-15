@@ -44,6 +44,7 @@ const INTEGRATION_PLUGINS: {
   href: string;
   img: string;
   desc: string;
+  shortDesc?: string;
 }[] = [
   {
     key: "shopify",
@@ -51,6 +52,7 @@ const INTEGRATION_PLUGINS: {
     href: "/integration/shopify",
     img: "/logos/shopify.svg",
     desc: "Connect Shopify to your Signalor account to automatically sync your products and orders.",
+    shortDesc: "Sync products and publish AI-optimized content to your store.",
   },
   {
     key: "wordpress",
@@ -58,6 +60,7 @@ const INTEGRATION_PLUGINS: {
     href: "/integration/wordpress",
     img: "/logos/wordpress.svg",
     desc: "Connect WordPress to your Signalor account to automatically sync your posts and pages.",
+    shortDesc: "Push GEO-optimised articles directly to your WordPress site.",
   },
 ];
 
@@ -69,9 +72,9 @@ const MENUS: Record<
     label: "Solutions",
     items: [
       {
-        href: "/analyzer",
-        title: "GEO audit",
-        desc: "Paste a URL and get a full citability and technical GEO readout.",
+        href: "/sign-up",
+        title: "Get started",
+        desc: "Create your free account and start monitoring AI search visibility.",
         icon: Radar,
       },
       {
@@ -266,7 +269,13 @@ const LOGIN_LINKS: { label: string; href: string }[] = [
 
 // ─── Resources grid ──────────────────────────────────────────────────────────
 
-function ResourcesMegaGrid({ setOpen, isAuthenticated }: { setOpen: (v: MegaKey | null) => void; isAuthenticated: boolean }) {
+function ResourcesMegaGrid({
+  setOpen,
+  isAuthenticated,
+}: {
+  setOpen: (v: MegaKey | null) => void;
+  isAuthenticated: boolean;
+}) {
   const [integ, blog, pricing, customerLogin] = MENUS.resources.items;
   const [hovered, setHovered] = useState<ResourceKey | null>(null);
   const cellRefs = useRef<(HTMLAnchorElement | null)[]>([null, null, null, null]);
@@ -279,24 +288,35 @@ function ResourcesMegaGrid({ setOpen, isAuthenticated }: { setOpen: (v: MegaKey 
     }
   }, []);
 
-  const scheduleActivate = useCallback((key: ResourceKey) => {
-    cancelHoverTimer();
-    hoverTimer.current = setTimeout(() => setHovered(key), 120);
-  }, [cancelHoverTimer]);
+  const scheduleActivate = useCallback(
+    (key: ResourceKey) => {
+      cancelHoverTimer();
+      hoverTimer.current = setTimeout(() => setHovered(key), 120);
+    },
+    [cancelHoverTimer],
+  );
 
-  useEffect(() => () => { if (hoverTimer.current) clearTimeout(hoverTimer.current); }, []);
+  useEffect(
+    () => () => {
+      if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    },
+    [],
+  );
 
   const cells: { key: ResourceKey; item: MegaMenuItem; pos: string }[] = [
-    { key: "integ",   item: integ,         pos: "sm:col-start-1 sm:row-start-1" },
-    { key: "blog",    item: blog,          pos: "sm:col-start-2 sm:row-start-1" },
-    { key: "pricing", item: pricing,       pos: "sm:col-start-1 sm:row-start-2" },
-    { key: "login",   item: customerLogin, pos: "sm:col-start-2 sm:row-start-2" },
+    { key: "integ", item: integ, pos: "sm:col-start-1 sm:row-start-1" },
+    { key: "blog", item: blog, pos: "sm:col-start-2 sm:row-start-1" },
+    { key: "pricing", item: pricing, pos: "sm:col-start-1 sm:row-start-2" },
+    { key: "login", item: customerLogin, pos: "sm:col-start-2 sm:row-start-2" },
   ];
 
-  const navigateCell = useCallback((targetIdx: number) => {
-    const clamped = Math.max(0, Math.min(cells.length - 1, targetIdx));
-    cellRefs.current[clamped]?.focus();
-  }, [cells.length]);
+  const navigateCell = useCallback(
+    (targetIdx: number) => {
+      const clamped = Math.max(0, Math.min(cells.length - 1, targetIdx));
+      cellRefs.current[clamped]?.focus();
+    },
+    [cells.length],
+  );
 
   return (
     <motion.div
@@ -316,7 +336,9 @@ function ResourcesMegaGrid({ setOpen, isAuthenticated }: { setOpen: (v: MegaKey 
           onNavigate={() => setOpen(null)}
           index={index}
           onArrowNav={navigateCell}
-          linkRef={(el) => { cellRefs.current[index] = el; }}
+          linkRef={(el) => {
+            cellRefs.current[index] = el;
+          }}
         />
       ))}
 
@@ -370,9 +392,7 @@ function ResourceHoverCell({
         className={cn(
           "flex h-full flex-col justify-center rounded-sm border p-2 transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1",
-          isActive
-            ? "border-primary/15 bg-neutral-50"
-            : "border-transparent hover:bg-neutral-50/80",
+          isActive ? "border-primary/20 bg-primary/5" : "border-transparent hover:bg-neutral-50/80",
         )}
         onPointerEnter={onHover}
         onFocus={onActivate}
@@ -388,11 +408,23 @@ function ResourceHoverCell({
         }}
       >
         <span className="flex gap-3 text-left">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-black/8 text-primary shadow-sm">
+          <span
+            className={cn(
+              "flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border shadow-sm transition-colors",
+              isActive
+                ? "border-primary/20 bg-primary/8 text-primary"
+                : "border-black/8 text-primary",
+            )}
+          >
             <Icon className="h-[15px] w-[15px]" strokeWidth={1.75} aria-hidden />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="text-[14px] font-semibold leading-snug tracking-tight text-neutral-900">
+            <span
+              className={cn(
+                "text-[14px] font-semibold leading-snug tracking-tight transition-colors",
+                isActive ? "text-primary" : "text-neutral-900",
+              )}
+            >
               {item.title}
             </span>
             <span className="mt-0.5 block text-xs font-light leading-snug text-accent-foreground">
@@ -455,30 +487,32 @@ function PreviewHeading({ label }: { label: string }) {
 
 function IntegrationsPreview({ onNavigate }: { onNavigate: () => void }) {
   return (
-    <>
+    <div className="flex h-full flex-col">
       <PreviewHeading label="Plugins" />
-      <ul role="list" className="flex flex-col gap-0.5">
+      <ul role="list" className="flex flex-1 flex-col gap-0.5">
         {INTEGRATION_PLUGINS.map((p) => (
-          <li key={p.key}>
+          <li key={p.key} className="flex flex-1">
             <Link
               href={p.href}
-              className="flex flex-col items-center gap-2 rounded-md p-2 text-[13px] font-semibold tracking-tight text-neutral-900 transition-colors hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
+              className="group flex flex-1 items-center gap-2 rounded-md p-2 transition-colors hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
               onClick={onNavigate}
             >
-              <div className="flex w-full items-center gap-2">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
-                  <Image src={p.img} alt={p.label} width={20} height={20} />
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white shadow-sm">
+                <Image src={p.img} alt={p.label} width={14} height={14} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-semibold tracking-tight text-neutral-900">
+                  {p.label}
                 </span>
-                {p.label}
-              </div>
-              <span className="text-xs font-light leading-snug text-accent-foreground">
-                {p.desc}
+                <span className="block text-[11px] font-light leading-snug text-accent-foreground">
+                  {p.shortDesc ?? p.desc}
+                </span>
               </span>
             </Link>
           </li>
         ))}
       </ul>
-    </>
+    </div>
   );
 }
 
@@ -501,9 +535,7 @@ function BlogPreview({ onNavigate }: { onNavigate: () => void }) {
                 <span className="block truncate text-[13px] font-semibold tracking-tight text-neutral-900">
                   {post.title}
                 </span>
-                <span className="text-[11px] font-light text-accent-foreground">
-                  {post.date}
-                </span>
+                <span className="text-[11px] font-light text-accent-foreground">{post.date}</span>
               </span>
             </Link>
           </li>
@@ -540,15 +572,11 @@ function PricingPreview({ onNavigate }: { onNavigate: () => void }) {
                 <span className="text-[13px] font-semibold tracking-tight text-neutral-900">
                   {tier.name}
                 </span>
-                <span className="text-[11px] font-light text-accent-foreground">
-                  {tier.note}
-                </span>
+                <span className="text-[11px] font-light text-accent-foreground">{tier.note}</span>
               </span>
               <span className="text-[13px] font-semibold tracking-tight text-neutral-900">
                 {tier.price}
-                <span className="ml-0.5 text-[10px] font-light text-accent-foreground">
-                  /mo
-                </span>
+                <span className="ml-0.5 text-[10px] font-light text-accent-foreground">/mo</span>
               </span>
             </Link>
           </li>
@@ -566,7 +594,13 @@ function PricingPreview({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-function LoginPreview({ onNavigate, isAuthenticated }: { onNavigate: () => void; isAuthenticated: boolean }) {
+function LoginPreview({
+  onNavigate,
+  isAuthenticated,
+}: {
+  onNavigate: () => void;
+  isAuthenticated: boolean;
+}) {
   return (
     <>
       <PreviewHeading label="Quick access" />
@@ -575,10 +609,10 @@ function LoginPreview({ onNavigate, isAuthenticated }: { onNavigate: () => void;
           <li key={link.href}>
             <Link
               href={link.href}
-              className="flex items-center gap-2 rounded-md p-2 text-[13px] font-semibold tracking-tight text-neutral-900 transition-colors hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
+              className="group flex items-center gap-2 rounded-md p-2 text-[13px] font-semibold tracking-tight text-neutral-700 transition-colors hover:bg-white hover:text-neutral-900 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
               onClick={onNavigate}
             >
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm transition-colors group-hover:border-primary/20 group-hover:text-primary">
                 <Check className="h-3 w-3" strokeWidth={2} aria-hidden />
               </span>
               {link.label}
@@ -587,7 +621,9 @@ function LoginPreview({ onNavigate, isAuthenticated }: { onNavigate: () => void;
         ))}
       </ul>
       <div className="my-1.5 flex flex-1 flex-col justify-center rounded-md border border-black/6 bg-white p-2.5">
-        <p className="text-[11px] font-semibold leading-snug text-neutral-700">Your GEO workspace</p>
+        <p className="text-[11px] font-semibold leading-snug text-neutral-700">
+          Your GEO workspace
+        </p>
         <p className="mt-0.5 text-[11px] font-light leading-snug text-accent-foreground">
           Dashboards, AI visibility reports, and billing all in one place.
         </p>
@@ -606,9 +642,9 @@ function LoginPreview({ onNavigate, isAuthenticated }: { onNavigate: () => void;
 
 function DefaultPreview() {
   const hints: { icon: LucideIcon; label: string; hint: string }[] = [
-    { icon: BookOpen, label: "Playbooks",   hint: "Step-by-step GEO guides"  },
-    { icon: Bell, label: "What's new",  hint: "Latest product updates"   },
-    { icon: LifeBuoy, label: "Help center", hint: "Docs and onboarding"      },
+    { icon: BookOpen, label: "Playbooks", hint: "Step-by-step GEO guides" },
+    { icon: Bell, label: "What's new", hint: "Latest product updates" },
+    { icon: LifeBuoy, label: "Help center", hint: "Docs and onboarding" },
   ];
   return (
     <>
@@ -634,9 +670,7 @@ function DefaultPreview() {
               <span className="block text-[12px] font-semibold tracking-tight text-neutral-900">
                 {label}
               </span>
-              <span className="text-[11px] font-light text-accent-foreground">
-                {hint}
-              </span>
+              <span className="text-[11px] font-light text-accent-foreground">{hint}</span>
             </span>
           </li>
         ))}
@@ -671,11 +705,14 @@ export function LandingMegaNav() {
     closeTimer.current = setTimeout(() => setOpen(null), HOVER_CLOSE_MS);
   }, [cancelClose]);
 
-  // Open immediately on hover — no toggle, just ensures the menu is open
-  const openMenu = useCallback((key: MegaKey) => {
-    cancelClose();
-    setOpen(key);
-  }, [cancelClose]);
+  // Open immediately on hover, no toggle, just ensures the menu is open
+  const openMenu = useCallback(
+    (key: MegaKey) => {
+      cancelClose();
+      setOpen(key);
+    },
+    [cancelClose],
+  );
 
   const closeMenu = useCallback(() => setOpen(null), []);
 
@@ -684,7 +721,9 @@ export function LandingMegaNav() {
   }, []);
 
   useEffect(
-    () => () => { if (closeTimer.current) clearTimeout(closeTimer.current); },
+    () => () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    },
     [],
   );
 
@@ -738,11 +777,13 @@ export function LandingMegaNav() {
           {(Object.keys(MENUS) as MegaKey[]).map((key) => {
             const isOpen = open === key;
             const triggerId = `${uid}t-${key}`;
-            const panelId   = `${uid}p-${key}`;
+            const panelId = `${uid}p-${key}`;
             return (
               <div key={key} className="relative" onMouseEnter={() => openMenu(key)}>
                 <button
-                  ref={(el) => { triggerRefs.current[key] = el; }}
+                  ref={(el) => {
+                    triggerRefs.current[key] = el;
+                  }}
                   type="button"
                   id={triggerId}
                   aria-expanded={isOpen}
@@ -760,9 +801,7 @@ export function LandingMegaNav() {
                     // Arrow-down from trigger moves focus into the open panel
                     if (e.key === "ArrowDown" && isOpen) {
                       e.preventDefault();
-                      dropdownRef.current
-                        ?.querySelector<HTMLElement>("a, button")
-                        ?.focus();
+                      dropdownRef.current?.querySelector<HTMLElement>("a, button")?.focus();
                     }
                   }}
                 >
@@ -827,11 +866,7 @@ export function LandingMegaNav() {
                     animate="show"
                   >
                     {MENUS[open].items.map((item) => (
-                      <MegaMenuLinkCell
-                        key={item.title}
-                        item={item}
-                        onNavigate={closeMenu}
-                      />
+                      <MegaMenuLinkCell key={item.title} item={item} onNavigate={closeMenu} />
                     ))}
                   </motion.div>
                 )}
@@ -926,19 +961,29 @@ export function LandingMegaNav() {
 
               <div className="mt-3 flex flex-col gap-2 border-t border-black/8 pt-3">
                 {isAuthenticated ? (
-                  <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "w-full justify-center")}>
+                  <Button
+                    asChild
+                    className={cn(LANDING_PRIMARY_CTA_CLASS, "w-full justify-center")}
+                  >
                     <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
                       Dashboard
                     </Link>
                   </Button>
                 ) : (
                   <>
-                    <Button asChild variant="outline" className="w-full justify-center border-black/12 bg-white">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full justify-center border-black/12 bg-white"
+                    >
                       <Link href="/sign-in" onClick={() => setMobileOpen(false)}>
                         Log In
                       </Link>
                     </Button>
-                    <Button asChild className={cn(LANDING_PRIMARY_CTA_CLASS, "w-full justify-center")}>
+                    <Button
+                      asChild
+                      className={cn(LANDING_PRIMARY_CTA_CLASS, "w-full justify-center")}
+                    >
                       <Link href="/sign-up" onClick={() => setMobileOpen(false)}>
                         Sign Up
                       </Link>

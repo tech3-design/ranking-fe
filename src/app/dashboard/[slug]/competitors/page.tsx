@@ -58,7 +58,9 @@ function AddCompetitorModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px]"
-      onClick={(e) => { if (e.target === e.currentTarget && !saving) onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !saving) onClose();
+      }}
     >
       <div className="w-full max-w-md rounded-xl border border-border bg-white p-6 shadow-2xl">
         {/* Header */}
@@ -142,9 +144,15 @@ function AddCompetitorModal({
               className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-[13px] font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
             >
               {saving ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" />Adding…</>
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Adding…
+                </>
               ) : (
-                <><Plus className="h-3.5 w-3.5" />Add competitor</>
+                <>
+                  <Plus className="h-3.5 w-3.5" />
+                  Add competitor
+                </>
               )}
             </button>
           </div>
@@ -167,9 +175,7 @@ export default function CompetitorsPage() {
   if (loading) return <CompetitorsSkeleton />;
 
   if (error) {
-    return (
-      <div className="px-2 py-6 text-sm text-destructive sm:px-0">{error}</div>
-    );
+    return <div className="px-2 py-6 text-sm text-destructive sm:px-0">{error}</div>;
   }
 
   const competitors = run?.competitors ?? [];
@@ -255,13 +261,17 @@ export default function CompetitorsPage() {
                 variant="outline"
                 size="sm"
                 className="h-9 shrink-0 border-border/80 bg-white px-2.5 text-xs text-muted-foreground shadow-sm hover:bg-neutral-50 dark:bg-white dark:text-foreground dark:hover:bg-neutral-100"
-                onClick={() => { setQuery(""); setConfidence("all"); setScoreBand("all"); }}
+                onClick={() => {
+                  setQuery("");
+                  setConfidence("all");
+                  setScoreBand("all");
+                }}
               >
                 Clear
               </Button>
             ) : null}
 
-            {/* Add competitor button — icon only */}
+            {/* Add competitor button, icon only */}
             <button
               type="button"
               onClick={() => setAddOpen(true)}
@@ -299,7 +309,10 @@ export default function CompetitorsPage() {
       {addOpen && slug && (
         <AddCompetitorModal
           slug={slug}
-          onSuccess={() => { setAddOpen(false); void refetch(); }}
+          onSuccess={() => {
+            setAddOpen(false);
+            void refetch();
+          }}
           onClose={() => setAddOpen(false)}
         />
       )}

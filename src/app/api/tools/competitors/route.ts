@@ -7,7 +7,12 @@ type DDGSuggestion = { phrase?: string };
 
 function parseDuck(data: unknown): string[] {
   if (!Array.isArray(data)) return [];
-  if (data.length > 0 && typeof data[0] === "object" && data[0] !== null && "phrase" in (data[0] as Record<string, unknown>)) {
+  if (
+    data.length > 0 &&
+    typeof data[0] === "object" &&
+    data[0] !== null &&
+    "phrase" in (data[0] as Record<string, unknown>)
+  ) {
     return (data as DDGSuggestion[]).map((d) => d.phrase ?? "").filter(Boolean);
   }
   if (typeof data[0] === "string" && Array.isArray(data[1])) {
@@ -117,7 +122,10 @@ export async function POST(req: NextRequest) {
     }
     const brand = deriveBrand(raw);
     if (!brand) {
-      return NextResponse.json({ error: "Couldn't derive a brand from that input." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Couldn't derive a brand from that input." },
+        { status: 400 },
+      );
     }
 
     const seeds = [
@@ -159,7 +167,7 @@ export async function POST(req: NextRequest) {
       totalSuggestions: flat.length,
       note:
         ranked.length === 0
-          ? "No competitive comparison queries found yet — this often means the brand is young or in a niche category."
+          ? "No competitive comparison queries found yet, this often means the brand is young or in a niche category."
           : undefined,
     });
   } catch {

@@ -38,22 +38,19 @@ import {
   SitemapIcon,
   TasksIcon,
   TrackerIcon,
-  WikipediaIcon,
   CompetitorsIcon,
   ContentIcon,
   BlogAgentIcon,
   BacklinksIcon,
+  BlogAgentIcon,
 } from "@/components/icons/nav";
 import LogoComp from "@/components/LogoComp";
 import { AiChat } from "@/components/analyzer/ai-chat";
 import { cn } from "@/lib/utils";
-import {
-  DashboardAppFrame,
-  type DashboardAppSection,
-} from "./_components/dashboard-app-frame";
+import { DashboardAppFrame, type DashboardAppSection } from "./_components/dashboard-app-frame";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { DashboardTopBarActions } from "./_components/dashboard-top-bar-actions";
-import { TourProvider, useTour } from "@/components/onboarding/tour";
+import { TourProvider } from "@/components/onboarding/tour";
 import { ONBOARDING_STEPS } from "@/components/onboarding/onboarding-steps";
 
 type MainNavItem = {
@@ -68,30 +65,23 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
   {
     items: [
       { icon: OverviewIcon, label: "Overview", path: "" },
-      // { icon: Compass, label: "Explorer", path: "/visibility/explorer" },
-      // { icon: GitFork, label: "Ranking", path: "/prompts/ranking" },
+      { icon: TasksIcon, label: "Tasks", path: "/recommendations" },
     ],
   },
   {
     heading: "Monitoring",
     items: [
       { icon: VisibilityIcon, label: "Visibility", path: "/visibility" },
-            { icon: TasksIcon, label: "Tasks", path: "/recommendations" },
       { icon: SitemapIcon, label: "Sitemap", path: "/sitemap" },
     ],
   },
   {
     heading: "Prompts",
-    items: [
-      { icon: TrackerIcon, label: "Tracker", path: "/prompts" },
-      { icon: WikipediaIcon, label: "Wikipedia", path: "/prompts/wikipedia" },
-    ],
+    items: [{ icon: TrackerIcon, label: "Tracker", path: "/prompts" }],
   },
   {
     heading: "Sources",
-    items: [
-      { icon: CompetitorsIcon, label: "Competitors", path: "/competitors" },
-    ],
+    items: [{ icon: CompetitorsIcon, label: "Competitors", path: "/competitors" }],
   },
   {
     heading: "Optimisation",
@@ -99,6 +89,7 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
       { icon: ContentIcon, label: "Content", path: "/optimisation/content" },
       { icon: BlogAgentIcon, label: "Blog Agent", path: "/blog-agent" },
       { icon: BacklinksIcon, label: "Backlinks", path: "/backlinks" },
+      { icon: BlogAgentIcon, label: "Blog Agent", path: "/blog-agent" },
     ],
   },
 ];
@@ -165,19 +156,20 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
   if (rel.startsWith("/backlinks")) {
     return {
       title: "Backlinks",
-      hint: "Earn citations on the open web — free submission targets and paid placements.",
+      hint: "Earn citations on the open web, free submission targets and paid placements.",
+      docsUrl: "https://docs.signalor.ai/backlinks",
+    };
+  }
+  if (rel.startsWith("/blog-agent")) {
+    return {
+      title: "Blog Agent",
+      hint: "Generate and publish AI-written blog posts directly to your WordPress site.",
     };
   }
   if (rel.startsWith("/prompts/backlinks")) {
     return {
       title: "Backlinks",
       hint: "Free submission targets and paid placements via backlink providers.",
-    };
-  }
-  if (rel.startsWith("/prompts/wikipedia")) {
-    return {
-      title: "Wikipedia",
-      hint: "Check brand presence on Wikipedia and assess notability for a draft article.",
     };
   }
   if (rel.startsWith("/prompts/actions")) {
@@ -261,23 +253,6 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
   return { title: "Dashboard", hint: "" };
 }
 
-function RestartTourButton({ onClick }: { onClick?: () => void }) {
-  const { start } = useTour();
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        start();
-        onClick?.();
-      }}
-      className="flex w-full items-center gap-2.5 px-2 py-1.5 text-left text-[13px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-    >
-      <Compass className="size-3.5" />
-      Restart tour
-    </button>
-  );
-}
-
 function AnalysisGate({ children }: { children: React.ReactNode }) {
   const { run, loading } = useRun();
   const isRunning = !!run && run.status !== "complete" && run.status !== "failed";
@@ -287,15 +262,9 @@ function AnalysisGate({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
-  
 }
 
-
-export default function DashboardSlugLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardSlugLayout({ children }: { children: React.ReactNode }) {
   const { slug } = useParams<{ slug: string }>();
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -327,7 +296,7 @@ export default function DashboardSlugLayout({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
-  const [isPro, setIsPro] = useState(false);
+  const [isPro, setIsPro] = useState<boolean | null>(null);
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
   const [switchingOrg, setSwitchingOrg] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -336,7 +305,12 @@ export default function DashboardSlugLayout({
 
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const userEmail = session?.user?.email || "";
-  const userInitials = userName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+  const userInitials = userName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   const userImage = (session?.user as Record<string, unknown>)?.image as string | undefined;
 
   const basePath = `/dashboard/${slug}`;
@@ -357,7 +331,7 @@ export default function DashboardSlugLayout({
     if (!userEmail) return;
     getSubscriptionStatus(userEmail)
       .then((s) => setIsPro(s.is_active))
-      .catch(() => { });
+      .catch(() => {});
   }, [userEmail]);
 
   // Load orgs
@@ -402,7 +376,7 @@ export default function DashboardSlugLayout({
   const isSettingsPage = pathname.startsWith(basePath + "/settings");
 
   const allNavPaths = MAIN_NAV_GROUPS.flatMap((g) =>
-    g.items.flatMap((i) => [i.path, ...((i.children ?? []).map((c) => c.path))]),
+    g.items.flatMap((i) => [i.path, ...(i.children ?? []).map((c) => c.path)]),
   );
 
   function isActive(navPath: string) {
@@ -452,7 +426,9 @@ export default function DashboardSlugLayout({
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14px] font-semibold leading-tight tracking-tight text-foreground capitalize">
-              {switchingOrg ? "Switching…" : activeOrg?.name || organizations[0]?.name || "Select org"}
+              {switchingOrg
+                ? "Switching…"
+                : activeOrg?.name || organizations[0]?.name || "Select org"}
             </p>
             {/* <p className="truncate text-[10px] leading-tight text-muted-foreground">
               {activeOrg?.url || organizations[0]?.url || ""}
@@ -476,14 +452,18 @@ export default function DashboardSlugLayout({
                   onClick={() => handleSwitchOrg(org)}
                   className={cn(
                     "flex w-full items-center gap-2 px-2.5 py-2 text-left transition-colors",
-                    orgSelected ? "bg-muted/60 dark:bg-muted/20" : "hover:bg-muted/40 dark:hover:bg-muted/15",
+                    orgSelected
+                      ? "bg-muted/60 dark:bg-muted/20"
+                      : "hover:bg-muted/40 dark:hover:bg-muted/15",
                   )}
                 >
                   <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted/50 dark:bg-muted/30">
                     <Building2 className="size-3 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-medium text-foreground capitalize">{org.name}</p>
+                    <p className="truncate text-[14px] font-medium text-foreground capitalize">
+                      {org.name}
+                    </p>
                     {/* <p className="truncate text-[10px] text-muted-foreground">{org.url || "No URL"}</p> */}
                   </div>
                   {orgSelected ? <Check className="size-3.5 shrink-0 text-foreground" /> : null}
@@ -524,7 +504,7 @@ export default function DashboardSlugLayout({
                     "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     active
                       ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <Icon className="size-[18px] shrink-0 opacity-90" aria-hidden />
@@ -546,9 +526,7 @@ export default function DashboardSlugLayout({
               {group.items.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
-                const childActive = (item.children ?? []).some((c) =>
-                  isActive(c.path),
-                );
+                const childActive = (item.children ?? []).some((c) => isActive(c.path));
                 const showChildren = !!item.children?.length && (active || childActive);
                 return (
                   <div key={item.label} className="flex flex-col gap-0.5">
@@ -584,10 +562,7 @@ export default function DashboardSlugLayout({
                                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
                               )}
                             >
-                              <ChildIcon
-                                className="size-[15px] shrink-0 opacity-90"
-                                aria-hidden
-                              />
+                              <ChildIcon className="size-[15px] shrink-0 opacity-90" aria-hidden />
                               {child.label}
                             </Link>
                           );
@@ -625,7 +600,6 @@ export default function DashboardSlugLayout({
                 <Settings className="size-3.5" />
                 Settings
               </Link>
-              <RestartTourButton onClick={() => setUserMenuOpen(false)} />
             </div>
           </div>
         ) : null}
@@ -646,10 +620,14 @@ export default function DashboardSlugLayout({
         </button>
       </div>
 
-      {!isPro ? (
+      {isPro === false ? (
         <div className="rounded-md border border-border bg-background p-3">
-          <p className="mb-0.5 text-[13px] font-semibold text-foreground">Boost Your AI Visibility</p>
-          <p className="mb-2.5 text-[11px] text-muted-foreground">Elevate Your Site&apos;s Authority</p>
+          <p className="mb-0.5 text-[13px] font-semibold text-foreground">
+            Boost Your AI Visibility
+          </p>
+          <p className="mb-2.5 text-[11px] text-muted-foreground">
+            Elevate Your Site&apos;s Authority
+          </p>
           <Link
             href="/pricing"
             className="block w-full bg-primary py-2 text-center text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
@@ -661,9 +639,7 @@ export default function DashboardSlugLayout({
     </div>
   );
 
-  const topBarActions = (
-    <DashboardTopBarActions onOpenSearch={() => setCommandPaletteOpen(true)} />
-  );
+  const topBarActions = <DashboardTopBarActions onOpenSearch={() => setCommandPaletteOpen(true)} />;
 
   return (
     <RunProvider slug={slug}>
@@ -682,10 +658,10 @@ export default function DashboardSlugLayout({
             {/* <footer className="mt-10 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border px-0 py-6 text-[11px] text-muted-foreground">
               <p>Copyright &copy; 2026 Signalor Ltd.</p>
               <div className="flex flex-wrap items-center gap-4">
-                <a href="/privacy-policy" className="transition hover:text-foreground">
+                <a href="/policy" className="transition hover:text-foreground">
                   Privacy Policy
                 </a>
-                <a href="/terms-and-conditions" className="transition hover:text-foreground">
+                <a href="/terms" className="transition hover:text-foreground">
                   Terms & conditions
                 </a>
                 <a href="#" className="transition hover:text-foreground">
@@ -717,10 +693,7 @@ export default function DashboardSlugLayout({
             </button>
           ) : null} */}
 
-          <CommandPalette
-            open={commandPaletteOpen}
-            onClose={() => setCommandPaletteOpen(false)}
-          />
+          <CommandPalette open={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
           <ScoreBump />
         </TourProvider>
       </AnalysisGate>

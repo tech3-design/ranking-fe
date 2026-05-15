@@ -9,19 +9,11 @@ import {
   Minus,
   BarChart2,
 } from "@/components/icons";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Cell,
-  Tooltip,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, Tooltip } from "recharts";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 import type { ScoreHistoryPoint } from "@/lib/api/analyzer";
-import { CORAL } from "./constants";
+const PRIMARY = "var(--primary)";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -75,15 +67,9 @@ function BarTooltip({ active, payload }: TooltipContentProps) {
     <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-md text-xs">
       <p className="font-semibold text-foreground mb-1">{d.dateLabel}</p>
       <div className="flex items-center gap-1.5">
-        <span
-          className="size-2 shrink-0 rounded-[2px]"
-          style={{ backgroundColor: CORAL }}
-        />
+        <span className="size-2 shrink-0 rounded-[2px]" style={{ backgroundColor: PRIMARY }} />
         <span className="text-muted-foreground">GEO Score</span>
-        <span
-          className="ml-2 font-mono font-bold tabular-nums"
-          style={{ color: CORAL }}
-        >
+        <span className="ml-2 font-mono font-bold tabular-nums" style={{ color: PRIMARY }}>
           {d.score}
           <span className="font-normal text-muted-foreground">/100</span>
         </span>
@@ -94,7 +80,7 @@ function BarTooltip({ active, payload }: TooltipContentProps) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-const CHART_CONFIG: ChartConfig = { score: { label: "GEO Score", color: CORAL } };
+const CHART_CONFIG: ChartConfig = { score: { label: "GEO Score", color: PRIMARY } };
 
 export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
   scoreHistory,
@@ -119,10 +105,7 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
     // Pick the earliest of joinDate and the first scoreHistory point
     const earliestStr =
       scoreHistory.length > 0
-        ? scoreHistory.reduce(
-            (min, p) => (p.date < min ? p.date : min),
-            scoreHistory[0].date,
-          )
+        ? scoreHistory.reduce((min, p) => (p.date < min ? p.date : min), scoreHistory[0].date)
         : joinDate;
     const earliest = new Date(earliestStr);
     earliest.setHours(0, 0, 0, 0);
@@ -185,14 +168,10 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(selectedWeek.start);
       date.setDate(date.getDate() + i);
-      const pts = selectedWeek.points.filter((p) =>
-        isSameDay(new Date(p.date), date),
-      );
+      const pts = selectedWeek.points.filter((p) => isSameDay(new Date(p.date), date));
       const score =
         pts.length > 0
-          ? Math.round(
-              pts.reduce((s, p) => s + p.composite_score, 0) / pts.length,
-            )
+          ? Math.round(pts.reduce((s, p) => s + p.composite_score, 0) / pts.length)
           : null;
       return {
         name: DAY_ABBREVS[date.getDay()],
@@ -207,40 +186,38 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
   }, [selectedWeek]);
 
   // Aggregate stats
-  const weekAvg =
-    selectedWeek?.points.length
-      ? Math.round(
-          selectedWeek.points.reduce((s, p) => s + p.composite_score, 0) /
-            selectedWeek.points.length,
-        )
-      : null;
+  const weekAvg = selectedWeek?.points.length
+    ? Math.round(
+        selectedWeek.points.reduce((s, p) => s + p.composite_score, 0) / selectedWeek.points.length,
+      )
+    : null;
 
   const prevWeek = selectedIdx > 0 ? weeks[selectedIdx - 1] : null;
-  const prevAvg =
-    prevWeek?.points.length
-      ? Math.round(
-          prevWeek.points.reduce((s, p) => s + p.composite_score, 0) /
-            prevWeek.points.length,
-        )
-      : null;
+  const prevAvg = prevWeek?.points.length
+    ? Math.round(
+        prevWeek.points.reduce((s, p) => s + p.composite_score, 0) / prevWeek.points.length,
+      )
+    : null;
 
-  const weekDelta =
-    weekAvg != null && prevAvg != null ? weekAvg - prevAvg : null;
+  const weekDelta = weekAvg != null && prevAvg != null ? weekAvg - prevAvg : null;
 
   const hasData = (selectedWeek?.points.length ?? 0) > 0;
 
   if (weeks.length === 0) return null;
 
   return (
-    <div className={cn("mb-3 overflow-hidden rounded-xl border border-neutral-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]", className)}>
+    <div
+      className={cn(
+        "mb-3 overflow-hidden rounded-xl border border-neutral-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]",
+        className,
+      )}
+    >
       {/* ── Week tabs ─────────────────────────────────────────────────── */}
       <div className="flex items-stretch border-b border-neutral-100">
         {/* Scroll left */}
         <button
           type="button"
-          onClick={() =>
-            scrollContainerRef.current?.scrollBy({ left: -220, behavior: "smooth" })
-          }
+          onClick={() => scrollContainerRef.current?.scrollBy({ left: -220, behavior: "smooth" })}
           className="flex w-8 shrink-0 items-center justify-center border-r border-neutral-100 text-muted-foreground transition-colors hover:bg-neutral-50 hover:text-foreground"
           aria-label="Scroll weeks left"
         >
@@ -269,9 +246,7 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
                 onClick={() => setSelectedIdx(i)}
                 className={cn(
                   "relative flex min-w-[70px] shrink-0 flex-col items-center justify-center border-r border-neutral-50 px-3 py-2.5 transition-colors",
-                  isSelected
-                    ? "bg-white"
-                    : "bg-neutral-50/40 hover:bg-neutral-50/80",
+                  isSelected ? "bg-white" : "bg-neutral-50/40 hover:bg-neutral-50/80",
                 )}
               >
                 <span className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
@@ -290,9 +265,9 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
                   className="absolute bottom-0 left-2 right-2 h-[2.5px] rounded-full transition-all duration-200"
                   style={{
                     backgroundColor: isSelected
-                      ? CORAL
+                      ? PRIMARY
                       : hasWeekData
-                        ? `${CORAL}45`
+                        ? "color-mix(in srgb, var(--primary) 27%, transparent)"
                         : "transparent",
                   }}
                 />
@@ -304,9 +279,7 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
         {/* Scroll right */}
         <button
           type="button"
-          onClick={() =>
-            scrollContainerRef.current?.scrollBy({ left: 220, behavior: "smooth" })
-          }
+          onClick={() => scrollContainerRef.current?.scrollBy({ left: 220, behavior: "smooth" })}
           className="flex w-8 shrink-0 items-center justify-center border-l border-neutral-100 text-muted-foreground transition-colors hover:bg-neutral-50 hover:text-foreground"
           aria-label="Scroll weeks right"
         >
@@ -319,9 +292,7 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
         {/* Row: title + stat */}
         <div className="mb-2.5 flex items-start justify-between">
           <div>
-            <p className="text-sm font-semibold tracking-tight text-foreground">
-              GEO Performance
-            </p>
+            <p className="text-sm font-semibold tracking-tight text-foreground">GEO Performance</p>
             {selectedWeek && (
               <p className="mt-0.5 text-[11px] text-muted-foreground">
                 {selectedWeek.start.toLocaleDateString("en-US", {
@@ -346,12 +317,10 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
                 </p>
                 <p
                   className="text-xl font-bold tabular-nums tracking-tight leading-none mt-0.5"
-                  style={{ color: CORAL }}
+                  style={{ color: PRIMARY }}
                 >
                   {weekAvg}
-                  <span className="text-xs font-normal text-muted-foreground">
-                    /100
-                  </span>
+                  <span className="text-xs font-normal text-muted-foreground">/100</span>
                 </p>
               </div>
               {weekDelta !== null && (
@@ -389,15 +358,8 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
             className="!aspect-auto w-full"
             style={{ height: 152 }}
           >
-            <BarChart
-              data={chartData}
-              margin={{ top: 4, right: 4, left: -12, bottom: 0 }}
-            >
-              <CartesianGrid
-                vertical={false}
-                stroke="var(--border)"
-                strokeOpacity={0.28}
-              />
+            <BarChart data={chartData} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
+              <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.28} />
               <XAxis
                 dataKey="name"
                 axisLine={false}
@@ -416,23 +378,12 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
                 cursor={{ fill: "var(--muted)", fillOpacity: 0.18 }}
                 content={<BarTooltip />}
               />
-              <Bar
-                dataKey="score"
-                radius={[4, 4, 0, 0]}
-                barSize={34}
-                isAnimationActive
-              >
+              <Bar dataKey="score" radius={[4, 4, 0, 0]} barSize={34} isAnimationActive>
                 {chartData.map((entry, i) => (
                   <Cell
                     key={i}
-                    fill={entry.score != null ? CORAL : "transparent"}
-                    fillOpacity={
-                      entry.score != null
-                        ? entry.isFuture
-                          ? 0.3
-                          : 0.88
-                        : 0
-                    }
+                    fill={entry.score != null ? PRIMARY : "transparent"}
+                    fillOpacity={entry.score != null ? (entry.isFuture ? 0.3 : 0.88) : 0}
                   />
                 ))}
               </Bar>
@@ -443,9 +394,7 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
             <div className="flex size-9 items-center justify-center rounded-xl bg-muted/25">
               <BarChart2 className="size-4 text-muted-foreground/40" />
             </div>
-            <p className="text-xs font-medium text-muted-foreground">
-              No analysis runs this week
-            </p>
+            <p className="text-xs font-medium text-muted-foreground">No analysis runs this week</p>
             <p className="text-[11px] text-muted-foreground/60">
               Re-analyze to track GEO performance
             </p>

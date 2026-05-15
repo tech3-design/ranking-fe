@@ -7,22 +7,34 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky",
     "env:local": "node -e \"require('fs').copyFileSync('env/local.env', '.env.local'); console.log('-> .env.local <- env/local.env')\"",
     "env:staging": "node -e \"require('fs').copyFileSync('env/staging.env', '.env.local'); console.log('-> .env.local <- env/staging.env')\"",
     "env:production": "node -e \"require('fs').copyFileSync('env/production.env', '.env.local'); console.log('-> .env.local <- env/production.env')\""
   },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
+  },
   "dependencies": {
+    "@amplitude/unified": "^1.1.5",
     "@microsoft/clarity": "^1.0.2",
+    "@number-flow/react": "^0.6.0",
     "@radix-ui/react-select": "^2.2.6",
     "@sanity/icons": "^3.7.4",
     "@sanity/image-url": "^2.1.1",
     "@sanity/vision": "^5.23.0",
     "@tabler/icons-react": "^3.37.1",
-    "@tanstack/react-router": "^1.160.0",
-    "@tiptap/extension-link": "^3.23.4",
-    "@tiptap/extension-placeholder": "^3.23.4",
-    "@tiptap/react": "^3.23.4",
-    "@tiptap/starter-kit": "^3.23.4",
+    "@tanstack/react-query": "^5.100.10",
     "@types/canvas-confetti": "^1.9.0",
     "axios": "^1.13.5",
     "better-auth": "^1.4.18",
@@ -62,6 +74,9 @@
     "@types/turndown": "^5.0.6",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.4",
+    "prettier": "^3.8.3",
     "shadcn": "^3.8.4",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.4.0",

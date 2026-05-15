@@ -6,7 +6,7 @@ export const metadata: Metadata = buildMetadata({
   title: "Privacy policy",
   description:
     "How Signalor handles user, account, and crawl data. Plain-English overview of what we collect, why, and your rights.",
-  path: "/privacy-policy",
+  path: "/policy",
 });
 
 export default function PrivacyPolicyLayout({ children }: { children: React.ReactNode }) {
@@ -16,7 +16,7 @@ export default function PrivacyPolicyLayout({ children }: { children: React.Reac
         id="ld-privacy-policy-breadcrumb"
         data={breadcrumbJsonLd([
           { name: "Home", path: "/" },
-          { name: "Privacy policy", path: "/privacy-policy" },
+          { name: "Privacy policy", path: "/policy" },
         ])}
       />
       {children}

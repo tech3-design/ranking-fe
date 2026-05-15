@@ -50,19 +50,21 @@ export function PillarBreakdownCard({ pageScore }: { pageScore: PageScore | null
   return (
     <div className="flex h-full min-h-0 w-full flex-col rounded-xl border border-neutral-100 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-px hover:shadow-[0_8px_22px_rgba(15,23,42,0.08)]">
       {/* Header */}
-      <div className="mb-2 flex shrink-0 items-center">
+      <div className="mb-3 shrink-0">
         <p className="text-sm font-semibold text-foreground">Pillar Breakdown</p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">Score across GEO pillars</p>
       </div>
 
-      {!hasData ? (
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-xs text-muted-foreground">No pillar data yet</p>
-        </div>
-      ) : (
-        <div className="shrink-0">
+      {/* Inner inset card */}
+      <div className="flex flex-1 flex-col rounded-lg border border-neutral-100 bg-[#f7f7f7] p-3">
+        {!hasData ? (
+          <div className="flex flex-1 items-center justify-center">
+            <p className="text-xs text-muted-foreground">No pillar data yet</p>
+          </div>
+        ) : (
           <ChartContainer
             config={CHART_CONFIG}
-            className="mx-auto aspect-square max-h-[240px]"
+            className="mx-auto aspect-square max-h-[220px] w-full"
           >
             <RadialBarChart
               data={chartData}
@@ -71,7 +73,6 @@ export function PillarBreakdownCard({ pageScore }: { pageScore: PageScore | null
               innerRadius={30}
               outerRadius={110}
             >
-              {/* Fix: scale each bar to its actual value out of 100, not relative to the max */}
               <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
               <ChartTooltip
                 cursor={false}
@@ -104,8 +105,8 @@ export function PillarBreakdownCard({ pageScore }: { pageScore: PageScore | null
               </RadialBar>
             </RadialBarChart>
           </ChartContainer>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

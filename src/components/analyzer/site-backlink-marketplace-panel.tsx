@@ -37,14 +37,29 @@ const LINK_TYPE_LABEL: Record<BacklinkLinkType, string> = {
 };
 
 const STATUS_STYLES: Record<BacklinkOrderStatus, { label: string; cls: string }> = {
-  draft:           { label: "Draft",       cls: "bg-muted/40 text-muted-foreground border-border" },
-  pending_payment: { label: "Pay pending", cls: "bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-300" },
-  queued:          { label: "Queued",      cls: "bg-orange-500/10 text-orange-700 border-orange-500/30 dark:text-orange-300" },
-  in_progress:     { label: "In progress", cls: "bg-orange-500/15 text-orange-800 border-orange-500/40 dark:text-orange-300" },
-  delivered:       { label: "Delivered",   cls: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-300" },
-  rejected:        { label: "Rejected",    cls: "bg-rose-500/10 text-rose-700 border-rose-500/30 dark:text-rose-300" },
-  refunded:        { label: "Refunded",    cls: "bg-muted/40 text-muted-foreground border-border" },
-  cancelled:       { label: "Cancelled",   cls: "bg-muted/40 text-muted-foreground border-border" },
+  draft: { label: "Draft", cls: "bg-muted/40 text-muted-foreground border-border" },
+  pending_payment: {
+    label: "Pay pending",
+    cls: "bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-300",
+  },
+  queued: {
+    label: "Queued",
+    cls: "bg-orange-500/10 text-orange-700 border-orange-500/30 dark:text-orange-300",
+  },
+  in_progress: {
+    label: "In progress",
+    cls: "bg-orange-500/15 text-orange-800 border-orange-500/40 dark:text-orange-300",
+  },
+  delivered: {
+    label: "Delivered",
+    cls: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 dark:text-emerald-300",
+  },
+  rejected: {
+    label: "Rejected",
+    cls: "bg-rose-500/10 text-rose-700 border-rose-500/30 dark:text-rose-300",
+  },
+  refunded: { label: "Refunded", cls: "bg-muted/40 text-muted-foreground border-border" },
+  cancelled: { label: "Cancelled", cls: "bg-muted/40 text-muted-foreground border-border" },
 };
 
 function formatPrice(cents: number, currency: string) {
@@ -94,7 +109,7 @@ export function SiteBacklinkMarketplacePanel({ slug }: Props) {
     try {
       await deleteBacklinkOrder(slug, order.id);
       // BE returns the cancelled order for queued/in_progress and {deleted}
-      // for the rest. Either way we just drop it from the list — the user's
+      // for the rest. Either way we just drop it from the list, the user's
       // intent is "I'm done with this row". Status stays viewable on a refresh
       // if they want to see cancelled history.
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
@@ -138,7 +153,7 @@ export function SiteBacklinkMarketplacePanel({ slug }: Props) {
       const r = await listBacklinkOrders(slug, userEmail || undefined);
       setOrders(r.orders);
     } catch {
-      // Non-fatal — keep prior orders on screen.
+      // Non-fatal, keep prior orders on screen.
     }
   }, [slug, userEmail]);
 
@@ -235,9 +250,7 @@ export function SiteBacklinkMarketplacePanel({ slug }: Props) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <ShoppingBag className="size-4 text-orange-600 dark:text-orange-400" />
-          <p className="text-sm font-semibold text-foreground">
-            Buy backlinks
-          </p>
+          <p className="text-sm font-semibold text-foreground">Buy backlinks</p>
           <span className="text-[11px] text-muted-foreground">
             {visibleProducts.length} listings
           </span>
@@ -258,7 +271,8 @@ export function SiteBacklinkMarketplacePanel({ slug }: Props) {
               · {formatPrice(unpaidTotalCents, unpaidOrders[0]?.currency || "USD")}
             </p>
             <p className="mt-0.5 text-[11px] leading-snug text-amber-700 dark:text-amber-300/90">
-              Your order isn&apos;t sent to the provider until you click <strong>Pay</strong> on each row below.
+              Your order isn&apos;t sent to the provider until you click <strong>Pay</strong> on
+              each row below.
             </p>
           </div>
         </div>
@@ -273,10 +287,7 @@ export function SiteBacklinkMarketplacePanel({ slug }: Props) {
             const isPaying = payingOrderId === o.id;
             const rowError = payError && payError.id === o.id ? payError.msg : null;
             return (
-              <div
-                key={o.id}
-                className="rounded-md border border-border bg-muted/15"
-              >
+              <div key={o.id} className="rounded-md border border-border bg-muted/15">
                 <div className="flex min-w-0 items-center gap-2 px-2.5 py-1.5">
                   {o.status === "delivered" ? (
                     <CheckCircle2 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
@@ -309,9 +320,7 @@ export function SiteBacklinkMarketplacePanel({ slug }: Props) {
                       ) : (
                         <CreditCard className="size-3" />
                       )}
-                      {isPaying
-                        ? "Confirming…"
-                        : `Pay ${formatPrice(o.price_cents, o.currency)}`}
+                      {isPaying ? "Confirming…" : `Pay ${formatPrice(o.price_cents, o.currency)}`}
                     </button>
                   ) : null}
                   {o.proof_url ? (
@@ -388,11 +397,13 @@ export function SiteBacklinkMarketplacePanel({ slug }: Props) {
         </div>
       </div>
 
-      {/* Catalog grid — premium cards (high DA) get a peach gradient. */}
+      {/* Catalog grid, premium cards (high DA) get a peach gradient. */}
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {visibleProducts.length === 0 ? (
           <div className="col-span-full rounded-md border border-dashed border-border/70 bg-muted/15 px-3 py-8 text-center">
-            <p className="text-[12px] font-medium text-foreground">No listings match these filters</p>
+            <p className="text-[12px] font-medium text-foreground">
+              No listings match these filters
+            </p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
               Try removing the DA cutoff or switching link type.
             </p>
@@ -492,145 +503,158 @@ export function SiteBacklinkMarketplacePanel({ slug }: Props) {
         )}
       </div>
 
-      {/* Order modal — visual language matches the catalog cards: rounded-2xl,
+      {/* Order modal, visual language matches the catalog cards: rounded-2xl,
           soft shadow, pill action buttons, peach-orange highlights for premium. */}
-      {buyingProduct ? (() => {
-        const isPremiumModal = (buyingProduct.price_cents ?? 0) > 30_000;
-        const initial = (buyingProduct.domain || "?").trim().charAt(0).toUpperCase();
-        return (
-          <div
-            className="fixed inset-0 z-200 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
-            onClick={() => !placing && setBuyingProduct(null)}
-            role="presentation"
-          >
-            <div
-              className={cn(
-                "relative flex w-full max-w-md flex-col gap-4 rounded-2xl p-5 shadow-2xl",
-                isPremiumModal
-                  ? "bg-gradient-to-br from-orange-200/80 via-orange-100 to-amber-50 dark:from-orange-500/25 dark:via-orange-500/10 dark:to-amber-500/10"
-                  : "bg-card border border-border/70",
-              )}
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-            >
-              <button
-                type="button"
-                disabled={placing}
-                onClick={() => setBuyingProduct(null)}
-                className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
-                aria-label="Close"
+      {buyingProduct
+        ? (() => {
+            const isPremiumModal = (buyingProduct.price_cents ?? 0) > 30_000;
+            const initial = (buyingProduct.domain || "?").trim().charAt(0).toUpperCase();
+            return (
+              <div
+                className="fixed inset-0 z-200 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+                onClick={() => !placing && setBuyingProduct(null)}
+                role="presentation"
               >
-                <X className="size-4" />
-              </button>
-
-              {/* Header — matches the card top: avatar + premium pill */}
-              <div className="flex items-start justify-between gap-2 pr-8">
-                <span
+                <div
                   className={cn(
-                    "flex size-10 shrink-0 items-center justify-center rounded-full text-[15px] font-bold",
+                    "relative flex w-full max-w-md flex-col gap-4 rounded-2xl p-5 shadow-2xl",
                     isPremiumModal
-                      ? "bg-white/90 text-orange-700 dark:bg-orange-500/90 dark:text-white"
-                      : "bg-muted text-foreground",
+                      ? "bg-gradient-to-br from-orange-200/80 via-orange-100 to-amber-50 dark:from-orange-500/25 dark:via-orange-500/10 dark:to-amber-500/10"
+                      : "bg-card border border-border/70",
                   )}
-                  aria-hidden
+                  onClick={(e) => e.stopPropagation()}
+                  role="dialog"
+                  aria-modal="true"
                 >
-                  {initial}
-                </span>
-                {isPremiumModal ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                    Premium
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <p className="text-[11px] text-muted-foreground">
-                  {buyingProduct.provider_name}
-                  <span className="text-muted-foreground/70"> · {buyingProduct.lead_time_days}d delivery</span>
-                </p>
-                <p className="truncate text-base font-semibold leading-tight text-foreground">
-                  {buyingProduct.domain}
-                </p>
-                <p
-                  className={cn(
-                    "text-lg font-bold tabular-nums",
-                    isPremiumModal ? "text-orange-700 dark:text-orange-300" : "text-foreground",
-                  )}
-                >
-                  {formatPrice(buyingProduct.price_cents, buyingProduct.currency)}
-                  <span className="ml-1 text-[11px] font-medium text-muted-foreground">
-                    · {LINK_TYPE_LABEL[buyingProduct.link_type]}
-                  </span>
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="bl-target-url" className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Target URL on your site
-                  </Label>
-                  <Input
-                    id="bl-target-url"
-                    value={targetUrl}
-                    onChange={(e) => setTargetUrl(e.target.value)}
-                    placeholder="https://yourbrand.com/page"
+                  <button
+                    type="button"
                     disabled={placing}
-                    className="rounded-lg bg-background/70"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="bl-anchor" className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Anchor text
-                  </Label>
-                  <Input
-                    id="bl-anchor"
-                    value={anchorText}
-                    onChange={(e) => setAnchorText(e.target.value)}
-                    placeholder="The clickable text linking back to you"
-                    disabled={placing}
-                    className="rounded-lg bg-background/70"
-                  />
+                    onClick={() => setBuyingProduct(null)}
+                    className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
+                    aria-label="Close"
+                  >
+                    <X className="size-4" />
+                  </button>
+
+                  {/* Header, matches the card top: avatar + premium pill */}
+                  <div className="flex items-start justify-between gap-2 pr-8">
+                    <span
+                      className={cn(
+                        "flex size-10 shrink-0 items-center justify-center rounded-full text-[15px] font-bold",
+                        isPremiumModal
+                          ? "bg-white/90 text-orange-700 dark:bg-orange-500/90 dark:text-white"
+                          : "bg-muted text-foreground",
+                      )}
+                      aria-hidden
+                    >
+                      {initial}
+                    </span>
+                    {isPremiumModal ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                        Premium
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <p className="text-[11px] text-muted-foreground">
+                      {buyingProduct.provider_name}
+                      <span className="text-muted-foreground/70">
+                        {" "}
+                        · {buyingProduct.lead_time_days}d delivery
+                      </span>
+                    </p>
+                    <p className="truncate text-base font-semibold leading-tight text-foreground">
+                      {buyingProduct.domain}
+                    </p>
+                    <p
+                      className={cn(
+                        "text-lg font-bold tabular-nums",
+                        isPremiumModal ? "text-orange-700 dark:text-orange-300" : "text-foreground",
+                      )}
+                    >
+                      {formatPrice(buyingProduct.price_cents, buyingProduct.currency)}
+                      <span className="ml-1 text-[11px] font-medium text-muted-foreground">
+                        · {LINK_TYPE_LABEL[buyingProduct.link_type]}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="bl-target-url"
+                        className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+                      >
+                        Target URL on your site
+                      </Label>
+                      <Input
+                        id="bl-target-url"
+                        value={targetUrl}
+                        onChange={(e) => setTargetUrl(e.target.value)}
+                        placeholder="https://yourbrand.com/page"
+                        disabled={placing}
+                        className="rounded-lg bg-background/70"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="bl-anchor"
+                        className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+                      >
+                        Anchor text
+                      </Label>
+                      <Input
+                        id="bl-anchor"
+                        value={anchorText}
+                        onChange={(e) => setAnchorText(e.target.value)}
+                        placeholder="The clickable text linking back to you"
+                        disabled={placing}
+                        className="rounded-lg bg-background/70"
+                      />
+                    </div>
+                  </div>
+
+                  {orderError ? <p className="text-[11px] text-destructive">{orderError}</p> : null}
+
+                  <p className="text-[10px] leading-snug text-muted-foreground">
+                    You&apos;ll be charged{" "}
+                    {formatPrice(buyingProduct.price_cents, buyingProduct.currency)} once payment is
+                    wired up. The provider handles the placement and shares the live URL when
+                    it&apos;s done.
+                  </p>
+
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      disabled={placing}
+                      onClick={() => setBuyingProduct(null)}
+                      className="rounded-full px-4 py-2 text-[12px] font-medium text-muted-foreground transition hover:bg-muted/60 hover:text-foreground disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={placing}
+                      onClick={submitOrder}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[12px] font-semibold transition disabled:opacity-60",
+                        isPremiumModal
+                          ? "bg-orange-600 text-white hover:bg-orange-700"
+                          : "bg-foreground text-background hover:bg-foreground/85",
+                      )}
+                    >
+                      {placing ? <Loader2 className="size-3.5 animate-spin" /> : null}
+                      {placing
+                        ? "Placing…"
+                        : `Order ${formatPrice(buyingProduct.price_cents, buyingProduct.currency)}`}
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              {orderError ? (
-                <p className="text-[11px] text-destructive">{orderError}</p>
-              ) : null}
-
-              <p className="text-[10px] leading-snug text-muted-foreground">
-                You&apos;ll be charged {formatPrice(buyingProduct.price_cents, buyingProduct.currency)} once
-                payment is wired up. The provider handles the placement and shares the live URL when it&apos;s done.
-              </p>
-
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  disabled={placing}
-                  onClick={() => setBuyingProduct(null)}
-                  className="rounded-full px-4 py-2 text-[12px] font-medium text-muted-foreground transition hover:bg-muted/60 hover:text-foreground disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={placing}
-                  onClick={submitOrder}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[12px] font-semibold transition disabled:opacity-60",
-                    isPremiumModal
-                      ? "bg-orange-600 text-white hover:bg-orange-700"
-                      : "bg-foreground text-background hover:bg-foreground/85",
-                  )}
-                >
-                  {placing ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                  {placing ? "Placing…" : `Order ${formatPrice(buyingProduct.price_cents, buyingProduct.currency)}`}
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })() : null}
+            );
+          })()
+        : null}
 
       {orders.length > 0 ? (
         <button

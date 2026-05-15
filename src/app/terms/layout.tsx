@@ -6,7 +6,7 @@ export const metadata: Metadata = buildMetadata({
   title: "Terms and conditions",
   description:
     "The terms of service governing the use of Signalor.ai, including subscription, acceptable use, and liability terms.",
-  path: "/terms-and-conditions",
+  path: "/terms",
 });
 
 export default function TermsLayout({ children }: { children: React.ReactNode }) {
@@ -16,7 +16,7 @@ export default function TermsLayout({ children }: { children: React.ReactNode })
         id="ld-terms-breadcrumb"
         data={breadcrumbJsonLd([
           { name: "Home", path: "/" },
-          { name: "Terms and conditions", path: "/terms-and-conditions" },
+          { name: "Terms and conditions", path: "/terms" },
         ])}
       />
       {children}

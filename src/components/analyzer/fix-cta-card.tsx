@@ -19,7 +19,9 @@ export function FixCTACard({ recommendations, slug, email, orgId }: FixCTACardPr
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    return () => { abortRef.current?.abort(); };
+    return () => {
+      abortRef.current?.abort();
+    };
   }, []);
 
   const fixable = recommendations.filter((r) => r.can_auto_fix);
@@ -44,7 +46,7 @@ export function FixCTACard({ recommendations, slug, email, orgId }: FixCTACardPr
     setProgress({ done: 0, total: remaining });
     abortRef.current = new AbortController();
 
-    // Run fixes sequentially — each one reads the updated content from the previous
+    // Run fixes sequentially, each one reads the updated content from the previous
     for (const rec of fixable) {
       if (abortRef.current.signal.aborted) break;
       try {
@@ -77,7 +79,9 @@ export function FixCTACard({ recommendations, slug, email, orgId }: FixCTACardPr
               <CheckCircle2 className="h-4 w-4" />
               <p className="text-sm font-medium">All {total} fixes applied</p>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Re-analyze to see your improved score</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Re-analyze to see your improved score
+            </p>
           </div>
         ) : (
           <>

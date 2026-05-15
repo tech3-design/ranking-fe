@@ -3,9 +3,9 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Free llms.txt checker — LLM readiness score",
+  title: "Free llms.txt checker, LLM readiness score",
   description:
-    "Enter a domain and Signalor checks llms.txt, robots.txt rules for GPTBot, ClaudeBot, PerplexityBot, Google-Extended, sitemap, and on-page schema — an honest LLM-readiness score.",
+    "Enter a domain and Signalor checks llms.txt, robots.txt rules for GPTBot, ClaudeBot, PerplexityBot, Google-Extended, sitemap, and on-page schema, an honest LLM-readiness score.",
   path: "/tools/llms-check",
 });
 
@@ -19,7 +19,6 @@ const llmsCheckJsonLd = {
   url: `${SITE_URL}/tools/llms-check`,
   description:
     "Free llms.txt validator. Verifies the llms.txt manifest, AI crawler rules in robots.txt (GPTBot, ClaudeBot, PerplexityBot, Google-Extended), sitemap presence, and on-page schema.",
-  publisher: { "@id": `${SITE_URL}#organization` },
 };
 
 export default function LlmsCheckLayout({ children }: { children: React.ReactNode }) {
