@@ -77,6 +77,11 @@ export default function RootLayout({
           href="/blog/rss.xml"
         />
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+        <script
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key="Ii1VFS6QFRSKltNUh1aCZA"
+          async
+        ></script>
         <JsonLd id="ld-organization" data={organizationJsonLd()} />
         <JsonLd id="ld-website" data={websiteJsonLd()} />
         <JsonLd id="ld-software" data={softwareApplicationJsonLd()} />
