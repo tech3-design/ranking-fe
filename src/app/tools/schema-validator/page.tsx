@@ -14,6 +14,7 @@ export default function SchemaValidatorToolPage() {
         title="Check JSON-LD coverage in"
         titleAccent="seconds"
         description="Paste any URL and we'll scan the page for Organization, Product, Article, FAQ, and other JSON-LD schemas, flagging missing, partial, or malformed entries."
+        secondaryDescription="The validator checks 18 schema types including Organization, Product, Article, FAQPage, HowTo, BreadcrumbList, Event, and more. It surfaces missing required fields, partial definitions, and conflicting duplicate blocks that confuse AI engines and cost you citation opportunities. Free, no account needed."
         form={<SchemaValidatorInline />}
         features={[
           {

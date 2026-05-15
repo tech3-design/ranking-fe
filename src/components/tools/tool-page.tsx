@@ -70,6 +70,7 @@ export function ToolPage({
   title,
   titleAccent,
   description,
+  secondaryDescription,
   form,
   features,
   previewEyebrow,
@@ -86,6 +87,7 @@ export function ToolPage({
   /** Optional dashed-underline accent span within the title */
   titleAccent?: string;
   description: string;
+  secondaryDescription?: string;
   form: ReactNode;
   features: ToolFeature[];
   previewEyebrow: string;
@@ -124,6 +126,11 @@ export function ToolPage({
           <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
             {description}
           </p>
+          {secondaryDescription && (
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              {secondaryDescription}
+            </p>
+          )}
           <div className="mt-8 max-w-xl">{form}</div>
         </div>
       </section>

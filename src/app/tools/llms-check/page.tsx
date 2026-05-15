@@ -14,6 +14,7 @@ export default function LlmsCheckToolPage() {
         title="See if AI can find and cite"
         titleAccent="your site"
         description="Enter a domain and we'll check llms.txt, robots.txt AI-bot rules, sitemap, and on-page schema, an honest LLM-readiness score, free."
+        secondaryDescription="The checker verifies your llms.txt manifest, parses robots.txt for GPTBot, ClaudeBot, PerplexityBot, and Google-Extended directives, confirms sitemap reachability, and scans on-page signals like Organization schema, canonical tags, and Open Graph metadata. Results are instant with no sign-up required."
         form={<LlmsCheckInline />}
         features={[
           {

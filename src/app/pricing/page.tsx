@@ -240,7 +240,15 @@ function PricingPageInner() {
             </span>
           </h2>
           <p className="mt-5 max-w-2xl text-base font-light leading-relaxed text-accent-foreground lg:text-lg">
-            Start free, upgrade when your GEO program outgrows the Starter slots,cancel any time.
+            Start free, upgrade when your GEO program outgrows the Starter slots — cancel any time.
+          </p>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Every Signalor plan includes GEO scoring across six content pillars, citation monitoring
+            across ChatGPT, Claude, Gemini, and Perplexity, schema validation, and one-click fix
+            recommendations. The Starter plan covers solo brands with two projects and up to
+            twenty-five tracked prompts. Pro scales to ten projects and one hundred prompts for
+            growing teams. Max removes prompt limits and adds white-label PDF exports for agencies
+            managing multiple client brands.
           </p>
 
           <div className="mt-8 flex items-center gap-3">

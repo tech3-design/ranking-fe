@@ -6,7 +6,10 @@ import { LandingMarketingShell } from "@/components/landing/landing-marketing-sh
 import { PromptTrackingFeaturesGrid } from "@/components/landing/prompt-tracking-features-grid";
 import { PromptTrackingHero } from "@/components/landing/prompt-tracking-hero";
 import { PromptTrackingWhySection } from "@/components/landing/prompt-tracking-why-section";
-import { PROMPT_TRACKING_HUB_FAQ, PROMPT_TRACKING_SITE } from "@/lib/landing-prompt-tracking-content";
+import {
+  PROMPT_TRACKING_HUB_FAQ,
+  PROMPT_TRACKING_SITE,
+} from "@/lib/landing-prompt-tracking-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
 
@@ -19,6 +22,17 @@ export const metadata: Metadata = buildMetadata({
 export default function PromptTrackingPage() {
   return (
     <LandingMarketingShell>
+      <div className="mx-auto max-w-3xl px-6 pt-10 pb-2 text-center">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Signalor prompt tracking lets you monitor exactly which prompts trigger AI citations of
+          your brand across ChatGPT, Claude, Gemini, and Perplexity. You define the queries your
+          buyers use, and Signalor runs live probes on a schedule, recording every response,
+          paraphrase, and citation mention. The prompt library organises your tracked queries by
+          topic or campaign so you can spot which content gaps cost you AI visibility. AI surfaces
+          reporting shows per-engine breakdown so you know where to focus optimisation efforts
+          first.
+        </p>
+      </div>
       <JsonLd
         id="ld-prompt-tracking-breadcrumb"
         data={breadcrumbJsonLd([

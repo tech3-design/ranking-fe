@@ -14,6 +14,7 @@ export default function CompetitorsAnalysisToolPage() {
         title="See who wins comparison queries in"
         titleAccent="your category"
         description="Paste your domain and we'll rank the brands people actually compare you against, pulled from live search autocomplete, not a mock list."
+        secondaryDescription="Results are derived from real buyer queries — the 'vs', 'alternatives', and 'compared to' phrases your prospects type into Google and AI engines. Ranked by co-mention frequency so you immediately see which rivals appear most often alongside your brand. Free, no sign-up required."
         form={<CompetitorsInline />}
         features={[
           {

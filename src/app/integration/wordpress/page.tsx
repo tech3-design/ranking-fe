@@ -34,6 +34,16 @@ const wordpressPluginJsonLd = {
 export default function WordPressIntegrationPage() {
   return (
     <LandingMarketingShell>
+      <div className="mx-auto max-w-3xl px-6 pt-10 pb-2 text-center">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          The Signalor WordPress plugin brings GEO recommendations and one-click schema fixes
+          directly into your WordPress admin panel. After installing the self-hosted plugin,
+          Signalor audits your posts and pages for missing or malformed JSON-LD, incomplete
+          Organization markup, and weak AI citability signals, then lets you apply fixes without
+          touching code. The plugin works with any WordPress theme and requires no API keys to
+          install. Download is free; advanced monitoring and bulk fixes require a Signalor plan.
+        </p>
+      </div>
       <JsonLd
         id="ld-wordpress-breadcrumb"
         data={breadcrumbJsonLd([

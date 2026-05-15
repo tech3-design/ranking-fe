@@ -14,6 +14,7 @@ export default function UrlAnalyzerToolPage() {
         title="Score any URL for"
         titleAccent="AI visibility"
         description="Paste a domain and see how AI engines summarize, cite, or skip it. Free, no sign-up required for the summary."
+        secondaryDescription="The analyzer checks schema coverage, on-page trust signals, llms.txt, AI-bot crawler permissions, and citation patterns across ChatGPT, Claude, Gemini, and Perplexity. You get a 0–100 GEO score plus the three highest-impact fixes, no account needed."
         form={<UrlAnalyzerToolInline />}
         features={[
           {
