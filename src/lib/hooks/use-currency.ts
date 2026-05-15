@@ -83,7 +83,12 @@ function detectFromTimezone(): CurrencyCode | null {
  * currency (INR for India, USD for US, EUR for Europe and everywhere else).
  * Falls back to language hint if the API call fails or times out.
  */
-export function useCurrency(): { currency: Currency; ready: boolean; country: string | null } {
+export function useCurrency(): {
+  currency: Currency;
+  ready: boolean;
+  country: string | null;
+  selectCurrency: (code: CurrencyCode) => void;
+} {
   const [currency, setCurrency] = useState<Currency>(CURRENCIES.EUR);
   const [country, setCountry] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -128,7 +133,11 @@ export function useCurrency(): { currency: Currency; ready: boolean; country: st
     };
   }, []);
 
-  return { currency, ready, country };
+  const selectCurrency = (code: CurrencyCode) => {
+    setCurrency(CURRENCIES[code]);
+  };
+
+  return { currency, ready, country, selectCurrency };
 }
 
 /** Format a EUR base price into the display currency. */
