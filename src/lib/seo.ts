@@ -259,6 +259,54 @@ export function softwareApplicationJsonLd() {
   };
 }
 
+export const SITE_NAV = [
+  {
+    name: "Pricing",
+    path: "/pricing",
+    description: "Signalor plans for every team — Starter, Pro, and Max.",
+  },
+  {
+    name: "AI Visibility Tracking",
+    path: "/ai-visibility",
+    description: "Monitor how ChatGPT, Claude, Gemini, and Perplexity cite your brand.",
+  },
+  {
+    name: "Prompt Tracking",
+    path: "/prompt-tracking",
+    description: "Track which AI prompts surface your brand and how rankings shift over time.",
+  },
+  {
+    name: "Recommendations",
+    path: "/recommendations",
+    description: "Prioritized GEO fixes automatically generated for your site.",
+  },
+  {
+    name: "About Signalor",
+    path: "/about-us",
+    description: "The team and mission behind the AI search visibility platform.",
+  },
+  {
+    name: "Blog",
+    path: "/blog",
+    description: "Guides, research, and updates on GEO, AEO, and AI search.",
+  },
+] as const;
+
+export function siteNavigationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${SITE_BRAND} — site navigation`,
+    itemListElement: SITE_NAV.map((item, index) => ({
+      "@type": "SiteNavigationElement",
+      position: index + 1,
+      name: item.name,
+      description: item.description,
+      url: absoluteUrl(item.path),
+    })),
+  };
+}
+
 export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
   return {
     "@context": "https://schema.org",
