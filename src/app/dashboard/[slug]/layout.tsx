@@ -288,7 +288,7 @@ export default function DashboardSlugLayout({ children }: { children: React.Reac
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
-  const [isPro, setIsPro] = useState(false);
+  const [isPro, setIsPro] = useState<boolean | null>(null);
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
   const [switchingOrg, setSwitchingOrg] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -612,7 +612,7 @@ export default function DashboardSlugLayout({ children }: { children: React.Reac
         </button>
       </div>
 
-      {!isPro ? (
+      {isPro === false ? (
         <div className="rounded-md border border-border bg-background p-3">
           <p className="mb-0.5 text-[13px] font-semibold text-foreground">
             Boost Your AI Visibility
