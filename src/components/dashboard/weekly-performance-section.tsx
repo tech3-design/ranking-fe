@@ -169,10 +169,8 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
       const date = new Date(selectedWeek.start);
       date.setDate(date.getDate() + i);
       const pts = selectedWeek.points.filter((p) => isSameDay(new Date(p.date), date));
-      const score =
-        pts.length > 0
-          ? Math.round(pts.reduce((s, p) => s + p.composite_score, 0) / pts.length)
-          : null;
+      // pts is ordered by updated_at asc from the API; take the last (most recent) run for the day
+      const score = pts.length > 0 ? Math.round(pts[pts.length - 1].composite_score) : null;
       return {
         name: DAY_ABBREVS[date.getDay()],
         score,
@@ -185,18 +183,25 @@ export const WeeklyPerformanceSection = memo(function WeeklyPerformanceSection({
     });
   }, [selectedWeek]);
 
-  // Aggregate stats
-  const weekAvg = selectedWeek?.points.length
-    ? Math.round(
-        selectedWeek.points.reduce((s, p) => s + p.composite_score, 0) / selectedWeek.points.length,
-      )
+  // Aggregate stats — deduplicate same-day runs, use only the latest score per day
+  function latestPerDay(points: ScoreHistoryPoint[]): ScoreHistoryPoint[] {
+    const map = new Map<string, ScoreHistoryPoint>();
+    for (const p of points) {
+      const key = new Date(p.date).toDateString();
+      map.set(key, p); // later entries overwrite (points ordered asc by date)
+    }
+    return Array.from(map.values());
+  }
+
+  const weekPoints = selectedWeek ? latestPerDay(selectedWeek.points) : [];
+  const weekAvg = weekPoints.length
+    ? Math.round(weekPoints.reduce((s, p) => s + p.composite_score, 0) / weekPoints.length)
     : null;
 
   const prevWeek = selectedIdx > 0 ? weeks[selectedIdx - 1] : null;
-  const prevAvg = prevWeek?.points.length
-    ? Math.round(
-        prevWeek.points.reduce((s, p) => s + p.composite_score, 0) / prevWeek.points.length,
-      )
+  const prevPoints = prevWeek ? latestPerDay(prevWeek.points) : [];
+  const prevAvg = prevPoints.length
+    ? Math.round(prevPoints.reduce((s, p) => s + p.composite_score, 0) / prevPoints.length)
     : null;
 
   const weekDelta = weekAvg != null && prevAvg != null ? weekAvg - prevAvg : null;

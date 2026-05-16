@@ -24,6 +24,10 @@ const CSP = [
     "https://region1.google-analytics.com",
     "https://www.clarity.ms",
     "https://c.bing.com",
+    // Local backend in dev
+    ...(process.env.NODE_ENV === "development"
+      ? ["http://localhost:8000", "http://127.0.0.1:8000"]
+      : []),
   ].join(" "),
   // Dodo Payments redirects to their checkout URL; no frames needed from us
   "frame-src https://checkout.dodopayments.com https://app.dodopayments.com",

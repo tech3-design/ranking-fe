@@ -125,7 +125,8 @@ function fmtErr(err: unknown): string {
     if (typeof o.error === "string" && o.error.trim()) return o.error;
     if (typeof o.detail === "string" && o.detail.trim()) return o.detail;
   }
-  if (err.code === "ERR_NETWORK") return "Cannot reach the API.";
+  if (err.code === "ERR_NETWORK" || err.code === "ECONNREFUSED")
+    return "Cannot reach the server. Make sure the backend is running.";
   if (err.response?.status === 403) return "Subscription required or project limit.";
   return "Failed. Please try again.";
 }

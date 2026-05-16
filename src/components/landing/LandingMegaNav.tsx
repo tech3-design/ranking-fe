@@ -232,23 +232,7 @@ function MegaMenuLinkCell({
 
 type ResourceKey = "integ" | "blog" | "pricing" | "login";
 
-const BLOG_POSTS: { title: string; date: string; href: string }[] = [
-  {
-    title: "The GEO audit checklist",
-    date: "Apr 2026",
-    href: "/blog/geo-audit-checklist",
-  },
-  {
-    title: "How LLMs pick citations",
-    date: "Mar 2026",
-    href: "/blog/how-llms-pick-citations",
-  },
-  {
-    title: "Schema AI engines actually read",
-    date: "Mar 2026",
-    href: "/blog/schema-ai-engines-read",
-  },
-];
+type NavPost = { slug: string; title: string; publishedAt: string | null };
 
 const PRICING_TIERS: {
   name: string;
@@ -280,6 +264,17 @@ function ResourcesMegaGrid({
   const [hovered, setHovered] = useState<ResourceKey | null>(null);
   const cellRefs = useRef<(HTMLAnchorElement | null)[]>([null, null, null, null]);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fetch blog posts server-side via API route (avoids client-side Sanity env var issues)
+  const [navPosts, setNavPosts] = useState<NavPost[]>([]);
+  const [navPostsLoading, setNavPostsLoading] = useState(true);
+  useEffect(() => {
+    fetch("/api/nav-posts")
+      .then((r) => r.json())
+      .then(setNavPosts)
+      .catch(() => {})
+      .finally(() => setNavPostsLoading(false));
+  }, []);
 
   const cancelHoverTimer = useCallback(() => {
     if (hoverTimer.current) {
@@ -352,6 +347,8 @@ function ResourcesMegaGrid({
           hovered={hovered}
           onNavigate={() => setOpen(null)}
           isAuthenticated={isAuthenticated}
+          posts={navPosts}
+          postsLoading={navPostsLoading}
         />
       </motion.div>
     </motion.div>
@@ -441,12 +438,17 @@ function ResourcePreviewPanel({
   hovered,
   onNavigate,
   isAuthenticated,
+  posts,
+  postsLoading,
 }: {
   hovered: ResourceKey | null;
   onNavigate: () => void;
   isAuthenticated: boolean;
+  posts: NavPost[];
+  postsLoading: boolean;
 }) {
-  const activeKey = hovered ?? "default";
+  // Blog is the default panel — visible immediately when dropdown opens
+  const activeKey = hovered ?? "blog";
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-sm border border-black/8 bg-neutral-50/80 p-2 shadow-inner">
       <AnimatePresence mode="wait">
@@ -460,14 +462,13 @@ function ResourcePreviewPanel({
         >
           {hovered === "integ" ? (
             <IntegrationsPreview onNavigate={onNavigate} />
-          ) : hovered === "blog" ? (
-            <BlogPreview onNavigate={onNavigate} />
           ) : hovered === "pricing" ? (
             <PricingPreview onNavigate={onNavigate} />
           ) : hovered === "login" ? (
             <LoginPreview onNavigate={onNavigate} isAuthenticated={isAuthenticated} />
           ) : (
-            <DefaultPreview />
+            /* Default: blog (also shown when hovered === "blog") */
+            <BlogPreview onNavigate={onNavigate} posts={posts} loading={postsLoading} />
           )}
         </motion.div>
       </AnimatePresence>
@@ -516,30 +517,67 @@ function IntegrationsPreview({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-function BlogPreview({ onNavigate }: { onNavigate: () => void }) {
+function fmtPostDate(iso: string | null): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
+function BlogPreview({
+  onNavigate,
+  posts,
+  loading,
+}: {
+  onNavigate: () => void;
+  posts: NavPost[];
+  loading: boolean;
+}) {
   return (
     <>
       <PreviewHeading label="Latest posts" />
       <ul role="list" className="flex flex-col gap-0.5">
-        {BLOG_POSTS.map((post) => (
-          <li key={post.href}>
-            <Link
-              href={post.href}
-              className="group flex items-start gap-2 rounded-md p-2 transition-colors hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
-              onClick={onNavigate}
-            >
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
-                <FileText className="h-3 w-3" strokeWidth={1.75} aria-hidden />
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <li key={i} className="flex items-start gap-2 rounded-md p-2">
+              <span className="mt-0.5 h-5 w-5 shrink-0 animate-pulse rounded-sm bg-neutral-200" />
+              <span className="flex flex-1 flex-col gap-1">
+                <span className="h-3 w-4/5 animate-pulse rounded bg-neutral-200" />
+                <span className="h-2.5 w-1/3 animate-pulse rounded bg-neutral-100" />
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-semibold tracking-tight text-neutral-900">
-                  {post.title}
+            </li>
+          ))
+        ) : posts.length === 0 ? (
+          <li className="px-2 py-3 text-[12px] text-muted-foreground">No posts published yet.</li>
+        ) : (
+          posts.map((post) => (
+            <li key={post.slug}>
+              <Link
+                href={`/blog/${post.slug}`}
+                className="group flex items-start gap-2 rounded-md p-2 transition-colors hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-1"
+                onClick={onNavigate}
+              >
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-black/8 bg-white text-primary shadow-sm">
+                  <FileText className="h-3 w-3" strokeWidth={1.75} aria-hidden />
                 </span>
-                <span className="text-[11px] font-light text-accent-foreground">{post.date}</span>
-              </span>
-            </Link>
-          </li>
-        ))}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-semibold tracking-tight text-neutral-900 transition-colors group-hover:text-primary">
+                    {post.title}
+                  </span>
+                  <span className="text-[11px] font-light text-accent-foreground">
+                    {fmtPostDate(post.publishedAt)}
+                  </span>
+                </span>
+                <ArrowUpRight
+                  className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                  aria-hidden
+                />
+              </Link>
+            </li>
+          ))
+        )}
       </ul>
       <Link
         href="/blog"

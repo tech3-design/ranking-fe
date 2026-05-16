@@ -42,3 +42,19 @@ export const POST_BY_SLUG_QUERY = groq`
 export const ALL_POST_SLUGS_QUERY = groq`
   *[_type == "post"] { "slug": slug.current }
 `;
+
+export type AdjacentPost = {
+  slug: string;
+  title: string;
+  publishedAt: string;
+};
+
+// Fetch all posts for prev/next navigation (date-only field — avoid strict < / > comparison)
+export const ALL_POSTS_NAV_QUERY = groq`
+  *[_type == "post" && defined(slug.current) && defined(publishedAt)]
+  | order(publishedAt desc, _id asc) {
+    "slug": slug.current,
+    title,
+    publishedAt
+  }
+`;

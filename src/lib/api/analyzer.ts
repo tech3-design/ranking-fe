@@ -162,6 +162,7 @@ export interface AnalysisRunDetail {
   recommendations: Recommendation[];
   ai_probes: AIProbe[];
   brand_visibility: BrandVisibility | null;
+  organization_id: number | null;
 }
 
 export async function startAnalysis(payload: StartAnalysisPayload): Promise<StartAnalysisResponse> {
@@ -645,6 +646,7 @@ export interface ScoreHistoryPoint {
   date: string;
   composite_score: number;
   slug: string;
+  organization_id: number | null;
 }
 
 export async function getScoreHistory(email: string, orgId?: number): Promise<ScoreHistoryPoint[]> {

@@ -254,33 +254,33 @@ export default function SignalorDashboard() {
     <>
       {/* <header className="sticky top-0 z-20 border-b border-border bg-white px-6 py-4"> */}
       <div
-        className="flex flex-col gap-4 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+        className="flex flex-col gap-3 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
         data-tour-card="overview-header"
       >
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+        <div className="flex min-w-0 items-start gap-2.5">
           {brandFavicon ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={brandFavicon}
               alt={`${projectName} logo`}
-              width={32}
-              height={32}
-              className="size-7 shrink-0 rounded-md object-contain sm:size-8"
+              width={36}
+              height={36}
+              className="mt-0.5 size-9 shrink-0 rounded-lg object-contain ring-1 ring-black/8"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";
               }}
             />
           ) : null}
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-bold tracking-tight text-foreground capitalize sm:text-3xl">
+            <h1 className="truncate text-lg font-semibold tracking-tight text-foreground capitalize sm:text-xl">
               {projectName}
             </h1>
             {brandDomain ? (
-              <p className="truncate text-xs text-muted-foreground sm:text-sm">{brandDomain}</p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">{brandDomain}</p>
             ) : null}
           </div>
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-4 sm:gap-5">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
               Status
@@ -296,7 +296,7 @@ export default function SignalorDashboard() {
           </div>
 
           {run?.created_at ? (
-            <div className="hidden flex-col items-end gap-0.5 text-right sm:flex border-l border-border pl-4">
+            <div className="hidden flex-col items-end gap-0.5 text-right sm:flex border-l border-border pl-3">
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
                 Created on
               </span>
@@ -310,7 +310,7 @@ export default function SignalorDashboard() {
             </div>
           ) : null}
 
-          <div className="flex items-center gap-2 pl-2">
+          <div className="flex items-center gap-1.5 pl-1">
             <Button
               type="button"
               variant="outline"
@@ -335,7 +335,7 @@ export default function SignalorDashboard() {
               className="h-8 gap-1.5 rounded-sm px-3 text-xs font-medium shadow-sm"
             >
               <Calendar className="size-3.5" />
-              Schedule analysis
+              Schedule
             </Button>
             <Button
               type="button"
@@ -378,7 +378,7 @@ export default function SignalorDashboard() {
             <div className="min-w-0 flex-1" data-tour-card="overview-performance">
               <WeeklyPerformanceSection
                 scoreHistory={scoreHistory}
-                joinDate={run.created_at}
+                joinDate={scoreHistory.length > 0 ? scoreHistory[0].date : run.created_at}
                 className="mb-0 h-full"
               />
             </div>

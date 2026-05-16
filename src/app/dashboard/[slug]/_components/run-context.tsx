@@ -12,6 +12,7 @@ import {
   type ScoreHistoryPoint,
   type AutoFixResult,
 } from "@/lib/api/analyzer";
+import { useOrgStore } from "@/lib/stores/org-store";
 
 type FixResultMap = Record<number, { status: string; message: string }>;
 
@@ -56,6 +57,16 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
   const [scoreBump, setScoreBump] = useState<number | null>(null);
   const prevStatusRef = useRef<string | null>(null);
 
+  // Keep activeOrg in sync with whichever project is currently open.
+  // Without this, the org switcher stays stale and the "already on this org" guard
+  // in handleSwitchOrg blocks navigation to the correct project.
+  const { organizations, setActiveOrg } = useOrgStore();
+  useEffect(() => {
+    if (!run?.organization_id || !organizations.length) return;
+    const matched = organizations.find((o) => o.id === run.organization_id);
+    if (matched) setActiveOrg(matched);
+  }, [run?.organization_id, organizations, setActiveOrg]);
+
   const fetchData = useCallback(async () => {
     if (!slug) return;
     try {
@@ -76,8 +87,21 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
       setLoading(false);
 
       if (detail.email) {
-        getScoreHistory(detail.email)
-          .then((history) => setScoreHistory(history))
+        const orgId = detail.organization_id ?? undefined;
+        getScoreHistory(detail.email, orgId)
+          .then((all) => {
+            // If org_id was passed, the backend already scoped the results — use as-is.
+            // If not (old backend without serializer fix), filter client-side using
+            // organization_id embedded in each history point.
+            if (orgId != null) {
+              setScoreHistory(all);
+            } else {
+              const fromHistory = all.find((p) => p.slug === detail.slug)?.organization_id ?? null;
+              setScoreHistory(
+                fromHistory != null ? all.filter((p) => p.organization_id === fromHistory) : all,
+              );
+            }
+          })
           .catch(() => {});
       }
     } catch (err: unknown) {
@@ -144,8 +168,16 @@ export function RunProvider({ slug, children }: { slug: string; children: React.
         if (updated.status === "complete" || updated.status === "failed") {
           clearInterval(interval);
           if (updated.email) {
-            const history = await getScoreHistory(updated.email).catch(() => []);
-            setScoreHistory(history);
+            const orgId = updated.organization_id ?? undefined;
+            const all = await getScoreHistory(updated.email, orgId).catch(() => []);
+            if (orgId != null) {
+              setScoreHistory(all);
+            } else {
+              const fromHistory = all.find((p) => p.slug === updated.slug)?.organization_id ?? null;
+              setScoreHistory(
+                fromHistory != null ? all.filter((p) => p.organization_id === fromHistory) : all,
+              );
+            }
           }
           // Fetch fix statuses on completion
           const fixStatuses = await getAutoFixStatus(slug).catch(() => [] as AutoFixResult[]);

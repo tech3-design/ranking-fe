@@ -66,7 +66,10 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   },
 ];
 
-const SOCIAL = [{ href: "https://x.com/SignalorAI", label: "X (Twitter)", icon: Twitter }] as const;
+const SOCIAL = [
+  { href: "https://x.com/SignalorAI", label: "X (Twitter)", icon: Twitter },
+  { href: "https://github.com/signalorai", label: "Github", icon: Github },
+] as const;
 
 const RECENT_POSTS_QUERY = groq`*[_type == "post" && defined(slug.current)] | order(publishedAt desc)[0...3] {
   "slug": slug.current,

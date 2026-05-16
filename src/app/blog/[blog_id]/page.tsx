@@ -1,13 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, Clock } from "@/components/icons";
+import { ArrowLeft, ArrowRight, Clock } from "@/components/icons";
 
 import { client } from "@/sanity/lib/client";
 import {
   POST_BY_SLUG_QUERY,
   ALL_POST_SLUGS_QUERY,
+  ALL_POSTS_NAV_QUERY,
   type SanityBlogPost,
+  type AdjacentPost,
 } from "@/sanity/lib/queries";
 import { LandingMarketingShell } from "@/components/landing/landing-marketing-shell";
 import { LandingFooter } from "@/components/landing/landing-footer";
@@ -293,6 +295,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ blog_
 
   if (!post) notFound();
 
+  const allNavPosts = await client
+    .fetch<AdjacentPost[]>(ALL_POSTS_NAV_QUERY)
+    .catch(() => [] as AdjacentPost[]);
+
+  const currentIdx = allNavPosts.findIndex((p) => p.slug === post.slug);
+  // allNavPosts is ordered newest→oldest, so idx-1 is newer (next), idx+1 is older (prev)
+  const nextPost: AdjacentPost | null = currentIdx > 0 ? allNavPosts[currentIdx - 1] : null;
+  const prevPost: AdjacentPost | null =
+    currentIdx !== -1 && currentIdx < allNavPosts.length - 1 ? allNavPosts[currentIdx + 1] : null;
+
   const tone = CATEGORY_TONE[post.category as BlogPost["category"]] ?? {
     bg: "bg-neutral-100",
     fg: "text-neutral-700",
@@ -385,16 +397,38 @@ export default async function BlogPostPage({ params }: { params: Promise<{ blog_
 
       <ScreenHR />
 
-      {/* ─── Back link ──────────────────────────────────────────────── */}
+      {/* ─── Post navigation ────────────────────────────────────────── */}
       <section className="bg-background px-6 pb-14 lg:px-12">
         <div className="mx-auto max-w-7xl">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-black/10 bg-white px-4 py-2 text-[12px] font-semibold text-foreground shadow-sm transition hover:bg-neutral-50"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            All posts
-          </Link>
+          <div className="grid grid-cols-3 items-center gap-4">
+            {/* Previous (older) */}
+            <div className="flex justify-start">
+              {prevPost ? (
+                <Link
+                  href={`/blog/${prevPost.slug}`}
+                  className="group inline-flex items-center gap-1.5 rounded-sm border border-black/10 bg-white px-4 py-2 text-[12px] font-semibold text-foreground shadow-sm transition hover:bg-neutral-50"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" />
+                  Previous blog
+                </Link>
+              ) : null}
+            </div>
+
+            <div />
+
+            {/* Next (newer) */}
+            <div className="flex justify-end">
+              {nextPost ? (
+                <Link
+                  href={`/blog/${nextPost.slug}`}
+                  className="group inline-flex items-center gap-1.5 rounded-sm border border-black/10 bg-white px-4 py-2 text-[12px] font-semibold text-foreground shadow-sm transition hover:bg-neutral-50"
+                >
+                  Next blog
+                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </Link>
+              ) : null}
+            </div>
+          </div>
         </div>
       </section>
 

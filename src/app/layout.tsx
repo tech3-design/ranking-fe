@@ -36,17 +36,27 @@ const fontMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+// export const metadata: Metadata = {
+//   ...buildMetadata({
+//     title: undefined,
+//     description:
+//       "Signalor is the GEO + AEO platform that scores, monitors, and improves how ChatGPT, Claude, Gemini, Perplexity, and Google AI cite your brand.",
+//     path: "/",
+//   }),
+//   title: {
+//     default: "Signalor.ai | AI search visibility & GEO platform",
+//     template: "%s | Signalor.ai",
+//   },
+// };
+
 export const metadata: Metadata = {
-  ...buildMetadata({
-    title: undefined,
-    description:
-      "Signalor is the GEO + AEO platform that scores, monitors, and improves how ChatGPT, Claude, Gemini, Perplexity, and Google AI cite your brand.",
-    path: "/",
-  }),
   title: {
     default: "Signalor.ai | AI search visibility & GEO platform",
     template: "%s | Signalor.ai",
   },
+
+  description:
+    "Signalor is the GEO + AEO platform that scores, monitors, and improves how ChatGPT, Claude, Gemini, Perplexity, and Google AI cite your brand.",
 };
 
 export const viewport: Viewport = {

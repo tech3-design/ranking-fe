@@ -19,71 +19,63 @@ function hostOf(url: string): string {
 
 export function AnalysisOverlay() {
   const { run } = useRun();
-  const brand =
-    run?.display_brand_name?.trim() ||
-    run?.brand_name?.trim() ||
-    "Your brand";
+  const brand = run?.display_brand_name?.trim() || run?.brand_name?.trim() || "Your brand";
   const host = hostOf(run?.url || "");
   const progress = Math.max(0, Math.min(100, run?.progress ?? 0));
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background">
-      {/* Radar (left) + Brand identity (right) */}
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/98 backdrop-blur-sm">
+      {/* Radar (left) + Info (right) */}
       <div className="flex items-center justify-center gap-10 md:gap-16">
         <AnalyzingRadar size={220} />
-        <div className="min-w-0 max-w-[520px]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-neutral-500">
-            Analyzing
-          </p>
-          <div className="mt-3 flex items-center gap-4">
-            <BrandFavicon host={host} size={56} />
+
+        <div className="w-[420px] min-w-0">
+          {/* Eyebrow with live pulse dot */}
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+            </span>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-neutral-500">
+              Analyzing
+            </p>
+          </div>
+
+          {/* Brand identity — logo + name properly aligned */}
+          <div className="mt-4 flex items-center gap-3">
+            <BrandFavicon host={host} size={44} />
             <div className="min-w-0">
-              <h1 className="break-words text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-5xl md:text-6xl">
+              <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground capitalize">
                 {brand}
               </h1>
               {host ? (
-                <p className="mt-2 truncate text-sm text-muted-foreground">
-                  {host}
-                </p>
+                <p className="mt-0.5 truncate text-sm text-muted-foreground">{host}</p>
               ) : null}
             </div>
           </div>
 
           {/* Progress */}
           <div className="mt-6">
-            <TimerStat label="Progress" value={`${Math.round(progress)}%`} mono />
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
+                Progress
+              </p>
+              <p className="font-mono text-sm font-semibold tabular-nums text-foreground">
+                {Math.round(progress)}%
+              </p>
+            </div>
+            <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-200">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Rotating brand fact */}
-      <RotatingGeoFact
-        intervalMs={4500}
-        className="mx-auto mt-12 max-w-lg"
-      />
-    </div>
-  );
-}
-
-function TimerStat({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div>
-      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
-        {label}
-      </p>
-      <p
-        className={`mt-1 text-2xl font-semibold tabular-nums text-foreground ${mono ? "font-mono" : ""}`}
-      >
-        {value}
-      </p>
+      <RotatingGeoFact intervalMs={4500} className="mx-auto mt-10 max-w-lg" />
     </div>
   );
 }
