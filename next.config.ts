@@ -1,10 +1,36 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+const isDev = process.env.NODE_ENV !== "production";
+
+// In dev we need to allow the local backend (http://localhost:8000), the
+// ipapi.co geolocation call, and Vercel/Amplitude/Clarity remote config
+// endpoints that aren't in the prod allowlist. We also need ws://localhost:*
+// for Turbopack HMR.
+const devConnectSrc = isDev
+  ? [
+      "http://localhost:* ws://localhost:* http://127.0.0.1:*",
+      "https://ipapi.co",
+      "https://va.vercel-scripts.com",
+      "https://sr-client-cfg.amplitude.com",
+      "https://gs.amplitude.com",
+    ]
+  : [];
+
+const devScriptSrc = isDev ? ["https://va.vercel-scripts.com", "https://scripts.clarity.ms"] : [];
+
 const CSP = [
   "default-src 'self'",
   // Next.js inline scripts + third-party analytics/tracking
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://cdn.amplitude.com https://www.clarity.ms https://c.bing.com",
+  [
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "https://www.googletagmanager.com",
+    "https://www.google-analytics.com",
+    "https://cdn.amplitude.com",
+    "https://www.clarity.ms",
+    "https://c.bing.com",
+    ...devScriptSrc,
+  ].join(" "),
   // Tailwind inline styles + Google Fonts
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // Sanity image CDN, analytics pixels, data URIs
@@ -24,6 +50,7 @@ const CSP = [
     "https://region1.google-analytics.com",
     "https://www.clarity.ms",
     "https://c.bing.com",
+    ...devConnectSrc,
   ].join(" "),
   // Dodo Payments redirects to their checkout URL; no frames needed from us
   "frame-src https://checkout.dodopayments.com https://app.dodopayments.com",
@@ -31,7 +58,9 @@ const CSP = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "upgrade-insecure-requests",
+  // upgrade-insecure-requests forces http→https; never enable in dev (would
+  // upgrade http://localhost:8000 and break the local backend connection)
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const securityHeaders = [

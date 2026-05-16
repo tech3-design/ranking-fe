@@ -1,17 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
-import {
-  getShareOfVoice,
-  type ShareOfVoiceItem,
-} from "@/lib/api/analyzer";
-import {
-  getGAAuthUrl,
-  getIntegrationStatus,
-  type IntegrationInfo,
-} from "@/lib/api/integrations";
+import { getShareOfVoice, type ShareOfVoiceItem } from "@/lib/api/analyzer";
+import { getGAAuthUrl, getIntegrationStatus, type IntegrationInfo } from "@/lib/api/integrations";
 import { useRun } from "../_components/run-context";
 import { BrandVisibilityTab } from "@/components/analyzer/brand-visibility-tab";
 import { GAPropertySelector } from "@/components/integrations/ga-property-selector";
@@ -25,35 +19,29 @@ export default function VisibilityPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: session } = useSession();
   const { run, loading, error } = useRun();
-  const [sov, setSov] = useState<ShareOfVoiceItem[]>([]);
-  const [sovLoading, setSovLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const email = session?.user?.email ?? "";
-  const [integrations, setIntegrations] = useState<IntegrationInfo[]>([]);
-  const [gaLoading, setGaLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
-  // Track sov separately so skeleton stays until both run + sov are ready
-  useEffect(() => {
-    if (!slug) return;
-    setSovLoading(true);
-    getShareOfVoice(slug)
-      .catch(() => [] as ShareOfVoiceItem[])
-      .then((data) => { setSov(data); setSovLoading(false); });
-  }, [slug]);
+  // Cached across tab switches via QueryClient (staleTime 5min, gcTime 30min).
+  const { data: sov = [] as ShareOfVoiceItem[], isLoading: sovLoading } = useQuery({
+    queryKey: ["share-of-voice", slug],
+    enabled: !!slug,
+    queryFn: () => getShareOfVoice(slug).catch(() => [] as ShareOfVoiceItem[]),
+  });
+
+  const { data: integrations = [] as IntegrationInfo[], isLoading: gaLoading } = useQuery({
+    queryKey: ["integration-status", email],
+    enabled: !!email,
+    queryFn: () => getIntegrationStatus(email),
+  });
+
+  const loadIntegrations = () => {
+    if (email) queryClient.invalidateQueries({ queryKey: ["integration-status", email] });
+  };
 
   const allLoading = loading || sovLoading;
-
-  const loadIntegrations = useCallback(async () => {
-    if (!email) return;
-    try {
-      const data = await getIntegrationStatus(email);
-      setIntegrations(data);
-    } catch { /* ignore */ }
-    finally { setGaLoading(false); }
-  }, [email]);
-
-  useEffect(() => { loadIntegrations(); }, [loadIntegrations]);
 
   const gaIntegration = integrations.find((i) => i.provider === "google_analytics" && i.is_active);
   const hasProperty = !!gaIntegration?.metadata?.property_id;
@@ -78,7 +66,9 @@ export default function VisibilityPage() {
         data-tour-card="visibility-header"
       >
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Brand presence</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            Brand presence
+          </h2>
           <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
             How AI engines and platforms surface your brand
           </p>
