@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowDown,
@@ -49,71 +50,68 @@ const SORT_OPTIONS: { label: string; value: string }[] = [
 ];
 
 export function SitemapAuditPanel({ slug }: { slug: string }) {
-  const [data, setData] = useState<SitemapAuditResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [starting, setStarting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
   const [state, setState] = useState<StateTab>("crawled");
   const [severity, setSeverity] = useState<SeverityFilter>("all");
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("-ai_score");
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const aliveRef = useRef(true);
 
-  const audit = data?.audit ?? null;
-  const isRunning = audit?.status === "running" || audit?.status === "queued";
-
-  const fetchNow = useCallback(async () => {
-    try {
-      const res = await getSitemapAudit(slug, {
+  // Each filter combo gets its own cache slot. Cached across tab switches
+  // (5min staleTime, 30min gcTime via QueryClient defaults).
+  const queryKey = ["sitemap-audit", slug, state, severity, q, sort];
+  const {
+    data,
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey,
+    enabled: !!slug,
+    queryFn: () =>
+      getSitemapAudit(slug, {
         state,
         severity: severity === "all" ? undefined : severity,
         q: q || undefined,
         sort,
         page: 1,
         page_size: 100,
-      });
-      if (!aliveRef.current) return;
-      setData(res);
-      setError(null);
-    } catch {
-      if (!aliveRef.current) return;
-      setError("Couldn't load the audit. Retry in a moment.");
-    } finally {
-      if (aliveRef.current) setLoading(false);
-    }
-  }, [slug, state, severity, q, sort]);
+      }),
+  });
+  const error = startError || (queryError ? "Couldn't load the audit. Retry in a moment." : null);
 
+  const audit = data?.audit ?? null;
+  const isRunning = audit?.status === "running" || audit?.status === "queued";
+
+  // Cleanup any in-flight poll timer on unmount.
   useEffect(() => {
-    aliveRef.current = true;
     return () => {
-      aliveRef.current = false;
       if (pollRef.current) clearTimeout(pollRef.current);
     };
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    void fetchNow();
-  }, [fetchNow]);
-
-  // Poll while running
+  // Poll while running — refetch every 2.2s until audit finishes.
   useEffect(() => {
     if (!isRunning) return;
     if (pollRef.current) clearTimeout(pollRef.current);
     pollRef.current = setTimeout(() => {
-      void fetchNow();
+      void refetch();
     }, 2200);
-  }, [isRunning, data, fetchNow]);
+  }, [isRunning, data, refetch]);
 
   async function handleStart() {
     if (starting) return;
     setStarting(true);
+    setStartError(null);
     try {
       await startSitemapAudit(slug);
-      await fetchNow();
+      // Invalidate every cached filter combo since they all reflect the
+      // same underlying audit.
+      queryClient.invalidateQueries({ queryKey: ["sitemap-audit", slug] });
     } catch {
-      setError("Couldn't start an audit. Try again.");
+      setStartError("Couldn't start an audit. Try again.");
     } finally {
       setStarting(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2,
   ShoppingBag,
@@ -78,15 +79,46 @@ interface Props {
 export function SiteBacklinkMarketplacePanel({ slug }: Props) {
   const { data: session } = useSession();
   const userEmail = session?.user?.email ?? "";
+  const queryClient = useQueryClient();
 
-  const [products, setProducts] = useState<BacklinkProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Catalog + orders cached across tab switches via QueryClient.
+  const queryKey = ["backlink-marketplace", slug, userEmail];
+  const {
+    data: initial,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey,
+    enabled: !!slug,
+    queryFn: async () => {
+      const [catalog, ordersResp] = await Promise.all([
+        getBacklinkCatalog(slug),
+        listBacklinkOrders(slug, userEmail || undefined).catch(() => ({
+          orders: [] as BacklinkOrder[],
+        })),
+      ]);
+      return { products: catalog.products, orders: ordersResp.orders };
+    },
+  });
+  const products: BacklinkProduct[] = initial?.products ?? [];
+  const error =
+    queryError instanceof Error ? queryError.message : queryError ? "Couldn't load catalog." : null;
 
   const [filterLinkType, setFilterLinkType] = useState<BacklinkLinkType | "all">("all");
   const [minDa, setMinDa] = useState<number>(0);
 
+  // Local orders state seeds from the query and accepts mutations from
+  // place/pay/cancel handlers. We mirror back into the cache via setQueryData
+  // so the next tab-switch sees the latest orders, not the original snapshot.
   const [orders, setOrders] = useState<BacklinkOrder[]>([]);
+  useEffect(() => {
+    if (initial?.orders) setOrders(initial.orders);
+  }, [initial?.orders]);
+  useEffect(() => {
+    if (!initial) return;
+    queryClient.setQueryData(queryKey, { products, orders });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders]);
 
   const [buyingProduct, setBuyingProduct] = useState<BacklinkProduct | null>(null);
   const [targetUrl, setTargetUrl] = useState("");
@@ -155,32 +187,6 @@ export function SiteBacklinkMarketplacePanel({ slug }: Props) {
     } catch {
       // Non-fatal, keep prior orders on screen.
     }
-  }, [slug, userEmail]);
-
-  useEffect(() => {
-    if (!slug) return;
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    Promise.all([
-      getBacklinkCatalog(slug),
-      listBacklinkOrders(slug, userEmail || undefined).catch(() => ({ orders: [] })),
-    ])
-      .then(([catalog, ordersResp]) => {
-        if (cancelled) return;
-        setProducts(catalog.products);
-        setOrders(ordersResp.orders);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setError(e instanceof Error ? e.message : "Couldn't load catalog.");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
   }, [slug, userEmail]);
 
   const visibleProducts = useMemo(() => {

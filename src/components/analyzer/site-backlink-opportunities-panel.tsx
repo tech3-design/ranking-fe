@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Loader2, RefreshCw, Globe, AlertCircle, Sparkles } from "@/components/icons";
 import {
   getSiteBacklinkOpportunities,
@@ -40,45 +41,37 @@ interface Props {
 }
 
 export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
-  const [rows, setRows] = useState<SiteOpportunity[]>([]);
-  const [hasGenerated, setHasGenerated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [regenerating, setRegenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [regenError, setRegenError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    getSiteBacklinkOpportunities(slug)
-      .then((res) => {
-        if (cancelled) return;
-        setRows(res.rows);
-        setHasGenerated(!!res.has_generated);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        const e = err as {
-          response?: { data?: { detail?: string } };
-          message?: string;
-        };
-        setError(e.response?.data?.detail ?? e.message ?? "Failed to load opportunities");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [slug]);
+  const queryKey = ["site-backlink-opportunities", slug];
+  // Cached across tab switches via QueryClient (5min staleTime, 30min gcTime).
+  const {
+    data,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey,
+    enabled: !!slug,
+    queryFn: () => getSiteBacklinkOpportunities(slug),
+  });
+  const rows: SiteOpportunity[] = data?.rows ?? [];
+  const hasGenerated = !!data?.has_generated;
+  const queryErrMsg = queryError
+    ? ((queryError as { response?: { data?: { detail?: string } }; message?: string }).response
+        ?.data?.detail ??
+      (queryError as { message?: string }).message ??
+      "Failed to load opportunities")
+    : null;
+  const error = regenError || queryErrMsg;
 
   const handleRegenerate = async () => {
     setRegenerating(true);
-    setError(null);
+    setRegenError(null);
     try {
       const res = await regenerateSiteBacklinkOpportunities(slug);
-      setRows(res.rows);
-      setHasGenerated(true);
+      queryClient.setQueryData(queryKey, { rows: res.rows, has_generated: true });
     } catch (err: unknown) {
       const e = err as {
         response?: { data?: { detail?: string } };
@@ -89,7 +82,7 @@ export function SiteBacklinkOpportunitiesPanel({ slug }: Props) {
         e.code === "ECONNABORTED"
           ? "Generation took too long. Try again, or refresh in a moment."
           : (e.response?.data?.detail ?? e.message ?? "Failed to generate");
-      setError(msg);
+      setRegenError(msg);
     } finally {
       setRegenerating(false);
     }
