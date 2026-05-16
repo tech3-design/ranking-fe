@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowRight,
@@ -745,8 +746,6 @@ export default function BlogAgentPage() {
   const { slug } = useParams<{ slug: string }>();
   const { run } = useRun();
 
-  const [wpData, setWpData] = useState<BlogPostsResponse | null>(null);
-  const [wpLoading, setWpLoading] = useState(true);
   const [step, setStep] = useState<Step>("generate");
 
   const [draft, setDraft] = useState<BlogDraft | null>(null);
@@ -757,23 +756,25 @@ export default function BlogAgentPage() {
   } | null>(null);
 
   const email = run?.email ?? "";
+  const queryClient = useQueryClient();
 
-  const loadWpStatus = useCallback(async () => {
-    if (!slug) return;
-    setWpLoading(true);
-    try {
-      const data = await getBlogPosts(slug);
-      setWpData(data);
-    } catch {
-      setWpData({ connected: false, posts: [] });
-    } finally {
-      setWpLoading(false);
-    }
-  }, [slug]);
+  // Blog posts list cached by slug — survives tab switches via QueryClient.
+  const { data: wpData, isLoading: wpLoading } = useQuery({
+    queryKey: ["blog-posts", slug],
+    enabled: !!slug,
+    queryFn: () =>
+      getBlogPosts(slug).catch(() => ({ connected: false, posts: [] }) as BlogPostsResponse),
+  });
 
-  useEffect(() => {
-    loadWpStatus();
-  }, [loadWpStatus]);
+  const loadWpStatus = () => queryClient.invalidateQueries({ queryKey: ["blog-posts", slug] });
+
+  const setWpData = (
+    updater: (prev: BlogPostsResponse | null | undefined) => BlogPostsResponse | undefined,
+  ) =>
+    queryClient.setQueryData<BlogPostsResponse | undefined>(
+      ["blog-posts", slug],
+      (prev) => updater(prev) ?? prev,
+    );
 
   async function handleGenerate(topic: string, tone: Tone, wordCount: number) {
     setPublishResult(null);
@@ -790,7 +791,7 @@ export default function BlogAgentPage() {
 
   function handlePostDeleted(postId: number) {
     setWpData((prev) => {
-      if (!prev) return prev;
+      if (!prev) return undefined;
       return {
         ...prev,
         posts: prev.posts.filter((p) => p.id !== postId),

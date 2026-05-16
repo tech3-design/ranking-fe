@@ -55,12 +55,18 @@ export interface SubscriptionStatus {
 export async function createCheckoutSession(
   email: string,
   plan: string = "starter",
-  opts: { country?: string; currency?: string } = {},
+  opts: { country?: string; currency?: string; partnerCode?: string } = {},
 ): Promise<{ checkout_url: string }> {
   try {
     const { data } = await apiClient.post<{ checkout_url: string; error?: string }>(
       "/api/payments/create-checkout/",
-      { email, plan, country: opts.country, currency: opts.currency },
+      {
+        email,
+        plan,
+        country: opts.country,
+        currency: opts.currency,
+        partner_code: opts.partnerCode,
+      },
     );
     return data;
   } catch (err: unknown) {

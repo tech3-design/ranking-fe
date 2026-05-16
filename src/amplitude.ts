@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import * as amplitude from "@amplitude/unified";
+import { Types } from "@amplitude/unified";
 import { useConsentStore } from "@/lib/stores/consent-store";
 
 let inited = false;
@@ -11,7 +12,10 @@ function initOnce() {
   if (typeof window === "undefined") return;
   inited = true;
   amplitude.initAll("9c3b450cf48a3c4ad11a7799efd9d7c6", {
-    analytics: { autocapture: true },
+    analytics: {
+      autocapture: true,
+      logLevel: Types.LogLevel.None,
+    },
     sessionReplay: { sampleRate: 1 },
   });
 }

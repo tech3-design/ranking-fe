@@ -136,10 +136,9 @@ export function useCurrency(): {
     };
   }, []);
 
-  function selectCurrency(code: CurrencyCode) {
-    manualOverride.current = true;
+  const selectCurrency = (code: CurrencyCode) => {
     setCurrency(CURRENCIES[code]);
-  }
+  };
 
   return { currency, ready, country, selectCurrency };
 }

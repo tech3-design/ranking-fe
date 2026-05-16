@@ -187,9 +187,21 @@ function PricingPageInner() {
             /* ignore */
           }
         }
+        // Read partner code from localStorage (set by AffiliateCapture when
+        // the visitor lands with ?aff=CODE). Expired codes are ignored so a
+        // stale cookie never silently applies a discount.
+        let partnerCode: string | undefined;
+        try {
+          const code = localStorage.getItem("signalor.partner.code");
+          const expires = Number(localStorage.getItem("signalor.partner.expiresAt") || 0);
+          if (code && (!expires || expires > Date.now())) partnerCode = code;
+        } catch {
+          /* ignore */
+        }
         const { checkout_url } = await createCheckoutSession(session.user.email, planId, {
           country: detectedCountry ?? undefined,
           currency: currency.code,
+          partnerCode,
         });
         window.location.href = checkout_url;
       } catch (e) {

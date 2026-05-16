@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getPromptTracks, recheckAllPrompts, type PromptTrack } from "@/lib/api/analyzer";
 import { PromptTracker } from "@/components/analyzer/prompt-tracker";
 import { AlertCircle } from "@/components/icons";
@@ -9,34 +10,36 @@ import { PromptsSkeleton } from "@/components/dashboard/skeletons";
 
 export default function PromptsOverviewPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [tracks, setTracks] = useState<PromptTrack[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
   const [recheckingAll, setRecheckingAll] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    if (!slug) return;
-    try {
-      setLoading(true);
-      const data = await getPromptTracks(slug);
-      setTracks(data);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load prompts");
-    } finally {
-      setLoading(false);
-    }
-  }, [slug]);
+  // Cached across tab switches via QueryClient (5min staleTime, 30min gcTime).
+  const {
+    data: tracks = [] as PromptTrack[],
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ["prompt-tracks", slug],
+    enabled: !!slug,
+    queryFn: () => getPromptTracks(slug),
+  });
+  const error =
+    queryError instanceof Error ? queryError.message : queryError ? "Failed to load prompts" : "";
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const setTracks = (updater: (prev: PromptTrack[]) => PromptTrack[]) => {
+    queryClient.setQueryData<PromptTrack[]>(["prompt-tracks", slug], (prev) => updater(prev ?? []));
+  };
+
+  const refetchTracks = () => {
+    queryClient.invalidateQueries({ queryKey: ["prompt-tracks", slug] });
+  };
 
   async function handleRecheckAll() {
     if (!slug) return;
     setRecheckingAll(true);
     try {
       await recheckAllPrompts(slug);
-      await fetchData();
+      refetchTracks();
     } catch {
       /* ignore */
     } finally {
@@ -115,7 +118,7 @@ export default function PromptsOverviewPage() {
             slug={slug}
             tracks={tracks}
             onAdded={(track) => setTracks((prev) => [track, ...prev])}
-            onRechecked={() => fetchData()}
+            onRechecked={() => refetchTracks()}
             onDeleted={(trackId) => setTracks((prev) => prev.filter((t) => t.id !== trackId))}
             onRecheckAll={handleRecheckAll}
             recheckingAll={recheckingAll}

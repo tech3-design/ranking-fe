@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { AlertCircle, ExternalLink } from "@/components/icons";
 import { BrowserChrome } from "@/components/optimisation/browser-chrome";
@@ -22,7 +23,6 @@ export default function ContentOptimisationPage() {
   const { slug } = useParams<{ slug: string }>();
   const { run } = useRun();
 
-  const [pages, setPages] = useState<ContentPage[]>([]);
   const [url, setUrl] = useState("");
   const [pageFields, setPageFields] = useState<ContentPageFields | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
@@ -42,30 +42,19 @@ export default function ContentOptimisationPage() {
   const [historyIdx, setHistoryIdx] = useState(-1);
   const navigatingFromHistory = useRef(false);
 
-  // Load pages once per project. Falls back to the run's home URL so the
-  // browser always has something to render on first open, even if the
-  // sitemap audit hasn't been run yet.
+  // Cached across tab switches via QueryClient (5min staleTime, 30min gcTime).
+  const { data: pages = [] as ContentPage[] } = useQuery({
+    queryKey: ["content-pages", slug],
+    enabled: !!slug,
+    queryFn: () => getContentPages(slug).catch(() => [] as ContentPage[]),
+  });
+
+  // Seed the URL once pages arrive (or fall back to the run's home URL).
   useEffect(() => {
-    if (!slug) return;
-    let cancelled = false;
-    getContentPages(slug)
-      .then((p) => {
-        if (cancelled) return;
-        setPages(p);
-        if (!url) {
-          const initial = p[0]?.url || run?.url || "";
-          if (initial) setUrl(initial);
-        }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        if (!url && run?.url) setUrl(run.url);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, run?.url]);
+    if (url) return;
+    const initial = pages[0]?.url || run?.url || "";
+    if (initial) setUrl(initial);
+  }, [pages, run?.url, url]);
 
   const loadPage = useCallback(
     async (target: string) => {
@@ -79,7 +68,8 @@ export default function ContentOptimisationPage() {
         const data = await getContentPageFields(slug, target);
         setPageFields(data);
       } catch (err: unknown) {
-        const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+        const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data
+          ?.detail;
         setPageError(detail || "Couldn't load this page.");
         setPageFields(null);
       } finally {
@@ -195,8 +185,8 @@ export default function ContentOptimisationPage() {
             <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
               <AlertCircle className="size-3.5" />
               <span>
-                No plugin connected. Click any element to edit, but applying needs
-                WordPress or Shopify.
+                No plugin connected. Click any element to edit, but applying needs WordPress or
+                Shopify.
               </span>
               <Link
                 href={`/dashboard/${slug}/settings/integrations`}
@@ -206,9 +196,7 @@ export default function ContentOptimisationPage() {
               </Link>
             </div>
           ) : null}
-          {error ? (
-            <p className="text-[11px] text-rose-600 dark:text-rose-400">{error}</p>
-          ) : null}
+          {error ? <p className="text-[11px] text-rose-600 dark:text-rose-400">{error}</p> : null}
           {notice ? (
             <p className="text-[11px] text-emerald-600 dark:text-emerald-400">{notice}</p>
           ) : null}

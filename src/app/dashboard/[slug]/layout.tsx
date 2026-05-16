@@ -40,8 +40,8 @@ import {
   TrackerIcon,
   CompetitorsIcon,
   ContentIcon,
-  BacklinksIcon,
   BlogAgentIcon,
+  BacklinksIcon,
 } from "@/components/icons/nav";
 import LogoComp from "@/components/LogoComp";
 import { AiChat } from "@/components/analyzer/ai-chat";
@@ -86,8 +86,8 @@ const MAIN_NAV_GROUPS: MainNavGroup[] = [
     heading: "Optimisation",
     items: [
       { icon: ContentIcon, label: "Content", path: "/optimisation/content" },
-      { icon: BacklinksIcon, label: "Backlinks", path: "/backlinks" },
       { icon: BlogAgentIcon, label: "Blog Agent", path: "/blog-agent" },
+      { icon: BacklinksIcon, label: "Backlinks", path: "/backlinks" },
     ],
   },
 ];
@@ -145,17 +145,17 @@ function sectionForDashboardPath(pathname: string, basePath: string): DashboardA
       hint: "Generate, refine, and ship AI-optimised content for your brand.",
     };
   }
+  if (rel.startsWith("/blog-agent")) {
+    return {
+      title: "Blog Agent",
+      hint: "Generate AI drafts or write yourself, then publish to your connected CMS.",
+    };
+  }
   if (rel.startsWith("/backlinks")) {
     return {
       title: "Backlinks",
       hint: "Earn citations on the open web, free submission targets and paid placements.",
       docsUrl: "https://docs.signalor.ai/backlinks",
-    };
-  }
-  if (rel.startsWith("/blog-agent")) {
-    return {
-      title: "Blog Agent",
-      hint: "Generate and publish AI-written blog posts directly to your WordPress site.",
     };
   }
   if (rel.startsWith("/prompts/backlinks")) {

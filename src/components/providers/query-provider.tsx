@@ -9,9 +9,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
  * if we constructed it at module scope, every Server-Component render
  * would reuse the same instance across requests, leaking state.
  *
- * Defaults are conservative: 30s freshness, 1 retry, no auto-refetch on
- * window focus (the analyzer dashboard already has its own refetch
- * triggers via the org switcher and run context).
+ * Cache defaults are tuned so that flipping between dashboard tabs does
+ * NOT re-trigger a network round-trip + loading skeleton on the way back:
+ *   - staleTime 5 min  : data is "fresh" — useQuery returns cached on remount
+ *   - gcTime 30 min    : cached results survive route unmount/remount
+ *   - refetchOnMount   : `false` for stable data, components that need
+ *                        live data should opt in per-query
+ *   - refetchOnWindowFocus / Reconnect: off, the analyzer dashboard
+ *     already has its own refetch triggers (org switcher, run context).
+ *
+ * Individual queries can still opt back into shorter staleTime / mount
+ * refetch by passing those options to useQuery() — these are just the
+ * defaults.
  */
 export function QueryProvider({ children }: { children: ReactNode }) {
   const [client] = useState(
@@ -19,10 +28,12 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 30_000,
-            gcTime: 5 * 60_000,
+            staleTime: 5 * 60_000,
+            gcTime: 30 * 60_000,
             retry: 1,
+            refetchOnMount: false,
             refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
           },
         },
       }),
