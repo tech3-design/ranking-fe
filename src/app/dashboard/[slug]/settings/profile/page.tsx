@@ -158,12 +158,18 @@ export default function ProfileSettingsPage() {
     setError(null);
     try {
       await deleteAccount(email, deleteConfirmText);
-      await signOut();
-      router.push(routes.signIn);
     } catch {
-      setError("Failed to delete account.");
+      setError("Failed to delete account. Make sure the backend is running and try again.");
       setDeleting(false);
+      return;
     }
+    // Account data deleted — sign out (best-effort, never blocks the redirect)
+    try {
+      await signOut();
+    } catch {
+      // ignore
+    }
+    router.push(routes.signIn);
   }
 
   async function handleSignOut() {
@@ -171,12 +177,12 @@ export default function ProfileSettingsPage() {
     setError(null);
     try {
       await signOut();
-      router.push(routes.signIn);
     } catch {
-      setError("Failed to sign out.");
+      // ignore sign-out error — redirect anyway
     } finally {
       setSigningOut(false);
     }
+    router.push(routes.signIn);
   }
 
   return (

@@ -67,10 +67,10 @@ export default function PrivacyPolicyPage() {
         <div>
           <h2 className="text-base font-semibold">3. Legal Basis for Processing (EEA/UK Users)</h2>
           <p className="mt-2">
-            Where the GDPR or UK GDPR applies, we process personal data on the basis of:
-            performance of a contract with you; our legitimate interests in operating and improving
-            the Service; your consent (where required, e.g. for certain cookies); and compliance
-            with legal obligations.
+            Where the GDPR or UK GDPR applies, we process personal data on the basis of: performance
+            of a contract with you; our legitimate interests in operating and improving the Service;
+            your consent (where required, e.g. for certain cookies); and compliance with legal
+            obligations.
           </p>
         </div>
 
@@ -103,13 +103,9 @@ export default function PrivacyPolicyPage() {
             </li>
           </ul>
           <p className="mt-2">
-            You may revoke an integration at any time from
-            {" "}
-            <Link href="/settings/integrations" className="underline hover:text-foreground">
-              Settings &rarr; Integrations
-            </Link>
-            . When you disconnect, we stop accessing the third party and delete or invalidate the
-            associated tokens.
+            You may revoke an integration at any time from your account settings . When you
+            disconnect, we stop accessing the third party and delete or invalidate the associated
+            tokens.
           </p>
         </div>
 
@@ -153,8 +149,8 @@ export default function PrivacyPolicyPage() {
             know what is collected and the right to opt out of certain sharing.
           </p>
           <p className="mt-2">
-            To exercise these rights, contact us using the details below. We will respond within
-            the timeframe required by applicable law.
+            To exercise these rights, contact us using the details below. We will respond within the
+            timeframe required by applicable law.
           </p>
         </div>
 
@@ -188,12 +184,8 @@ export default function PrivacyPolicyPage() {
         <div>
           <h2 className="text-base font-semibold">12. Contact</h2>
           <p className="mt-2">
-            For privacy-related questions, requests, or complaints, contact us at
-            {" "}
-            <a
-              href="mailto:tech3@optiminastic.com"
-              className="underline hover:text-foreground"
-            >
+            For privacy-related questions, requests, or complaints, contact us at{" "}
+            <a href="mailto:tech3@optiminastic.com" className="underline hover:text-foreground">
               tech3@optiminastic.com
             </a>
             .

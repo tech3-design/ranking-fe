@@ -79,7 +79,8 @@ export default function ContentOptimisationPage() {
         const data = await getContentPageFields(slug, target);
         setPageFields(data);
       } catch (err: unknown) {
-        const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+        const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data
+          ?.detail;
         setPageError(detail || "Couldn't load this page.");
         setPageFields(null);
       } finally {
@@ -195,20 +196,15 @@ export default function ContentOptimisationPage() {
             <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
               <AlertCircle className="size-3.5" />
               <span>
-                No plugin connected. Click any element to edit, but applying needs
-                WordPress or Shopify.
+                No plugin connected. Click any element to edit, but applying needs WordPress or
+                Shopify.
               </span>
-              <Link
-                href={`/dashboard/${slug}/settings/integrations`}
-                className="inline-flex items-center gap-0.5 font-semibold text-primary hover:underline"
-              >
-                Connect <ExternalLink className="size-3" />
-              </Link>
+              <span className="inline-flex items-center gap-0.5 font-semibold text-primary">
+                Connect
+              </span>
             </div>
           ) : null}
-          {error ? (
-            <p className="text-[11px] text-rose-600 dark:text-rose-400">{error}</p>
-          ) : null}
+          {error ? <p className="text-[11px] text-rose-600 dark:text-rose-400">{error}</p> : null}
           {notice ? (
             <p className="text-[11px] text-emerald-600 dark:text-emerald-400">{notice}</p>
           ) : null}

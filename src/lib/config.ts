@@ -31,7 +31,4 @@ export const routes = {
   analyzerResults: (_runId: string | number) => "/sign-up",
   settingsAccount: "/settings/account",
   settingsBilling: "/settings/billing",
-  settingsIntegrations: "/settings/integrations",
-  settingsNotifications: "/settings/notifications",
-  gaCallbackPage: "/settings/integrations/callback/google-analytics",
 } as const;

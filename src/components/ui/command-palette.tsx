@@ -11,8 +11,6 @@ import {
   BarChart3,
   User,
   CreditCard,
-  PlugZap,
-  Bell,
   Search,
   RefreshCw,
   Download,
@@ -162,18 +160,6 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                   label="Billing"
                   desc="Subscription & payments"
                   onSelect={() => go(`${base}/settings/billing`)}
-                />
-                <PaletteItem
-                  icon={PlugZap}
-                  label="Integrations"
-                  desc="Connect services"
-                  onSelect={() => go(`${base}/settings/integrations`)}
-                />
-                <PaletteItem
-                  icon={Bell}
-                  label="Notifications"
-                  desc="Alert preferences"
-                  onSelect={() => go(`${base}/settings/notifications`)}
                 />
               </Command.Group>
 
