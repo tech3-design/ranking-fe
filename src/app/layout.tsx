@@ -110,6 +110,15 @@ export default function RootLayout({
         <Script
           src="https://guide.signalor.ai/~gitbook/embed/script.js"
           strategy="afterInteractive"
+          onLoad={() => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const gb = (window as any).GitBook;
+            if (typeof gb === "function") {
+              gb("configure", {
+                button: { label: "Ask AI", icon: "assistant" },
+              });
+            }
+          }}
         />
       </body>
     </html>
