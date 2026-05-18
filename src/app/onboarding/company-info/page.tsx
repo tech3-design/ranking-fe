@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createOrganization } from "@/lib/api/organizations";
 import { startAnalysis } from "@/lib/api/analyzer";
-import { getSubscriptionStatus } from "@/lib/api/payments";
+import { getSubscriptionStatus, getUsage } from "@/lib/api/payments";
 import { getShopifyAuthUrl, connectWordPress } from "@/lib/api/integrations";
 import { OnboardingStepper } from "@/components/auth/onboarding-stepper";
 import { config, routes, signalorWpPlugin } from "@/lib/config";
@@ -198,6 +198,24 @@ export default function CompanyInfoPage() {
     if (!isPending && !session) router.replace(routes.signIn);
   }, [isPending, session, router]);
 
+  // Proactively bounce to /pricing if the user is already at their project
+  // limit, so they don't fill the form only to hit a dead-end 403 on submit.
+  useEffect(() => {
+    if (isPending || !session?.user?.email) return;
+    let cancelled = false;
+    getUsage(session.user.email)
+      .then((u) => {
+        if (cancelled) return;
+        if (u.at_limit?.projects) {
+          router.replace(`/pricing?returnTo=${encodeURIComponent(routes.onboardingCompanyInfo)}`);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isPending, session, router]);
+
   // Handle return from Shopify OAuth / app install
   useLayoutEffect(() => {
     if (typeof window === "undefined" || !session?.user?.email) return;
@@ -354,6 +372,16 @@ export default function CompanyInfoPage() {
         setStep("install");
       }
     } catch (err) {
+      // Plan-limit 403 (e.g. "Your Starter plan allows 2 project(s)…") →
+      // bounce to /pricing so the user can upgrade instead of seeing an
+      // inline dead-end error.
+      if (axios.isAxiosError(err) && err.response?.status === 403) {
+        setError("");
+        setStatusMsg("");
+        setLoading(false);
+        router.push(`/pricing?returnTo=${encodeURIComponent(routes.onboardingCompanyInfo)}`);
+        return;
+      }
       setError(fmtErr(err));
     } finally {
       setLoading(false);
@@ -518,6 +546,21 @@ export default function CompanyInfoPage() {
       }
       router.push(routes.dashboardProject(a.slug));
     } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 403) {
+        storePendingAnalysisAfterPayment({
+          url: siteUrl,
+          run_type: "single_page",
+          email: session.user.email,
+          brand_name: companyName.trim(),
+          org_id: orgId,
+          prompts: promptList,
+        });
+        setError("");
+        setStatusMsg("");
+        setLoading(false);
+        router.push(`/pricing?returnTo=${encodeURIComponent(routes.onboardingCompanyInfo)}`);
+        return;
+      }
       setError(fmtErr(err));
       setStatusMsg("");
       setLoading(false);
