@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Globe2, Loader2 } from "@/components/icons";
+import { Globe2, Loader2, RotateCw } from "@/components/icons";
 import type { PreviewElement } from "@/lib/api/content-optimisation";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,7 @@ type Props = {
   viewportWidth: number;
   isLoading: boolean;
   emptyMessage?: string;
+  onRetry?: () => void;
   selectedElementId: number | null;
   onSelectElement: (el: PreviewElement | null) => void;
 };
@@ -24,6 +25,7 @@ export function PageIframe({
   viewportWidth,
   isLoading,
   emptyMessage,
+  onRetry,
   selectedElementId,
   onSelectElement,
 }: Props) {
@@ -42,11 +44,21 @@ export function PageIframe({
 
   if (!previewImage) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 bg-muted/15 px-8 text-center">
+      <div className="flex h-full flex-col items-center justify-center gap-3 bg-muted/15 px-8 text-center">
         <Globe2 className="size-7 text-muted-foreground/60" />
         <p className="text-[13px] text-muted-foreground">
-          {emptyMessage || "Enter a URL to load a page."}
+          {emptyMessage || "Select a page from the dropdown above to load a preview."}
         </p>
+        {onRetry && emptyMessage ? (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 text-[12px] font-medium text-foreground transition hover:bg-muted/70"
+          >
+            <RotateCw className="size-3.5" />
+            Try again
+          </button>
+        ) : null}
       </div>
     );
   }

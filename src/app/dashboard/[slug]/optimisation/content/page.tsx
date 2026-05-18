@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -49,7 +49,28 @@ export default function ContentOptimisationPage() {
     queryFn: () => getContentPages(slug).catch(() => [] as ContentPage[]),
   });
 
-  // Seed the URL once pages arrive (or fall back to the run's home URL).
+  // Lock the domain from the run's base URL so users can only edit the path.
+  const baseUrl = useMemo(() => {
+    const raw = run?.url ?? "";
+    if (!raw) return "";
+    try {
+      return new URL(raw.includes("://") ? raw : `https://${raw}`).origin;
+    } catch {
+      return "";
+    }
+  }, [run?.url]);
+
+  // Set URL immediately from run?.url without waiting for pages to load.
+  // Normalize to include protocol so getPath() can strip the domain correctly.
+  const didInitUrl = useRef(false);
+  useEffect(() => {
+    if (didInitUrl.current || !run?.url) return;
+    didInitUrl.current = true;
+    const raw = run.url.trim();
+    setUrl(raw.includes("://") ? raw : `https://${raw}`);
+  }, [run?.url]);
+
+  // Seed the URL once pages arrive (fallback if run?.url arrives late).
   useEffect(() => {
     if (url) return;
     const initial = pages[0]?.url || run?.url || "";
@@ -67,6 +88,11 @@ export default function ContentOptimisationPage() {
       try {
         const data = await getContentPageFields(slug, target);
         setPageFields(data);
+        if (!data.preview_image) {
+          setPageError(
+            "Visual preview unavailable — run `playwright install chromium` on the server to enable screenshots.",
+          );
+        }
       } catch (err: unknown) {
         const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data
           ?.detail;
@@ -168,6 +194,7 @@ export default function ContentOptimisationPage() {
       <div data-tour-card="content-chrome">
         <BrowserChrome
           url={url}
+          baseUrl={baseUrl}
           pages={pages}
           canGoBack={historyIdx > 0}
           canGoForward={historyIdx >= 0 && historyIdx < history.length - 1}
@@ -188,9 +215,12 @@ export default function ContentOptimisationPage() {
                 No plugin connected. Click any element to edit, but applying needs WordPress or
                 Shopify.
               </span>
-              <span className="inline-flex items-center gap-0.5 font-semibold text-primary">
-                Connect
-              </span>
+              <Link
+                href={`/dashboard/${slug}/settings/integrations`}
+                className="inline-flex items-center gap-0.5 font-semibold text-primary hover:underline"
+              >
+                Connect <ExternalLink className="size-3" />
+              </Link>
             </div>
           ) : null}
           {error ? <p className="text-[11px] text-rose-600 dark:text-rose-400">{error}</p> : null}
@@ -211,6 +241,7 @@ export default function ContentOptimisationPage() {
             viewportWidth={pageFields?.preview_viewport_width || 1440}
             isLoading={pageLoading}
             emptyMessage={pageError || undefined}
+            onRetry={url ? () => loadPage(url) : undefined}
             selectedElementId={selectedElement?.id ?? null}
             onSelectElement={setSelectedElement}
           />
