@@ -45,6 +45,8 @@ const CSP = [
     "https://staging.api.signalor.ai",
     "https://staging.signalor.ai",
     "https://cdn.sanity.io",
+    "https://bf4vwhx5.api.sanity.io",
+    "https://bf4vwhx5.apicdn.sanity.io",
     "https://api.amplitude.com",
     "https://api2.amplitude.com",
     "https://analytics.amplitude.com",
