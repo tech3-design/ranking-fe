@@ -33,16 +33,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { LANDING_PRIMARY_CTA_CLASS } from "@/components/landing/constants";
 import { useSession } from "@/lib/auth-client";
-import amplitude from "@/amplitude";
-
-function trackNav(event: string, props?: Record<string, unknown>) {
-  if (typeof window === "undefined") return;
-  try {
-    amplitude.track(event, props);
-  } catch {
-    /* noop — amplitude not yet initialized (no consent) */
-  }
-}
+import { trackEvent as trackNav } from "@/amplitude";
 
 type MegaKey = "solutions" | "features" | "freeTools" | "resources";
 
