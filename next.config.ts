@@ -1,40 +1,6 @@
 import type { NextConfig } from "next";
 import path from "path";
 
-const CSP = [
-  "default-src 'self'",
-  // Next.js inline scripts + third-party analytics/tracking
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.amplitude.com https://www.clarity.ms https://c.bing.com https://analytics.ahrefs.com",
-  // Tailwind inline styles + Google Fonts
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  // Sanity image CDN, analytics pixels, data URIs
-  "img-src 'self' https: data: blob:",
-  // Google Fonts files
-  "font-src 'self' https://fonts.gstatic.com data:",
-  // API calls, analytics endpoints, DuckDuckGo autocomplete (server-proxied)
-  [
-    "connect-src 'self'",
-    "https://api.signalor.ai",
-    "https://staging.signalor.ai",
-    "https://cdn.sanity.io",
-    "https://*.amplitude.com",
-    "https://*.google-analytics.com",
-    "https://www.googletagmanager.com",
-    "https://www.clarity.ms",
-    "https://c.bing.com",
-    "https://analytics.ahrefs.com",
-  ].join(" "),
-  // Dodo Payments redirects to their checkout URL; no frames needed from us
-  // Amplitude session replay spawns workers from blob: URLs
-  "worker-src 'self' blob:",
-  "frame-src https://checkout.dodopayments.com https://app.dodopayments.com",
-  "frame-ancestors 'none'",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "upgrade-insecure-requests",
-].join("; ");
-
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
@@ -46,7 +12,6 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
   },
-  { key: "Content-Security-Policy", value: CSP },
 ];
 
 const nextConfig: NextConfig = {
