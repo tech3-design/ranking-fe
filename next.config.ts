@@ -29,6 +29,7 @@ const CSP = [
     "https://cdn.amplitude.com",
     "https://www.clarity.ms",
     "https://c.bing.com",
+    "https://guide.signalor.ai",
     ...devScriptSrc,
   ].join(" "),
   // Tailwind inline styles + Google Fonts
@@ -54,13 +55,12 @@ const CSP = [
     "https://region1.google-analytics.com",
     "https://www.clarity.ms",
     "https://c.bing.com",
-    // Local backend in dev
-    ...(process.env.NODE_ENV === "development"
-      ? ["http://localhost:8000", "http://127.0.0.1:8000"]
-      : []),
+    // GitBook embed widget
+    "https://guide.signalor.ai",
+    ...devConnectSrc,
   ].join(" "),
   // Dodo Payments redirects to their checkout URL; no frames needed from us
-  "frame-src https://checkout.dodopayments.com https://app.dodopayments.com",
+  "frame-src https://checkout.dodopayments.com https://app.dodopayments.com https://guide.signalor.ai",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",
