@@ -27,13 +27,13 @@ export function ShopifyConnectForm({ email, orgId, onConnected }: ShopifyConnect
       const returnTo =
         typeof window !== "undefined"
           ? `${window.location.pathname}${window.location.search}`
-          : "/settings/integrations";
+          : "/dashboard";
       const { auth_url } = await getShopifyAuthUrl(email, shopDomain.trim(), returnTo, orgId);
       window.location.href = auth_url;
     } catch (err: unknown) {
       const message =
-        (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error || "Failed to start Shopify connection.";
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        "Failed to start Shopify connection.";
       setError(message);
     } finally {
       setConnecting(false);
@@ -61,7 +61,8 @@ export function ShopifyConnectForm({ email, orgId, onConnected }: ShopifyConnect
         />
       </div>
       <p className="text-xs text-muted-foreground mt-1">
-        Paste your store URL or myshopify.com domain. You&apos;ll be redirected to Shopify to authorize access.
+        Paste your store URL or myshopify.com domain. You&apos;ll be redirected to Shopify to
+        authorize access.
       </p>
       <Button type="submit" disabled={connecting} className="w-full">
         {connecting ? "Redirecting to Shopify..." : "Connect Shopify"}

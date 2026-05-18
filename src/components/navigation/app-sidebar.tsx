@@ -32,9 +32,7 @@ export function AppSidebar() {
   const [signingOut, setSigningOut] = useState(false);
 
   // Match /dashboard/[slug]/analytics or /dashboard/[slug]/integrations
-  const runMatch = pathname.match(
-    /^\/dashboard\/([a-zA-Z0-9_-]+)\/(integrations|analytics)$/,
-  );
+  const runMatch = pathname.match(/^\/dashboard\/([a-zA-Z0-9_-]+)\/(integrations|analytics)$/);
   const slug = runMatch ? runMatch[1] : null;
   const runSubPage = runMatch?.[2] ?? null;
   const isRunScopedSubpage = slug !== null && !!runSubPage;
@@ -50,12 +48,8 @@ export function AppSidebar() {
   }, [isRunScopedSubpage, slug]);
 
   const mainItems: LinkItem[] = useMemo(() => {
-    const isIntegrationsPage =
-      pathname === routes.settingsIntegrations ||
-      pathname.startsWith(`${routes.settingsIntegrations}/`);
     const isAccountPage =
-      pathname === routes.settingsAccount ||
-      pathname.startsWith(`${routes.settingsAccount}/`);
+      pathname === routes.settingsAccount || pathname.startsWith(`${routes.settingsAccount}/`);
 
     if (isRunScopedSubpage && slug) {
       return [
@@ -88,12 +82,6 @@ export function AppSidebar() {
 
     return [
       {
-        label: "Integrations",
-        href: routes.settingsIntegrations,
-        icon: PlugZap,
-        active: isIntegrationsPage,
-      },
-      {
         label: "Account",
         href: routes.settingsAccount,
         icon: User,
@@ -117,17 +105,25 @@ export function AppSidebar() {
       <SidebarBody className="justify-between gap-6">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="mb-3 border-b border-border/50 pb-3">
-            <div className={cn("flex items-center", open ? "justify-start gap-2" : "justify-center")}>
+            <div
+              className={cn("flex items-center", open ? "justify-start gap-2" : "justify-center")}
+            >
               <div className="rounded-md bg-primary/20 p-1.5 text-primary">
                 <Radar className="h-3.5 w-3.5" />
               </div>
-              {open ? <span className="text-sm font-semibold text-foreground">Signalor GEO</span> : null}
+              {open ? (
+                <span className="text-sm font-semibold text-foreground">Signalor GEO</span>
+              ) : null}
             </div>
 
             {open && isRunScopedSubpage && slug ? (
               <>
-                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary">Project</p>
-                <p className="mt-1 truncate text-xs text-muted-foreground">{runUrl || "Loading..."}</p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                  Project
+                </p>
+                <p className="mt-1 truncate text-xs text-muted-foreground">
+                  {runUrl || "Loading..."}
+                </p>
               </>
             ) : null}
           </div>
@@ -149,9 +145,7 @@ export function AppSidebar() {
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
-                  {open ? (
-                    <span className="text-sm">{item.label}</span>
-                  ) : null}
+                  {open ? <span className="text-sm">{item.label}</span> : null}
                 </button>
               );
             })}
@@ -176,7 +170,6 @@ export function AppSidebar() {
               </span>
             ) : null}
           </button>
-
         </div>
       </SidebarBody>
     </Sidebar>

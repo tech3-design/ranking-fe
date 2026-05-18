@@ -9,8 +9,6 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { label: "Profile", href: routes.settingsAccount },
   { label: "Billing", href: routes.settingsBilling },
-  { label: "Integrations", href: routes.settingsIntegrations },
-  { label: "Notifications", href: routes.settingsNotifications },
 ] as const;
 
 export function SettingsNav() {

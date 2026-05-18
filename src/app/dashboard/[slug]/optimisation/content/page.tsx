@@ -188,12 +188,9 @@ export default function ContentOptimisationPage() {
                 No plugin connected. Click any element to edit, but applying needs WordPress or
                 Shopify.
               </span>
-              <Link
-                href={`/dashboard/${slug}/settings/integrations`}
-                className="inline-flex items-center gap-0.5 font-semibold text-primary hover:underline"
-              >
-                Connect <ExternalLink className="size-3" />
-              </Link>
+              <span className="inline-flex items-center gap-0.5 font-semibold text-primary">
+                Connect
+              </span>
             </div>
           ) : null}
           {error ? <p className="text-[11px] text-rose-600 dark:text-rose-400">{error}</p> : null}

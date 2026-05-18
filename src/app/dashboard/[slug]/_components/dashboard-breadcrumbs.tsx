@@ -97,25 +97,13 @@ export function getDashboardBreadcrumbs(
     crumbs.push({ label: "Billing", href: null });
     return crumbs;
   }
-  if (rel.startsWith("/settings/integrations")) {
-    crumbs.push({ label: "Settings", href: settingsBaseHref(basePath) });
-    crumbs.push({ label: "Integrations", href: null });
-    return crumbs;
-  }
-  if (rel.startsWith("/settings/notifications")) {
-    crumbs.push({ label: "Settings", href: settingsBaseHref(basePath) });
-    crumbs.push({ label: "Notifications", href: null });
-    return crumbs;
-  }
   if (rel.startsWith("/settings")) {
     crumbs.push({ label: "Settings", href: null });
     return crumbs;
   }
 
   const tail = rel.replace(/^\//, "").split("/").filter(Boolean).pop();
-  const label = tail
-    ? tail.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-    : "Page";
+  const label = tail ? tail.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "Page";
   crumbs.push({ label, href: null });
   return crumbs;
 }
@@ -146,7 +134,10 @@ export function DashboardBreadcrumbNav({
                 </Link>
               ) : (
                 <span
-                  className={cn("truncate font-medium", isLast ? "text-foreground" : "text-muted-foreground")}
+                  className={cn(
+                    "truncate font-medium",
+                    isLast ? "text-foreground" : "text-muted-foreground",
+                  )}
                   aria-current={isLast ? "page" : undefined}
                 >
                   {item.label}

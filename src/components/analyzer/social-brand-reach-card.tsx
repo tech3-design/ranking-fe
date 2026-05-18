@@ -815,15 +815,7 @@ export function SocialBrandReachCard({
                   No country-level signal yet
                 </p>
                 <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
-                  Connect{" "}
-                  <Link
-                    href="/settings/integrations"
-                    className="font-medium underline-offset-2 hover:underline"
-                    style={{ color: coral }}
-                  >
-                    Google Analytics
-                  </Link>{" "}
-                  to map traffic by country.
+                  Connect Google Analytics to map traffic by country.
                 </p>
               </div>
             </div>
