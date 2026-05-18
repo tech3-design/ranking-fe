@@ -20,13 +20,13 @@ export default function BacklinksPage() {
           Backlinks
         </h2>
         <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-          Earn citations on the open web. Free shows submission targets you can
-          act on yourself; Paid lists vetted placement marketplaces.
+          Earn citations on the open web. Free shows submission targets you can act on yourself;
+          Paid lists vetted placement marketplaces.
         </p>
       </div>
 
       <div
-        className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit"
+        className="flex flex-wrap items-center gap-1 border-b border-border"
         data-tour-card="backlinks-tabs"
       >
         <TabButton
@@ -68,10 +68,10 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition",
+        "relative -mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-[13px] font-semibold transition-colors",
         active
-          ? "bg-background text-foreground shadow-sm"
-          : "text-muted-foreground hover:text-foreground",
+          ? "border-primary text-foreground"
+          : "border-transparent text-muted-foreground hover:text-foreground",
       )}
     >
       {icon}
